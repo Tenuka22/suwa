@@ -15,9 +15,9 @@
               "state": {
                 "file": "Research-Biometric-Reaction.canvas",
                 "viewState": {
-                  "x": 2056.273299086122,
-                  "y": -179.17293963440235,
-                  "zoom": -0.9123682557985169
+                  "x": -1494.3145311295111,
+                  "y": -1055.3275903807098,
+                  "zoom": -3.4550142202223326
                 }
               },
               "icon": "lucide-layout-dashboard",
@@ -189,6 +189,7 @@
   },
   "active": "adc957a27aedf576",
   "lastOpenFiles": [
+    "Ai System.md",
     "Crisis Safety System.md",
     "Research-Biometric-Reaction.canvas",
     "Research.canvas",
