@@ -1,0 +1,6 @@
+{
+  "extends": "@zen-doc/config/tsconfig.base.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}

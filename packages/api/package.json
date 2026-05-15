@@ -1,0 +1,29 @@
+{
+  "name": "@zen-doc/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@clerk/backend": "^3.2.1",
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "@zen-doc/db": "workspace:*",
+    "@zen-doc/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@zen-doc/config": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "^6"
+  }
+}

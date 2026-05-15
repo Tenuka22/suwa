@@ -1,0 +1,55 @@
+{
+  "name": "zen-doc",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "dotenv": "^17.2.2",
+      "zod": "^4.1.13",
+      "@types/node": "^22.13.14",
+      "@cloudflare/workers-types": "^4.20251213.0",
+      "hono": "^4.8.2",
+      "@orpc/server": "^1.13.14",
+      "@orpc/openapi": "^1.13.14",
+      "@orpc/zod": "^1.13.14",
+      "alchemy": "^0.91.2",
+      "next-themes": "^0.4.6",
+      "@orpc/tanstack-query": "^1.13.14",
+      "@orpc/client": "^1.13.14",
+      "@types/react-dom": "^19.2.3"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @zen-doc/db db:push",
+    "db:generate": "turbo -F @zen-doc/db db:generate",
+    "deploy": "turbo -F @zen-doc/infra deploy",
+    "destroy": "turbo -F @zen-doc/infra destroy",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "dependencies": {
+    "@zen-doc/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.15",
+    "@cloudflare/workers-types": "catalog:",
+    "@types/node": "catalog:",
+    "@zen-doc/config": "workspace:*",
+    "turbo": "^2.8.12",
+    "typescript": "^6",
+    "ultracite": "7.7.0"
+  },
+  "packageManager": "bun@1.3.10"
+}
