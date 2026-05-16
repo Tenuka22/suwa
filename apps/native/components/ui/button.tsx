@@ -8,7 +8,7 @@ interface ButtonProps {
   children: ReactNode;
   className?: string;
   disabled?: boolean;
-  href?: Href;
+  href?: string;
   onPress?: () => unknown;
   variant?: ButtonVariant;
 }
@@ -46,7 +46,7 @@ export const Button = ({
 
   if (href) {
     return (
-      <Link asChild href={href}>
+      <Link asChild href={href as Href}>
         {button}
       </Link>
     );

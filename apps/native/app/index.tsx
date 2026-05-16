@@ -63,6 +63,9 @@ export default function HomeScreen() {
               </Button>
             </View>
           )}
+          <Button href="/test" variant="secondary">
+            Open test suite
+          </Button>
         </View>
       </Screen>
     </>

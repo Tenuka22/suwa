@@ -11,15 +11,15 @@
 | Category | Data Type | Access Level | RN Support | Notes |
 |----------|----------|-------------|------------|------|
 | ❤️ Heart | Heart Rate | Structured | 🟢 | Sampled HealthKit data |
-| ❤️ Heart | HRV | Structured | 🟢 | HealthKit metrics, not raw sensor stream |
-| ❤️ Heart | ECG | Sampled | 🟡 | `HKElectrocardiogram` sample + voltage measurements |
-| 🫁 Respiration | Respiratory Rate | Structured | 🟢 | Mostly sleep-based |
+| ❤️ Heart | HRV | Structured | 🟢 | Summary metrics, not raw RR stream |
+| ❤️ Heart | ECG | Sampled | 🟡 | `HKElectrocardiogram` samples + voltage measurements |
+| 🫁 Respiration | Respiratory Rate | Structured | 🟢 | Available as HealthKit samples |
 | 🫁 Oxygen | SpO₂ | Structured | 🟢 | Device dependent |
-| 💤 Sleep | Sleep stages | Structured | 🟢 | Deep/Core/REM |
+| 💤 Sleep | Sleep stages | Structured | 🟢 | Sleep analysis from HealthKit |
 | 🚶 Activity | Steps / distance | Structured | 🟢 | Fully supported |
 | 🔥 Energy | Active calories | Structured | 🟢 | Apple computed |
-| 🧍 Body | Weight / BMI | Structured | 🟢 | Manual/device input |
-| 🧠 Wellness | Mindfulness / noise | Structured | 🟢 | Watch dependent |
+| 🧍 Body | Weight / BMI | Structured | 🟢 | Manual / device input |
+| 🧠 Wellness | Mindfulness / audio exposure | Structured | 🟢 | HealthKit samples |
 
 ---
 
@@ -44,15 +44,13 @@
 
 | Category | Data Type | Access | RN Support | Notes |
 |----------|----------|--------|------------|------|
-| ❤️ Heart | Heart Rate | Structured | 🟢 | Aggregated record data |
-| ❤️ Heart | HRV | Partial | ⚠️ | Health Connect exposes RMSSD-style HRV records, not raw RR streams |
+| ❤️ Heart | Heart rate | Structured | 🟢 | Record-based data |
+| 💤 Sleep | Sleep sessions | Structured | 🟢 | App-dependent records |
+| 🚶 Activity | Steps | Structured | 🟢 | Standard record data |
+| 🔥 Calories | Energy burned | Structured | 🟢 | Aggregated record data |
+| 🏃 Exercise | Workout sessions | Structured | 🟢 | App written sessions |
+| 🧍 Body | Weight / BMI | Structured | 🟢 | Manual / device data |
 | 🫁 Oxygen | SpO₂ | Structured | 🟡 | Not universal |
-| 💤 Sleep | Sleep stages | Structured | 🟢 | App dependent |
-| 🚶 Activity | Steps | Structured | 🟢 | Standard |
-| 🔥 Calories | Energy burned | Structured | 🟢 | Aggregated |
-| 🏃 Exercise | Workout sessions | Structured | 🟢 | From apps |
-| 🧍 Body | Weight / BMI | Structured | 🟢 | Manual/device |
-| 🛰️ Routes | Exercise routes | Partial | ⚠️ | Only when source apps write route data |
 
 ---
 
@@ -73,14 +71,14 @@
 
 | Category | Data Type | Raw Access | RN Support | Notes |
 |----------|----------|------------|------------|------|
-| ❤️ Heart | Heart Rate stream | Yes | ⚠️ | Continuous |
-| ❤️ Heart | RR intervals (IBI) | Yes | ⚠️ | Useful for HRV research |
+| ❤️ Heart | Heart rate stream | Yes | ❌ | Native bridge required |
+| ❤️ Heart | RR intervals (IBI) | Yes | ❌ | Useful for HRV research |
 | ❤️ Heart | ECG waveform | Yes | ❌ | Native SDK / bridge required |
 | ❤️ Heart | PPG waveform | Yes | ❌ | Optical signal |
 | 🧬 Body | Body composition / BIA | Yes | ❌ | Body composition measurements |
 | 🌡️ Temp | Skin temperature | Yes | ❌ | Continuous possible |
-| 🚶 Motion | Accelerometer | Yes | 🟢 | High-frequency |
-| 🚶 Motion | Gyroscope | Yes | 🟢 | Raw IMU |
+| 🚶 Motion | Accelerometer | Yes | ❌ | High-frequency raw IMU |
+| 🚶 Motion | Gyroscope | Yes | ❌ | Raw IMU |
 
 ---
 
@@ -105,9 +103,12 @@
 | Category | Data Type | Access | RN Support | Notes |
 |----------|----------|--------|------------|------|
 | ❤️ Heart | Heart rate timeline | Structured | 🟢 | Time series data |
+| ❤️ Heart | HRV | Structured | 🟢 | RMSSD-style summary |
+| ❤️ Heart | ECG | Structured | 🟢 | On-device ECG readings |
 | 💤 Sleep | Sleep logs / stages | Structured | 🟢 | High quality |
 | 🫁 Oxygen | SpO₂ trend | Structured | 🟢 | Night only |
 | 🚶 Activity | Steps | Structured | 🟢 | Standard |
+| 🫁 Breathing | Breathing rate | Structured | 🟢 | Night / sleep data |
 | 🧬 Body | Skin temperature | Structured | 🟢 | Summary / trend data |
 
 ---
@@ -118,7 +119,7 @@
 |--------|----------------|----------------|-------------|---------------------|
 | PPG waveform | ❌ | ❌ | 🟢 | ❌ |
 | ECG waveform | 🟡 | ❌ | 🟢 | ❌ |
-| RR intervals | ⚠️ | ❌ | 🟢 | ⚠️ |
+| RR intervals | ⚠️ | ❌ | 🟢 | ❌ |
 | Accelerometer | ❌ | ❌ | 🟢 | 🟢 |
 | Gyroscope | ❌ | ❌ | 🟢 | 🟢 |
 | Skin temperature | ❌ | ❌ | 🟢 | ❌ |
@@ -134,7 +135,7 @@
 |----------|--------|------|
 | `react-native-health` | iOS HealthKit | Structured |
 | `react-native-health-connect` | Android Health Connect | Structured |
-| `react-native-sensors` | Accelerometer / gyro | Raw motion |
+| `react-native-sensors` | Accelerometer / gyro / magnetometer / barometer | Raw motion |
 | Samsung Health Sensor SDK | Raw biosignals | Native only |
 | Fitbit Web API | Cloud wearable data | Historical |
 
