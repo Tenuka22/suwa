@@ -1,7 +1,12 @@
 import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@zen-doc/ui/components/sonner";
 import { useEffect } from "react";
@@ -61,7 +66,7 @@ function RootDocument() {
   return (
     <ClerkProvider>
       <ClerkApiAuthBridge />
-      <html lang="en" className="dark">
+      <html className="dark" lang="en">
         <head>
           <HeadContent />
         </head>
@@ -72,7 +77,7 @@ function RootDocument() {
           </div>
           <Toaster richColors />
           <TanStackRouterDevtools position="bottom-left" />
-          <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+          <ReactQueryDevtools buttonPosition="bottom-right" position="bottom" />
           <Scripts />
         </body>
       </html>

@@ -1,14 +1,13 @@
 import { useAuth, useSignUp } from "@clerk/expo";
-import { type Href, Link, useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Text, useColorScheme, View } from "react-native";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import { Screen } from "@/components/ui/screen";
+import { TextLink } from "@/components/ui/text-link";
 
 function pushDecoratedUrl(
   router: ReturnType<typeof useRouter>,
@@ -78,17 +77,12 @@ export default function Page() {
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{ flexGrow: 1 }}
-      contentInsetAdjustmentBehavior="automatic"
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="flex-1 justify-center px-page py-page">
+    <Screen contentClassName="flex-1 justify-center px-page py-page">
+      <View>
         {signUp.status === "missing_requirements" &&
         signUp.unverifiedFields.includes("email_address") &&
         signUp.missingFields.length === 0 ? (
-          <View className="gap-section rounded-card border-2 border-border bg-card p-card">
+          <Card>
             <Text className="font-medium font-sans text-4xl text-foreground">
               Verify your account
             </Text>
@@ -98,49 +92,35 @@ export default function Page() {
               </Text>
             ) : null}
 
-            <View className="gap-chip">
-              <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-                Verification code
-              </Text>
-              <TextInput
-                autoComplete="one-time-code"
-                className="rounded-control border-2 border-border bg-background px-card py-control font-sans text-foreground"
-                keyboardType="numeric"
-                onChangeText={setCode}
-                placeholder="Enter your verification code"
-                placeholderTextColor={placeholderTextColor}
-                value={code}
-              />
-              {errors.fields.code ? (
-                <Text className="font-medium font-sans text-destructive text-sm">
-                  {errors.fields.code.message}
-                </Text>
-              ) : null}
-            </View>
+            <Field
+              error={errors.fields.code?.message}
+              inputProps={{
+                autoComplete: "one-time-code",
+                keyboardType: "numeric",
+                onChangeText: setCode,
+                placeholder: "Enter your verification code",
+                placeholderTextColor,
+                value: code,
+              }}
+              label="Verification code"
+            />
 
-            <Pressable
-              accessibilityRole="button"
-              className="items-center rounded-control border-2 border-border bg-primary px-card py-control active:opacity-80 disabled:opacity-50"
+            <Button
               disabled={fetchStatus === "fetching"}
               onPress={handleVerify}
             >
-              <Text className="font-medium font-sans text-primary-foreground">
-                Verify
-              </Text>
-            </Pressable>
+              Verify
+            </Button>
 
-            <Pressable
-              accessibilityRole="button"
-              className="items-center rounded-control border-2 border-border bg-card px-card py-control active:opacity-80"
+            <Button
               onPress={() => signUp.verifications.sendEmailCode()}
+              variant="secondary"
             >
-              <Text className="font-medium font-sans text-foreground">
-                I need a new code
-              </Text>
-            </Pressable>
-          </View>
+              I need a new code
+            </Button>
+          </Card>
         ) : (
-          <View className="gap-section rounded-card border-2 border-border bg-card p-card">
+          <Card>
             <Text className="font-medium font-sans text-4xl text-foreground">
               Sign up
             </Text>
@@ -150,74 +130,52 @@ export default function Page() {
               </Text>
             ) : null}
 
-            <View className="gap-chip">
-              <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-                Email address
-              </Text>
-              <TextInput
-                autoCapitalize="none"
-                autoComplete="email"
-                className="rounded-control border-2 border-border bg-background px-card py-control font-sans text-foreground"
-                keyboardType="email-address"
-                onChangeText={setEmailAddress}
-                placeholder="Enter email"
-                placeholderTextColor={placeholderTextColor}
-                value={emailAddress}
-              />
-              {errors.fields.emailAddress ? (
-                <Text className="font-medium font-sans text-destructive text-sm">
-                  {errors.fields.emailAddress.message}
-                </Text>
-              ) : null}
-            </View>
+            <Field
+              error={errors.fields.emailAddress?.message}
+              inputProps={{
+                autoCapitalize: "none",
+                autoComplete: "email",
+                keyboardType: "email-address",
+                onChangeText: setEmailAddress,
+                placeholder: "Enter email",
+                placeholderTextColor,
+                value: emailAddress,
+              }}
+              label="Email address"
+            />
 
-            <View className="gap-chip">
-              <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-                Password
-              </Text>
-              <TextInput
-                className="rounded-control border-2 border-border bg-background px-card py-control font-sans text-foreground"
-                onChangeText={setPassword}
-                placeholder="Enter password"
-                placeholderTextColor={placeholderTextColor}
-                secureTextEntry
-                value={password}
-              />
-              {errors.fields.password ? (
-                <Text className="font-medium font-sans text-destructive text-sm">
-                  {errors.fields.password.message}
-                </Text>
-              ) : null}
-            </View>
+            <Field
+              error={errors.fields.password?.message}
+              inputProps={{
+                onChangeText: setPassword,
+                placeholder: "Enter password",
+                placeholderTextColor,
+                secureTextEntry: true,
+                value: password,
+              }}
+              label="Password"
+            />
 
-            <Pressable
-              accessibilityRole="button"
-              className="items-center rounded-control border-2 border-border bg-primary px-card py-control active:opacity-80 disabled:opacity-50"
+            <Button
               disabled={
                 !(emailAddress && password) || fetchStatus === "fetching"
               }
               onPress={handleSubmit}
             >
-              <Text className="font-medium font-sans text-primary-foreground">
-                Sign up
-              </Text>
-            </Pressable>
+              Sign up
+            </Button>
 
             <View className="flex-row items-center gap-chip">
               <Text className="font-normal font-sans text-foreground">
                 Already have an account?
               </Text>
-              <Link href="/sign-in">
-                <Text className="font-medium font-sans text-primary">
-                  Sign in
-                </Text>
-              </Link>
+              <TextLink href="/sign-in">Sign in</TextLink>
             </View>
 
             <View nativeID="clerk-captcha" />
-          </View>
+          </Card>
         )}
       </View>
-    </ScrollView>
+    </Screen>
   );
 }

@@ -7,7 +7,9 @@ type ClerkRequestContext = {
   session: null;
 };
 
-function toClerkContextAuth(auth: { userId: string | null } | null): ClerkContextAuth | null {
+function toClerkContextAuth(
+  auth: { userId: string | null } | null
+): ClerkContextAuth | null {
   return auth ? { userId: auth.userId } : null;
 }
 
@@ -19,7 +21,9 @@ const clerkClient = createClerkClient({
   publishableKey: env.CLERK_PUBLISHABLE_KEY,
 });
 
-async function authenticateClerkRequest(request: Request): Promise<ClerkContextAuth | null> {
+async function authenticateClerkRequest(
+  request: Request
+): Promise<ClerkContextAuth | null> {
   const requestState = await clerkClient.authenticateRequest(request, {
     authorizedParties: [env.CORS_ORIGIN],
   });

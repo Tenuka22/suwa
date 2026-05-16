@@ -10,7 +10,9 @@ export const Route = createFileRoute("/dashboard")({
 
 function RouteComponent() {
   const user = useUser();
-  const nameFromParts = [user.user?.firstName, user.user?.lastName].filter(Boolean).join(" ");
+  const nameFromParts = [user.user?.firstName, user.user?.lastName]
+    .filter(Boolean)
+    .join(" ");
   const displayName =
     user.user?.fullName ||
     nameFromParts ||
@@ -37,7 +39,7 @@ function RouteComponent() {
 
   return (
     <div className="space-y-4 p-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <h1 className="font-semibold text-2xl">Dashboard</h1>
       <p>Welcome {displayName}</p>
       <p>API: {privateData.data?.message}</p>
       <UserButton />

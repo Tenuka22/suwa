@@ -1,6 +1,5 @@
 import alchemy from "alchemy";
-import { Worker } from "alchemy/cloudflare";
-import { D1Database } from "alchemy/cloudflare";
+import { D1Database, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
