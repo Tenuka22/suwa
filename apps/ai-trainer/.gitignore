@@ -1,4 +1,5 @@
 data-sets-raw/
+processed-datasets/
 .env
 .env.*
 

@@ -1,3 +1,5 @@
+import "./globals.d.ts";
+
 export interface ClerkContextAuth {
   sessionClaims: CustomJwtSessionClaims | null;
   userId: string | null;

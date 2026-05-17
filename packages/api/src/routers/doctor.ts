@@ -1,4 +1,8 @@
-import type { DoctorScheduleEntry, DoctorSession } from "@zen-doc/db";
+import type {
+  DoctorProfile,
+  DoctorScheduleEntry,
+  DoctorSession,
+} from "@zen-doc/db";
 import {
   doctorProfiles,
   doctorScheduleEntries,
@@ -259,6 +263,8 @@ export const doctorRouter = {
         bio: input.bio ?? null,
         licenseNumber: input.licenseNumber ?? null,
         permanent: existingProfile?.permanent ?? false,
+        stripeAccountId: existingProfile?.stripeAccountId ?? null,
+        stripeAccountEnabled: existingProfile?.stripeAccountEnabled ?? false,
         createdAt: existingProfile?.createdAt ?? timestamp,
         updatedAt: timestamp,
       };

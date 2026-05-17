@@ -3,17 +3,17 @@ import {
   endOfMonth,
   endOfWeek,
   parseISO,
+  startOfDay,
   startOfMonth,
   startOfWeek,
-  startOfDay,
 } from "date-fns";
 
 import type { ScheduleEntry } from "./types";
 
 export interface CalendarCell {
-  day: number;
   currentMonth: boolean;
   date: Date;
+  day: number;
 }
 
 export function getCalendarCells(date: Date): CalendarCell[] {
@@ -33,7 +33,11 @@ export function getCalendarCells(date: Date): CalendarCell[] {
   const prevMonthCells = Array.from({ length: firstDayOfMonth }, (_, i) => ({
     day: daysInPrevMonth - firstDayOfMonth + i + 1,
     currentMonth: false,
-    date: new Date(currentYear, currentMonth - 1, daysInPrevMonth - firstDayOfMonth + i + 1),
+    date: new Date(
+      currentYear,
+      currentMonth - 1,
+      daysInPrevMonth - firstDayOfMonth + i + 1
+    ),
   }));
 
   const currentMonthCells = Array.from({ length: daysInMonth }, (_, i) => ({
@@ -98,7 +102,9 @@ export function calculateMonthEventPositions(
 
     for (let i = 0; i < 3; i++) {
       const canPlace = entryDays.every((day) => {
-        const dayPositions = occupiedPositions.get(startOfDay(day).toISOString());
+        const dayPositions = occupiedPositions.get(
+          startOfDay(day).toISOString()
+        );
         return dayPositions && !dayPositions[i];
       });
 
@@ -132,10 +138,7 @@ export function getEntriesForDate(
     .filter((entry) => {
       const entryStart = parseISO(entry.startAt);
       const entryEnd = parseISO(entry.endAt);
-      return (
-        date >= entryStart &&
-        date <= entryEnd
-      );
+      return date >= entryStart && date <= entryEnd;
     })
     .map((entry) => ({
       ...entry,

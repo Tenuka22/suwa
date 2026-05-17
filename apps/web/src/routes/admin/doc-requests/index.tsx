@@ -64,7 +64,16 @@ export const Route = createFileRoute("/admin/doc-requests/")({
         });
       return { initialData };
     } catch {
-      return { initialData: { items: [], page: 1, nextPage: null, prevPage: null, firstUserId: null, lastUserId: null } };
+      return {
+        initialData: {
+          items: [],
+          page: 1,
+          nextPage: null,
+          prevPage: null,
+          firstUserId: null,
+          lastUserId: null,
+        },
+      };
     }
   },
   component: AdminDocRequestsRoute,

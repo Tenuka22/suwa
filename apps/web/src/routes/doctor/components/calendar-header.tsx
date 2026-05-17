@@ -1,8 +1,7 @@
 "use client";
 
-import { addMonths, subMonths } from "date-fns";
-
 import { Button } from "@zen-doc/ui/components/button";
+import { addMonths, subMonths } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarHeaderProps {
@@ -29,21 +28,11 @@ export function CalendarHeader({
 
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button
-        onClick={handlePrevious}
-        size="icon"
-        variant="outline"
-      >
+      <Button onClick={handlePrevious} size="icon" variant="outline">
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <div className="min-w-36 text-center font-medium">
-        {monthLabel}
-      </div>
-      <Button
-        onClick={handleNext}
-        size="icon"
-        variant="outline"
-      >
+      <div className="min-w-36 text-center font-medium">{monthLabel}</div>
+      <Button onClick={handleNext} size="icon" variant="outline">
         <ChevronRight className="h-4 w-4" />
       </Button>
     </div>

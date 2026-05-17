@@ -3,15 +3,14 @@
 import { isSameDay, isToday, startOfDay } from "date-fns";
 
 import { cn } from "@/lib/utils";
-
-import type { ScheduleEntry } from "../utils/types";
 import type { CalendarCell } from "../utils/calendar";
+import type { ScheduleEntry } from "../utils/types";
 
 interface DayCellProps {
   cell: CalendarCell;
   entries: ScheduleEntry[];
-  selectedDate: Date;
   onSelectDate: (date: Date) => void;
+  selectedDate: Date;
 }
 
 const MAX_VISIBLE_EVENTS = 3;
@@ -40,14 +39,14 @@ export function DayCell({
   return (
     <button
       className={cn(
-        "flex h-full min-h-[8rem] flex-col gap-1 border-l border-t p-2 text-left transition-colors hover:bg-muted/40",
+        "flex h-full min-h-[8rem] flex-col gap-1 border-t border-l p-2 text-left transition-colors hover:bg-muted/40",
         isSunday && "border-l-0",
         !currentMonth && "text-muted-foreground/50",
         isSelected && "bg-muted/50",
-        isPast && "opacity-50 cursor-not-allowed"
+        isPast && "cursor-not-allowed opacity-50"
       )}
-      onClick={handleClick}
       disabled={isPast}
+      onClick={handleClick}
       type="button"
     >
       <div className="mb-2 flex items-center justify-between">
@@ -92,14 +91,13 @@ export function DayCell({
               })}
             </div>
             <div className="truncate opacity-80">
-              {entry.noteKind ??
-                (entry.session ? "session" : entry.kind)}
+              {entry.noteKind ?? (entry.session ? "session" : entry.kind)}
             </div>
           </div>
         ))}
       </div>
       {entries.length > MAX_VISIBLE_EVENTS && (
-        <p className="text-xs font-semibold text-muted-foreground">
+        <p className="font-semibold text-muted-foreground text-xs">
           +{entries.length - MAX_VISIBLE_EVENTS} more
         </p>
       )}

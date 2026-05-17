@@ -39,10 +39,11 @@ import {
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { ChevronLeft, ChevronRight, Lock, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
 
-import { CalendarHeader, CalendarMonthView } from "./components";
+import { CalendarHeader, CalendarMonthView } from "./components/-index";
 import { scheduleNotes, schedulePageSchema, timeOptions } from "./utils/types";
 
 function parseScheduleEntry(entry: unknown): ScheduleEntry {
@@ -159,6 +160,231 @@ interface ScheduleEntry {
   startAt: string;
 }
 
+interface SessionItem {
+  endAt: string;
+  id: string;
+  patientId: string;
+  payoutStatus: string;
+  payoutTransferId?: string | null;
+  startAt: string;
+  status: string;
+}
+
+function getPayoutColor(status: string): string {
+  if (status === "paid") {
+    return "text-emerald-500";
+  }
+  if (status === "failed") {
+    return "text-rose-500";
+  }
+  return "text-muted-foreground";
+}
+
+interface StripeConnectCardProps {
+  isPendingLink: boolean;
+  isPendingSync: boolean;
+  onConnect: () => void;
+  onSync: () => void;
+  stripeAccountEnabled: boolean;
+  stripeAccountId: string | null;
+}
+
+function StripeConnectCard({
+  stripeAccountId,
+  stripeAccountEnabled,
+  isPendingLink,
+  isPendingSync,
+  onConnect,
+  onSync,
+}: StripeConnectCardProps) {
+  return (
+    <Card className="relative overflow-hidden border border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm backdrop-blur-md">
+      <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-lg tracking-tight">
+            Stripe Connected Payouts
+          </span>
+          <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 font-semibold text-emerald-600 text-xs dark:text-emerald-400">
+            {stripeAccountEnabled ? (
+              <>
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Connected & Ready
+              </>
+            ) : (
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Action Required
+              </>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col justify-between gap-6 py-4">
+        <div className="space-y-2">
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Configure your Stripe Connected Account to receive automatic
+            non-refundable patient booking payouts directly to your bank account
+            upon successful session attendance.
+          </p>
+          <div className="mt-4 flex flex-col gap-1 text-xs">
+            <div className="flex justify-between border-border/30 border-b pb-1.5">
+              <span className="text-muted-foreground">Stripe Account ID:</span>
+              <span className="font-medium font-mono">
+                {stripeAccountId || "Not created"}
+              </span>
+            </div>
+            <div className="flex justify-between pt-1.5">
+              <span className="text-muted-foreground">Status:</span>
+              <span className="font-semibold">
+                {stripeAccountEnabled ? (
+                  <span className="text-emerald-500">Fully Enabled</span>
+                ) : (
+                  <span className="text-amber-500">Pending Setup</span>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-2 flex size-full flex-col gap-2">
+          {!stripeAccountEnabled && (
+            <Button
+              className="w-full bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+              disabled={isPendingLink}
+              onClick={onConnect}
+            >
+              {isPendingLink ? "Connecting..." : "Set Up Stripe Payouts"}
+            </Button>
+          )}
+
+          {stripeAccountId && (
+            <Button
+              className="w-full"
+              disabled={isPendingSync}
+              onClick={onSync}
+              variant="outline"
+            >
+              {isPendingSync ? "Syncing..." : "Refresh Status"}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface BookedSessionsCardProps {
+  isMarkingAttended: boolean;
+  isPending: boolean;
+  onMarkAttended: (sessionId: string) => void;
+  sessions: SessionItem[];
+}
+
+function BookedSessionsCard({
+  sessions,
+  isPending,
+  isMarkingAttended,
+  onMarkAttended,
+}: BookedSessionsCardProps) {
+  return (
+    <Card className="border border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm backdrop-blur-md">
+      <CardHeader className="pb-3">
+        <span className="font-semibold text-lg tracking-tight">
+          Active Booked Sessions
+        </span>
+      </CardHeader>
+      <CardContent className="h-[250px] overflow-y-auto pr-1">
+        {isPending && (
+          <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+            Loading sessions...
+          </div>
+        )}
+
+        {!isPending && sessions.length === 0 && (
+          <div className="flex h-[200px] flex-col items-center justify-center gap-1.5 text-center">
+            <span className="text-muted-foreground text-sm">
+              No booked sessions queue
+            </span>
+            <span className="text-muted-foreground/70 text-xs">
+              When patients book your slots, they will appear here.
+            </span>
+          </div>
+        )}
+
+        {!isPending && sessions.length > 0 && (
+          <div className="flex flex-col gap-3">
+            {sessions.map((session) => {
+              const start = new Date(session.startAt);
+              const end = new Date(session.endAt);
+              const formattedTime = `${format(
+                start,
+                "MMM d, h:mm a"
+              )} - ${format(end, "h:mm a")}`;
+
+              return (
+                <div
+                  className="flex flex-col gap-2 rounded-lg border border-border/40 bg-card/60 p-3 transition-colors hover:bg-card"
+                  key={session.id}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-sm">
+                        Patient ID: {session.patientId.slice(0, 12)}...
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {formattedTime}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-semibold text-[10px] ${
+                          session.status === "attended"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                        }`}
+                      >
+                        {session.status}
+                      </span>
+                      <span
+                        className={`font-medium text-[9px] ${getPayoutColor(
+                          session.payoutStatus
+                        )}`}
+                      >
+                        Payout: {session.payoutStatus}
+                      </span>
+                    </div>
+                  </div>
+
+                  {session.status === "scheduled" && (
+                    <Button
+                      className="mt-1 h-8 w-full bg-emerald-600 py-1 text-white text-xs hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                      disabled={isMarkingAttended}
+                      onClick={() => onMarkAttended(session.id)}
+                    >
+                      Confirm Attendance & Payout ($50)
+                    </Button>
+                  )}
+
+                  {session.status !== "scheduled" &&
+                    session.payoutTransferId && (
+                      <div className="mt-1 flex items-center justify-between rounded bg-muted/50 px-2 py-1 font-mono text-[10px] text-muted-foreground">
+                        <span>Transfer ID:</span>
+                        <span className="max-w-[150px] truncate">
+                          {session.payoutTransferId}
+                        </span>
+                      </div>
+                    )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function DoctorScheduleRoute() {
   const user = useUser();
   const search = Route.useSearch();
@@ -227,6 +453,39 @@ function DoctorScheduleRoute() {
     })
   );
 
+  const connectStatusQuery = useQuery({
+    queryKey: orpc.getConnectAccountStatus.queryKey(),
+    queryFn: () => orpc.getConnectAccountStatus.call(),
+    enabled: user.isLoaded && !!user.user,
+  });
+
+  const doctorSessionsQuery = useQuery({
+    queryKey: orpc.listDoctorSessions.queryKey(),
+    queryFn: () => orpc.listDoctorSessions.call(),
+    enabled: user.isLoaded && !!user.user,
+  });
+
+  const createConnectLink = useMutation(
+    orpc.createConnectAccountLink.mutationOptions()
+  );
+
+  const syncConnectStatus = useMutation(
+    orpc.syncConnectAccountStatus.mutationOptions({
+      onSuccess: async () => {
+        await connectStatusQuery.refetch();
+      },
+    })
+  );
+
+  const markAttended = useMutation(
+    orpc.markSessionAttended.mutationOptions({
+      onSuccess: async () => {
+        await doctorSessionsQuery.refetch();
+        await scheduleQuery.refetch();
+      },
+    })
+  );
+
   const entries: ScheduleEntry[] = (scheduleQuery.data?.items ?? []).map(
     (entry) => parseScheduleEntry(entry)
   );
@@ -264,8 +523,75 @@ function DoctorScheduleRoute() {
     return null;
   }, [endDate, startDate]);
 
+  const handleMarkAttended = async (sessionId: string) => {
+    try {
+      const res = await markAttended.mutateAsync({ sessionId });
+      if (res.payoutStatus === "paid") {
+        toast.success("Session completed and payout successfully transferred!");
+      } else if (res.payoutStatus === "failed") {
+        toast.warning(`Session completed but payout suspended: ${res.error}`);
+      } else {
+        toast.success("Session completed successfully!");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error confirming attendance: ${msg}`);
+    }
+  };
+
+  const handleConnectStripe = async () => {
+    try {
+      const res = await createConnectLink.mutateAsync({
+        returnUrl: window.location.href,
+        refreshUrl: window.location.href,
+      });
+      if (res?.url) {
+        toast.info("Redirecting you to Stripe Connect onboarding...");
+        window.location.href = res.url;
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to initiate Stripe onboarding: ${msg}`);
+    }
+  };
+
+  const handleSyncConnectStatus = async () => {
+    try {
+      const res = await syncConnectStatus.mutateAsync();
+      if (res.enabled) {
+        toast.success("Stripe account status synced successfully!");
+      } else {
+        toast.warning(
+          "Stripe account is still pending completion. Please complete onboarding."
+        );
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to sync: ${msg}`);
+    }
+  };
+
   return (
     <div className="flex w-full flex-col gap-6 p-6">
+      {/* Stripe Connect & Bookings Dashboard Bento Grid */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <StripeConnectCard
+          isPendingLink={createConnectLink.isPending}
+          isPendingSync={syncConnectStatus.isPending}
+          onConnect={handleConnectStripe}
+          onSync={handleSyncConnectStatus}
+          stripeAccountEnabled={!!connectStatusQuery.data?.stripeAccountEnabled}
+          stripeAccountId={connectStatusQuery.data?.stripeAccountId ?? null}
+        />
+
+        <BookedSessionsCard
+          isMarkingAttended={markAttended.isPending}
+          isPending={doctorSessionsQuery.isPending}
+          onMarkAttended={handleMarkAttended}
+          sessions={(doctorSessionsQuery.data?.sessions as SessionItem[]) ?? []}
+        />
+      </div>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Schedule</CardTitle>

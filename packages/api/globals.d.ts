@@ -1,13 +1,15 @@
 export type Roles = "admin" | "doctor" | "user" | "pending-doctor" | "guardian";
 
+interface CustomJwtSessionClaimsMetadata {
+  email?: string;
+  image_url?: string;
+  name?: string;
+  phone?: string;
+  role?: Roles;
+}
+
 declare global {
   interface CustomJwtSessionClaims {
-    metadata: {
-      role?: Roles;
-      name?: string;
-      email?: string;
-      phone?: string;
-      image_url?: string;
-    };
+    metadata: CustomJwtSessionClaimsMetadata;
   }
 }
