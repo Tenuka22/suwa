@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Modal, Platform, Text, View } from "react-native";
+import { Alert, Modal, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
+import { samsungSensorBridge } from "@/utils/samsung-health-sensor-bridge";
 import type {
   WearableAction,
   WearablePackage,
@@ -13,194 +14,12 @@ interface PackageScreenProps {
   item: WearablePackage;
 }
 
-interface HealthKitModule {
-  Constants: {
-    Permissions: Record<string, string>;
-  };
-  getActiveEnergyBurned: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, results: readonly { value?: number }[]) => void
-  ) => void;
-  getElectrocardiogramSamples: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, results: readonly unknown[]) => void
-  ) => void;
-  getHeartRateSamples: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, results: readonly unknown[]) => void
-  ) => void;
-  getHeartRateVariabilitySamples: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, results: readonly unknown[]) => void
-  ) => void;
-  getLatestBmi: (
-    callback: (error: unknown, result: { value?: number }) => void
-  ) => void;
-  getSleepSamples: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, results: readonly unknown[]) => void
-  ) => void;
-  getStepCount: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, result: { value?: number }) => void
-  ) => void;
-  getWeightSamples: (
-    options: Record<string, unknown>,
-    callback: (error: unknown, results: readonly unknown[]) => void
-  ) => void;
-  initHealthKit: (
-    permissions: Record<string, unknown>,
-    callback: (error: string | null) => void
-  ) => void;
-}
-
-interface HealthConnectModule {
-  initialize: () => Promise<unknown>;
-  readRecords: (
-    recordType: string,
-    options: { timeRangeFilter: Record<string, string> }
-  ) => Promise<{ records?: readonly unknown[]; result?: readonly unknown[] }>;
-  requestPermission: (
-    permissions: readonly {
-      accessType: "read" | "write";
-      recordType: string;
-    }[]
-  ) => Promise<unknown>;
-}
-
-interface SensorSubscription {
-  unsubscribe: () => void;
-}
-
-interface SensorsModule {
-  accelerometer: {
-    subscribe: (
-      next: (value: MotionSample) => void,
-      error: (error: unknown) => void
-    ) => SensorSubscription;
-  };
-  barometer: {
-    subscribe: (
-      next: (value: MotionSample) => void,
-      error: (error: unknown) => void
-    ) => SensorSubscription;
-  };
-  gyroscope: {
-    subscribe: (
-      next: (value: MotionSample) => void,
-      error: (error: unknown) => void
-    ) => SensorSubscription;
-  };
-  magnetometer: {
-    subscribe: (
-      next: (value: MotionSample) => void,
-      error: (error: unknown) => void
-    ) => SensorSubscription;
-  };
-  SensorTypes: Record<string, string>;
-  setUpdateIntervalForType: (sensorType: string, interval: number) => void;
-}
-
-interface MotionSample {
-  pressure?: number;
-  x?: number;
-  y?: number;
-  z?: number;
-}
-
-
-
 const now = () => new Date().toLocaleTimeString();
 
 let logSequence = 0;
 
 const actionSummary = (action: WearableAction) =>
   action.description ? `${action.label} - ${action.description}` : action.label;
-
-const getApplePermissions = (healthKit: HealthKitModule) => ({
-  permissions: {
-    read: [
-      healthKit.Constants.Permissions.HeartRate,
-      healthKit.Constants.Permissions.HeartRateVariability,
-      healthKit.Constants.Permissions.Electrocardiogram,
-      healthKit.Constants.Permissions.RespiratoryRate,
-      healthKit.Constants.Permissions.OxygenSaturation,
-      healthKit.Constants.Permissions.SleepAnalysis,
-      healthKit.Constants.Permissions.StepCount,
-      healthKit.Constants.Permissions.ActiveEnergyBurned,
-      healthKit.Constants.Permissions.Weight,
-      healthKit.Constants.Permissions.BodyMassIndex,
-      healthKit.Constants.Permissions.MindfulSession,
-      healthKit.Constants.Permissions.EnvironmentalAudioExposure,
-    ],
-  },
-});
-
-const getAppleOptions = () => ({
-  ascending: false,
-  endDate: new Date().toISOString(),
-  limit: 10,
-  startDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-});
-
-const getAppleReadMethod = (healthKit: HealthKitModule, actionId: string) => {
-  switch (actionId) {
-    case "heart-rate":
-      return healthKit.getHeartRateSamples;
-    case "hrv":
-      return healthKit.getHeartRateVariabilitySamples;
-    case "ecg":
-      return healthKit.getElectrocardiogramSamples;
-    case "steps":
-      return healthKit.getStepCount;
-    case "sleep":
-      return healthKit.getSleepSamples;
-    case "energy":
-      return healthKit.getActiveEnergyBurned;
-    default:
-      return healthKit.getWeightSamples;
-  }
-};
-
-const getHealthConnectRecordType = (actionId: string) => {
-  switch (actionId) {
-    case "heart-rate":
-      return "HeartRate";
-    case "steps":
-      return "Steps";
-    case "sleep":
-      return "SleepSession";
-    case "energy":
-      return "ActiveCaloriesBurned";
-    case "body":
-      return "Weight";
-    case "workout":
-      return "ExerciseSession";
-    default:
-      return "HeartRate";
-  }
-};
-
-const getMotionStream = (sensors: SensorsModule, actionId: string) => {
-  switch (actionId) {
-    case "accelerometer":
-      return sensors.accelerometer;
-    case "gyroscope":
-      return sensors.gyroscope;
-    case "magnetometer":
-      return sensors.magnetometer;
-    default:
-      return sensors.barometer;
-  }
-};
-
-const getMotionReading = (value: MotionSample) => {
-  if (value.x === undefined) {
-    return `pressure=${value.pressure ?? "n/a"}`;
-  }
-
-  return `x=${value.x}, y=${value.y ?? "n/a"}, z=${value.z ?? "n/a"}`;
-};
 
 const nextLogEntry = (message: string): LogEntry => {
   logSequence += 1;
@@ -210,24 +29,29 @@ const nextLogEntry = (message: string): LogEntry => {
   };
 };
 
-
-
-const startMotionConnection = (
+const startSamsungConnection = async (
   item: WearablePackage,
   pushLog: (message: string) => void,
   setConnectionStatus: (status: ConnectionStatus) => void,
   setActiveActionId: (value: string | null) => void,
   setLatestReading: (value: string | null) => void
 ) => {
-  if (item.connectionMode === "stream") {
-    setConnectionStatus("connected");
-    setActiveActionId(null);
-    setLatestReading("Tap a sensor button to see live readings.");
-    pushLog("Motion stream is ready.");
-    return;
+  if (item.route !== "/test/samsung-health-sensor") {
+    throw new Error("Only the Samsung sensor bridge is enabled in this build.");
   }
 
-  throw new Error("This source is not a live stream.");
+  const available = await samsungSensorBridge.isAvailable();
+
+  if (!available) {
+    throw new Error(
+      "Samsung sensor bridge is not installed yet. Add the native module and Galaxy Watch SDK integration first."
+    );
+  }
+
+  setConnectionStatus("connected");
+  setActiveActionId(null);
+  setLatestReading("Tap a sensor button to see live readings.");
+  pushLog("Samsung sensor bridge is ready.");
 };
 
 const showErrorAlert = (title: string, message: string) => {
@@ -251,88 +75,31 @@ const getStatusLabel = (
     return "connecting";
   }
 
-  if (connectionStatus === "error" && item.connectionMode === "unsupported") {
-    return item.idleStateLabel;
-  }
-
   return item.idleStateLabel;
 };
 
-const runAppleAction = async (
-  action: WearableAction,
-  pushLog: (message: string) => void,
-  setActiveActionId: (value: string) => void
-) => {
-  const healthKit = await loadHealthKit();
-  const options = getAppleOptions();
-  const readMethod = getAppleReadMethod(healthKit, action.id);
-
-  const result = await new Promise<readonly unknown[] | { value?: number }>(
-    (resolve, reject) => {
-      readMethod(options, (error, response) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve(response);
-      });
-    }
-  );
-
-  if (action.id === "body") {
-    const bmi = await new Promise<{ value?: number }>((resolve, reject) => {
-      healthKit.getLatestBmi((error, response) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve(response);
-      });
-    });
-
-    const weightCount = Array.isArray(result) ? result.length : 0;
-    pushLog(
-      `${action.label}: ${weightCount} weight sample(s), BMI ${bmi.value ?? "n/a"}.`
-    );
-    setActiveActionId(action.id);
-    return;
+const getSamsungSensorType = (actionId: string) => {
+  switch (actionId) {
+    case "heart-rate":
+      return "heart_rate";
+    case "rr":
+      return "rr_interval";
+    case "ecg":
+      return "ecg";
+    case "ppg":
+      return "ppg";
+    default:
+      return "accelerometer";
   }
-
-  let count = 0;
-
-  if (Array.isArray(result)) {
-    count = result.length;
-  } else {
-    const scalarResult = result as { value?: number };
-
-    if (typeof scalarResult.value === "number") {
-      count = scalarResult.value;
-    }
-  }
-
-  pushLog(`${action.label}: received ${count} sample(s).`);
-  setActiveActionId(action.id);
 };
 
-const runHealthConnectAction = async (
+const runSamsungAction = async (
   action: WearableAction,
   pushLog: (message: string) => void,
   setActiveActionId: (value: string) => void
 ) => {
-  const healthConnect = await loadHealthConnect();
-  const recordType = getHealthConnectRecordType(action.id);
-  const result = await healthConnect.readRecords(recordType, {
-    timeRangeFilter: {
-      endTime: new Date().toISOString(),
-      operator: "between",
-      startTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-  });
-
-  const records = result.records ?? result.result ?? [];
-  pushLog(`${action.label}: received ${records.length} record(s).`);
+  await samsungSensorBridge.startStreaming(getSamsungSensorType(action.id));
+  pushLog(`${action.label}: native streaming started.`);
   setActiveActionId(action.id);
 };
 
@@ -343,11 +110,11 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
   const [log, setLog] = useState<LogEntry[]>([]);
   const [latestReading, setLatestReading] = useState<string | null>(null);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const sensorSubscriptionRef = useRef<SensorSubscription | null>(null);
+  const sensorSubscriptionRef = useRef<{ remove: () => void } | null>(null);
 
   useEffect(
     () => () => {
-      sensorSubscriptionRef.current?.unsubscribe();
+      sensorSubscriptionRef.current?.remove();
     },
     []
   );
@@ -361,184 +128,41 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
     pushLog(message);
   };
 
-  const connectAppleHealth = async () => {
-    if (Platform.OS !== "ios") {
-      throw new Error("Apple HealthKit is only available on iOS.");
-    }
-
-    setConnectionStatus("connecting");
-
-    try {
-      const healthKit = await loadHealthKit();
-      await new Promise<void>((resolve, reject) => {
-        healthKit.initHealthKit(getApplePermissions(healthKit), (error) => {
-          if (error) {
-            reject(new Error(error));
-            return;
-          }
-
-          resolve();
-        });
-      });
-
-      setConnectionStatus("connected");
-      pushLog("HealthKit authorization granted.");
-    } catch (error) {
-      throw error instanceof Error
-        ? error
-        : new Error("HealthKit connection failed.");
-    }
-  };
-
-  const connectHealthConnect = async () => {
-    if (Platform.OS !== "android") {
-      throw new Error("Health Connect is only available on Android.");
-    }
-
-    setConnectionStatus("connecting");
-
-    try {
-      const healthConnect = await loadHealthConnect();
-
-      await healthConnect.initialize();
-      await healthConnect.requestPermission([
-        { accessType: "read", recordType: "HeartRate" },
-        { accessType: "read", recordType: "Steps" },
-        { accessType: "read", recordType: "SleepSession" },
-        { accessType: "read", recordType: "ActiveCaloriesBurned" },
-        { accessType: "read", recordType: "Weight" },
-        { accessType: "read", recordType: "BodyFat" },
-        { accessType: "read", recordType: "ExerciseSession" },
-      ]);
-
-      setConnectionStatus("connected");
-      pushLog("Health Connect authorization granted.");
-    } catch (error) {
-      throw error instanceof Error
-        ? error
-        : new Error("Health Connect connection failed.");
-    }
-  };
-
-  const connectUnsupportedSource = () => {
-    if (item.route === "/test/samsung-health-sensor") {
-      throw new Error(
-        "Samsung Health Sensor SDK needs a native bridge and is not wired in this build."
-      );
-    }
-
-    if (item.route === "/test/fitbit-web-api") {
-      throw new Error(
-        "Fitbit OAuth is not configured in this build yet. Add the app client details before connecting."
-      );
-    }
-  };
-
-  const startMotionStream = async (action: WearableAction) => {
-    if (Platform.OS === "web") {
-      const started = await startWebMotionStream(
-        action,
-        pushLog,
-        setConnectionStatus,
-        setActiveActionId,
-        setLatestReading,
-        (message) => {
-          setConnectionError(message);
-        }
-      );
-
-      if (!started) {
-        throw new Error("Motion sensors are not available on web.");
-      }
-
-      return;
-    }
-
-    try {
-      const sensors = await loadSensors();
-      sensorSubscriptionRef.current?.unsubscribe();
-
-      const sensor = getMotionStream(sensors, action.id);
-      const sensorType = sensors.SensorTypes[action.id];
-
-      if (action.id !== "barometer") {
-        sensors.setUpdateIntervalForType(sensorType, 100);
-      }
-
-      setConnectionStatus("connected");
-      setActiveActionId(action.id);
-      pushLog(`Started ${action.label.toLowerCase()}.`);
-
-      sensorSubscriptionRef.current = sensor.subscribe(
-        (value) => {
-          pushLog(`${action.label}: ${getMotionReading(value)}`);
-        },
-        (error) => {
-          setConnectionError(
-            error instanceof Error
-              ? error.message
-              : `Failed to start ${action.label}.`
-          );
-        }
-      );
-    } catch (error) {
-      throw error instanceof Error
-        ? error
-        : new Error(`Failed to start ${action.label}.`);
-    }
-  };
-
   const connectCurrentSource = async () => {
-    if (item.connectionMode === "stream") {
-      startMotionConnection(
-        item,
-        pushLog,
-        setConnectionStatus,
-        setActiveActionId,
-        setLatestReading
-      );
-      return;
-    }
+    await startSamsungConnection(
+      item,
+      pushLog,
+      setConnectionStatus,
+      setActiveActionId,
+      setLatestReading
+    );
 
-    if (item.connectionMode === "unsupported") {
-      connectUnsupportedSource();
-      return;
-    }
-
-    if (item.route === "/test/apple-health") {
-      await connectAppleHealth();
-      return;
-    }
-
-    if (item.route === "/test/android-health-connect") {
-      await connectHealthConnect();
-    }
+    sensorSubscriptionRef.current?.remove();
+    sensorSubscriptionRef.current = samsungSensorBridge.addListener(
+      "SamsungSensorSample",
+      (sample) => {
+        setLatestReading(
+          `${sample.sensorType}: ${sample.values.join(", ")} @ ${sample.sampleRateHz ?? "n/a"}Hz`
+        );
+        pushLog(`${sample.sensorType} sample received.`);
+      }
+    );
   };
 
   const runAction = async (action: WearableAction) => {
-    if (item.connectionMode === "stream") {
-      await startMotionStream(action);
-      return;
-    }
-
     if (connectionStatus !== "connected") {
       throw new Error(`Connect ${item.title} before running ${action.label}.`);
     }
 
-    if (item.route === "/test/apple-health") {
-      await runAppleAction(action, pushLog, setActiveActionId);
-      return;
-    }
-
-    if (item.route === "/test/android-health-connect") {
-      await runHealthConnectAction(action, pushLog, setActiveActionId);
+    if (item.route === "/test/samsung-health-sensor") {
+      await runSamsungAction(action, pushLog, setActiveActionId);
       return;
     }
 
     throw new Error(`${action.label} is not wired in this build.`);
   };
 
-  const canConnect = item.connectionMode !== "unsupported";
+  const canConnect = true;
 
   return (
     <Screen contentClassName="gap-section px-page py-page">
@@ -636,7 +260,7 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
               Live sensors
             </Text>
             <Text className="font-normal font-sans text-muted-foreground text-sm leading-6">
-              Tap a sensor button to subscribe to that live stream.
+              Tap a sensor button to start the Samsung native stream.
             </Text>
           </View>
         ) : null}
@@ -659,10 +283,7 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
           {item.actions.map((action) => (
             <Button
               className="items-start"
-              disabled={
-                item.connectionMode !== "stream" &&
-                connectionStatus !== "connected"
-              }
+              disabled={connectionStatus !== "connected"}
               key={action.id}
               onPress={() => {
                 runAction(action).catch((error: unknown) => {

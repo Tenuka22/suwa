@@ -25,7 +25,7 @@ async function authenticateClerkRequest(
   request: Request
 ): Promise<ClerkContextAuth | null> {
   const requestState = await clerkClient.authenticateRequest(request, {
-    authorizedParties: [env.CORS_ORIGIN],
+    authorizedParties: env.CORS_ORIGIN.split(","),
   });
   return toClerkContextAuth(requestState.toAuth());
 }
