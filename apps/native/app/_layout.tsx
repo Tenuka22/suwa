@@ -56,7 +56,13 @@ function OnboardingCheck() {
     ) {
       router.replace("/onboarding");
     }
-  }, [isLoaded, isSignedIn, profileQuery.isLoading, isOnboardingComplete]);
+  }, [
+    isLoaded,
+    isSignedIn,
+    profileQuery.isLoading,
+    isOnboardingComplete,
+    router,
+  ]);
 
   return null;
 }
@@ -103,6 +109,7 @@ export default function RootLayout() {
               name="(onboarding)"
               options={{ headerShown: false }}
             />
+            <Stack.Screen name="test" options={{ headerShown: false }} />
           </Stack>
           <OnboardingCheck />
           <StatusBar style={isDark ? "light" : "dark"} />

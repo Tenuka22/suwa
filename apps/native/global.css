@@ -56,40 +56,40 @@
 }
 
 :root {
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.62 0.18 27);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.95 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.2 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.62 0.18 27);
+  --background: #f4f4f5; /* Zinc 100 - stark light gray page background */
+  --foreground: #000000; /* Pure black text */
+  --card: #ffffff; /* Pure white card background */
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #a22a2a; /* Gorgeous brick/rust red primary */
+  --primary-foreground: #ffffff;
+  --secondary: #e4e4e7; /* Zinc 200 secondary bg */
+  --secondary-foreground: #000000;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #a22a2a;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.7); /* Softened black borders for cohesive Neo-brutalism */
+  --input: #ffffff;
+  --ring: #a22a2a;
   --font-family-sans: "Satoshi";
   --font-weight-light-value: 300;
   --font-weight-normal-value: 400;
   --font-weight-medium-value: 500;
   --font-weight-semibold-value: 600;
-  --radius-sm-value: 0.25rem;
-  --radius-md-value: 0.375rem;
-  --radius-lg-value: 0.5rem;
-  --radius-xl-value: 0.625rem;
-  --radius-card-value: 0.625rem;
-  --radius-control-value: 0.375rem;
+  --radius-sm-value: 2px;
+  --radius-md-value: 3px;
+  --radius-lg-value: 4px;
+  --radius-xl-value: 6px;
+  --radius-card-value: 3px;
+  --radius-control-value: 3px;
   --radius-chip-value: 9999px;
   --spacing-page-value: 1.25rem;
   --spacing-section-value: 1rem;
-  --spacing-card-value: 0.875rem;
+  --spacing-card-value: 1.25rem;
   --spacing-control-value: 0.75rem;
   --spacing-chip-value: 0.5rem;
   --shadow-none-value: 0 0 #0000;
@@ -97,25 +97,25 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.185 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.185 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.67 0.18 27);
-    --primary-foreground: oklch(0.145 0 0);
-    --secondary: oklch(0.22 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.2 0 0);
-    --muted-foreground: oklch(0.75 0 0);
-    --accent: oklch(0.2 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.67 0.18 27);
-    --destructive-foreground: oklch(0.145 0 0);
-    --border: oklch(0.8 0 0);
-    --input: oklch(0.28 0 0);
-    --ring: oklch(0.67 0.18 27);
+    --background: #18181b; /* Zinc 900 */
+    --foreground: #ffffff;
+    --card: #27272a; /* Zinc 800 */
+    --card-foreground: #ffffff;
+    --popover: #27272a;
+    --popover-foreground: #ffffff;
+    --primary: #ef4444; /* Bright red primary for dark mode contrast */
+    --primary-foreground: #ffffff;
+    --secondary: #3f3f46; /* Zinc 700 */
+    --secondary-foreground: #ffffff;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
+    --accent: #ef4444;
+    --accent-foreground: #ffffff;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #09090b; /* Deep dark charcoal for clean, high-contrast recessed boundaries in dark mode */
+    --input: #27272a;
+    --ring: #ef4444;
   }
 }
 

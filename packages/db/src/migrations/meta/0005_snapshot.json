@@ -146,9 +146,7 @@
       "indexes": {
         "doctor_schedule_entries_session_id_unique": {
           "name": "doctor_schedule_entries_session_id_unique",
-          "columns": [
-            "session_id"
-          ],
+          "columns": ["session_id"],
           "isUnique": true
         }
       },

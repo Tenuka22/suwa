@@ -10,6 +10,13 @@ import type {
   WearablePackage,
 } from "@/utils/wearable-packages";
 
+type ConnectionStatus = "idle" | "connecting" | "connected" | "error";
+
+interface LogEntry {
+  id: string;
+  message: string;
+}
+
 interface PackageScreenProps {
   item: WearablePackage;
 }
@@ -17,9 +24,6 @@ interface PackageScreenProps {
 const now = () => new Date().toLocaleTimeString();
 
 let logSequence = 0;
-
-const actionSummary = (action: WearableAction) =>
-  action.description ? `${action.label} - ${action.description}` : action.label;
 
 const nextLogEntry = (message: string): LogEntry => {
   logSequence += 1;
@@ -162,10 +166,39 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
     throw new Error(`${action.label} is not wired in this build.`);
   };
 
+  const renderStatusBadge = () => {
+    let badgeColor = "bg-zinc-400";
+    let textColor = "text-zinc-600 dark:text-zinc-400";
+    let label = getStatusLabel(item, connectionStatus, activeActionId);
+
+    if (activeActionId) {
+      badgeColor = "bg-primary";
+      textColor = "text-primary";
+    } else if (connectionStatus === "connected") {
+      badgeColor = "bg-emerald-500";
+      textColor = "text-emerald-600 dark:text-emerald-400";
+    } else if (connectionStatus === "connecting") {
+      badgeColor = "bg-amber-500";
+      textColor = "text-amber-600 dark:text-amber-400";
+    } else if (connectionStatus === "error") {
+      badgeColor = "bg-destructive";
+      textColor = "text-destructive";
+    }
+
+    return (
+      <View className="flex-row items-center gap-2 border border-border bg-card px-3 py-1 rounded-chip">
+        <View className={`w-2.5 h-2.5 rounded-full ${badgeColor}`} />
+        <Text className={`font-bold font-sans text-xs uppercase tracking-wider ${textColor}`}>
+          {label}
+        </Text>
+      </View>
+    );
+  };
+
   const canConnect = true;
 
   return (
-    <Screen contentClassName="gap-section px-page py-page">
+    <Screen contentClassName="gap-section px-page py-page bg-background">
       <Modal
         animationType="slide"
         onRequestClose={() => setIsConnectModalOpen(false)}
@@ -215,74 +248,75 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
         </View>
       </Modal>
 
-      <Card>
-        <View className="gap-chip">
-          <Text className="font-medium font-sans text-primary text-sm uppercase tracking-[0.25em]">
-            {item.sourceLabel}
-          </Text>
-          <Text className="font-medium font-sans text-4xl text-foreground">
-            {item.title}
-          </Text>
-          <Text className="font-normal font-sans text-base text-muted-foreground leading-6">
-            {item.docsSummary}
-          </Text>
-        </View>
+      {/* Intro Header Section (Flat, Editorial, Direct on Page Background) */}
+      <View className="gap-2 mb-2">
+        <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
+          {item.sourceLabel}
+        </Text>
+        <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
+          {item.title}
+        </Text>
+        <Text className="font-normal font-sans text-base text-muted-foreground leading-6 mt-1">
+          {item.docsSummary}
+        </Text>
+      </View>
 
-        <View className="flex-row items-center justify-between gap-chip">
-          <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-            Status
+      {/* Connection Status Card */}
+      <Card className="gap-3">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-[0.18em]">
+            Connection Status
           </Text>
-          <Text className="font-medium font-sans text-primary text-sm">
-            {getStatusLabel(item, connectionStatus, activeActionId)}
-          </Text>
+          {renderStatusBadge()}
         </View>
 
         <Text className="font-normal font-sans text-muted-foreground text-sm leading-6">
-          {item.emptyState}
+          {connectionStatus === "connected"
+            ? "The Samsung sensor bridge is connected and active. You can start sensor streams below."
+            : item.emptyState}
         </Text>
 
-        {canConnect ? (
+        {canConnect && connectionStatus !== "connected" ? (
           <Button
             onPress={() => setIsConnectModalOpen(true)}
             variant="secondary"
+            className="w-full"
           >
             {item.connectLabel}
           </Button>
-        ) : (
-          <Text className="font-normal font-sans text-muted-foreground text-sm leading-6">
-            {item.connectPrompt}
-          </Text>
-        )}
-
-        {item.connectionMode === "stream" ? (
-          <View className="gap-chip">
-            <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-              Live sensors
-            </Text>
-            <Text className="font-normal font-sans text-muted-foreground text-sm leading-6">
-              Tap a sensor button to start the Samsung native stream.
-            </Text>
-          </View>
         ) : null}
+      </Card>
 
-        {item.connectionMode === "stream" ? (
-          <Card className="gap-chip border-primary/40 bg-muted">
-            <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-              Latest reading
-            </Text>
-            <Text className="font-normal font-sans text-base text-foreground leading-6">
-              {latestReading ?? "No readings yet."}
+      {/* Live Sensors & Readings Section */}
+      {item.connectionMode === "stream" && connectionStatus === "connected" ? (
+        <View className="gap-3">
+          <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
+            Live readings
+          </Text>
+          <Card className="gap-3 bg-muted border-primary/20">
+            <View className="flex-row items-center justify-between">
+              <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.12em]">
+                Latest sample
+              </Text>
+              {activeActionId ? (
+                <View className="w-2 h-2 rounded-full bg-primary" />
+              ) : null}
+            </View>
+            <Text className="font-sans text-base text-foreground font-medium leading-6">
+              {latestReading ?? "No sensor data active. Start a stream below."}
             </Text>
           </Card>
-        ) : null}
+        </View>
+      ) : null}
 
-        <View className="gap-chip">
-          <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-            Actions
-          </Text>
+      {/* Sensor Stream Trigger Actions */}
+      <View className="gap-2">
+        <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
+          Actions
+        </Text>
+        <View className="gap-3">
           {item.actions.map((action) => (
             <Button
-              className="items-start"
               disabled={connectionStatus !== "connected"}
               key={action.id}
               onPress={() => {
@@ -297,55 +331,82 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
                 });
               }}
               variant={activeActionId === action.id ? "primary" : "secondary"}
+              className="w-full"
             >
-              {actionSummary(action)}
+              <View className="flex-col items-start gap-1 py-1 w-full">
+                <Text
+                  className={`font-bold font-sans text-base ${
+                    activeActionId === action.id ? "text-primary-foreground" : "text-foreground"
+                  }`}
+                >
+                  {action.label}
+                </Text>
+                {action.description ? (
+                  <Text
+                    className={`font-normal font-sans text-xs ${
+                      activeActionId === action.id
+                        ? "text-primary-foreground/80"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {action.description}
+                  </Text>
+                ) : null}
+              </View>
             </Button>
           ))}
         </View>
+      </View>
 
-        <View className="gap-chip">
-          <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-            Recent events
-          </Text>
+      {/* Debug Logs Section */}
+      <View className="gap-2">
+        <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
+          Recent events log
+        </Text>
+        <Card className="p-card bg-zinc-950 border-border border-2 gap-2">
           {log.length ? (
             log.map((entry) => (
               <Text
-                className="font-normal font-sans text-muted-foreground text-sm leading-6"
+                className="font-mono text-zinc-400 text-xs leading-5"
                 key={entry.id}
               >
                 {entry.message}
               </Text>
             ))
           ) : (
-            <Text className="font-normal font-sans text-muted-foreground text-sm leading-6">
-              No actions yet.
+            <Text className="font-mono text-zinc-500 text-xs leading-5">
+              No events recorded. Actions will log here.
             </Text>
           )}
-        </View>
+        </Card>
+      </View>
 
-        <View className="gap-chip">
-          <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-            Notes
-          </Text>
+      {/* Notes / Caveats Box */}
+      <View className="gap-3">
+        <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
+          Notes & Caveats
+        </Text>
+        <View className="gap-3">
           {item.caveats.map((caveat) => (
             <Text
-              className="font-normal font-sans text-muted-foreground text-sm leading-6"
+              className="font-normal font-sans text-muted-foreground text-sm leading-5 pl-3 border-l-2 border-primary"
               key={caveat}
             >
               {caveat}
             </Text>
           ))}
         </View>
+      </View>
 
-        <View className="flex-row gap-chip">
-          <Button className="flex-1" href="/test" variant="secondary">
-            Back to test list
-          </Button>
-          <Button className="flex-1" href="/">
-            Home
-          </Button>
-        </View>
-      </Card>
+      {/* Navigation Footer */}
+      <View className="flex-row gap-chip mt-2">
+        <Button className="flex-1" href="/test" variant="secondary">
+          Back to test list
+        </Button>
+        <Button className="flex-1" href="/">
+          Home
+        </Button>
+      </View>
     </Screen>
   );
 };

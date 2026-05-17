@@ -9,6 +9,8 @@ interface TextLinkProps {
 
 export const TextLink = ({ children, href }: TextLinkProps) => (
   <Link href={href}>
-    <Text className="font-medium font-sans text-primary">{children}</Text>
+    <Text className="font-bold font-sans text-primary underline decoration-2">
+      {children}
+    </Text>
   </Link>
 );

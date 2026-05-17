@@ -79,16 +79,20 @@ export const patientProfiles = sqliteTable("patient_profiles", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const guardianProfiles = sqliteTable("guardian_profiles", {
-  userId: text("user_id").primaryKey(),
-  clerkUserId: text("clerk_user_id"),
-  email: text("email").notNull(),
-  phone: text("phone"),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-}, (table) => ({
-  emailUnique: uniqueIndex("guardian_email_unique").on(table.email),
-}));
+export const guardianProfiles = sqliteTable(
+  "guardian_profiles",
+  {
+    userId: text("user_id").primaryKey(),
+    clerkUserId: text("clerk_user_id"),
+    email: text("email").notNull(),
+    phone: text("phone"),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+    updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+  },
+  (table) => ({
+    emailUnique: uniqueIndex("guardian_email_unique").on(table.email),
+  })
+);
 
 export type DoctorProfile = typeof doctorProfiles.$inferSelect;
 export type DoctorSession = typeof doctorSessions.$inferSelect;

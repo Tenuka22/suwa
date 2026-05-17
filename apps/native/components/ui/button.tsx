@@ -1,8 +1,9 @@
 import { type Href, Link } from "expo-router";
 import type { ReactNode } from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 type ButtonVariant = "primary" | "secondary";
+type ButtonSize = "sm" | "default";
 
 interface ButtonProps {
   children: ReactNode;
@@ -11,19 +12,8 @@ interface ButtonProps {
   href?: string;
   onPress?: () => unknown;
   variant?: ButtonVariant;
+  size?: ButtonSize;
 }
-
-const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "items-center rounded-control border-2 border-border bg-primary px-card py-control active:opacity-80 disabled:opacity-50",
-  secondary:
-    "items-center rounded-control border-2 border-border bg-card px-card py-control active:opacity-80 disabled:opacity-50",
-};
-
-const textVariantClasses: Record<ButtonVariant, string> = {
-  primary: "font-medium font-sans text-primary-foreground",
-  secondary: "font-medium font-sans text-foreground",
-};
 
 export const Button = ({
   children,
@@ -32,15 +22,55 @@ export const Button = ({
   href,
   onPress,
   variant = "primary",
+  size = "default",
 }: ButtonProps) => {
+  const isString = typeof children === "string";
+  const paddingClass = size === "sm" ? "px-4 py-1.5" : "px-card py-control";
+
   const button = (
     <Pressable
       accessibilityRole="button"
-      className={`${variantClasses[variant]} ${className ?? ""}`.trim()}
+      className={`relative ${disabled ? "opacity-60" : ""} ${className ?? ""}`.trim()}
       disabled={disabled}
       onPress={() => onPress?.()}
+      style={{ position: "relative", overflow: "visible" }}
     >
-      <Text className={textVariantClasses[variant]}>{children}</Text>
+      {({ pressed }) => (
+        <>
+          {/* Neo-brutalist Solid Shadow Layer (does not move) */}
+          <View
+            className="absolute inset-0 rounded-control bg-border"
+            style={{
+              transform: [{ translateX: 4 }, { translateY: 4 }],
+            }}
+          />
+
+          {/* Main Interactive Button Front (translates on click to align with shadow) */}
+          <View
+            className={`w-full flex-row items-center justify-center rounded-control border-2 border-border ${paddingClass} ${
+              variant === "primary" ? "bg-primary" : "bg-card"
+            }`}
+            style={{
+              transform:
+                pressed && !disabled
+                  ? [{ translateX: 4 }, { translateY: 4 }]
+                  : [{ translateX: 0 }, { translateY: 0 }],
+            }}
+          >
+            {isString ? (
+              <Text
+                className={`text-center font-bold font-sans ${
+                  size === "sm" ? "text-sm" : "text-base"
+                } ${variant === "primary" ? "text-primary-foreground" : "text-foreground"}`}
+              >
+                {children}
+              </Text>
+            ) : (
+              children
+            )}
+          </View>
+        </>
+      )}
     </Pressable>
   );
 

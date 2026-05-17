@@ -1,15 +1,14 @@
 import { useAuth, useClerk } from "@clerk/expo";
 import { Stack } from "expo-router";
-import { Text, useColorScheme, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
+import { TextLink } from "@/components/ui/text-link";
 
 export default function HomeScreen() {
   const { isSignedIn } = useAuth();
   const { signOut } = useClerk();
-  const colorScheme = useColorScheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -18,54 +17,89 @@ export default function HomeScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <Screen contentClassName="flex-1 justify-between gap-section px-page py-page">
-        <View className="gap-section">
-          <View className="gap-chip">
-            <Text className="font-medium font-sans text-primary text-sm uppercase tracking-[0.25em]">
-              NativeWind v5
+
+      {/* Neo-brutalist Top Header Bar */}
+      <View className="bg-card border-b-[3px] border-border px-page flex-row items-center py-page justify-between">
+        <Text className="font-black font-sans text-3xl text-foreground tracking-tight">
+          ZenDoc
+        </Text>
+        {isSignedIn ? (
+          <Button size="sm">
+            Application
+          </Button>
+        ) : (
+          <Button href="/sign-up" size="sm">
+            Sign Up
+          </Button>
+        )}
+      </View>
+
+      {/* Main Screen Layout */}
+      <Screen
+        scrollClassName="flex-1 bg-background"
+        contentClassName="flex-1 px-page py-page justify-between gap-section"
+      >
+        {/* Central Content Card/Area */}
+        <View className="flex-1 justify-center py-8 gap-8 items-center">
+
+          {/* Stark Brutalist Headlines */}
+          <View className="gap-1 items-center">
+            <Text className="font-black font-sans text-4xl sm:text-5xl text-center text-foreground uppercase tracking-tight leading-none">
+              Anonymous
             </Text>
-            <Text className="font-medium font-sans text-4xl text-foreground leading-tight">
-              Neo brutalist home screen.
+            <Text className="font-black font-sans text-4xl sm:text-5xl text-center text-foreground uppercase tracking-tight leading-none">
+              Therapy.
             </Text>
-            <Text className="font-normal font-sans text-base text-muted-foreground leading-6">
-              The app uses shared design tokens for colors, spacing, and radius.
+            <Text className="font-black font-sans text-4xl sm:text-5xl text-center text-primary uppercase tracking-tight leading-none">
+              Real
+            </Text>
+            <Text className="font-black font-sans text-4xl sm:text-5xl text-center text-primary uppercase tracking-tight leading-none">
+              Wellness.
             </Text>
           </View>
 
-          <Card>
-            <View className="flex-row items-center justify-between gap-chip">
-              <Text className="font-medium font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-                Current theme
-              </Text>
-              <Text className="font-medium font-sans text-primary text-sm">
-                {colorScheme ?? "light"}
-              </Text>
-            </View>
-            <View className="mt-section flex-row gap-chip">
-              <View className="h-16 flex-1 rounded-control border-2 border-border bg-muted" />
-              <View className="h-16 flex-1 rounded-control border-2 border-border bg-primary" />
-            </View>
-          </Card>
+          {/* Editorial Subtitle */}
+          <Text className="font-bold font-sans text-[15px] text-muted-foreground text-center leading-relaxed px-6 max-w-[340px]">
+            Skip the waiting room. Connect with licensed professionals securely, anonymously, and instantly. Mental health care rebuilt for the modern mind.
+          </Text>
         </View>
 
-        <View className="gap-chip">
+        {/* Action Buttons Block */}
+        <View className="gap-4 w-full max-w-[340px] mx-auto pb-6">
           {isSignedIn ? (
-            <Button onPress={handleSignOut} variant="secondary">
-              Sign out
-            </Button>
+            <>
+              <Button onPress={handleSignOut} variant="secondary" className="w-full">
+                Sign Out
+              </Button>
+            </>
           ) : (
-            <View className="flex-row gap-chip">
-              <Button className="flex-1" href="/sign-in" variant="secondary">
-                Sign in
+            <>
+              {/* Primary "Get Started" brick red button with white chevron */}
+              <Button href="/sign-up" variant="primary" className="w-full">
+                <View className="flex-row items-center justify-center gap-2 py-0.5">
+                  <Text className="font-bold font-sans text-base text-primary-foreground">
+                    Get Started
+                  </Text>
+                  <Text className="font-bold font-sans text-lg text-primary-foreground leading-none">
+                    {"\u203A"}
+                  </Text>
+                </View>
               </Button>
-              <Button className="flex-1" href="/sign-up">
-                Sign up
+
+              {/* Secondary "Sign In" zinc button */}
+              <Button href="/sign-in" variant="secondary" className="w-full">
+                Sign In
               </Button>
-            </View>
+            </>
           )}
-          <Button href="/test" variant="secondary">
-            Open test suite
-          </Button>
+
+          {/* Test Suite Trigger Link */}
+          <View className="mt-4 items-center">
+            <TextLink href="/test">
+              Open test suite
+            </TextLink>
+
+          </View>
         </View>
       </Screen>
     </>
