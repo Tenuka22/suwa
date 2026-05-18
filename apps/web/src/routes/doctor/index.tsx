@@ -42,9 +42,8 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
-
 import { CalendarHeader, CalendarMonthView } from "./components/-index";
-import { scheduleNotes, schedulePageSchema, timeOptions } from "./utils/types";
+import { scheduleNotes, schedulePageSchema, timeOptions } from "./utils/-types";
 
 function parseScheduleEntry(entry: unknown): ScheduleEntry {
   return entry as ScheduleEntry;
@@ -489,7 +488,6 @@ function DoctorScheduleRoute() {
   const entries: ScheduleEntry[] = (scheduleQuery.data?.items ?? []).map(
     (entry) => parseScheduleEntry(entry)
   );
-
   const selectedDateKey = format(selectedDate, "yyyy-MM-dd");
   const allDayEntries = useMemo(
     () =>
@@ -557,7 +555,7 @@ function DoctorScheduleRoute() {
 
   const handleSyncConnectStatus = async () => {
     try {
-      const res = await syncConnectStatus.mutateAsync();
+      const res = await syncConnectStatus.mutateAsync(undefined);
       if (res.enabled) {
         toast.success("Stripe account status synced successfully!");
       } else {
@@ -643,7 +641,7 @@ function DoctorScheduleRoute() {
             </label>
             <Select
               disabled={kind !== "open"}
-              onValueChange={setNoteKind}
+              onValueChange={(value) => setNoteKind(value ?? "home")}
               value={noteKind}
             >
               <SelectTrigger className="h-9 w-full" id="schedule-note">

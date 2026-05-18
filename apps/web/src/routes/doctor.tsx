@@ -59,10 +59,7 @@ export const Route = createFileRoute("/doctor")({
   loader: async ({ context }): Promise<{ initialData: DoctorProfileData }> => {
     try {
       const initialData =
-        await context.queryClient.fetchQuery<DoctorProfileData>({
-          queryKey: orpc.doctorProfile.queryKey(),
-          queryFn: () => orpc.doctorProfile.call(),
-        });
+        await context.queryClient.fetchQuery(orpc.doctorProfile.queryOptions());
 
       return { initialData };
     } catch {
@@ -75,13 +72,12 @@ export const Route = createFileRoute("/doctor")({
 function DoctorLayoutRoute() {
   const user = useUser();
   const loaderData = useLoaderData({ from: "/doctor" });
-  const queryKey = orpc.doctorProfile.queryKey();
-  const doctorProfileQuery = useQuery({
-    queryKey,
-    queryFn: () => orpc.doctorProfile.call(),
-    initialData: loaderData.initialData,
-    enabled: user.isLoaded && !!user.user,
-  });
+  const doctorProfileQuery = useQuery(
+    orpc.doctorProfile.queryOptions({
+      initialData: loaderData.initialData,
+      enabled: user.isLoaded && !!user.user,
+    })
+  );
   const saveDoctorProfile = useMutation(
     orpc.saveDoctorProfile.mutationOptions({
       onSuccess: async () => {

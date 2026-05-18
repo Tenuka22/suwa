@@ -19,6 +19,8 @@
     "noUncheckedSideEffectImports": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@zen-doc/db": ["../../packages/db/src/index.ts"],
+      "@zen-doc/db/*": ["../../packages/db/src/*"],
       "@zen-doc/ui/*": ["../../packages/ui/src/*"]
     }
   }

@@ -8,6 +8,7 @@ interface FallbackEnv {
   CLERK_SECRET_KEY: string;
   CORS_ORIGIN: string;
   DB: D1Database;
+  DOCTOR_MATERIALS_BUCKET: R2Bucket;
   STRIPE_SECRET_KEY: string;
 }
 

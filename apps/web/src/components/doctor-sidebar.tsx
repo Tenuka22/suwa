@@ -8,7 +8,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@zen-doc/ui/components/sidebar";
-import { HouseIcon, LayoutDashboardIcon } from "lucide-react";
+import { HouseIcon, LayoutDashboardIcon, UserIcon } from "lucide-react";
 
 import { SidebarNavSection } from "@/components/sidebar-nav-section";
 import { SidebarUserFooter } from "@/components/sidebar-user-footer";
@@ -40,6 +40,7 @@ export function DoctorSidebar() {
         <SidebarNavSection
           items={[
             { icon: LayoutDashboardIcon, label: "Dashboard", to: "/doctor" },
+            { icon: UserIcon, label: "Profile", to: "/doctor/profile" },
           ]}
           label="Secondary"
         />

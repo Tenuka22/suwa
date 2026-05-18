@@ -1,5 +1,10 @@
 import alchemy from "alchemy";
-import { D1Database, TanStackStart, Worker } from "alchemy/cloudflare";
+import {
+  D1Database,
+  R2Bucket,
+  TanStackStart,
+  Worker,
+} from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
@@ -12,12 +17,17 @@ const db = await D1Database("database", {
   migrationsDir: "../../packages/db/src/migrations",
 });
 
+const doctorMaterialsBucket = await R2Bucket("doctor-materials", {
+  name: "doctor-materials",
+});
+
 export const server = await Worker("server", {
   cwd: "../../apps/server",
   entrypoint: "src/index.ts",
   compatibility: "node",
   bindings: {
     DB: db,
+    DOCTOR_MATERIALS_BUCKET: doctorMaterialsBucket,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     CLERK_SECRET_KEY: alchemy.secret.env.CLERK_SECRET_KEY!,
     CLERK_PUBLISHABLE_KEY: alchemy.env.CLERK_PUBLISHABLE_KEY!,
@@ -31,8 +41,9 @@ export const server = await Worker("server", {
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
   bindings: {
-    VITE_SERVER_URL: alchemy.env.VITE_SERVER_URL,
+    VITE_SERVER_URL: server.url!,
     VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
+    DOCTOR_MATERIALS_BUCKET: doctorMaterialsBucket,
     CLERK_SECRET_KEY: alchemy.secret.env.CLERK_SECRET_KEY!,
     VITE_CLERK_PUBLISHABLE_KEY: alchemy.env.CLERK_PUBLISHABLE_KEY!,
     VITE_STRIPE_PUBLISHABLE_KEY: alchemy.env.VITE_STRIPE_PUBLISHABLE_KEY!,

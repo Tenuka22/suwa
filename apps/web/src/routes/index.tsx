@@ -25,6 +25,7 @@ function HomeRoute() {
           <nav className="flex items-center gap-4 font-medium text-sm">
             <Link
               className="text-muted-foreground transition-colors hover:text-foreground"
+              search={{ page: 1 }}
               to="/doctor"
             >
               Doctor

@@ -13,11 +13,31 @@ const scheduleNoteValues = [
   "after_gym",
   "other",
 ] as const;
+const doctorFileKindValues = [
+  "portrait",
+  "qualification",
+  "intro_video",
+  "other",
+] as const;
 
 export const doctorProfiles = sqliteTable("doctor_profiles", {
   userId: text("user_id").primaryKey(),
+  displayName: text("display_name"),
+  headline: text("headline"),
   bio: text("bio"),
   licenseNumber: text("license_number"),
+  location: text("location"),
+  placeName: text("place_name"),
+  placeAddress: text("place_address"),
+  placeDescription: text("place_description"),
+  experienceStartYear: integer("experience_start_year"),
+  specialties: text("specialties"),
+  languages: text("languages"),
+  consultationModes: text("consultation_modes"),
+  focusAreas: text("focus_areas"),
+  approachSteps: text("approach_steps"),
+  approach: text("approach"),
+  education: text("education"),
   permanent: integer("permanent", { mode: "boolean" }).notNull().default(false),
   stripeAccountId: text("stripe_account_id"),
   stripeAccountEnabled: integer("stripe_account_enabled", {
@@ -40,6 +60,29 @@ export const doctorSessions = sqliteTable("doctor_sessions", {
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
+
+export const doctorFiles = sqliteTable(
+  "doctor_files",
+  {
+    id: text("id").primaryKey(),
+    doctorId: text("doctor_id").notNull(),
+    fileKey: text("file_key").notNull(),
+    fileName: text("file_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    fileKind: text("file_kind", { enum: doctorFileKindValues }).notNull(),
+    caption: text("caption"),
+    size: integer("size").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+    updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+  },
+  (table) => ({
+    fileKeyUnique: uniqueIndex("doctor_files_file_key_unique").on(
+      table.fileKey
+    ),
+  })
+);
 
 export const doctorScheduleEntries = sqliteTable(
   "doctor_schedule_entries",
@@ -79,6 +122,16 @@ export const patientProfiles = sqliteTable("patient_profiles", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+export const doctorEducationEntries = sqliteTable("doctor_education_entries", {
+  id: text("id").primaryKey(),
+  doctorId: text("doctor_id").notNull(),
+  institution: text("institution").notNull(),
+  degree: text("degree").notNull(),
+  year: integer("year"),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 export const guardianProfiles = sqliteTable(
   "guardian_profiles",
   {
@@ -96,6 +149,8 @@ export const guardianProfiles = sqliteTable(
 
 export type DoctorProfile = typeof doctorProfiles.$inferSelect;
 export type DoctorSession = typeof doctorSessions.$inferSelect;
+export type DoctorFile = typeof doctorFiles.$inferSelect;
 export type DoctorScheduleEntry = typeof doctorScheduleEntries.$inferSelect;
+export type DoctorEducationEntry = typeof doctorEducationEntries.$inferSelect;
 export type PatientProfile = typeof patientProfiles.$inferSelect;
 export type GuardianProfile = typeof guardianProfiles.$inferSelect;

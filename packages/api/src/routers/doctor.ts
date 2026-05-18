@@ -4,6 +4,17 @@ import type {
   DoctorSession,
 } from "@zen-doc/db";
 import {
+  doctorConsultationModeValues,
+  doctorFocusAreaValues,
+  doctorLanguageValues,
+  doctorSpecialtyValues,
+  parseJsonApproachSteps,
+  stringifyJsonApproachSteps,
+  parseJsonStringArray,
+  stringifyJsonStringArray,
+} from "@zen-doc/db";
+import {
+  doctorEducationEntries,
   doctorProfiles,
   doctorScheduleEntries,
   doctorSessions,
@@ -24,6 +35,20 @@ const scheduleNoteSchema = z.enum([
 const scheduleRangeSchema = z.object({
   startAt: z.iso.datetime(),
   endAt: z.iso.datetime(),
+});
+
+const doctorSpecialtySchema = z.enum(doctorSpecialtyValues);
+const doctorLanguageSchema = z.enum(doctorLanguageValues);
+const doctorConsultationModeSchema = z.enum(doctorConsultationModeValues);
+const doctorApproachStepSchema = z.object({
+  id: z.string().min(1),
+  text: z.string().trim().min(1).max(240),
+});
+const doctorEducationEntrySchema = z.object({
+  id: z.string().min(1),
+  institution: z.string().trim().min(1).max(120),
+  degree: z.string().trim().min(1).max(120),
+  year: z.coerce.number().int().min(1900).max(2100).nullable().optional(),
 });
 
 const createScheduleEntrySchema = z
@@ -231,13 +256,58 @@ export const doctorRouter = {
       .limit(1);
     const role = context.auth?.sessionClaims?.metadata?.role ?? "user";
 
-    return { profile: profile ?? null, role };
+    return {
+      profile: profile
+        ? {
+            ...profile,
+            specialties: parseJsonStringArray(profile.specialties),
+            languages: parseJsonStringArray(profile.languages),
+            consultationModes: parseJsonStringArray(profile.consultationModes),
+            focusAreas: parseJsonStringArray(profile.focusAreas),
+            approachSteps: parseJsonApproachSteps(profile.approachSteps),
+          }
+        : null,
+      role,
+    };
   }),
   saveDoctorProfile: protectedProcedure
-    .input(
-      z.object({
+      .input(
+        z.object({
+        displayName: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().min(2).max(100).optional()
+        ),
+        headline: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().min(2).max(140).optional()
+        ),
         bio: z.string().optional(),
         licenseNumber: z.string().optional(),
+        location: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().max(120).optional()
+        ),
+        experienceStartYear: z.coerce.number().int().min(1900).max(2100).optional(),
+        specialties: z.array(doctorSpecialtySchema).max(5).optional(),
+        languages: z.array(doctorLanguageSchema).max(8).optional(),
+        consultationModes: z.array(doctorConsultationModeSchema).max(3).optional(),
+        focusAreas: z.array(z.enum(doctorFocusAreaValues)).max(10).optional(),
+        approach: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(500).optional()),
+        education: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(500).optional()),
+        placeName: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(120).optional()),
+        placeAddress: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(240).optional()),
+        placeDescription: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(500).optional()),
+        approachSteps: z.array(doctorApproachStepSchema).max(12).optional(),
+        educationEntries: z.array(doctorEducationEntrySchema).max(12).optional(),
       })
     )
     .handler(async ({ context, input }) => {
@@ -260,8 +330,34 @@ export const doctorRouter = {
 
       const profile: DoctorProfile = {
         userId,
+        displayName: input.displayName ?? existingProfile?.displayName ?? null,
+        headline: input.headline ?? existingProfile?.headline ?? null,
         bio: input.bio ?? null,
         licenseNumber: input.licenseNumber ?? null,
+        location: input.location ?? existingProfile?.location ?? null,
+        placeName: input.placeName ?? existingProfile?.placeName ?? null,
+        placeAddress: input.placeAddress ?? existingProfile?.placeAddress ?? null,
+        placeDescription: input.placeDescription ?? existingProfile?.placeDescription ?? null,
+        experienceStartYear:
+          input.experienceStartYear ?? existingProfile?.experienceStartYear ?? null,
+        specialties: stringifyJsonStringArray(
+          input.specialties ?? parseJsonStringArray(existingProfile?.specialties)
+        ),
+        languages: stringifyJsonStringArray(
+          input.languages ?? parseJsonStringArray(existingProfile?.languages)
+        ),
+        consultationModes: stringifyJsonStringArray(
+          input.consultationModes ??
+            parseJsonStringArray(existingProfile?.consultationModes)
+        ),
+        focusAreas: stringifyJsonStringArray(
+          input.focusAreas ?? parseJsonStringArray(existingProfile?.focusAreas)
+        ),
+        approachSteps: stringifyJsonApproachSteps(
+          input.approachSteps ?? parseJsonApproachSteps(existingProfile?.approachSteps)
+        ),
+        approach: input.approach ?? existingProfile?.approach ?? null,
+        education: input.education ?? existingProfile?.education ?? null,
         permanent: existingProfile?.permanent ?? false,
         stripeAccountId: existingProfile?.stripeAccountId ?? null,
         stripeAccountEnabled: existingProfile?.stripeAccountEnabled ?? false,
@@ -276,6 +372,23 @@ export const doctorRouter = {
           target: doctorProfiles.userId,
           set: profile,
         });
+
+      if (input.educationEntries) {
+        await context.db.delete(doctorEducationEntries).where(eq(doctorEducationEntries.doctorId, userId));
+        if (input.educationEntries.length > 0) {
+          await context.db.insert(doctorEducationEntries).values(
+            input.educationEntries.map((entry) => ({
+              id: entry.id,
+              doctorId: userId,
+              institution: entry.institution,
+              degree: entry.degree,
+              year: entry.year ?? null,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            }))
+          );
+        }
+      }
 
       await context.clerk.users.updateUserMetadata(userId, {
         publicMetadata: {

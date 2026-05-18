@@ -8,7 +8,7 @@ import {
   startOfWeek,
 } from "date-fns";
 
-import type { ScheduleEntry } from "./types";
+import type { ScheduleEntry } from "./-types";
 
 export interface CalendarCell {
   currentMonth: boolean;

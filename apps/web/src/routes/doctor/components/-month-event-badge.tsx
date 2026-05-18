@@ -4,7 +4,7 @@ import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
 
-import type { ScheduleEntry } from "../utils/types";
+import type { ScheduleEntry } from "../utils/-types";
 
 interface MonthEventBadgeProps {
   className?: string;

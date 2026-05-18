@@ -3,8 +3,8 @@
 import { isSameDay, isToday, startOfDay } from "date-fns";
 
 import { cn } from "@/lib/utils";
-import type { CalendarCell } from "../utils/calendar";
-import type { ScheduleEntry } from "../utils/types";
+import type { CalendarCell } from "../utils/-calendar";
+import type { ScheduleEntry } from "../utils/-types";
 
 interface DayCellProps {
   cell: CalendarCell;
