@@ -22,6 +22,7 @@ import {
 } from "@zen-doc/ui/components/sidebar";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { DoctorSidebar } from "@/components/doctor-sidebar";
@@ -81,6 +82,10 @@ function DoctorLayoutRoute() {
     orpc.saveDoctorProfile.mutationOptions({
       onSuccess: async () => {
         await doctorProfileQuery.refetch();
+        toast.success("Doctor profile saved successfully");
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Save failed");
       },
     })
   );

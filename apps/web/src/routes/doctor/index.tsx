@@ -440,6 +440,10 @@ function DoctorScheduleRoute() {
     orpc.createScheduleEntry.mutationOptions({
       onSuccess: async () => {
         await scheduleQuery.refetch();
+        toast.success("Schedule entry created");
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Create failed");
       },
     })
   );
@@ -448,6 +452,10 @@ function DoctorScheduleRoute() {
     orpc.deleteScheduleEntry.mutationOptions({
       onSuccess: async () => {
         await scheduleQuery.refetch();
+        toast.success("Schedule entry deleted");
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Delete failed");
       },
     })
   );

@@ -19,6 +19,7 @@ import {
   doctorScheduleEntries,
   doctorSessions,
 } from "@zen-doc/db";
+import { ORPCError } from "@orpc/server";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
@@ -451,7 +452,9 @@ export const doctorRouter = {
       // Prevent past schedule modifications
       const now = new Date();
       if (inputStart < now) {
-        throw new Error("Cannot modify schedules in the past");
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Cannot modify schedules in the past",
+        });
       }
 
       // Generate all days between inputStart and inputEnd (day-by-day deconstruction)
