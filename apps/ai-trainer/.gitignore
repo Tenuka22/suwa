@@ -1,8 +1,6 @@
-data-sets-raw/
-processed-datasets/
 .env
 .env.*
-
+processed-datasets
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

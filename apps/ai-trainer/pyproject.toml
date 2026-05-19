@@ -6,18 +6,21 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.10.3",
+    "kagglehub>=0.3.0",
     "pandas>=3.0.3",
+    "pyarrow>=20.0.0",
     "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "tensorflow>=2.21.0",
 ]
 
 [project.scripts]
-extract-data = "src.bins.data_extractor:main"
+build-dataset = "src.bins.data_extractor:main"
 visualize-data = "src.bins.data_visualization:main"
 
 [tool.setuptools]
-py-modules = ["dataset_creation", "visualize_data"]
+py-modules = ["dataset_creation", "data_extractor"]
+packages = ["src", "src.bins", "src.bins.data_extractor", "src.bins.data_visualization"]
 
 [build-system]
 requires = ["setuptools>=69", "wheel"]

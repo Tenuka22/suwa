@@ -1,15 +1,26 @@
 from pathlib import Path
+
 from .core import visualize_dataset
 
-def main():
-    # Example usage:
-    # Need to pass paths as arguments or configure via settings
+
+def _candidate_datasets(processed_dir: Path) -> list[Path]:
+    candidates = sorted(processed_dir.glob("*.parquet"))
+    if candidates:
+        return candidates
+    return sorted(processed_dir.glob("*.csv"))
+
+
+def main() -> int:
     base_dir = Path(__file__).resolve().parents[3]
     processed_dir = base_dir / "processed-datasets"
-    
-    # Iterate through processed datasets
-    for ds_path in processed_dir.iterdir():
-        if ds_path.is_dir():
-            data_file = ds_path / "data.csv"
-            if data_file.exists():
-                visualize_dataset(data_file, ds_path / "plots")
+
+    candidate_files = _candidate_datasets(processed_dir)
+
+    if not candidate_files:
+        print(f"No processed datasets found under {processed_dir}.")
+        return 0
+
+    for data_file in sorted(set(candidate_files)):
+        print(f"Visualizing {data_file.relative_to(base_dir)}")
+        visualize_dataset(data_file, data_file.parent / "plots")
+    return 0
