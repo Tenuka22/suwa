@@ -13,11 +13,3 @@ dependencies = [
     "seaborn>=0.13.2",
     "tensorflow>=2.21.0",
 ]
-
-[tool.setuptools]
-py-modules = ["dataset_creation", "data_extractor"]
-packages = ["src", "src.bins", "src.bins.data_extractor", "src.bins.data_visualization"]
-
-[build-system]
-requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.build_meta"
