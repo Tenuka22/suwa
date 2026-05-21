@@ -12,8 +12,8 @@ interface DropzoneContextValue {
   openFilePicker: () => void;
   removeFile: () => void;
   setFile: (file: File | null) => void;
-  status: DropzoneStatus;
   setStatus: (status: DropzoneStatus) => void;
+  status: DropzoneStatus;
 }
 
 const DropzoneContext = createContext<DropzoneContextValue | null>(null);
@@ -54,7 +54,17 @@ export function Dropzone({
   setStatus: (status: DropzoneStatus) => void;
 }) {
   return (
-    <DropzoneContext.Provider value={{ file, inputRef, openFilePicker, removeFile, setFile, status, setStatus }}>
+    <DropzoneContext.Provider
+      value={{
+        file,
+        inputRef,
+        openFilePicker,
+        removeFile,
+        setFile,
+        status,
+        setStatus,
+      }}
+    >
       <div
         className={cn(
           "rounded-xl border border-dashed p-4 transition-colors",
@@ -129,7 +139,9 @@ export function DropzoneFileList({ children }: React.PropsWithChildren) {
   return <div className="flex flex-col gap-2">{children}</div>;
 }
 
-export function DropzoneFileListItem({ children }: React.PropsWithChildren<{ file: File }>) {
+export function DropzoneFileListItem({
+  children,
+}: React.PropsWithChildren<{ file: File }>) {
   return <div className="rounded-md border p-3">{children}</div>;
 }
 

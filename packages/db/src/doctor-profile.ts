@@ -17,7 +17,11 @@ export const doctorLanguageValues = [
   "tamil",
 ] as const;
 
-export const doctorConsultationModeValues = ["video", "in_person", "chat"] as const;
+export const doctorConsultationModeValues = [
+  "video",
+  "in_person",
+  "chat",
+] as const;
 
 export const doctorFocusAreaValues = [
   "anxiety",
@@ -34,7 +38,8 @@ export const doctorFocusAreaValues = [
 
 export type DoctorSpecialty = (typeof doctorSpecialtyValues)[number];
 export type DoctorLanguage = (typeof doctorLanguageValues)[number];
-export type DoctorConsultationMode = (typeof doctorConsultationModeValues)[number];
+export type DoctorConsultationMode =
+  (typeof doctorConsultationModeValues)[number];
 export type DoctorFocusArea = (typeof doctorFocusAreaValues)[number];
 
 export interface DoctorApproachStep {
@@ -43,9 +48,9 @@ export interface DoctorApproachStep {
 }
 
 export interface DoctorEducationEntry {
+  degree: string;
   id: string;
   institution: string;
-  degree: string;
   year: number | null;
 }
 
@@ -101,6 +106,8 @@ export function parseJsonApproachSteps(
   return fallback;
 }
 
-export function stringifyJsonApproachSteps(value: readonly DoctorApproachStep[]): string {
+export function stringifyJsonApproachSteps(
+  value: readonly DoctorApproachStep[]
+): string {
   return JSON.stringify(value);
 }

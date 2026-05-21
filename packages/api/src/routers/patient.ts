@@ -65,7 +65,9 @@ export const patientRouter = {
         .where(
           and(
             eq(patientProfiles.guardianEmail, guardian.email),
-            guardian.phone ? eq(patientProfiles.guardianPhone, guardian.phone) : undefined,
+            guardian.phone
+              ? eq(patientProfiles.guardianPhone, guardian.phone)
+              : undefined,
             eq(patientProfiles.guardianRequestStatus, "pending")
           )
         );

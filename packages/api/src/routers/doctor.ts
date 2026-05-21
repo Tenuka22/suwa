@@ -1,3 +1,4 @@
+import { ORPCError } from "@orpc/server";
 import type {
   DoctorProfile,
   DoctorScheduleEntry,
@@ -5,21 +6,18 @@ import type {
 } from "@zen-doc/db";
 import {
   doctorConsultationModeValues,
+  doctorEducationEntries,
   doctorFocusAreaValues,
   doctorLanguageValues,
-  doctorSpecialtyValues,
-  parseJsonApproachSteps,
-  stringifyJsonApproachSteps,
-  parseJsonStringArray,
-  stringifyJsonStringArray,
-} from "@zen-doc/db";
-import {
-  doctorEducationEntries,
   doctorProfiles,
   doctorScheduleEntries,
   doctorSessions,
+  doctorSpecialtyValues,
+  parseJsonApproachSteps,
+  parseJsonStringArray,
+  stringifyJsonApproachSteps,
+  stringifyJsonStringArray,
 } from "@zen-doc/db";
-import { ORPCError } from "@orpc/server";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
@@ -272,8 +270,8 @@ export const doctorRouter = {
     };
   }),
   saveDoctorProfile: protectedProcedure
-      .input(
-        z.object({
+    .input(
+      z.object({
         displayName: z.preprocess(
           (value) =>
             typeof value === "string" && value.trim() === ""
@@ -297,18 +295,59 @@ export const doctorRouter = {
               : value,
           z.string().trim().max(120).optional()
         ),
-        experienceStartYear: z.coerce.number().int().min(1900).max(2100).optional(),
+        experienceStartYear: z.coerce
+          .number()
+          .int()
+          .min(1900)
+          .max(2100)
+          .optional(),
         specialties: z.array(doctorSpecialtySchema).max(5).optional(),
         languages: z.array(doctorLanguageSchema).max(8).optional(),
-        consultationModes: z.array(doctorConsultationModeSchema).max(3).optional(),
+        consultationModes: z
+          .array(doctorConsultationModeSchema)
+          .max(3)
+          .optional(),
         focusAreas: z.array(z.enum(doctorFocusAreaValues)).max(10).optional(),
-        approach: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(500).optional()),
-        education: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(500).optional()),
-        placeName: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(120).optional()),
-        placeAddress: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(240).optional()),
-        placeDescription: z.preprocess((value) => typeof value === "string" && value.trim() === "" ? undefined : value, z.string().trim().max(500).optional()),
+        approach: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().max(500).optional()
+        ),
+        education: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().max(500).optional()
+        ),
+        placeName: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().max(120).optional()
+        ),
+        placeAddress: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().max(240).optional()
+        ),
+        placeDescription: z.preprocess(
+          (value) =>
+            typeof value === "string" && value.trim() === ""
+              ? undefined
+              : value,
+          z.string().trim().max(500).optional()
+        ),
         approachSteps: z.array(doctorApproachStepSchema).max(12).optional(),
-        educationEntries: z.array(doctorEducationEntrySchema).max(12).optional(),
+        educationEntries: z
+          .array(doctorEducationEntrySchema)
+          .max(12)
+          .optional(),
       })
     )
     .handler(async ({ context, input }) => {
@@ -337,12 +376,17 @@ export const doctorRouter = {
         licenseNumber: input.licenseNumber ?? null,
         location: input.location ?? existingProfile?.location ?? null,
         placeName: input.placeName ?? existingProfile?.placeName ?? null,
-        placeAddress: input.placeAddress ?? existingProfile?.placeAddress ?? null,
-        placeDescription: input.placeDescription ?? existingProfile?.placeDescription ?? null,
+        placeAddress:
+          input.placeAddress ?? existingProfile?.placeAddress ?? null,
+        placeDescription:
+          input.placeDescription ?? existingProfile?.placeDescription ?? null,
         experienceStartYear:
-          input.experienceStartYear ?? existingProfile?.experienceStartYear ?? null,
+          input.experienceStartYear ??
+          existingProfile?.experienceStartYear ??
+          null,
         specialties: stringifyJsonStringArray(
-          input.specialties ?? parseJsonStringArray(existingProfile?.specialties)
+          input.specialties ??
+            parseJsonStringArray(existingProfile?.specialties)
         ),
         languages: stringifyJsonStringArray(
           input.languages ?? parseJsonStringArray(existingProfile?.languages)
@@ -355,7 +399,8 @@ export const doctorRouter = {
           input.focusAreas ?? parseJsonStringArray(existingProfile?.focusAreas)
         ),
         approachSteps: stringifyJsonApproachSteps(
-          input.approachSteps ?? parseJsonApproachSteps(existingProfile?.approachSteps)
+          input.approachSteps ??
+            parseJsonApproachSteps(existingProfile?.approachSteps)
         ),
         approach: input.approach ?? existingProfile?.approach ?? null,
         education: input.education ?? existingProfile?.education ?? null,
@@ -375,7 +420,9 @@ export const doctorRouter = {
         });
 
       if (input.educationEntries) {
-        await context.db.delete(doctorEducationEntries).where(eq(doctorEducationEntries.doctorId, userId));
+        await context.db
+          .delete(doctorEducationEntries)
+          .where(eq(doctorEducationEntries.doctorId, userId));
         if (input.educationEntries.length > 0) {
           await context.db.insert(doctorEducationEntries).values(
             input.educationEntries.map((entry) => ({

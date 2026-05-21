@@ -46,6 +46,12 @@ export function AdminSidebar() {
               to: "/admin/doc-requests",
               search: { page: 1, query: "" },
             },
+            {
+              icon: ShieldIcon,
+              label: "Doctors",
+              to: "/admin/doctors",
+              search: { page: 1, query: "" },
+            },
           ]}
           label="Secondary"
         />

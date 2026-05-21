@@ -1,5 +1,4 @@
-import { doctorFiles } from "@zen-doc/db";
-import { doctorProfiles } from "@zen-doc/db";
+import { doctorFiles, doctorProfiles } from "@zen-doc/db";
 import { env } from "@zen-doc/env/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -57,7 +56,10 @@ async function canManageDoctorFiles(db: ApiContext["db"], doctorId: string) {
 }
 
 async function listFilesForDoctor(db: ApiContext["db"], doctorId: string) {
-  const rows = await db.select().from(doctorFiles).where(eq(doctorFiles.doctorId, doctorId));
+  const rows = await db
+    .select()
+    .from(doctorFiles)
+    .where(eq(doctorFiles.doctorId, doctorId));
 
   return rows.map((file) => ({
     ...file,
@@ -68,7 +70,9 @@ async function listFilesForDoctor(db: ApiContext["db"], doctorId: string) {
 export const doctorFilesRouter = {
   listDoctorFiles: publicProcedure
     .input(doctorFileInputSchema)
-    .handler(async ({ context, input }) => listFilesForDoctor(context.db, input.doctorId)),
+    .handler(async ({ context, input }) =>
+      listFilesForDoctor(context.db, input.doctorId)
+    ),
 
   myDoctorFiles: protectedProcedure.handler(async ({ context }) => {
     const doctorId = context.auth?.userId;
@@ -103,22 +107,20 @@ export const doctorFilesRouter = {
         },
       });
 
-      await context.db
-        .insert(doctorFiles)
-        .values({
-          id: createdId,
-          doctorId: input.doctorId,
-          fileKey,
-          fileName: file.name,
-          mimeType: file.type || "application/octet-stream",
-          fileKind: input.fileKind,
-          caption: input.caption ?? null,
-          size: file.size,
-          width: null,
-          height: null,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        });
+      await context.db.insert(doctorFiles).values({
+        id: createdId,
+        doctorId: input.doctorId,
+        fileKey,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        fileKind: input.fileKind,
+        caption: input.caption ?? null,
+        size: file.size,
+        width: null,
+        height: null,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      });
 
       const [created] = await context.db
         .select()
@@ -147,7 +149,9 @@ export const doctorFilesRouter = {
       const [file] = await context.db
         .select()
         .from(doctorFiles)
-        .where(and(eq(doctorFiles.id, input.id), eq(doctorFiles.doctorId, doctorId)))
+        .where(
+          and(eq(doctorFiles.id, input.id), eq(doctorFiles.doctorId, doctorId))
+        )
         .limit(1);
 
       if (!file) {
@@ -194,7 +198,9 @@ export const doctorFilesRouter = {
       const [file] = await context.db
         .select()
         .from(doctorFiles)
-        .where(and(eq(doctorFiles.id, input.id), eq(doctorFiles.doctorId, doctorId)))
+        .where(
+          and(eq(doctorFiles.id, input.id), eq(doctorFiles.doctorId, doctorId))
+        )
         .limit(1);
 
       if (!file) {

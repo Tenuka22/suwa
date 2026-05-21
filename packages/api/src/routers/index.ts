@@ -1,9 +1,9 @@
 import type { RouterClient } from "@orpc/server";
 
 import { adminRouter } from "./admin";
-import { doctorFilesRouter } from "./doctor-files";
 import { bookingRouter } from "./booking";
 import { doctorRouter } from "./doctor";
+import { doctorFilesRouter } from "./doctor-files";
 import { patientRouter } from "./patient";
 import { publicRouter } from "./public";
 

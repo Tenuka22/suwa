@@ -97,9 +97,7 @@
       "indexes": {
         "doctor_files_file_key_unique": {
           "name": "doctor_files_file_key_unique",
-          "columns": [
-            "file_key"
-          ],
+          "columns": ["file_key"],
           "isUnique": true
         }
       },
@@ -250,9 +248,7 @@
       "indexes": {
         "doctor_schedule_entries_session_id_unique": {
           "name": "doctor_schedule_entries_session_id_unique",
-          "columns": [
-            "session_id"
-          ],
+          "columns": ["session_id"],
           "isUnique": true
         }
       },
@@ -403,9 +399,7 @@
       "indexes": {
         "guardian_email_unique": {
           "name": "guardian_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },

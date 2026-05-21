@@ -2,14 +2,14 @@ import { env } from "@zen-doc/env/server";
 import { drizzle } from "drizzle-orm/d1";
 
 import {
-  type DoctorProfile as DoctorProfileSchema,
-  type DoctorFile as DoctorFileSchema,
-  type DoctorScheduleEntry as DoctorScheduleEntrySchema,
   type DoctorEducationEntry as DoctorEducationEntrySchema,
+  type DoctorFile as DoctorFileSchema,
+  type DoctorProfile as DoctorProfileSchema,
+  type DoctorScheduleEntry as DoctorScheduleEntrySchema,
   type DoctorSession as DoctorSessionSchema,
-  doctorProfiles as doctorProfilesTable,
   doctorEducationEntries as doctorEducationEntriesTable,
   doctorFiles as doctorFilesTable,
+  doctorProfiles as doctorProfilesTable,
   doctorScheduleEntries as doctorScheduleEntriesTable,
   doctorSessions as doctorSessionsTable,
   type GuardianProfile as GuardianProfileSchema,
@@ -17,14 +17,15 @@ import {
   type PatientProfile as PatientProfileSchema,
   patientProfiles as patientProfilesTable,
 } from "./schema";
+
 export {
   doctorConsultationModeValues,
   doctorFocusAreaValues,
   doctorLanguageValues,
   doctorSpecialtyValues,
   parseJsonApproachSteps,
-  stringifyJsonApproachSteps,
   parseJsonStringArray,
+  stringifyJsonApproachSteps,
   stringifyJsonStringArray,
 } from "./doctor-profile";
 

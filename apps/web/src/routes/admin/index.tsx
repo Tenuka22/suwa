@@ -34,6 +34,13 @@ function AdminDashboardRoute() {
           >
             Doctor requests
           </Link>
+          <Link
+            className={buttonVariants({ variant: "outline" })}
+            search={{ page: 1, query: "" }}
+            to="/admin/doctors"
+          >
+            Doctors
+          </Link>
         </CardContent>
       </Card>
     </div>
