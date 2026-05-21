@@ -10,6 +10,10 @@ import {
 
 import type { ScheduleEntry } from "./types";
 
+export function isBeforeToday(date: Date): boolean {
+  return startOfDay(date).getTime() < startOfDay(new Date()).getTime();
+}
+
 export interface CalendarCell {
   currentMonth: boolean;
   date: Date;

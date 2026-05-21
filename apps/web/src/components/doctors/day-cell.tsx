@@ -1,9 +1,10 @@
 "use client";
 
-import { isSameDay, isToday, startOfDay } from "date-fns";
+import { isSameDay, isToday } from "date-fns";
 
 import { cn } from "@/lib/utils";
 import type { CalendarCell } from "@/utils/doctor/calendar";
+import { isBeforeToday } from "@/utils/doctor/calendar";
 import type { ScheduleEntry } from "@/utils/doctor/types";
 
 interface DayCellProps {
@@ -14,10 +15,6 @@ interface DayCellProps {
 }
 
 const MAX_VISIBLE_EVENTS = 3;
-
-function isBeforeToday(date: Date): boolean {
-  return startOfDay(date).getTime() < startOfDay(new Date()).getTime();
-}
 
 export function DayCell({
   cell,

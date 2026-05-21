@@ -23,11 +23,9 @@ import {
   DropzoneDescription,
   DropzoneFileList,
   DropzoneFileListItem,
-  DropzoneFileMessage,
   DropzoneMessage,
   DropzoneRemoveFile,
   DropzoneTrigger,
-  InfiniteProgress,
   useDropzone,
 } from "@/components/dropzone";
 import {
@@ -251,11 +249,9 @@ export function DoctorFilesPanel({
                           <p className="text-muted-foreground text-xs">
                             {selectedFile.type || "Unknown type"}
                           </p>
-                          <DropzoneFileMessage />
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <InfiniteProgress />
                         <DropzoneRemoveFile>Remove</DropzoneRemoveFile>
                       </div>
                     </div>

@@ -145,10 +145,6 @@ export function DropzoneFileListItem({
   return <div className="rounded-md border p-3">{children}</div>;
 }
 
-export function DropzoneFileMessage() {
-  return null;
-}
-
 export function DropzoneRemoveFile({ children }: React.PropsWithChildren) {
   const { removeFile } = useDropzoneContext();
   return (
@@ -156,12 +152,4 @@ export function DropzoneRemoveFile({ children }: React.PropsWithChildren) {
       {children}
     </Button>
   );
-}
-
-export function DropzoneRetryFile({ children }: React.PropsWithChildren) {
-  return <>{children}</>;
-}
-
-export function InfiniteProgress() {
-  return null;
 }

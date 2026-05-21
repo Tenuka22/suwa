@@ -12,7 +12,7 @@ import {
 import { Input } from "@zen-doc/ui/components/input";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { z } from "zod";
-
+import { getMetadataRole } from "@/utils/clerk-auth";
 import { orpc } from "@/utils/orpc";
 
 interface ApprovedDoctor {
@@ -276,11 +276,4 @@ function AdminDoctorsRoute() {
       </Card>
     </div>
   );
-}
-
-function getMetadataRole(
-  metadata: Record<string, unknown> | null | undefined
-): string | undefined {
-  const role = metadata?.role;
-  return typeof role === "string" ? role : undefined;
 }

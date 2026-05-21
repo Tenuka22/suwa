@@ -63,25 +63,24 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
+import {
+  consultationModeLabels,
+  type DoctorConsultationMode,
+  type DoctorFocusArea,
+  type DoctorLanguage,
+  type DoctorSpecialty,
+  focusAreaLabels,
+  languageLabels,
+  specialtyLabels,
+} from "@/utils/doctor/profile-labels";
+import {
+  type ApproachStep,
+  type EducationRow,
+  parseApproachSteps,
+  parseEducationRows,
+} from "@/utils/doctor/profile-utils";
 import { orpc } from "@/utils/orpc";
-
-type DoctorSpecialty = (typeof doctorSpecialtyValues)[number];
-type DoctorLanguage = (typeof doctorLanguageValues)[number];
-type DoctorConsultationMode = (typeof doctorConsultationModeValues)[number];
-type DoctorFocusArea = (typeof doctorFocusAreaValues)[number];
-
-interface ApproachStep {
-  id: string;
-  text: string;
-}
-
-interface EducationRow {
-  degree: string;
-  id: string;
-  institution: string;
-  year: string;
-}
+import { SummaryBlock, SummaryItem } from "./summary-components";
 
 const doctorProfileFormSchema = z.object({
   displayName: z.preprocess(
@@ -129,44 +128,6 @@ const doctorProfileFormSchema = z.object({
 type DoctorProfileFormInput = z.input<typeof doctorProfileFormSchema>;
 type DoctorProfileFormValues = z.output<typeof doctorProfileFormSchema>;
 
-const specialtyLabels: Record<DoctorSpecialty, string> = {
-  psychiatry: "Psychiatry",
-  psychology: "Psychology",
-  counseling: "Counseling",
-  family_medicine: "Family medicine",
-  general_practice: "General practice",
-  wellness: "Wellness",
-};
-
-const languageLabels: Record<DoctorLanguage, string> = {
-  english: "English",
-  spanish: "Spanish",
-  french: "French",
-  arabic: "Arabic",
-  hindi: "Hindi",
-  sinhala: "Sinhala",
-  tamil: "Tamil",
-};
-
-const consultationModeLabels: Record<DoctorConsultationMode, string> = {
-  video: "Video sessions",
-  in_person: "In-person",
-  chat: "Chat support",
-};
-
-const focusAreaLabels: Record<DoctorFocusArea, string> = {
-  anxiety: "Anxiety",
-  depression: "Depression",
-  stress: "Stress",
-  trauma: "Trauma",
-  sleep: "Sleep",
-  relationships: "Relationships",
-  burnout: "Burnout",
-  addiction: "Addiction",
-  parenting: "Parenting",
-  grief: "Grief",
-};
-
 export function DoctorProfileCard() {
   const user = useUser();
   const [open, setOpen] = useState(false);
@@ -201,7 +162,7 @@ export function DoctorProfileCard() {
 
   useEffect(() => {
     form.reset(getDoctorProfileFormValues(profile ?? null));
-    setApproachSteps(parseApproachStepsValue(profile?.approachSteps ?? null));
+    setApproachSteps(parseApproachSteps(profile?.approachSteps ?? null));
   }, [form, profile]);
 
   useEffect(() => {
@@ -263,7 +224,7 @@ export function DoctorProfileCard() {
   }, [profile?.experienceStartYear]);
 
   const stepsList = useMemo(
-    () => parseApproachStepsValue(profile?.approachSteps ?? null),
+    () => parseApproachSteps(profile?.approachSteps ?? null),
     [profile?.approachSteps]
   );
   const parsedEducation = useMemo(
@@ -1081,74 +1042,6 @@ function updateEducationRow(
   setRows(next);
 }
 
-function SummaryItem({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-2.5">
-      {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
-      <div className="space-y-0.5">
-        <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-          {label}
-        </p>
-        <p className="font-semibold text-foreground/80 text-sm">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function SummaryBlock<T extends string>({
-  label,
-  labels,
-  values,
-  colorTheme = "primary",
-}: {
-  label: string;
-  labels: Record<T, string>;
-  values: T[];
-  colorTheme?: "primary" | "secondary" | "accent" | "muted";
-}) {
-  const themes = {
-    primary: "bg-primary/10 text-primary border-primary/20",
-    secondary: "bg-secondary text-secondary-foreground border-border",
-    accent: "bg-accent text-accent-foreground border-border",
-    muted: "bg-muted text-muted-foreground border-border",
-  };
-
-  return (
-    <div className="space-y-2">
-      <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-        {label}
-      </p>
-      <div className="flex flex-wrap gap-1.5">
-        {values.length > 0 ? (
-          values.map((value) => (
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 font-semibold text-xs transition-all hover:scale-105",
-                themes[colorTheme]
-              )}
-              key={value}
-            >
-              {labels[value]}
-            </span>
-          ))
-        ) : (
-          <span className="font-medium text-muted-foreground text-xs italic">
-            Not configured
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function toggleArrayValue<T extends string>(
   form: ReturnType<
     typeof useForm<DoctorProfileFormInput, undefined, DoctorProfileFormValues>
@@ -1231,67 +1124,4 @@ function getDoctorProfileFormValues(
       []) as DoctorConsultationMode[],
     focusAreas: (profile?.focusAreas ?? []) as DoctorFocusArea[],
   };
-}
-
-function parseApproachStepsValue(
-  value: string | ApproachStep[] | null | undefined
-): ApproachStep[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (!value) {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    if (Array.isArray(parsed)) {
-      return parsed.filter(
-        (item): item is ApproachStep =>
-          typeof item === "object" &&
-          item !== null &&
-          "id" in item &&
-          "text" in item &&
-          typeof (item as ApproachStep).id === "string" &&
-          typeof (item as ApproachStep).text === "string"
-      );
-    }
-  } catch {
-    return [];
-  }
-  return [];
-}
-
-function parseEducationRows(value: string | null | undefined): EducationRow[] {
-  if (!value) {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter(
-          (
-            item
-          ): item is {
-            degree: string;
-            institution: string;
-            year: number | null;
-          } =>
-            typeof item === "object" &&
-            item !== null &&
-            "institution" in item &&
-            "degree" in item
-        )
-        .map((item) => ({
-          id: crypto.randomUUID(),
-          institution: item.institution,
-          degree: item.degree,
-          year: item.year ? String(item.year) : "",
-        }));
-    }
-  } catch {
-    return [];
-  }
-  return [];
 }

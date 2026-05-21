@@ -1,8 +1,8 @@
 import { useUser } from "@clerk/tanstack-react-start";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { orpc } from "@/utils/orpc";
 import { DoctorFilesPanel, DoctorProfileCard } from "@/components/doctors";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor/profile")({
   component: DoctorProfileRoute,

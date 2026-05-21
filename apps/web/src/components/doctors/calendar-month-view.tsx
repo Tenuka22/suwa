@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatDateKey, getCalendarCells } from "@/utils/doctor/calendar";
+import {
+  formatDateKey,
+  getCalendarCells,
+  getEntriesByDay,
+} from "@/utils/doctor/calendar";
 import type { ScheduleEntry } from "@/utils/doctor/types";
 import { DayCell } from "./day-cell";
 
@@ -19,27 +23,7 @@ export function CalendarMonthView({
   onSelectDate,
 }: CalendarMonthViewProps) {
   const cells = useMemo(() => getCalendarCells(currentMonth), [currentMonth]);
-
-  const entriesByDay = useMemo(() => {
-    const map = new Map<string, ScheduleEntry[]>();
-    for (const entry of entries) {
-      const startDate = new Date(entry.startAt);
-      const endDate = new Date(entry.endAt);
-      const days: Date[] = [];
-      const current = new Date(startDate);
-      while (current <= endDate) {
-        days.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-      }
-      for (const day of days) {
-        const key = formatDateKey(day);
-        const bucket = map.get(key) ?? [];
-        bucket.push(entry);
-        map.set(key, bucket);
-      }
-    }
-    return map;
-  }, [entries]);
+  const entriesByDay = useMemo(() => getEntriesByDay(entries), [entries]);
 
   return (
     <div>

@@ -15,12 +15,6 @@ import {
   CardTitle,
 } from "@zen-doc/ui/components/card";
 import {
-  doctorConsultationModeValues,
-  doctorFocusAreaValues,
-  doctorLanguageValues,
-  doctorSpecialtyValues,
-} from "@zen-doc/db/doctor-profile";
-import {
   Award,
   Building,
   Clock,
@@ -30,13 +24,26 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 
-import { DoctorFilesPanel } from "@/components/doctors";
+import {
+  DoctorFilesPanel,
+  SummaryBlock,
+  SummaryItem,
+} from "@/components/doctors";
+import {
+  consultationModeLabels,
+  type DoctorConsultationMode,
+  type DoctorFocusArea,
+  type DoctorLanguage,
+  type DoctorSpecialty,
+  focusAreaLabels,
+  languageLabels,
+  specialtyLabels,
+} from "@/utils/doctor/profile-labels";
+import {
+  parseApproachSteps,
+  parseEducationRows,
+} from "@/utils/doctor/profile-utils";
 import { orpc } from "@/utils/orpc";
-
-type DoctorSpecialty = (typeof doctorSpecialtyValues)[number];
-type DoctorLanguage = (typeof doctorLanguageValues)[number];
-type DoctorConsultationMode = (typeof doctorConsultationModeValues)[number];
-type DoctorFocusArea = (typeof doctorFocusAreaValues)[number];
 
 interface DoctorProfileView {
   approach: string | null;
@@ -52,12 +59,12 @@ interface DoctorProfileView {
   languages: string[];
   licenseNumber: string | null;
   location: string | null;
+  permanent: boolean;
   placeAddress: string | null;
   placeDescription: string | null;
   placeName: string | null;
   specialties: string[];
   stripeAccountEnabled: boolean | null;
-  permanent: boolean;
 }
 
 interface DoctorEducationView {
@@ -67,44 +74,6 @@ interface DoctorEducationView {
   year: number | null;
 }
 
-const specialtyLabels: Record<DoctorSpecialty, string> = {
-  psychiatry: "Psychiatry",
-  psychology: "Psychology",
-  counseling: "Counseling",
-  family_medicine: "Family medicine",
-  general_practice: "General practice",
-  wellness: "Wellness",
-};
-
-const languageLabels: Record<DoctorLanguage, string> = {
-  english: "English",
-  spanish: "Spanish",
-  french: "French",
-  arabic: "Arabic",
-  hindi: "Hindi",
-  sinhala: "Sinhala",
-  tamil: "Tamil",
-};
-
-const consultationModeLabels: Record<DoctorConsultationMode, string> = {
-  video: "Video sessions",
-  in_person: "In-person",
-  chat: "Chat support",
-};
-
-const focusAreaLabels: Record<DoctorFocusArea, string> = {
-  anxiety: "Anxiety",
-  depression: "Depression",
-  stress: "Stress",
-  trauma: "Trauma",
-  sleep: "Sleep",
-  relationships: "Relationships",
-  burnout: "Burnout",
-  addiction: "Addiction",
-  parenting: "Parenting",
-  grief: "Grief",
-};
-
 export const Route = createFileRoute("/admin/doctors/$doctorId")({
   loader: async ({
     context,
@@ -112,7 +81,12 @@ export const Route = createFileRoute("/admin/doctors/$doctorId")({
   }): Promise<{
     initialData: {
       profile: DoctorProfileView | null;
-      files: { id: string; caption: string | null; fileKind: string; fileName: string }[];
+      files: {
+        id: string;
+        caption: string | null;
+        fileKind: string;
+        fileName: string;
+      }[];
       education: DoctorEducationView[];
       portrait: { id: string } | null;
     };
@@ -145,49 +119,6 @@ export const Route = createFileRoute("/admin/doctors/$doctorId")({
   component: AdminDoctorDetailRoute,
 });
 
-function parseEducationRows(value: string | null | undefined) {
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter(
-          (item): item is { degree: string; institution: string; year: number | null } =>
-            typeof item === "object" &&
-            item !== null &&
-            "institution" in item &&
-            "degree" in item
-        )
-        .map((item) => ({
-          id: crypto.randomUUID(),
-          institution: item.institution,
-          degree: item.degree,
-          year: item.year ? String(item.year) : "",
-        }));
-    }
-  } catch {
-    return [];
-  }
-  return [];
-}
-
-function parseApproachSteps(value: { id: string; text: string }[] | string | null | undefined) {
-  if (Array.isArray(value)) return value;
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    if (Array.isArray(parsed)) {
-      return parsed.filter(
-        (item): item is { id: string; text: string } =>
-          typeof item === "object" && item !== null && "id" in item && "text" in item
-      );
-    }
-  } catch {
-    return [];
-  }
-  return [];
-}
-
 function AdminDoctorDetailRoute() {
   const user = useUser();
   const router = useRouter();
@@ -210,10 +141,12 @@ function AdminDoctorDetailRoute() {
   const profile = doctorQuery.data?.profile;
   const files = doctorQuery.data?.files ?? [];
 
-  const displayName = profile?.displayName ?? profile?.licenseNumber ?? "Doctor";
+  const displayName =
+    profile?.displayName ?? profile?.licenseNumber ?? "Doctor";
   const specialties = (profile?.specialties ?? []) as DoctorSpecialty[];
   const languages = (profile?.languages ?? []) as DoctorLanguage[];
-  const consultationModes = (profile?.consultationModes ?? []) as DoctorConsultationMode[];
+  const consultationModes = (profile?.consultationModes ??
+    []) as DoctorConsultationMode[];
   const focusAreas = (profile?.focusAreas ?? []) as DoctorFocusArea[];
 
   const experienceLabel = useMemo(() => {
@@ -265,7 +198,10 @@ function AdminDoctorDetailRoute() {
           <Card>
             <CardHeader className="flex flex-col gap-4 border-border/30 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
-                <Avatar className="size-16 border-2 border-primary/20 shadow-md" size="lg">
+                <Avatar
+                  className="size-16 border-2 border-primary/20 shadow-md"
+                  size="lg"
+                >
                   {profile.placeName ? (
                     <AvatarImage alt={displayName} src={profile.placeName} />
                   ) : null}
@@ -317,7 +253,9 @@ function AdminDoctorDetailRoute() {
                     value={profile.location ?? "Not set"}
                   />
                   <SummaryItem
-                    icon={<Building className="size-3.5 text-muted-foreground" />}
+                    icon={
+                      <Building className="size-3.5 text-muted-foreground" />
+                    }
                     label="Practice Address"
                     value={profile.placeAddress ?? "Not set"}
                   />
@@ -331,17 +269,23 @@ function AdminDoctorDetailRoute() {
                 </h3>
                 <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
                   <SummaryItem
-                    icon={<FileText className="size-3.5 text-muted-foreground" />}
+                    icon={
+                      <FileText className="size-3.5 text-muted-foreground" />
+                    }
                     label="License Number"
                     value={profile.licenseNumber ?? "Not set"}
                   />
                   <SummaryItem
-                    icon={<Building className="size-3.5 text-muted-foreground" />}
+                    icon={
+                      <Building className="size-3.5 text-muted-foreground" />
+                    }
                     label="Practice Place Name"
                     value={profile.placeName ?? "Not set"}
                   />
                   <SummaryItem
-                    icon={<FileText className="size-3.5 text-muted-foreground" />}
+                    icon={
+                      <FileText className="size-3.5 text-muted-foreground" />
+                    }
                     label="Place Description"
                     value={profile.placeDescription ?? "No description added"}
                   />
@@ -421,8 +365,12 @@ function AdminDoctorDetailRoute() {
                         key={edu.id}
                       >
                         <div className="space-y-0.5">
-                          <p className="font-semibold text-foreground/80">{edu.degree}</p>
-                          <p className="text-muted-foreground text-xs">{edu.institution}</p>
+                          <p className="font-semibold text-foreground/80">
+                            {edu.degree}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {edu.institution}
+                          </p>
                         </div>
                         {edu.year && (
                           <span className="rounded-full border bg-muted px-2.5 py-1 font-mono font-semibold text-muted-foreground text-xs">
@@ -442,11 +390,15 @@ function AdminDoctorDetailRoute() {
                     Doctor Materials
                   </h3>
                   <p className="text-muted-foreground text-xs">
-                    Uploaded certificates, professional portraits, and video bios.
+                    Uploaded certificates, professional portraits, and video
+                    bios.
                   </p>
                 </div>
-                <Badge className="shrink-0 self-start sm:self-auto" variant="outline">
-                  {files.length} file{files.length !== 1 ? "s" : ""}
+                <Badge
+                  className="shrink-0 self-start sm:self-auto"
+                  variant="outline"
+                >
+                  {files.length} file{files.length === 1 ? "" : "s"}
                 </Badge>
               </div>
             </CardContent>
@@ -464,75 +416,12 @@ function AdminDoctorDetailRoute() {
             <CardTitle>Doctor not found</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">That public profile does not exist yet.</p>
+            <p className="text-muted-foreground">
+              That public profile does not exist yet.
+            </p>
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-}
-
-function SummaryItem({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-2.5">
-      {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
-      <div className="space-y-0.5">
-        <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-          {label}
-        </p>
-        <p className="font-semibold text-foreground/80 text-sm">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function SummaryBlock<T extends string>({
-  label,
-  labels,
-  values,
-  colorTheme = "primary",
-}: {
-  label: string;
-  labels: Record<T, string>;
-  values: T[];
-  colorTheme?: "primary" | "secondary" | "accent" | "muted";
-}) {
-  const themes = {
-    primary: "bg-primary/10 text-primary border-primary/20",
-    secondary: "bg-secondary text-secondary-foreground border-border",
-    accent: "bg-accent text-accent-foreground border-border",
-    muted: "bg-muted text-muted-foreground border-border",
-  };
-
-  return (
-    <div className="space-y-2">
-      <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-        {label}
-      </p>
-      <div className="flex flex-wrap gap-1.5">
-        {values.length > 0 ? (
-          values.map((value) => (
-            <span
-              className={`rounded-full border px-2.5 py-0.5 font-semibold text-xs transition-all hover:scale-105 ${themes[colorTheme]}`}
-              key={value}
-            >
-              {labels[value] ?? value}
-            </span>
-          ))
-        ) : (
-          <span className="font-medium text-muted-foreground text-xs italic">
-            Not configured
-          </span>
-        )}
-      </div>
     </div>
   );
 }

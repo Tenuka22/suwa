@@ -36,35 +36,25 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@zen-doc/ui/components/tooltip";
-import { endOfMonth, format, startOfMonth } from "date-fns";
+import {
+  addMonths,
+  endOfMonth,
+  format,
+  startOfMonth,
+  subMonths,
+} from "date-fns";
 import { ChevronLeft, ChevronRight, Lock, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-
-import { orpc } from "@/utils/orpc";
 import { CalendarHeader, CalendarMonthView } from "@/components/doctors";
-import { scheduleNotes, schedulePageSchema, timeOptions } from "@/utils/doctor/types";
-
-function parseScheduleEntry(entry: unknown): ScheduleEntry {
-  return entry as ScheduleEntry;
-}
-
-function addMonths(date: Date, amount: number): Date {
-  const next = new Date(date);
-  next.setMonth(next.getMonth() + amount);
-  return next;
-}
-
-function subMonths(date: Date, amount: number): Date {
-  return addMonths(date, -amount);
-}
-
-function formatLabel(date: Date): string {
-  return new Intl.DateTimeFormat("en", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
-}
+import { isBeforeToday } from "@/utils/doctor/calendar";
+import {
+  type ScheduleEntry,
+  scheduleNotes,
+  schedulePageSchema,
+  timeOptions,
+} from "@/utils/doctor/types";
+import { orpc } from "@/utils/orpc";
 
 function toLocalDateTime(date: Date, time: string): Date {
   const [hours, minutes] = time.split(":").map(Number);
@@ -93,10 +83,6 @@ function startOfDay(date: Date): Date {
   const next = new Date(date);
   next.setHours(0, 0, 0, 0);
   return next;
-}
-
-function isBeforeToday(date: Date): boolean {
-  return startOfDay(date).getTime() < startOfDay(new Date()).getTime();
 }
 
 function overlaps(
@@ -142,22 +128,6 @@ export const Route = createFileRoute("/doctor/")({
   },
   component: DoctorScheduleRoute,
 });
-
-interface ScheduleEntry {
-  endAt: string;
-  id: string;
-  kind: "open" | "block" | "session";
-  noteKind: "home" | "work" | "pharmacy" | "after_gym" | "other" | null;
-  session: {
-    id: string;
-    patientId: string;
-    startAt: string;
-    endAt: string;
-    status: string;
-  } | null;
-  sessionId: string | null;
-  startAt: string;
-}
 
 interface SessionItem {
   endAt: string;
@@ -493,9 +463,8 @@ function DoctorScheduleRoute() {
     })
   );
 
-  const entries: ScheduleEntry[] = (scheduleQuery.data?.items ?? []).map(
-    (entry: unknown) => parseScheduleEntry(entry)
-  );
+  const entries: ScheduleEntry[] = (scheduleQuery.data?.items ??
+    []) as ScheduleEntry[];
   const selectedDateKey = format(selectedDate, "yyyy-MM-dd");
   const allDayEntries = useMemo(
     () =>
@@ -609,7 +578,7 @@ function DoctorScheduleRoute() {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="min-w-36 text-center font-medium">
-              {formatLabel(month)}
+              {format(month, "MMMM yyyy")}
             </div>
             <Button
               onClick={() => handleMonthChange(addMonths(month, 1))}
