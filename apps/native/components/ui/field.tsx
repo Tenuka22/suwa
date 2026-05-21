@@ -17,7 +17,7 @@ export const Field = ({ error, inputProps, label }: FieldProps) => {
         {label}
       </Text>
 
-      <View 
+      <View
         className="relative"
         style={{ position: "relative", overflow: "visible" }}
       >

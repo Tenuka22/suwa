@@ -11,8 +11,8 @@ interface ButtonProps {
   disabled?: boolean;
   href?: string;
   onPress?: () => unknown;
-  variant?: ButtonVariant;
   size?: ButtonSize;
+  variant?: ButtonVariant;
 }
 
 export const Button = ({

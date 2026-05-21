@@ -39,8 +39,8 @@ export const Card = ({ children, className, onPress, href }: CardProps) => {
 
   if (isPressable) {
     const pressableCard = (
-      <Pressable 
-        className="relative" 
+      <Pressable
+        className="relative"
         onPress={() => onPress?.()}
         style={{ position: "relative", overflow: "visible" }}
       >
@@ -60,8 +60,8 @@ export const Card = ({ children, className, onPress, href }: CardProps) => {
   }
 
   return (
-    <View 
-      className="relative" 
+    <View
+      className="relative"
       style={{ position: "relative", overflow: "visible" }}
     >
       {cardContent(false)}

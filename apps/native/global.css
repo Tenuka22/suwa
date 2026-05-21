@@ -72,7 +72,12 @@
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.7); /* Softened black borders for cohesive Neo-brutalism */
+  --border: rgba(
+    0,
+    0,
+    0,
+    0.7
+  ); /* Softened black borders for cohesive Neo-brutalism */
   --input: #ffffff;
   --ring: #a22a2a;
   --font-family-sans: "Satoshi";

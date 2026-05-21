@@ -48,9 +48,7 @@ const nativeModule = NativeModules.SamsungSensorBridge as
   | NativeSamsungSensorBridge
   | undefined;
 
-const eventEmitter = nativeModule
-  ? new NativeEventEmitter(nativeModule )
-  : null;
+const eventEmitter = nativeModule ? new NativeEventEmitter(nativeModule) : null;
 
 export const samsungSensorBridge: SamsungSensorBridge = {
   addListener(eventName, listener) {

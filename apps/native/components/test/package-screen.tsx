@@ -169,7 +169,7 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
   const renderStatusBadge = () => {
     let badgeColor = "bg-zinc-400";
     let textColor = "text-zinc-600 dark:text-zinc-400";
-    let label = getStatusLabel(item, connectionStatus, activeActionId);
+    const label = getStatusLabel(item, connectionStatus, activeActionId);
 
     if (activeActionId) {
       badgeColor = "bg-primary";
@@ -186,9 +186,11 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
     }
 
     return (
-      <View className="flex-row items-center gap-2 border border-border bg-card px-3 py-1 rounded-chip">
-        <View className={`w-2.5 h-2.5 rounded-full ${badgeColor}`} />
-        <Text className={`font-bold font-sans text-xs uppercase tracking-wider ${textColor}`}>
+      <View className="flex-row items-center gap-2 rounded-chip border border-border bg-card px-3 py-1">
+        <View className={`h-2.5 w-2.5 rounded-full ${badgeColor}`} />
+        <Text
+          className={`font-bold font-sans text-xs uppercase tracking-wider ${textColor}`}
+        >
           {label}
         </Text>
       </View>
@@ -249,14 +251,14 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
       </Modal>
 
       {/* Intro Header Section (Flat, Editorial, Direct on Page Background) */}
-      <View className="gap-2 mb-2">
+      <View className="mb-2 gap-2">
         <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
           {item.sourceLabel}
         </Text>
         <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
           {item.title}
         </Text>
-        <Text className="font-normal font-sans text-base text-muted-foreground leading-6 mt-1">
+        <Text className="mt-1 font-normal font-sans text-base text-muted-foreground leading-6">
           {item.docsSummary}
         </Text>
       </View>
@@ -278,9 +280,9 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
 
         {canConnect && connectionStatus !== "connected" ? (
           <Button
+            className="w-full"
             onPress={() => setIsConnectModalOpen(true)}
             variant="secondary"
-            className="w-full"
           >
             {item.connectLabel}
           </Button>
@@ -293,16 +295,16 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
           <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
             Live readings
           </Text>
-          <Card className="gap-3 bg-muted border-primary/20">
+          <Card className="gap-3 border-primary/20 bg-muted">
             <View className="flex-row items-center justify-between">
               <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.12em]">
                 Latest sample
               </Text>
               {activeActionId ? (
-                <View className="w-2 h-2 rounded-full bg-primary" />
+                <View className="h-2 w-2 rounded-full bg-primary" />
               ) : null}
             </View>
-            <Text className="font-sans text-base text-foreground font-medium leading-6">
+            <Text className="font-medium font-sans text-base text-foreground leading-6">
               {latestReading ?? "No sensor data active. Start a stream below."}
             </Text>
           </Card>
@@ -317,6 +319,7 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
         <View className="gap-3">
           {item.actions.map((action) => (
             <Button
+              className="w-full"
               disabled={connectionStatus !== "connected"}
               key={action.id}
               onPress={() => {
@@ -331,12 +334,13 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
                 });
               }}
               variant={activeActionId === action.id ? "primary" : "secondary"}
-              className="w-full"
             >
-              <View className="flex-col items-start gap-1 py-1 w-full">
+              <View className="w-full flex-col items-start gap-1 py-1">
                 <Text
                   className={`font-bold font-sans text-base ${
-                    activeActionId === action.id ? "text-primary-foreground" : "text-foreground"
+                    activeActionId === action.id
+                      ? "text-primary-foreground"
+                      : "text-foreground"
                   }`}
                 >
                   {action.label}
@@ -363,18 +367,18 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
         <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
           Recent events log
         </Text>
-        <Card className="p-card bg-zinc-950 border-border border-2 gap-2">
+        <Card className="gap-2 border-2 border-border bg-zinc-950 p-card">
           {log.length ? (
             log.map((entry) => (
               <Text
-                className="font-mono text-zinc-400 text-xs leading-5"
+                className="font-mono text-xs text-zinc-400 leading-5"
                 key={entry.id}
               >
                 {entry.message}
               </Text>
             ))
           ) : (
-            <Text className="font-mono text-zinc-500 text-xs leading-5">
+            <Text className="font-mono text-xs text-zinc-500 leading-5">
               No events recorded. Actions will log here.
             </Text>
           )}
@@ -389,7 +393,7 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
         <View className="gap-3">
           {item.caveats.map((caveat) => (
             <Text
-              className="font-normal font-sans text-muted-foreground text-sm leading-5 pl-3 border-l-2 border-primary"
+              className="border-primary border-l-2 pl-3 font-normal font-sans text-muted-foreground text-sm leading-5"
               key={caveat}
             >
               {caveat}
@@ -399,7 +403,7 @@ export const PackageScreen = ({ item }: PackageScreenProps) => {
       </View>
 
       {/* Navigation Footer */}
-      <View className="flex-row gap-chip mt-2">
+      <View className="mt-2 flex-row gap-chip">
         <Button className="flex-1" href="/test" variant="secondary">
           Back to test list
         </Button>

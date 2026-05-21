@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, Text, View, useColorScheme } from "react-native";
+import { Pressable, Text, useColorScheme, View } from "react-native";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ function SelectableCard({
   return (
     <Pressable className="active:opacity-90" onPress={onPress}>
       <Card className="flex-row items-center gap-card p-card">
-        <View className="flex h-14 w-14 items-center justify-center rounded-full bg-card border-2 border-border">
+        <View className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-card">
           {icon}
         </View>
         <View className="flex-1">
@@ -144,15 +144,16 @@ export default function OnboardingScreen() {
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <Screen contentClassName="flex-1 justify-center gap-section px-page py-page bg-background">
-          <View className="gap-2 mb-2">
+          <View className="mb-2 gap-2">
             <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
               Welcome to ZenDoc
             </Text>
             <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
               Who are you signing up for?
             </Text>
-            <Text className="font-normal font-sans text-base text-muted-foreground leading-6 mt-1">
-              Choose how you want to configure your medical access and patient details.
+            <Text className="mt-1 font-normal font-sans text-base text-muted-foreground leading-6">
+              Choose how you want to configure your medical access and patient
+              details.
             </Text>
           </View>
 
@@ -165,7 +166,9 @@ export default function OnboardingScreen() {
             />
             <SelectableCard
               description="Set up a guardian to manage your healthcare and appointments on your behalf."
-              icon={<FontAwesome color={iconColor} name="user-plus" size={26} />}
+              icon={
+                <FontAwesome color={iconColor} name="user-plus" size={26} />
+              }
               onPress={() => handleModeSelect("has_guardian")}
               title="I have a guardian"
             />
@@ -187,7 +190,7 @@ export default function OnboardingScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <Screen contentClassName="flex-1 justify-between gap-section px-page py-page bg-background">
           <View className="gap-section">
-            <View className="gap-2 mb-4">
+            <View className="mb-4 gap-2">
               <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
                 Your Profile
               </Text>
@@ -202,7 +205,6 @@ export default function OnboardingScreen() {
               render={({ field, fieldState }) => (
                 <View className="gap-2">
                   <Field
-                    label="Your Alias"
                     error={fieldState.error?.message}
                     inputProps={{
                       onChangeText: field.onChange,
@@ -210,8 +212,9 @@ export default function OnboardingScreen() {
                       placeholderTextColor: "#6b7280",
                       value: field.value,
                     }}
+                    label="Your Alias"
                   />
-                  <Text className="font-normal font-sans text-muted-foreground text-xs leading-4 mt-1">
+                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-xs leading-4">
                     This is how you will appear to doctors. It can be any name
                     you choose.
                   </Text>
@@ -220,23 +223,23 @@ export default function OnboardingScreen() {
             />
           </View>
 
-          <View className="gap-3 mt-4">
+          <View className="mt-4 gap-3">
             <Button
+              className="w-full"
               disabled={
                 completeOnboarding.isPending || !selfForm.watch("alias")
               }
               onPress={selfForm.handleSubmit(onSelfSubmit)}
-              className="w-full"
             >
               {completeOnboarding.isPending ? "Setting up..." : "Continue"}
             </Button>
             <Button
+              className="w-full"
               onPress={() => {
                 setMode(null);
                 setStep("select");
               }}
               variant="secondary"
-              className="w-full"
             >
               Back
             </Button>
@@ -252,7 +255,7 @@ export default function OnboardingScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <Screen contentClassName="flex-1 justify-between gap-section px-page py-page bg-background">
           <View className="gap-section">
-            <View className="gap-2 mb-4">
+            <View className="mb-4 gap-2">
               <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
                 Guardian Setup
               </Text>
@@ -267,7 +270,6 @@ export default function OnboardingScreen() {
                 name="alias"
                 render={({ field, fieldState }) => (
                   <Field
-                    label="Your Alias"
                     error={fieldState.error?.message}
                     inputProps={{
                       onChangeText: field.onChange,
@@ -275,6 +277,7 @@ export default function OnboardingScreen() {
                       placeholderTextColor: "#6b7280",
                       value: field.value,
                     }}
+                    label="Your Alias"
                   />
                 )}
               />
@@ -284,7 +287,6 @@ export default function OnboardingScreen() {
                 name="guardianEmail"
                 render={({ field, fieldState }) => (
                   <Field
-                    label="Guardian Email"
                     error={fieldState.error?.message}
                     inputProps={{
                       autoCapitalize: "none",
@@ -294,6 +296,7 @@ export default function OnboardingScreen() {
                       placeholderTextColor: "#6b7280",
                       value: field.value,
                     }}
+                    label="Guardian Email"
                   />
                 )}
               />
@@ -303,7 +306,6 @@ export default function OnboardingScreen() {
                 name="guardianPhone"
                 render={({ field, fieldState }) => (
                   <Field
-                    label="Guardian Phone"
                     error={fieldState.error?.message}
                     inputProps={{
                       keyboardType: "phone-pad",
@@ -312,30 +314,31 @@ export default function OnboardingScreen() {
                       placeholderTextColor: "#6b7280",
                       value: field.value,
                     }}
+                    label="Guardian Phone"
                   />
                 )}
               />
             </View>
           </View>
 
-          <View className="gap-3 mt-4">
+          <View className="mt-4 gap-3">
             <Button
+              className="w-full"
               disabled={
                 completeOnboarding.isPending ||
                 !hasGuardianForm.formState.isValid
               }
               onPress={hasGuardianForm.handleSubmit(onHasGuardianSubmit)}
-              className="w-full"
             >
               {completeOnboarding.isPending ? "Setting up..." : "Continue"}
             </Button>
             <Button
+              className="w-full"
               onPress={() => {
                 setMode(null);
                 setStep("select");
               }}
               variant="secondary"
-              className="w-full"
             >
               Back
             </Button>
@@ -350,7 +353,7 @@ export default function OnboardingScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <Screen contentClassName="flex-1 justify-between gap-section px-page py-page bg-background">
         <View className="gap-section">
-          <View className="gap-2 mb-4">
+          <View className="mb-4 gap-2">
             <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
               Guardian Setup
             </Text>
@@ -366,7 +369,6 @@ export default function OnboardingScreen() {
               render={({ field, fieldState }) => (
                 <View className="gap-1">
                   <Field
-                    label="Your Alias"
                     error={fieldState.error?.message}
                     inputProps={{
                       onChangeText: field.onChange,
@@ -374,8 +376,9 @@ export default function OnboardingScreen() {
                       placeholderTextColor: "#6b7280",
                       value: field.value,
                     }}
+                    label="Your Alias"
                   />
-                  <Text className="font-normal font-sans text-muted-foreground text-xs leading-4 mt-1">
+                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-xs leading-4">
                     This is how patients will identify you.
                   </Text>
                 </View>
@@ -387,7 +390,6 @@ export default function OnboardingScreen() {
               name="guardianEmail"
               render={({ field, fieldState }) => (
                 <Field
-                  label="Your Email"
                   error={fieldState.error?.message}
                   inputProps={{
                     autoCapitalize: "none",
@@ -397,20 +399,21 @@ export default function OnboardingScreen() {
                     placeholderTextColor: "#6b7280",
                     value: field.value,
                   }}
+                  label="Your Email"
                 />
               )}
             />
 
             {pendingGuardiansQuery.data?.requests?.length ? (
-              <View className="gap-chip mt-4">
-                <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-[0.18em] mb-1">
+              <View className="mt-4 gap-chip">
+                <Text className="mb-1 font-bold font-sans text-foreground text-sm uppercase tracking-[0.18em]">
                   Pending Requests
                 </Text>
                 {pendingGuardiansQuery.data.requests.map((req) => (
-                  <Card key={req.userId} className="gap-3 p-4">
+                  <Card className="gap-3 p-4" key={req.userId}>
                     <View className="flex-row items-center justify-between">
-                      <View className="gap-1 flex-1 mr-3">
-                        <Text className="font-extrabold font-sans text-lg text-foreground tracking-tight">
+                      <View className="mr-3 flex-1 gap-1">
+                        <Text className="font-extrabold font-sans text-foreground text-lg tracking-tight">
                           {req.alias}
                         </Text>
                         <Text className="font-normal font-sans text-muted-foreground text-xs">
@@ -418,12 +421,12 @@ export default function OnboardingScreen() {
                         </Text>
                       </View>
                       <Button
-                        size="sm"
                         onPress={() =>
                           handleApproveGuardian.mutate({
                             patientUserId: req.userId,
                           })
                         }
+                        size="sm"
                       >
                         Approve
                       </Button>
@@ -435,23 +438,23 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        <View className="gap-3 mt-4">
+        <View className="mt-4 gap-3">
           <Button
+            className="w-full"
             disabled={
               completeOnboarding.isPending || !guardianForm.formState.isValid
             }
             onPress={guardianForm.handleSubmit(onGuardianSubmit)}
-            className="w-full"
           >
             {completeOnboarding.isPending ? "Setting up..." : "Continue"}
           </Button>
           <Button
+            className="w-full"
             onPress={() => {
               setMode(null);
               setStep("select");
             }}
             variant="secondary"
-            className="w-full"
           >
             Back
           </Button>
