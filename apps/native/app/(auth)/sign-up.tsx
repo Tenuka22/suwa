@@ -1,6 +1,6 @@
 import { useAuth, useSignUp } from "@clerk/expo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { type Href, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, useColorScheme, View } from "react-native";
 import { Button } from "@/components/ui/button";
@@ -8,22 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
 import { TextLink } from "@/components/ui/text-link";
-
-const OAUTH_STRATEGIES = [
-  { strategy: "oauth_google", label: "Google", icon: "google" as const },
-  { strategy: "oauth_apple", label: "Apple", icon: "apple" as const },
-  { strategy: "oauth_line", label: "LINE", icon: "comments" as const },
-] as const;
-
-function pushDecoratedUrl(
-  router: ReturnType<typeof useRouter>,
-  decorateUrl: (url: string) => string,
-  href: string
-) {
-  const url = decorateUrl(href);
-  const nextHref = url.startsWith("http") ? new URL(url).pathname : url;
-  router.push(nextHref as Href);
-}
+import { OAUTH_STRATEGIES, pushDecoratedUrl } from "@/utils/auth";
 
 export default function Page() {
   const { signUp, errors, fetchStatus } = useSignUp();

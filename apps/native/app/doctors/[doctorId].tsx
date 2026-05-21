@@ -31,6 +31,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
+import {
+  capitalizeWords,
+  consultationModeLabels,
+  focusAreaLabels,
+  getYearsOfExperience,
+  languageLabels,
+  specialtyLabels,
+} from "@/utils/doctor-profile";
 import { orpc } from "@/utils/orpc";
 
 interface DoctorProfileView {
@@ -52,13 +60,7 @@ interface DoctorProfileView {
   placeName: string | null;
   specialties: string[];
   stripeAccountEnabled: boolean | null;
-}
-
-interface DoctorFileView {
-  caption: string | null;
-  fileKind: string;
-  fileName: string;
-  id: string;
+  permanent?: boolean;
 }
 
 interface DoctorEducationView {
@@ -67,58 +69,6 @@ interface DoctorEducationView {
   institution: string;
   year: number | null;
 }
-
-function capitalizeWords(value: string) {
-  return value
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function getYearsOfExperience(startYear: number | null) {
-  if (!startYear) {
-    return null;
-  }
-  const years = new Date().getFullYear() - startYear;
-  return years > 0 ? years : null;
-}
-
-const specialtyLabels: Record<string, string> = {
-  psychiatry: "Psychiatry",
-  psychology: "Psychology",
-  counseling: "Counseling",
-  family_medicine: "Family medicine",
-  general_practice: "General practice",
-  wellness: "Wellness",
-};
-
-const languageLabels: Record<string, string> = {
-  english: "English",
-  spanish: "Spanish",
-  french: "French",
-  arabic: "Arabic",
-  hindi: "Hindi",
-  sinhala: "Sinhala",
-  tamil: "Tamil",
-};
-
-const consultationModeLabels: Record<string, string> = {
-  video: "Video",
-  in_person: "In-person",
-  chat: "Chat",
-};
-
-const focusAreaLabels: Record<string, string> = {
-  anxiety: "Anxiety",
-  depression: "Depression",
-  stress: "Stress",
-  trauma: "Trauma",
-  sleep: "Sleep",
-  relationships: "Relationships",
-  burnout: "Burnout",
-  addiction: "Addiction",
-  parenting: "Parenting",
-  grief: "Grief",
-};
 
 function Tag({
   label,
@@ -237,28 +187,31 @@ export default function DoctorProfileScreen() {
     profile?.displayName ?? profile?.licenseNumber ?? "Doctor";
   const initials = displayName.slice(0, 2).toUpperCase();
 
-  const tagColors = {
-    primary: {
-      bg: isDark ? "bg-primary/10" : "bg-primary/10",
-      text: "text-primary",
-      border: isDark ? "border-primary/20" : "border-primary/20",
-    },
-    secondary: {
-      bg: isDark ? "bg-secondary/20" : "bg-secondary/20",
-      text: "text-secondary-foreground",
-      border: "border-border",
-    },
-    muted: {
-      bg: isDark ? "bg-muted/30" : "bg-muted/20",
-      text: "text-muted-foreground",
-      border: "border-border",
-    },
-    accent: {
-      bg: isDark ? "bg-accent/20" : "bg-accent/10",
-      text: "text-accent-foreground",
-      border: "border-border",
-    },
-  };
+  const tagColors = useMemo(
+    () => ({
+      primary: {
+        bg: isDark ? "bg-primary/10" : "bg-primary/10",
+        text: "text-primary",
+        border: isDark ? "border-primary/20" : "border-primary/20",
+      },
+      secondary: {
+        bg: isDark ? "bg-secondary/20" : "bg-secondary/20",
+        text: "text-secondary-foreground",
+        border: "border-border",
+      },
+      muted: {
+        bg: isDark ? "bg-muted/30" : "bg-muted/20",
+        text: "text-muted-foreground",
+        border: "border-border",
+      },
+      accent: {
+        bg: isDark ? "bg-accent/20" : "bg-accent/10",
+        text: "text-accent-foreground",
+        border: "border-border",
+      },
+    }),
+    [isDark]
+  );
 
   if (doctorQuery.isLoading) {
     return (
@@ -396,7 +349,7 @@ export default function DoctorProfileScreen() {
                     </View>
                   )}
                 </Pressable>
-                <Button className="flex-1" variant="default">
+                <Button className="flex-1" variant="primary">
                   Book consult
                 </Button>
               </View>
