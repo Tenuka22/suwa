@@ -1,6 +1,8 @@
 import { bookSessionRoute } from "./routes/book-session";
 import { createConnectAccountLinkRoute } from "./routes/create-connect-account-link";
 import { getConnectAccountStatusRoute } from "./routes/get-connect-account-status";
+import { getDoctorAvailableSlotsRoute } from "./routes/get-doctor-available-slots";
+import { getUserCreditsRoute } from "./routes/get-user-credits";
 import { listDoctorSessionsRoute } from "./routes/list-doctor-sessions";
 import { listPatientSessionsRoute } from "./routes/list-patient-sessions";
 import { markSessionAttendedRoute } from "./routes/mark-session-attended";
@@ -14,4 +16,6 @@ export const bookingRouter = {
   markSessionAttended: markSessionAttendedRoute,
   listPatientSessions: listPatientSessionsRoute,
   listDoctorSessions: listDoctorSessionsRoute,
+  getDoctorAvailableSlots: getDoctorAvailableSlotsRoute,
+  getUserCredits: getUserCreditsRoute,
 };

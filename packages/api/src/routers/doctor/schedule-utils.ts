@@ -197,3 +197,25 @@ export async function getScheduleEntriesForDoctor(
       : null,
   }));
 }
+
+export async function getOpenScheduleSlotsForDoctor(
+  db: Context["db"],
+  doctorId: string,
+  from: string,
+  to: string
+) {
+  const openSlots = await db
+    .select()
+    .from(doctorScheduleEntries)
+    .where(
+      and(
+        eq(doctorScheduleEntries.doctorId, doctorId),
+        eq(doctorScheduleEntries.kind, "open"),
+        gte(doctorScheduleEntries.startAt, from),
+        lte(doctorScheduleEntries.endAt, to)
+      )
+    )
+    .orderBy(doctorScheduleEntries.startAt);
+
+  return openSlots;
+}

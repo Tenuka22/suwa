@@ -12,4 +12,5 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "tensorflow>=2.21.0",
+    "optuna>=4.8.0",
 ]

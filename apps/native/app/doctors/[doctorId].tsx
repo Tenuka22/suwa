@@ -349,7 +349,11 @@ export default function DoctorProfileScreen() {
                     </View>
                   )}
                 </Pressable>
-                <Button className="flex-1" variant="primary">
+                <Button
+                  className="flex-1"
+                  href={`/doctors/${id}/booking`}
+                  variant="primary"
+                >
                   Book consult
                 </Button>
               </View>

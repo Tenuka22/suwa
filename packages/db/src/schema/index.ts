@@ -147,6 +147,14 @@ export const guardianProfiles = sqliteTable(
   })
 );
 
+export const userCredits = sqliteTable("user_credits", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  balance: integer("balance").notNull().default(0),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 export type DoctorProfile = typeof doctorProfiles.$inferSelect;
 export type DoctorSession = typeof doctorSessions.$inferSelect;
 export type DoctorFile = typeof doctorFiles.$inferSelect;
@@ -154,3 +162,4 @@ export type DoctorScheduleEntry = typeof doctorScheduleEntries.$inferSelect;
 export type DoctorEducationEntry = typeof doctorEducationEntries.$inferSelect;
 export type PatientProfile = typeof patientProfiles.$inferSelect;
 export type GuardianProfile = typeof guardianProfiles.$inferSelect;
+export type UserCredit = typeof userCredits.$inferSelect;

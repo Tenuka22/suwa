@@ -1,6 +1,6 @@
 import { useAuth, useClerk } from "@clerk/expo";
 import { Stack } from "expo-router";
-import { ArrowRight, Stethoscope } from "lucide-react-native";
+import { ArrowRight, Calendar, Stethoscope } from "lucide-react-native";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -25,15 +25,25 @@ export default function HomeScreen() {
           ZenDoc
         </Text>
         {isSignedIn ? (
-          <Button href="/doctors" size="sm">
-            <View className="flex-row items-center gap-2">
-              <Stethoscope color="#fafafa" fill="#fafafa" size={16} />
-              <Text className="font-bold font-sans text-primary-foreground text-sm">
-                Doctors
-              </Text>
-              <ArrowRight color="#fafafa" fill="#fafafa" size={14} />
-            </View>
-          </Button>
+          <View className="flex-row items-center gap-2">
+            <Button href="/appointments" size="sm" variant="secondary">
+              <View className="flex-row items-center gap-2">
+                <Calendar color="#09090b" size={16} />
+                <Text className="font-bold font-sans text-foreground text-sm">
+                  Appointments
+                </Text>
+              </View>
+            </Button>
+            <Button href="/doctors" size="sm">
+              <View className="flex-row items-center gap-2">
+                <Stethoscope color="#fafafa" fill="#fafafa" size={16} />
+                <Text className="font-bold font-sans text-primary-foreground text-sm">
+                  Doctors
+                </Text>
+                <ArrowRight color="#fafafa" fill="#fafafa" size={14} />
+              </View>
+            </Button>
+          </View>
         ) : (
           <Button href="/sign-up" size="sm">
             Sign Up
@@ -107,6 +117,7 @@ export default function HomeScreen() {
           <View className="mt-4 items-center">
             <TextLink href="/test">Open test suite</TextLink>
             <TextLink href="/doctors">Browse doctors</TextLink>
+            <TextLink href="/appointments">View appointments</TextLink>
           </View>
         </View>
       </Screen>
