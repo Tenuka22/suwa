@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-import log
+from preprocess import log
 
 HRV_BASES = sorted(
     [

@@ -5,14 +5,13 @@ warnings.filterwarnings("ignore")
 
 import xgboost as xgb
 
-import log
+from preprocess import log
 from preprocess import (
     subject_split, scale_data, prepare_sequences,
     aggregate_sequences, evaluate_model,
     compute_class_weights, make_sample_weights,
-    RANDOM_STATE,
+    RANDOM_STATE, save_artifacts,
 )
-from export_artifacts import save_artifacts
 from wesad.load_data import load_wesad, get_X_y_groups
 
 DATASET = "wesad"

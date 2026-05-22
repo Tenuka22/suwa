@@ -5,13 +5,13 @@ from pathlib import Path
 
 import xgboost as xgb
 
-import log
+from . import log
 
-ARTIFACTS_ROOT = Path(__file__).resolve().parent.parent / "artifacts"
+ARTIFACTS_ROOT = Path(__file__).resolve().parent.parent.parent / "artifacts"
 
 
 def _artifacts_dir(dataset: str) -> Path:
-    d = ARTIFACTS_ROOT / dataset / "xgboost"
+    d = ARTIFACTS_ROOT / dataset / "xgboost_pre_engineered_hrv"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -33,6 +33,7 @@ def save_artifacts(
     subdir: str = "",
 ):
     out = _artifacts_dir(dataset) / subdir
+    out.mkdir(parents=True, exist_ok=True)
     n_feats = len(base_feature_names)
     agg_names = _aggregated_feature_names(base_feature_names)
 

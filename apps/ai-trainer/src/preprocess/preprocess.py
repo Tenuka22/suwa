@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
-import log
+from . import log
 
 
 def subject_split(X, y, groups, random_state=42):
