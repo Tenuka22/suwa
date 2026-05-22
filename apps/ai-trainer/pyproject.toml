@@ -20,6 +20,7 @@ onnx = ["onnxmltools>=1.11.0"]
 [project.scripts]
 train-wesad = "wesad.train_xgboost:main"
 train-swell = "swell.train_xgboost:main"
+fetch-data = "preprocess.fetch_raw_data:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
