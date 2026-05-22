@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 
 import log
 
-MAX30102_BASES = sorted(
+HRV_BASES = sorted(
     [
         "MEAN_RR",
         "MEDIAN_RR",
@@ -30,6 +30,14 @@ MAX30102_BASES = sorted(
         "SDRR_RMSSD_REL_RR",
         "KURT_REL_RR",
         "SKEW_REL_RR",
+        "sampen",
+        "higuci",
+        "LF_HF",
+        "HF_LF",
+        "VLF",
+        "LF",
+        "HF",
+        "TP",
     ],
     key=len,
     reverse=True,
@@ -53,13 +61,6 @@ NON_FEATURE_COLS = {
 }
 
 
-def is_max30102_feature(col: str) -> bool:
-    for base in MAX30102_BASES:
-        if col == base or col.startswith(base + "_"):
-            return col not in CROSS_DOMAIN_REMOVE
-    return False
-
-
 def load_swell() -> pd.DataFrame:
     path = kagglehub.dataset_download("qiriro/stress")
     swell = pd.read_csv(
@@ -73,20 +74,22 @@ def load_swell() -> pd.DataFrame:
     return swell
 
 
-def filter_sensor_included_features(swell: pd.DataFrame) -> pd.DataFrame:
-    keep = [c for c in swell.columns if is_max30102_feature(c)]
-    missing = set(keep) - set(swell.columns)
-    if missing:
-        log.warn(f"{len(missing)} keep-columns not in dataset (typo?)")
-    return swell[keep]
+def filter_hrv_features(df: pd.DataFrame) -> pd.DataFrame:
+    keep = []
+    for col in df.columns:
+        for base in HRV_BASES:
+            if (col == base or col.startswith(base + "_")) and col not in CROSS_DOMAIN_REMOVE:
+                keep.append(col)
+                break
+    return df[keep]
 
 
-def get_X_y_groups(swell: pd.DataFrame):
-    features = filter_sensor_included_features(swell)
+def get_X_y_groups(df: pd.DataFrame):
+    features = filter_hrv_features(df)
     X = features.values.astype(np.float64)
     le = LabelEncoder()
-    y = le.fit_transform(swell["condition"].values)
-    groups = swell["subject_id"].values
+    y = le.fit_transform(df["condition"].values)
+    groups = df["subject_id"].values
     feature_names = features.columns.tolist()
     log.info(f"Features used: {len(feature_names)}")
     log.info(f"Classes: {list(le.classes_)}  distribution: {np.bincount(y)}")
