@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Calendar, Check, Clock, User } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -187,10 +187,13 @@ export default function BookingScreen() {
 
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
-  const today = new Date();
-  const from = today.toISOString();
-  const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const to = nextWeek.toISOString();
+  const { from, to } = useMemo(() => {
+    const today = new Date();
+    const from = today.toISOString();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const to = nextWeek.toISOString();
+    return { from, to };
+  }, []);
 
   const profileQuery = useQuery(
     orpc.getPatientProfile.queryOptions({
@@ -216,44 +219,42 @@ export default function BookingScreen() {
     })
   );
 
-  const bookSessionMutation = useMutation(
-    orpc.bookSession.mutationOptions({
-      onSuccess: () => {
+  const bookSessionMutation = useMutation({
+    mutationFn: (input: { doctorId: string; scheduleEntryId: string }) =>
+      orpc.bookSession.call(input),
+    onSuccess: () => {
+      try {
         queryClient.invalidateQueries({ queryKey: ["doctor-slots"] });
-        queryClient.invalidateQueries({
-          queryKey: ["patient-sessions"],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["user-credits"],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["patient-profile"],
-        });
-        Alert.alert(
-          "Booking Confirmed",
-          "Your session has been booked successfully. This action cannot be undone.",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("/");
-                }
-              },
+        queryClient.invalidateQueries({ queryKey: ["patient-sessions"] });
+        queryClient.invalidateQueries({ queryKey: ["user-credits"] });
+        queryClient.invalidateQueries({ queryKey: ["patient-profile"] });
+      } catch (e) {
+        console.error("Invalidation error:", e);
+      }
+      Alert.alert(
+        "Booking Confirmed",
+        "Your session has been booked successfully. This action cannot be undone.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/");
+              }
             },
-          ]
-        );
-      },
-      onError: (error: Error) => {
-        Alert.alert(
-          "Booking Failed",
-          error.message || "Unable to book session"
-        );
-      },
-    })
-  );
+          },
+        ]
+      );
+    },
+    onError: (error: Error) => {
+      Alert.alert(
+        "Booking Failed",
+        error.message || "Unable to book session"
+      );
+    },
+  });
 
   const slots = slotsQuery.data?.slots ?? [];
   const credits = creditsQuery.data?.balance ?? 0;
