@@ -14,11 +14,11 @@ dependencies = [
     "seaborn>=0.13.2",
     "tensorflow>=2.21.0",
     "tf2onnx>=1.17.0",
-    "modal>=0.63.0",
+    "cerebrium>=2.4.0",
 ]
 
 [project.scripts]
-train = "src.main:main"
+train = "main:run"
 
 [build-system]
 requires = ["hatchling"]
