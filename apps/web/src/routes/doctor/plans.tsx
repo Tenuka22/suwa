@@ -582,14 +582,18 @@ function DoctorPlansRoute() {
             );
           })}
 
-          <DialogTrigger>
-            <Card className="flex min-h-[320px] cursor-pointer items-center justify-center border-2 border-dashed transition-colors hover:border-primary/50 hover:bg-muted/20">
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <PlusIcon className="h-8 w-8" />
-                <span className="font-medium text-sm">Add another plan</span>
-              </div>
-            </Card>
-          </DialogTrigger>
+          <Card
+            className="flex min-h-[320px] cursor-pointer items-center justify-center border-2 border-dashed transition-colors hover:border-primary/50 hover:bg-muted/20"
+            onClick={() => setShowCreate(true)}
+            onKeyDown={(e) => e.key === "Enter" && setShowCreate(true)}
+            role="button"
+            tabIndex={0}
+          >
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <PlusIcon className="h-8 w-8" />
+              <span className="font-medium text-sm">Add another plan</span>
+            </div>
+          </Card>
         </div>
       )}
 

@@ -2,12 +2,12 @@ import { doctorFiles, doctorProfiles } from "@zen-doc/db";
 import { eq } from "drizzle-orm";
 import type { Context } from "../../context";
 
-export type UploadableFile = {
+export interface UploadableFile {
   arrayBuffer: () => Promise<ArrayBuffer>;
   name: string;
   size: number;
   type: string;
-};
+}
 
 export async function canManageDoctorFiles(
   db: Context["db"],

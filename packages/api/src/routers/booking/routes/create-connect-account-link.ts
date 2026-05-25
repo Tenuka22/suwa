@@ -20,7 +20,7 @@ export const createConnectAccountLinkRoute = protectedProcedure
     const stripe = getStripe();
     let stripeAccountId = profile.stripeAccountId;
 
-    if (!(stripeAccountId && stripeAccountId.startsWith("acct_"))) {
+    if (!stripeAccountId?.startsWith("acct_")) {
       try {
         const account = await stripe.accounts.create({
           type: "express",

@@ -16,9 +16,9 @@ import {
 } from "react";
 import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 
-const stripePromise = loadStripe(
-  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
-);
+import { env } from "@zen-doc/env/native";
+
+const stripePromise = loadStripe(env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 interface PaymentSheetResult {
   error?: { message: string; code?: string };

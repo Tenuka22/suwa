@@ -21,6 +21,7 @@
     "@zen-doc/pricing": "workspace:*",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.2",
+    "livekit-server-sdk": "^2.10.0",
     "onnxruntime-web": "^1.26.0",
     "stripe": "^18.5.0",
     "zod": "catalog:"

@@ -1,11 +1,14 @@
+import { useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { Calendar, Check, Clock, User, X } from "lucide-react-native";
-import { useState } from "react";
+import { Calendar, Check, Clock, User, Video, X } from "lucide-react-native";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
+import { VideoRoom } from "@/components/ui/video-room";
+import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
@@ -50,6 +53,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AppointmentsScreen() {
+  const { user } = useUser();
+  const metadataRole = user?.publicMetadata?.role;
+  const userRole: "patient" | "doctor" | "admin" = metadataRole === "admin" ? "admin" : metadataRole === "doctor" ? "doctor" : "patient";
   const colors = useThemeColor();
   const { bookingSuccess } = useLocalSearchParams<{
     bookingSuccess?: string;
@@ -57,6 +63,7 @@ export default function AppointmentsScreen() {
   const [showSuccessBanner, setShowSuccessBanner] = useState(
     bookingSuccess === "true"
   );
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const profileQuery = useQuery(orpc.getPatientProfile.queryOptions());
 
@@ -64,6 +71,10 @@ export default function AppointmentsScreen() {
 
   const sessions = sessionsQuery.data?.sessions ?? [];
   const hasProfile = profileQuery.data?.isOnboardingComplete ?? false;
+
+  const handleCloseVideoRoom = useCallback(() => {
+    setActiveSessionId(null);
+  }, []);
 
   if (profileQuery.isLoading || sessionsQuery.isLoading) {
     return (
@@ -168,6 +179,8 @@ export default function AppointmentsScreen() {
                 });
                 const timeLabel = `${startAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${endAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
 
+                const isActiveInVideo = activeSessionId === session.id;
+
                 return (
                   <Card className="gap-3" key={session.id}>
                     <View className="flex-row items-center justify-between">
@@ -205,6 +218,27 @@ export default function AppointmentsScreen() {
                         </Text>
                       </View>
                     ) : null}
+
+                    {session.status === "scheduled" ? (
+                      <>
+                        <SessionJoinButton
+                          endAt={session.endAt}
+                          onJoin={setActiveSessionId}
+                          role={userRole}
+                          sessionId={session.id}
+                          startAt={session.startAt}
+                        />
+                        {isActiveInVideo ? (
+                          <VideoRoom
+                            endAt={session.endAt}
+                            onClose={handleCloseVideoRoom}
+                            role={userRole}
+                            sessionId={session.id}
+                            startAt={session.startAt}
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
                   </Card>
                 );
               })}
@@ -214,4 +248,49 @@ export default function AppointmentsScreen() {
       </Screen>
     </>
   );
+}
+
+function SessionJoinButton({
+  endAt,
+  onJoin,
+  role,
+  sessionId,
+  startAt,
+}: {
+  endAt: string;
+  onJoin: (id: string) => void;
+  role: "patient" | "doctor" | "admin";
+  sessionId: string;
+  startAt: string;
+}) {
+  const colors = useThemeColor();
+  const timing = useSessionTiming(startAt, endAt, role);
+
+  if (timing.canJoin) {
+    return (
+      <Button
+        className="w-full"
+        icon={<Video color={colors.primaryForeground} size={16} />}
+        onPress={() => onJoin(sessionId)}
+        variant="primary"
+      >
+        Join Session
+      </Button>
+    );
+  }
+
+  if (timing.timeStatus === "before" && timing.joinWindowOpenAt) {
+    const diff = timing.joinWindowOpenAt.getTime() - Date.now();
+    const minutes = Math.max(0, Math.ceil(diff / 60_000));
+
+    if (minutes < 60) {
+      return (
+        <Text className="text-center font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
+          Join opens in {minutes} minutes
+        </Text>
+      );
+    }
+  }
+
+  return null;
 }

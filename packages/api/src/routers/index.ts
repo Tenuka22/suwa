@@ -4,6 +4,7 @@ import { adminRouter } from "./admin";
 import { bookingRouter } from "./booking";
 import { doctorRouter } from "./doctor";
 import { doctorFilesRouter } from "./doctor-files";
+import { liveKitRouter } from "./livekit";
 import { patientRouter } from "./patient";
 import { publicRouter } from "./public";
 
@@ -13,6 +14,7 @@ export const appRouter = {
   ...doctorFilesRouter,
   ...adminRouter,
   ...bookingRouter,
+  ...liveKitRouter,
   ...patientRouter,
 };
 

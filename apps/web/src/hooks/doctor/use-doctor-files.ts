@@ -9,12 +9,12 @@ export function useDoctorFiles() {
   });
 }
 
-type UploadDoctorFileInput = {
+interface UploadDoctorFileInput {
   caption?: string;
   doctorId: string;
   file: File;
   fileKind: "portrait" | "qualification" | "intro_video" | "other";
-};
+}
 
 export function useUploadDoctorFile() {
   const queryClient = useQueryClient();

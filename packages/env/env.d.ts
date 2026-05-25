@@ -9,6 +9,9 @@ interface FallbackEnv {
   CORS_ORIGIN: string;
   DB: D1Database;
   DOCTOR_MATERIALS_BUCKET: R2Bucket;
+  LIVEKIT_API_KEY: string;
+  LIVEKIT_API_SECRET: string;
+  LIVEKIT_HOST: string;
   MODEL_FEATURES_KV: KVNamespace;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;

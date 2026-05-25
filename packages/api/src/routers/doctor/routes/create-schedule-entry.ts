@@ -112,18 +112,26 @@ export const createScheduleEntryRoute = protectedProcedure
     }
 
     if (deleteIds.length > 0) {
-      await context.db
-        .delete(doctorScheduleEntries)
-        .where(
-          and(
-            eq(doctorScheduleEntries.doctorId, doctorId),
-            inArray(doctorScheduleEntries.id, deleteIds)
-          )
-        );
+      const CHUNK_SIZE = 100;
+      for (let i = 0; i < deleteIds.length; i += CHUNK_SIZE) {
+        const chunk = deleteIds.slice(i, i + CHUNK_SIZE);
+        await context.db
+          .delete(doctorScheduleEntries)
+          .where(
+            and(
+              eq(doctorScheduleEntries.doctorId, doctorId),
+              inArray(doctorScheduleEntries.id, chunk)
+            )
+          );
+      }
     }
 
     if (insertValues.length > 0) {
-      await context.db.insert(doctorScheduleEntries).values(insertValues);
+      const CHUNK_SIZE = 100;
+      for (let i = 0; i < insertValues.length; i += CHUNK_SIZE) {
+        const chunk = insertValues.slice(i, i + CHUNK_SIZE);
+        await context.db.insert(doctorScheduleEntries).values(chunk);
+      }
     }
 
     return { ok: true, id: crypto.randomUUID() };

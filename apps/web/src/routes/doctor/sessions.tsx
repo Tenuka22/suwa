@@ -28,6 +28,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { useUser } from "@clerk/tanstack-react-start";
+import { getMetadataRole } from "@/utils/clerk-auth";
+
+import {
+  SessionJoinButton,
+  VideoRoomWeb,
+} from "@/components/livekit/video-room";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor/sessions")({
@@ -71,7 +79,15 @@ function SessionStatusBadge({ status }: { status: string }) {
 }
 
 function DoctorSessionsRoute() {
+  const { user } = useUser();
+  const metadataRole = getMetadataRole(user?.publicMetadata);
+  const userRole: "patient" | "doctor" | "admin" = metadataRole === "admin" ? "admin" : metadataRole === "doctor" ? "doctor" : "patient";
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [videoSession, setVideoSession] = useState<{
+    sessionId: string;
+    startAt: string;
+    endAt: string;
+  } | null>(null);
 
   const sessionsQuery = useQuery({
     queryKey: orpc.listDoctorSessions.queryKey(),
@@ -117,109 +133,133 @@ function DoctorSessionsRoute() {
           Sessions
         </h1>
         <p className="text-muted-foreground text-sm">
-          Manage your booked sessions. Confirm attendance after a session
-          completes, or cancel if needed.
+          Manage your booked sessions. Join video calls, confirm attendance, or
+          cancel if needed.
         </p>
       </div>
 
-      {sessionsQuery.isPending ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : sessions.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground text-sm">
-              No sessions yet. Patients will appear here when they book your
-              available slots.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {sessions.map((session) => {
-            const start = new Date(session.startAt);
-            const end = new Date(session.endAt);
-            const formattedDate = format(start, "MMM d, yyyy");
-            const formattedTime = `${format(start, "h:mm a")} - ${format(end, "h:mm a")}`;
+      {(() => {
+        if (sessionsQuery.isPending) {
+          return (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          );
+        }
 
-            return (
-              <Card key={session.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-base">
-                        {formattedDate}
-                      </CardTitle>
-                      <p className="text-muted-foreground text-sm">
-                        {formattedTime}
-                      </p>
+        if (sessions.length === 0) {
+          return (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground text-sm">
+                  No sessions yet. Patients will appear here when they book your
+                  available slots.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        }
+
+        return (
+          <div className="space-y-3">
+            {sessions.map((session) => {
+              const start = new Date(session.startAt);
+              const end = new Date(session.endAt);
+              const formattedDate = format(start, "MMM d, yyyy");
+              const formattedTime = `${format(start, "h:mm a")} - ${format(end, "h:mm a")}`;
+
+              return (
+                <Card key={session.id}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">
+                          {formattedDate}
+                        </CardTitle>
+                        <p className="text-muted-foreground text-sm">
+                          {formattedTime}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <SessionStatusBadge status={session.status} />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <SessionStatusBadge status={session.status} />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="space-y-1 text-sm">
-                      <p>
-                        <span className="text-muted-foreground">Patient: </span>
-                        <span className="font-medium">
-                          {session.patientId.slice(0, 12)}...
-                        </span>
-                      </p>
-                      {session.payoutAmount ? (
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="space-y-1 text-sm">
                         <p>
                           <span className="text-muted-foreground">
-                            Amount:{" "}
+                            Patient:{" "}
                           </span>
                           <span className="font-medium">
-                            ${(session.payoutAmount / 100).toFixed(2)}
+                            {session.patientId.slice(0, 12)}...
                           </span>
                         </p>
-                      ) : null}
-                    </div>
+                        {session.payoutAmount ? (
+                          <p>
+                            <span className="text-muted-foreground">
+                              Amount:{" "}
+                            </span>
+                            <span className="font-medium">
+                              ${(session.payoutAmount / 100).toFixed(2)}
+                            </span>
+                          </p>
+                        ) : null}
+                      </div>
 
-                    <div className="flex gap-2">
-                      {session.status === "scheduled" ? (
-                        <>
-                          <Button
-                            disabled={markAttended.isPending}
-                            onClick={() =>
-                              markAttended.mutate({
+                      <div className="flex gap-2">
+                        {session.status === "scheduled" ? (
+                          <>
+                          <SessionJoinButton
+                            endAt={session.endAt}
+                            onJoin={() =>
+                              setVideoSession({
                                 sessionId: session.id,
+                                startAt: session.startAt,
+                                endAt: session.endAt,
                               })
                             }
-                            size="sm"
-                            variant="default"
-                          >
-                            {markAttended.isPending ? (
-                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                            ) : (
-                              <CheckCircleIcon className="mr-1 h-3 w-3" />
-                            )}
-                            Confirm Attendance
-                          </Button>
-                          <Button
-                            disabled={cancelSession.isPending}
-                            onClick={() => setCancelTarget(session.id)}
-                            size="sm"
-                            variant="outline"
-                          >
-                            <BanIcon className="mr-1 h-3 w-3" />
-                            Cancel
-                          </Button>
-                        </>
-                      ) : null}
+                            role={userRole}
+                            startAt={session.startAt}
+                          />
+                            <Button
+                              disabled={markAttended.isPending}
+                              onClick={() =>
+                                markAttended.mutate({
+                                  sessionId: session.id,
+                                })
+                              }
+                              size="sm"
+                              variant="default"
+                            >
+                              {markAttended.isPending ? (
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              ) : (
+                                <CheckCircleIcon className="mr-1 h-3 w-3" />
+                              )}
+                              Confirm Attendance
+                            </Button>
+                            <Button
+                              disabled={cancelSession.isPending}
+                              onClick={() => setCancelTarget(session.id)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <BanIcon className="mr-1 h-3 w-3" />
+                              Cancel
+                            </Button>
+                          </>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       <AlertDialog
         onOpenChange={(open) => !open && setCancelTarget(null)}
@@ -249,6 +289,17 @@ function DoctorSessionsRoute() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {videoSession && (
+        <VideoRoomWeb
+          endAt={videoSession.endAt}
+          onClose={() => setVideoSession(null)}
+          open={!!videoSession}
+          role={userRole}
+          sessionId={videoSession.sessionId}
+          startAt={videoSession.startAt}
+        />
+      )}
     </div>
   );
 }
