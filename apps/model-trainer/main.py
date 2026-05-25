@@ -131,3 +131,7 @@ def _train_local(
     model, _history = train_model(seq_len, X_train, y_train, X_val, y_val)
     report = evaluate_model(model, X_test, y_test, seq_len)
     print(f"\nClassification Report (seq_len={seq_len}):\n{report}")
+
+
+if __name__ == "__main__":
+    run()
