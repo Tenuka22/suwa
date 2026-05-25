@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "jupytext>=1.19.3",
     "kagglehub>=1.0.1",
     "matplotlib>=3.10.9",
     "onnx>=1.16.0",
@@ -18,6 +19,7 @@ dependencies = [
 
 [project.scripts]
 train = "main:run"
+build = "build_notebook:main"
 
 [build-system]
 requires = ["hatchling"]

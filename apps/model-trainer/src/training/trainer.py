@@ -172,12 +172,15 @@ def train_model(
         ],
     )
 
+    train_ds = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+    train_ds = train_ds.batch(TRAINING.batch_size).prefetch(tf.data.AUTOTUNE)
+    val_ds = tf.data.Dataset.from_tensor_slices((X_val, y_val))
+    val_ds = val_ds.batch(TRAINING.batch_size).prefetch(tf.data.AUTOTUNE)
+
     history = model.fit(
-        X_train,
-        y_train,
-        validation_data=(X_val, y_val),
+        train_ds,
+        validation_data=val_ds,
         epochs=TRAINING.epochs,
-        batch_size=TRAINING.batch_size,
         callbacks=_build_callbacks(),
         verbose=1,
     )
