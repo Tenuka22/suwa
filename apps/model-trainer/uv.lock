@@ -56,15 +56,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cerebrium"
-version = "2.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ac/47/adf58e8fa6e0952fc9ba319ee68150679681c1e7df7dd1f2c9252e8ddb60/cerebrium-2.4.0.tar.gz", hash = "sha256:f2cf4affc26145f6760fba2ebdcb0fe68fc95c0ba74ec0b388398fa2f7fbd9e9", size = 6052 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/dc/32da99eaead257dbe077e538f2230d18be9addfbd36bbc5f95c9f2b036a2/cerebrium-2.4.0-py3-none-any.whl", hash = "sha256:72b1706221430dee0b4dfd5b4ec646fe407e13737063382c1266f47ad5420b86", size = 6388 },
-]
-
-[[package]]
 name = "certifi"
 version = "2026.5.20"
 source = { registry = "https://pypi.org/simple" }
@@ -647,7 +638,6 @@ name = "model-trainer"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "cerebrium" },
     { name = "kagglehub" },
     { name = "matplotlib" },
     { name = "onnx" },
@@ -661,7 +651,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cerebrium", specifier = ">=2.4.0" },
     { name = "kagglehub", specifier = ">=1.0.1" },
     { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "onnx", specifier = ">=1.16.0" },
