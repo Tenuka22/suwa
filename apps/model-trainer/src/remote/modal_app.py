@@ -41,7 +41,7 @@ def train_remote(
         f"[remote] starting training seq_len={seq_len}, n_features={n_features}",
         flush=True,
     )
-    model = train_model(seq_len, X_train, y_train, X_val, y_val)
+    model, _history = train_model(seq_len, X_train, y_train, X_val, y_val)
     print(f"[remote] training finished seq_len={seq_len}", flush=True)
     report = evaluate_model(model, X_test, y_test, seq_len)
     print(f"\n[remote] Classification Report (seq_len={seq_len}):\n{report}", flush=True)

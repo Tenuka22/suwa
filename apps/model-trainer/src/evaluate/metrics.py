@@ -1,42 +1,71 @@
 import json
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')  # Set backend before importing pyplot
-import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
+    accuracy_score,
     classification_report,
     confusion_matrix,
-    roc_auc_score,
-    accuracy_score,
+    fbeta_score,
     f1_score,
     precision_score,
     recall_score,
+    roc_auc_score,
 )
 
 from src.config import TRAINING
 
 
+def _find_best_threshold(y_true: np.ndarray, y_prob: np.ndarray) -> tuple[float, dict[str, float]]:
+    best_threshold = 0.5
+    best_score = -1.0
+    best_metrics = {"precision": 0.0, "recall": 0.0, "fbeta": 0.0}
+
+    for threshold in np.linspace(0.1, 0.9, 81):
+        y_pred = (y_prob >= threshold).astype(int)
+        score = fbeta_score(
+            y_true,
+            y_pred,
+            beta=TRAINING.decision_threshold_beta,
+            zero_division=0,
+        )
+        if score > best_score:
+            best_score = float(score)
+            best_threshold = float(threshold)
+            best_metrics = {
+                "precision": float(precision_score(y_true, y_pred, zero_division=0)),
+                "recall": float(recall_score(y_true, y_pred, zero_division=0)),
+                "fbeta": float(score),
+            }
+
+    return best_threshold, best_metrics
+
+
 def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray, seq_len: int):
     y_prob = model.predict(X_test, verbose=0).flatten()
-
-    threshold = 0.5
-    y_pred = (y_prob > threshold).astype(int)
+    threshold, threshold_metrics = _find_best_threshold(y_test, y_prob)
+    y_pred = (y_prob >= threshold).astype(int)
 
     auc = roc_auc_score(y_test, y_prob)
     acc = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, zero_division=0)
+    precision = precision_score(y_test, y_pred, zero_division=0)
+    recall = recall_score(y_test, y_pred, zero_division=0)
 
     cm = confusion_matrix(y_test, y_pred)
     tn, fp, fn, tp = cm.ravel()
 
     metrics = {
         "seq_len": seq_len,
-        "threshold": threshold,
+        "threshold": float(threshold),
+        "threshold_precision": float(threshold_metrics["precision"]),
+        "threshold_recall": float(threshold_metrics["recall"]),
+        "threshold_fbeta": float(threshold_metrics["fbeta"]),
         "mean_stress_probability": float(np.mean(y_prob)),
         "max_stress_probability": float(np.max(y_prob)),
         "min_stress_probability": float(np.min(y_prob)),
@@ -52,7 +81,8 @@ def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray, seq_len: int):
     }
 
     print(f"\nROC-AUC Score: {auc:.4f}")
-    print(f"Decision Threshold: {threshold}")
+    print(f"Decision Threshold: {threshold:.2f}")
+    print(f"Threshold F{TRAINING.decision_threshold_beta:.1f}: {threshold_metrics['fbeta']:.4f}")
     print(f"Accuracy: {acc:.4f}, F1: {f1:.4f}")
     print(
         "Stress probability summary - "
@@ -67,7 +97,10 @@ def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray, seq_len: int):
         json.dump(metrics, f, indent=4)
 
     report = classification_report(
-        y_test, y_pred, target_names=["not-stress", "stress"]
+        y_test,
+        y_pred,
+        target_names=["not-stress", "stress"],
+        zero_division=0,
     )
 
     plt.figure(figsize=(8, 6))

@@ -29,12 +29,12 @@ def build_rri_lstm(seq_len: int, n_features: int) -> Model:
     x = layers.GlobalAveragePooling1D()(x)
 
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(MODEL.dropout_rate + 0.1)(x)
+    x = layers.Dropout(MODEL.dropout_rate)(x)
     x = layers.Dense(
         16, activation="relu", kernel_regularizer=regularizers.l2(MODEL.l2_reg)
     )(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(MODEL.dropout_rate + 0.1)(x)
+    x = layers.Dropout(MODEL.dropout_rate)(x)
 
     outputs = layers.Dense(1, activation="sigmoid", name="stress_prob")(x)
 
@@ -45,6 +45,7 @@ def build_rri_lstm(seq_len: int, n_features: int) -> Model:
         metrics=[
             "accuracy",
             tf.keras.metrics.AUC(name="auc"),
+            tf.keras.metrics.AUC(curve="PR", name="pr_auc"),
             tf.keras.metrics.Recall(name="recall"),
             tf.keras.metrics.Precision(name="precision"),
         ],

@@ -5,6 +5,7 @@ import time
 from collections.abc import Iterable
 from pathlib import Path
 import sys
+import tempfile
 
 import numpy as np
 import modal
@@ -17,6 +18,10 @@ from src.evaluate.metrics import (
     plot_modal_timing,
     plot_performance_summary,
 )
+
+_CACHE_VERSION = "v1"
+_SEQUENCE_CACHE_DIR = Path(tempfile.gettempdir()) / "zen_doc_model_trainer_cache" / "sequences"
+_SEQUENCE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 if hasattr(sys.stdout, "reconfigure"):
@@ -76,8 +81,15 @@ def _prepare_data(
     subj_list: Iterable[tuple[int, np.ndarray, np.ndarray, list[str]]],
     seq_len: int,
 ) -> tuple[np.ndarray, np.ndarray]:
+    subj_items = list(subj_list)
+    subj_ids = "-".join(str(subj_id) for subj_id, _, _, _ in subj_items)
+    cache_path = _SEQUENCE_CACHE_DIR / f"{_CACHE_VERSION}_seq{seq_len}_{subj_ids}.npz"
+    if cache_path.exists():
+        cached = np.load(cache_path, allow_pickle=False)
+        return cached["X"], cached["y"]
+
     all_X, all_y = [], []
-    for _, v, l, _ in subj_list:
+    for _, v, l, _ in subj_items:
         X_sub, y_sub = create_sequences(v, l, seq_len)
         if len(X_sub) > 0:
             all_X.append(X_sub)
@@ -88,6 +100,7 @@ def _prepare_data(
 
     X = np.concatenate(all_X).astype(np.float32, copy=False)
     y = np.concatenate(all_y).astype(np.uint8, copy=False)
+    np.savez_compressed(cache_path, X=X, y=y)
     return X, y
 
 
@@ -139,7 +152,7 @@ def _train_local(
     from src.evaluate.metrics import evaluate_model
     from src.training.trainer import train_model
 
-    model = train_model(seq_len, X_train, y_train, X_val, y_val)
+    model, _history = train_model(seq_len, X_train, y_train, X_val, y_val)
     report = evaluate_model(model, X_test, y_test, seq_len)
     print(f"\nClassification Report (seq_len={seq_len}):\n{report}")
 

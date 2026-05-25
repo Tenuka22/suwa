@@ -15,24 +15,27 @@ class DataConfig:
 
 @dataclass(frozen=True)
 class ModelConfig:
-    lstm_units: int = 32
-    dropout_rate: float = 0.3
-    learning_rate: float = 0.001
-    l2_reg: float = 1e-3
-    lstm_dropout: float = 0.35
-    lstm_recurrent_dropout: float = 0.2
+    lstm_units: int = 48
+    dropout_rate: float = 0.2
+    learning_rate: float = 5e-4
+    l2_reg: float = 1e-4
+    lstm_dropout: float = 0.2
+    lstm_recurrent_dropout: float = 0.0
 
 
 @dataclass(frozen=True)
 class TrainingConfig:
-    sequence_lengths: tuple[int, ...] = (30,)
-    epochs: int = 30
+    sequence_lengths: tuple[int, ...] = (30, 60, 90)
+    epochs: int = 40
     batch_size: int = 64
+    export_onnx: bool = True
 
-    patience: int = 5
-    reduce_lr_patience: int = 3
+    patience: int = 8
+    reduce_lr_patience: int = 2
     reduce_lr_factor: float = 0.5
     min_lr: float = 1e-6
+    positive_class_weight: float = 2.5
+    decision_threshold_beta: float = 2.0
 
     models_dir: Path = Path(os.environ.get("MODELS_DIR_OVERRIDE", "models/wesad_lstm"))
 

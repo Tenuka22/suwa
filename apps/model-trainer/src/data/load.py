@@ -1,5 +1,7 @@
 import os
+import tempfile
 from collections.abc import Generator
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -7,6 +9,10 @@ import pandas as pd
 from src.config import DATA
 from src.data.download import dataset_fetching
 from src.data.features import extract_features
+
+_CACHE_VERSION = "v1"
+_CACHE_DIR = Path(tempfile.gettempdir()) / "zen_doc_model_trainer_cache" / "subjects"
+_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _parse_quest(filepath: str):
@@ -20,11 +26,24 @@ def _parse_quest(filepath: str):
     return list(zip(conditions[: len(starts)], starts, ends))
 
 
-def _condition_at_time(time_min: float, schedule: list[tuple[str, float, float]]) -> int:
-    for cond, start, end in schedule:
-        if start <= time_min <= end:
-            return 1 if cond == DATA.stress_condition else 0
-    return -1
+def _label_times(
+    times_min: np.ndarray, schedule: list[tuple[str, float, float]]
+) -> np.ndarray:
+    if not schedule:
+        return np.full(times_min.shape, -1, dtype=np.intp)
+
+    starts = np.asarray([start for _, start, _ in schedule], dtype=np.float64)
+    ends = np.asarray([end for _, _, end in schedule], dtype=np.float64)
+    stress_flags = np.asarray(
+        [cond == DATA.stress_condition for cond, _, _ in schedule], dtype=np.intp
+    )
+
+    interval_idx = np.searchsorted(starts, times_min, side="right") - 1
+    valid = (interval_idx >= 0) & (times_min <= ends[np.clip(interval_idx, 0, None)])
+
+    labels = np.full(times_min.shape, -1, dtype=np.intp)
+    labels[valid] = stress_flags[interval_idx[valid]]
+    return labels
 
 
 def load_subject(subj_id: int, ds_path: str):
@@ -32,12 +51,31 @@ def load_subject(subj_id: int, ds_path: str):
     quest_path = os.path.join(
         ds_path, "0. interim", "wesad", "Labels", f"S{subj_id}_quest.csv"
     )
+
+    cache_key = (
+        f"{_CACHE_VERSION}_S{subj_id}_"
+        f"{int(os.path.getmtime(rri_path))}_{int(os.path.getmtime(quest_path))}"
+    )
+    cache_path = _CACHE_DIR / f"{cache_key}.npz"
+    if cache_path.exists():
+        try:
+            with np.load(cache_path, allow_pickle=False) as cached:
+                feature_names = cached["feature_names"].tolist()
+                features = cached["features"]
+                labels = cached["labels"]
+            return features, labels, feature_names
+        except ValueError:
+            try:
+                cache_path.unlink(missing_ok=True)
+            except PermissionError:
+                pass
+
     rri = np.loadtxt(rri_path)
     schedule = _parse_quest(quest_path)
     times_s = rri[:, 0]
     times_min = times_s / 60.0
     values = rri[:, 1]
-    labels = np.array([_condition_at_time(t, schedule) for t in times_min])
+    labels = _label_times(times_min, schedule)
     valid = labels >= 0
 
     v = values[valid]
@@ -49,6 +87,13 @@ def load_subject(subj_id: int, ds_path: str):
         features = (features - np.mean(features, axis=0)) / (
             np.std(features, axis=0) + 1e-8
         )
+
+    np.savez_compressed(
+        cache_path,
+        features=features,
+        labels=l,
+        feature_names=np.asarray(feature_names, dtype=np.str_),
+    )
 
     return features, l, feature_names
 
