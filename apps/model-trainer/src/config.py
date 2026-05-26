@@ -33,7 +33,7 @@ class TrainingConfig:
         if item.strip()
     )
     epochs: int = int(os.environ.get("EPOCHS_OVERRIDE", "30"))
-    batch_size: int = 16
+    batch_size: int = 32
     export_onnx: bool = True
 
     patience: int = 15

@@ -42,32 +42,45 @@ def create_sequences_by_subject(
     seq_len: int
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Groups data by user and creates sequences.
-    
+    Groups data by user and creates sequences with 10% overlap.
     Feature Window: Current sequence (seq_len items).
-    Target Label: Majority vote of the next 10% of items immediately following the sequence.
-    (e.g., if seq_len=120, label is derived from the next 12 items).
+    Target Label: Majority vote of the 50% point of the next sequence.
     """
     all_X = []
     all_y = []
     
-    # Target size is 10% of seq_len
-    target_size = int(seq_len * 0.1)
-    if target_size == 0:
-        target_size = 1
+    # Overlap is 10%, shift is 90% (to ensure 10% overlap)
+    overlap = int(seq_len * 0.1)
+    shift = seq_len - overlap
+    if shift <= 0:
+        shift = 1
         
     for subj_id, features, labels, _ in subjects_data:
         n_samples = len(features)
         
-        # We need seq_len + target_size items available to create a sequence
-        for i in range(0, n_samples - seq_len - target_size + 1, seq_len):
+        # We need seq_len + target_size items available
+        for i in range(0, n_samples - seq_len - overlap + 1, shift):
             # Current window (Features)
             x_window = features[i : i + seq_len]
             
-            # Target labels (Next 10% of items)
-            future_segment_labels = labels[i + seq_len : i + seq_len + target_size]
+            # Target labels: Look at the next seq_len, take 50% point
+            # Next segment is [i+seq_len : i+2*seq_len]
+            next_segment_start = i + seq_len
+            next_segment_end = i + 2 * seq_len
             
-            # Majority vote for the future state
+            # 50% mark of the next window
+            midpoint = next_segment_start + int(seq_len * 0.5)
+            
+            # Take a small segment around the midpoint to define the label
+            # (e.g., 10% of window size around the midpoint)
+            sample_size = int(seq_len * 0.1)
+            if sample_size == 0:
+                sample_size = 1
+            start_idx = midpoint - (sample_size // 2)
+            end_idx = start_idx + sample_size
+            
+            future_segment_labels = labels[start_idx : end_idx]
+            
             counts = np.bincount(future_segment_labels.astype(np.intp), minlength=3)
             y_label = np.argmax(counts)
             
