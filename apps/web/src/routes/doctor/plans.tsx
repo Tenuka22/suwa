@@ -5,7 +5,6 @@ import { Button } from "@zen-doc/ui/components/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@zen-doc/ui/components/card";
@@ -23,11 +22,10 @@ import { Label } from "@zen-doc/ui/components/label";
 import { Textarea } from "@zen-doc/ui/components/textarea";
 import {
   Check,
-  CheckCircle2,
   Clock,
   Coins,
+  LayoutGrid,
   Loader2,
-  MoreVertical,
   Pencil,
   PlusIcon,
   Trash2,
@@ -75,47 +73,44 @@ function FeatureInput({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          What's Included
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Features
         </Label>
         <Button
           onClick={addFeature}
           size="sm"
           type="button"
           variant="ghost"
-          className="h-6 px-2 text-[10px] hover:bg-primary/5 hover:text-primary"
+          className="h-7 text-xs"
         >
           <PlusIcon className="mr-1 h-3 w-3" />
-          Add Item
+          Add
         </Button>
       </div>
-      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
         {features.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6 border border-dashed rounded-xl bg-muted/20">
-            <p className="text-[10px] text-muted-foreground font-medium">No features listed</p>
-          </div>
+          <p className="py-4 text-center text-muted-foreground text-xs border border-dashed rounded-lg">
+            No features added
+          </p>
         ) : (
           features.map((feature, index) => (
-            <div className="flex items-center gap-2 group/input" key={index}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <Check className="h-3.5 w-3.5 text-emerald-600" />
-              </div>
+            <div className="flex items-center gap-2 group" key={index}>
               <Input
-                className="h-8 text-xs bg-muted/30 border-none shadow-none focus-visible:ring-1 focus-visible:ring-primary/20"
+                className="h-8 text-sm"
                 onChange={(e) => updateFeature(index, e.target.value)}
-                placeholder="Feature detail..."
+                placeholder="Feature description"
                 value={feature}
               />
               <Button
-                className="h-7 w-7 shrink-0 opacity-0 group-hover/input:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+                className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={() => removeFeature(index)}
                 size="icon"
                 type="button"
                 variant="ghost"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
               </Button>
             </div>
           ))
@@ -143,7 +138,7 @@ function DoctorPlansRoute() {
     orpc.createDoctorPlan.mutationOptions({
       onSuccess: async () => {
         await plansQuery.refetch();
-        toast.success("New plan launched");
+        toast.success("Plan created");
         setShowCreate(false);
       },
       onError: (error) => {
@@ -230,157 +225,198 @@ function DoctorPlansRoute() {
   };
 
   return (
-    <div className="flex w-full flex-col gap-8 p-6 lg:p-10 max-w-7xl mx-auto">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold px-2 py-0">OFFERINGS</Badge>
-            <h1 className="font-black text-4xl tracking-tight text-foreground uppercase italic">Session Plans</h1>
-          </div>
-          <p className="text-muted-foreground text-sm font-medium">Define your consultation tiers and pricing structure.</p>
+    <div className="flex w-full flex-col gap-6 p-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <h1 className="font-bold text-3xl text-foreground tracking-tight">
+            Session Plans
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Define your session offerings and pricing.
+          </p>
         </div>
 
         <Dialog onOpenChange={(o) => { if (o) resetForm(); setShowCreate(o); }} open={showCreate}>
           <DialogTrigger asChild>
-            <Button size="lg" className="rounded-full px-8 shadow-xl hover:shadow-primary/20 transition-all font-bold uppercase tracking-widest text-xs">
+            <Button size="sm">
               <PlusIcon className="mr-2 h-4 w-4" />
-              New Tier
+              Add Plan
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[480px] rounded-3xl border-none shadow-2xl overflow-hidden p-0">
-            <div className="bg-primary p-6 text-primary-foreground">
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight italic">Create Tier</DialogTitle>
-              <DialogDescription className="text-primary-foreground/80 font-medium">Configure a new session offering.</DialogDescription>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="grid gap-4">
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</Label>
-                  <Input
-                    className="h-10 border-muted-foreground/20 focus-visible:ring-primary/30"
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Platinum Deep Dive"
-                    value={name}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Credits</Label>
-                    <div className="relative group">
-                      <Coins className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input
-                        className="pl-9 h-10 border-muted-foreground/20"
-                        onChange={(e) => setCredits(e.target.value.replace(/\D/g, ""))}
-                        type="number"
-                        value={credits}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Min</Label>
-                    <div className="relative group">
-                      <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input
-                        className="pl-9 h-10 border-muted-foreground/20"
-                        onChange={(e) => setDurationMinutes(e.target.value.replace(/\D/g, ""))}
-                        type="number"
-                        value={durationMinutes}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Summary</Label>
-                  <Textarea
-                    className="resize-none border-muted-foreground/20"
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Brief overview..."
-                    rows={2}
-                    value={description}
-                  />
-                </div>
-                <FeatureInput features={features} onChange={setFeatures} />
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create Plan</DialogTitle>
+              <DialogDescription>
+                Configure a new session offering.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="plan-name">Plan Name</Label>
+                <Input
+                  id="plan-name"
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Standard Consultation"
+                  value={name}
+                />
               </div>
-              <DialogFooter>
-                <Button
-                  className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-xs"
-                  disabled={!isValid() || createPlan.isPending}
-                  onClick={handleCreate}
-                >
-                  {createPlan.isPending ? <Loader2 className="animate-spin" /> : "Deploy Plan"}
-                </Button>
-              </DialogFooter>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="plan-credits">Credits</Label>
+                  <Input
+                    id="plan-credits"
+                    onChange={(e) => setCredits(e.target.value.replace(/\D/g, ""))}
+                    type="number"
+                    value={credits}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="plan-duration">Minutes</Label>
+                  <Input
+                    id="plan-duration"
+                    onChange={(e) => setDurationMinutes(e.target.value.replace(/\D/g, ""))}
+                    type="number"
+                    value={durationMinutes}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="plan-description">Description</Label>
+                <Textarea
+                  id="plan-description"
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Brief summary..."
+                  rows={2}
+                  value={description}
+                />
+              </div>
+              <FeatureInput features={features} onChange={setFeatures} />
             </div>
+            <DialogFooter>
+              <Button onClick={() => setShowCreate(false)} variant="outline">
+                Cancel
+              </Button>
+              <Button
+                disabled={!isValid() || createPlan.isPending}
+                onClick={handleCreate}
+              >
+                {createPlan.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Create Plan
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Dialog onOpenChange={(o) => { if (!o) setEditTarget(null); }} open={!!editTarget}>
-        <DialogContent className="sm:max-w-[480px] rounded-3xl border-none shadow-2xl overflow-hidden p-0">
-          <div className="bg-foreground p-6 text-background">
-            <DialogTitle className="text-2xl font-black uppercase tracking-tight italic text-background">Configure Tier</DialogTitle>
-            <DialogDescription className="text-background/70 font-medium italic">Adjust the specifics of this offering.</DialogDescription>
-          </div>
-          <div className="p-6 space-y-6">
-            <div className="grid gap-4">
-              <div className="grid gap-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</Label>
-                <Input className="h-10 bg-muted/30 border-none" onChange={(e) => setName(e.target.value)} value={name} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Credits</Label>
-                  <Input className="h-10 bg-muted/30 border-none" onChange={(e) => setCredits(e.target.value.replace(/\D/g, ""))} type="number" value={credits} />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Min</Label>
-                  <Input className="h-10 bg-muted/30 border-none" onChange={(e) => setDurationMinutes(e.target.value.replace(/\D/g, ""))} type="number" value={durationMinutes} />
-                </div>
-              </div>
-              <FeatureInput features={features} onChange={setFeatures} />
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        <Card className="border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+              Total Plans
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{plans.length}</div>
+            <p className="text-muted-foreground text-xs">active offerings</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+              Default Plan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold truncate">{plans.find(p => p.isDefault)?.name ?? "None"}</div>
+            <p className="text-muted-foreground text-xs">pre-selected for patients</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+              Max Cost
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {plans.length > 0 ? Math.max(...plans.map(p => p.creditCost)) : 0}
             </div>
-            <DialogFooter className="flex-col gap-2 sm:flex-col sm:gap-2">
+            <p className="text-muted-foreground text-xs">credits</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog onOpenChange={(o) => { if (!o) setEditTarget(null); }} open={!!editTarget}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Plan</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Plan Name</Label>
+              <Input id="edit-name" onChange={(e) => setName(e.target.value)} value={name} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-credits">Credits</Label>
+                <Input id="edit-credits" onChange={(e) => setCredits(e.target.value.replace(/\D/g, ""))} type="number" value={credits} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-duration">Minutes</Label>
+                <Input id="edit-duration" onChange={(e) => setDurationMinutes(e.target.value.replace(/\D/g, ""))} type="number" value={durationMinutes} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea id="edit-description" onChange={(e) => setDescription(e.target.value)} rows={2} value={description} />
+            </div>
+            <FeatureInput features={features} onChange={setFeatures} />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            {editTarget && !editTarget.isDefault && (
               <Button
-                className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg"
+                disabled={deletePlan.isPending}
+                onClick={() => {
+                   if (confirm("Delete this plan?")) {
+                     deletePlan.mutate({ id: editTarget.id });
+                     setEditTarget(null);
+                   }
+                }}
+                variant="ghost"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                Delete
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Button onClick={() => setEditTarget(null)} variant="outline">
+                Cancel
+              </Button>
+              <Button
                 disabled={!isValid() || updatePlan.isPending}
                 onClick={handleUpdate}
               >
-                {updatePlan.isPending ? <Loader2 className="animate-spin" /> : "Save Evolution"}
+                {updatePlan.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Save Changes
               </Button>
-              {editTarget && !editTarget.isDefault && (
-                <Button
-                  className="w-full h-10 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  disabled={deletePlan.isPending}
-                  onClick={() => {
-                     if (confirm("Permanently erase this tier?")) {
-                       deletePlan.mutate({ id: editTarget.id });
-                       setEditTarget(null);
-                     }
-                  }}
-                  variant="ghost"
-                >
-                  Erase Tier
-                </Button>
-              )}
-            </DialogFooter>
-          </div>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {plansQuery.isPending ? (
-        <div className="grid gap-6 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div className="h-96 rounded-3xl bg-muted animate-pulse border border-border/40" key={i} />
-          ))}
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : plans.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-40 bg-muted/20 rounded-[40px] border border-dashed border-border/60">
-           <LayoutGrid className="h-20 w-20 text-muted-foreground/30 mb-6" />
-           <h2 className="text-2xl font-black uppercase italic tracking-tight text-muted-foreground">Void Detected</h2>
-           <p className="text-muted-foreground text-sm font-medium mt-2">Begin by deploying your first session tier.</p>
-        </div>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <LayoutGrid className="h-8 w-8 mb-2 opacity-20" />
+            <p className="text-sm">No plans configured yet.</p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => {
             let parsedFeatures: string[] = [];
             try {
@@ -391,66 +427,67 @@ function DoctorPlansRoute() {
 
             return (
               <Card
-                className={`group relative flex flex-col rounded-[32px] overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl hover:border-primary/40 ${
-                  plan.isDefault ? "bg-primary/[0.01] border-primary/20 shadow-lg" : "bg-card border-border/60"
+                className={`flex flex-col border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm transition-all hover:shadow-md ${
+                  plan.isDefault ? "ring-1 ring-primary/20" : ""
                 }`}
                 key={plan.id}
               >
-                {plan.isDefault && (
-                  <div className="absolute top-0 right-0 p-1.5">
-                    <Badge className="rounded-full bg-primary px-3 text-[10px] font-black uppercase tracking-widest italic shadow-lg">PRIME</Badge>
-                  </div>
-                )}
-
-                <CardHeader className="pt-8 pb-6 text-center">
-                  <div className="space-y-1">
-                    <CardTitle className="text-2xl font-black uppercase tracking-tight italic group-hover:text-primary transition-colors">
-                      {plan.name}
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">{plan.durationMinutes} Minute Session</p>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-bold">{plan.name}</CardTitle>
+                    {plan.isDefault && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">
+                        Default
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
 
-                <CardContent className="flex flex-1 flex-col px-8 pb-8">
-                  <div className="mb-8 flex flex-col items-center justify-center py-6 rounded-3xl bg-muted/30 border border-border/40 transition-colors group-hover:bg-primary/5 group-hover:border-primary/20">
-                     <div className="flex items-center gap-1">
-                        <Coins className="h-4 w-4 text-amber-500" />
-                        <span className="text-5xl font-black tracking-tighter italic">{plan.creditCost}</span>
-                     </div>
-                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1 italic">
-                        Credits Required
-                     </span>
-                  </div>
-
-                  <div className="flex-1 space-y-4 mb-8">
-                    <div className="flex items-center gap-3">
-                       <span className="text-[10px] font-black text-primary uppercase tracking-widest italic">Inventory</span>
-                       <div className="h-px flex-1 bg-border/60" />
+                <CardContent className="flex flex-1 flex-col gap-4">
+                  <div className="flex items-center gap-4 py-2 border-y border-border/50">
+                    <div className="flex items-center gap-1.5">
+                      <Coins className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-lg font-bold">{plan.creditCost}</span>
+                      <span className="text-xs text-muted-foreground">credits</span>
                     </div>
-                    <div className="space-y-3">
-                      {parsedFeatures.map((feature, idx) => (
-                        <div className="flex items-center gap-3 group/item" key={`${feature}-${idx}`}>
-                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/10 transition-transform group-hover/item:scale-110">
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground leading-snug group-hover/item:text-foreground transition-colors italic">
-                            {feature}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-lg font-bold">{plan.durationMinutes}</span>
+                      <span className="text-xs text-muted-foreground">min</span>
                     </div>
                   </div>
 
-                  <CardFooter className="p-0">
+                  {plan.description && (
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {plan.description}
+                    </p>
+                  )}
+
+                  <div className="space-y-2">
+                    {parsedFeatures.slice(0, 3).map((feature, idx) => (
+                      <div className="flex items-start gap-2" key={idx}>
+                        <Check className="mt-1 h-3 w-3 shrink-0 text-emerald-500" />
+                        <span className="text-xs text-muted-foreground">{feature}</span>
+                      </div>
+                    ))}
+                    {parsedFeatures.length > 3 && (
+                      <p className="text-[10px] text-muted-foreground pl-5">
+                        +{parsedFeatures.length - 3} more
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-auto pt-2">
                     <Button
-                      className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] italic shadow-lg hover:shadow-primary/20 transition-all"
+                      className="w-full text-xs"
                       onClick={() => handleEdit(plan)}
-                      variant={plan.isDefault ? "default" : "outline"}
+                      size="sm"
+                      variant="outline"
                     >
-                      <Pencil className="mr-2 h-3.5 w-3.5" />
-                      Reconfigure
+                      <Pencil className="mr-2 h-3 w-3" />
+                      Edit Plan
                     </Button>
-                  </CardFooter>
+                  </div>
                 </CardContent>
               </Card>
             );
