@@ -42,43 +42,37 @@ def create_sequences_by_subject(
     seq_len: int
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Groups data by user and creates sequences with a 10% overlap.
-    "No striding" - means we use a fixed shift calculated from the overlap to ensure
-    no gaps in the data processing.
+    Groups data by user and creates sequences.
     
-    Example for seq_len=120:
-    Overlap = 12 (10%)
-    Shift = 108 (120 - 12)
-    Window 1: 0-120
-    Window 2: 108-228
+    Feature Window: Current sequence (seq_len items).
+    Target Label: Majority vote of the next 10% of items immediately following the sequence.
+    (e.g., if seq_len=120, label is derived from the next 12 items).
     """
     all_X = []
     all_y = []
     
-    # Calculate shift based on 10% overlap
-    overlap = int(seq_len * 0.1)
-    shift = seq_len - overlap
-    
-    if shift <= 0:
-        shift = 1
-
+    # Target size is 10% of seq_len
+    target_size = int(seq_len * 0.1)
+    if target_size == 0:
+        target_size = 1
+        
     for subj_id, features, labels, _ in subjects_data:
         n_samples = len(features)
         
-        # Slide through the data using the calculated shift
-        for i in range(0, n_samples - 2 * seq_len + 1, shift):
+        # We need seq_len + target_size items available to create a sequence
+        for i in range(0, n_samples - seq_len - target_size + 1, seq_len):
             # Current window (Features)
             x_window = features[i : i + seq_len]
             
-            # Next window (Future Target)
-            # We look at the labels in the *next* block of time to predict what happens next
-            future_labels = labels[i + seq_len : i + 2 * seq_len]
+            # Target labels (Next 10% of items)
+            future_segment_labels = labels[i + seq_len : i + seq_len + target_size]
             
             # Majority vote for the future state
-            counts = np.bincount(future_labels.astype(np.intp), minlength=3)
+            counts = np.bincount(future_segment_labels.astype(np.intp), minlength=3)
             y_label = np.argmax(counts)
             
             all_X.append(x_window)
             all_y.append(y_label)
             
     return np.array(all_X, dtype=np.float32), np.array(all_y, dtype=np.uint8)
+
