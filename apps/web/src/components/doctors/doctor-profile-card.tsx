@@ -234,17 +234,17 @@ export function DoctorProfileCard() {
 
   return (
     <>
-      <Card>
+      <Card className="border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm backdrop-blur-md transition-all">
         <CardHeader className="flex flex-col gap-4 border-border/30 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Avatar
-              className="size-16 border-2 border-primary/20 shadow-md"
+              className="size-16 border-2 border-primary/20 shadow-sm"
               size="lg"
             >
               {user.user?.imageUrl ? (
                 <AvatarImage alt={displayName} src={user.user.imageUrl} />
               ) : null}
-              <AvatarFallback className="bg-primary/10 font-bold text-lg text-primary">
+              <AvatarFallback className="bg-primary/5 font-bold text-lg text-primary">
                 {displayName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -253,100 +253,98 @@ export function DoctorProfileCard() {
                 <CardTitle className="font-bold text-xl tracking-tight">
                   {displayName}
                 </CardTitle>
-                <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary text-xs">
+                <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 font-semibold text-primary text-[10px] uppercase tracking-wider">
                   {profile?.permanent ? (
                     <>
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                      <span className="h-1 w-1 animate-pulse rounded-full bg-emerald-500" />
                       Approved
                     </>
                   ) : (
                     <>
-                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                      Pending Approval
+                      <span className="h-1 w-1 rounded-full bg-amber-500" />
+                      Pending
                     </>
                   )}
                 </div>
               </div>
-              <p className="mt-1 text-muted-foreground text-sm">
-                {profile?.headline ?? "No professional headline set yet"}
+              <p className="mt-1 text-muted-foreground text-xs font-medium">
+                {profile?.headline ?? "Professional practitioner"}
               </p>
             </div>
           </div>
           <Button
-            className="shrink-0 font-medium hover:bg-muted"
+            className="h-9 shrink-0 font-bold uppercase tracking-widest text-[10px] shadow-sm hover:shadow-primary/10 transition-all"
             onClick={() => setOpen(true)}
             variant="outline"
+            size="sm"
           >
-            <Sparkles className="mr-2 h-4 w-4 text-primary" />
-            Edit Profile
+            <Sparkles className="mr-2 h-3.5 w-3.5 text-primary" />
+            Manage Profile
           </Button>
         </CardHeader>
 
         <CardContent className="grid gap-6 pt-6 md:grid-cols-2">
           {/* Quick Practice Details Grid */}
           <div className="space-y-4">
-            <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-              <Building className="size-4 text-primary" />
+            <h3 className="flex items-center gap-2 font-bold text-muted-foreground text-[10px] uppercase tracking-widest">
+              <Building className="size-3 text-primary" />
               Practice Details
             </h3>
-            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+            <div className="grid gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
               <SummaryItem
-                icon={<Clock className="size-3.5 text-muted-foreground" />}
+                icon={<Clock className="size-3 text-muted-foreground" />}
                 label="Experience"
                 value={experienceLabel}
               />
               <SummaryItem
-                icon={<MapPin className="size-3.5 text-muted-foreground" />}
+                icon={<MapPin className="size-3 text-muted-foreground" />}
                 label="Location"
                 value={profile?.location ?? "Not set"}
               />
               <SummaryItem
-                icon={<Building className="size-3.5 text-muted-foreground" />}
-                label="Practice Address"
+                icon={<Building className="size-3 text-muted-foreground" />}
+                label="Address"
                 value={profile?.placeAddress ?? "Not set"}
               />
             </div>
           </div>
 
           <div className="space-y-4">
-            <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-              <Award className="size-4 text-primary" />
-              Professional Info
+            <h3 className="flex items-center gap-2 font-bold text-muted-foreground text-[10px] uppercase tracking-widest">
+              <Award className="size-3 text-primary" />
+              Credentials
             </h3>
-            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+            <div className="grid gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
               <SummaryItem
-                icon={<FileText className="size-3.5 text-muted-foreground" />}
-                label="License Number"
+                icon={<FileText className="size-3 text-muted-foreground" />}
+                label="License"
                 value={profile?.licenseNumber ?? "Not set"}
               />
               <SummaryItem
-                icon={<Building className="size-3.5 text-muted-foreground" />}
-                label="Practice Place Name"
+                icon={<Building className="size-3 text-muted-foreground" />}
+                label="Facility"
                 value={profile?.placeName ?? "Not set"}
               />
               <SummaryItem
-                icon={<FileText className="size-3.5 text-muted-foreground" />}
-                label="Place Description"
-                value={profile?.placeDescription ?? "No description added"}
+                icon={<FileText className="size-3 text-muted-foreground" />}
+                label="Context"
+                value={profile?.placeDescription ?? "No description"}
               />
             </div>
           </div>
 
           {/* Bio section span 2 */}
-          <div className="space-y-2 border-border/20 border-t pt-4 md:col-span-2">
-            <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
-              Biography
+          <div className="space-y-3 md:col-span-2 border-t border-border/30 pt-4">
+            <h3 className="font-bold text-muted-foreground text-[10px] uppercase tracking-widest">
+              About
             </h3>
-            <p className="rounded-xl border border-border/30 bg-muted/5 p-4 text-foreground/90 text-sm italic leading-relaxed">
-              "
-              {profile?.bio ??
-                "Welcome to my profile. Set up your biography using the edit button above."}
-              "
-            </p>
+            <div className="rounded-xl border border-border/40 bg-muted/10 p-4 text-foreground/90 text-sm leading-relaxed italic">
+              {profile?.bio ?? "Configure your biography using the management button."}
+            </div>
           </div>
 
           {/* Specialties & Focus Areas Tags section */}
-          <div className="grid gap-6 border-border/20 border-t pt-4 md:col-span-2 md:grid-cols-2">
+          <div className="grid gap-6 md:col-span-2 md:grid-cols-2 border-t border-border/30 pt-4">
             <SummaryBlock
               colorTheme="primary"
               label="Specialties"
@@ -354,14 +352,14 @@ export function DoctorProfileCard() {
               values={specialties}
             />
             <SummaryBlock
-              colorTheme="secondary"
+              colorTheme="muted"
               label="Languages"
               labels={languageLabels}
               values={languages}
             />
             <SummaryBlock
               colorTheme="muted"
-              label="Consultation Modes"
+              label="Modes"
               labels={consultationModeLabels}
               values={consultationModes}
             />
@@ -375,21 +373,21 @@ export function DoctorProfileCard() {
 
           {/* Approach Steps */}
           {stepsList.length > 0 && (
-            <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
-              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-                <Sparkles className="size-4 text-primary" />
-                Therapeutic Approach
+            <div className="space-y-4 md:col-span-2 border-t border-border/30 pt-4">
+              <h3 className="flex items-center gap-2 font-bold text-muted-foreground text-[10px] uppercase tracking-widest">
+                <Sparkles className="size-3 text-primary" />
+                Approach
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {stepsList.map((step, idx) => (
                   <div
-                    className="relative rounded-xl border border-border/50 bg-muted/5 p-3.5 transition-all hover:bg-muted/15"
+                    className="relative rounded-xl border border-border/50 bg-muted/20 p-3 transition-all hover:bg-muted/30"
                     key={step.id}
                   >
-                    <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 px-2 py-0.5 font-bold font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
-                      Step {idx + 1}
+                    <span className="absolute top-2.5 right-3 rounded-full bg-background px-2 py-0.5 font-bold font-mono text-[9px] text-muted-foreground/60 uppercase tracking-widest border border-border/40 shadow-sm">
+                      STP {idx + 1}
                     </span>
-                    <p className="pr-10 font-medium text-foreground/80 text-sm leading-relaxed">
+                    <p className="pr-12 font-semibold text-foreground/80 text-xs leading-relaxed">
                       {step.text}
                     </p>
                   </div>
@@ -400,35 +398,37 @@ export function DoctorProfileCard() {
 
           {/* Education Timeline */}
           {parsedEducation.length > 0 && (
-            <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
-              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-                <Award className="size-4 text-primary" />
-                Education & Credentials
+            <div className="space-y-4 md:col-span-2 border-t border-border/30 pt-4">
+              <h3 className="flex items-center gap-2 font-bold text-muted-foreground text-[10px] uppercase tracking-widest">
+                <Award className="size-3 text-primary" />
+                Background
               </h3>
-              <div className="divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-muted/5">
+              <div className="divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-muted/20">
                 {parsedEducation.map((edu) => (
                   <div
-                    className="flex items-center justify-between p-3.5 text-sm transition-all hover:bg-muted/10"
+                    className="flex items-center justify-between p-3 text-xs transition-all hover:bg-muted/30"
                     key={edu.id}
                   >
                     <div className="space-y-0.5">
-                      <p className="font-semibold text-foreground/80">
+                      <p className="font-bold text-foreground/80">
                         {edu.degree}
                       </p>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-[10px] font-medium">
                         {edu.institution}
                       </p>
                     </div>
                     {edu.year && (
-                      <span className="rounded-full border bg-muted px-2.5 py-1 font-mono font-semibold text-muted-foreground text-xs">
+                      <Badge className="bg-background text-muted-foreground font-mono text-[10px]" variant="outline">
                         {edu.year}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 ))}
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
 
           {/* Proof and Documents Alert Banner */}
           <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between md:col-span-2">

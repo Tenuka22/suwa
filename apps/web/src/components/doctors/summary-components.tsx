@@ -11,13 +11,13 @@ export function SummaryItem({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-2.5">
-      {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
-      <div className="space-y-0.5">
-        <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+    <div className="flex items-center gap-3">
+      {icon && <div className="shrink-0">{icon}</div>}
+      <div className="space-y-0.5 overflow-hidden">
+        <p className="font-bold text-[9px] text-muted-foreground/60 uppercase tracking-widest leading-none">
           {label}
         </p>
-        <p className="font-semibold text-foreground/80 text-sm">{value}</p>
+        <p className="font-bold text-foreground/80 text-xs truncate leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -44,8 +44,8 @@ export function SummaryBlock<T extends string>({
   colorTheme?: SummaryTheme;
 }) {
   return (
-    <div className="space-y-2">
-      <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+    <div className="space-y-2.5">
+      <p className="font-bold text-[9px] text-muted-foreground/60 uppercase tracking-widest leading-none">
         {label}
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -53,7 +53,7 @@ export function SummaryBlock<T extends string>({
           values.map((value) => (
             <span
               className={cn(
-                "rounded-full border px-2.5 py-0.5 font-semibold text-xs transition-all hover:scale-105",
+                "rounded-full border px-2 py-0.5 font-bold text-[10px] tracking-tight uppercase transition-all hover:scale-105",
                 summaryThemes[colorTheme]
               )}
               key={value}
@@ -62,8 +62,8 @@ export function SummaryBlock<T extends string>({
             </span>
           ))
         ) : (
-          <span className="font-medium text-muted-foreground text-xs italic">
-            Not configured
+          <span className="font-bold text-muted-foreground/30 text-[10px] uppercase tracking-tighter italic">
+            Null Set
           </span>
         )}
       </div>
