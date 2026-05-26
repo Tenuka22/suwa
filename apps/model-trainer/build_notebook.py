@@ -82,15 +82,25 @@ def main():
             "from google.colab import drive\n"
             'drive.mount("/content/drive")\n'
             "import os, shutil, glob\n"
-            'out = "/content/drive/MyDrive/colab/model-trainer/models"\n'
-            "if os.path.exists(out):\n"
-            "    shutil.rmtree(out)\n"
-            "for src in glob.glob(\"models/wesad_lstm/**\", recursive=True):\n"
-            "    if os.path.isfile(src):\n"
-            '        dst = src.replace("models/wesad_lstm", out)\n'
-            "        os.makedirs(os.path.dirname(dst), exist_ok=True)\n"
-            "        shutil.copy2(src, dst)\n"
-            'print(f"Saved to {out}")\n'
+            "\n"
+            'out_dir_name = "colab/model-trainer/models"\n'
+            'output_path = f"/content/drive/MyDrive/{out_dir_name}"\n'
+            "\n"
+            "# Source directory for local models\n"
+            'local_models_dir = "models"\n'
+            "\n"
+            "# Remove existing directory in Drive if it exists to ensure a clean copy\n"
+            "if os.path.exists(output_path):\n"
+            "    shutil.rmtree(output_path)\n"
+            "\n"
+            "# Copy all contents from the local models directory to Google Drive\n"
+            "for src_path in glob.glob(f\"{local_models_dir}/**\", recursive=True):\n"
+            "    if os.path.isfile(src_path):\n"
+            "        # Construct the destination path, preserving subdirectory structure\n"
+            '        dst_path = src_path.replace(local_models_dir, output_path)\n'
+            "        os.makedirs(os.path.dirname(dst_path), exist_ok=True)\n"
+            "        shutil.copy2(src_path, dst_path)\n"
+            'print(f"Saved models to {output_path}")\n'
         ),
     ]
     nb.cells = setup + list(nb.cells) + teardown
