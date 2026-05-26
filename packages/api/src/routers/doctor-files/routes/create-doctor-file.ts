@@ -21,11 +21,7 @@ export const createDoctorFileRoute = protectedProcedure
     const file = input.file as UploadableFile;
     const fileKey = `doctor-files/${input.doctorId}/${createdId}-${file.name}`;
 
-    await env.DOCTOR_MATERIALS_BUCKET.put(fileKey, await file.arrayBuffer(), {
-      httpMetadata: {
-        contentType: file.type || "application/octet-stream",
-      },
-    });
+    await env.DOCTOR_MATERIALS_KV.put(fileKey, await file.arrayBuffer());
 
     await context.db.insert(doctorFiles).values({
       id: createdId,

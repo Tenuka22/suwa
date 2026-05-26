@@ -7,7 +7,7 @@ interface FallbackEnv {
   CLERK_SECRET_KEY: string;
   CORS_ORIGIN: string;
   DB: D1Database;
-  DOCTOR_MATERIALS_BUCKET: R2Bucket;
+  DOCTOR_MATERIALS_KV: KVNamespace;
   LIVEKIT_API_KEY: string;
   LIVEKIT_API_SECRET: string;
   LIVEKIT_HOST: string;

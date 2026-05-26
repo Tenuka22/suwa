@@ -18,10 +18,7 @@ const db = await D1Database("database", {
   migrationsDir: "../../packages/db/src/migrations",
 });
 
-const doctorMaterialsBucket = await R2Bucket("doctor-materials", {
-  name: "doctor-materials",
-});
-
+const doctorMaterialsKv = await KVNamespace("doctor-materials");
 const modelFeaturesKv = await KVNamespace("model-features");
 
 export const server = await Worker("server", {
@@ -30,7 +27,7 @@ export const server = await Worker("server", {
   compatibility: "node",
   bindings: {
     DB: db,
-    DOCTOR_MATERIALS_BUCKET: doctorMaterialsBucket,
+    DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     CLERK_SECRET_KEY: alchemy.secret.env.CLERK_SECRET_KEY!,
@@ -49,7 +46,7 @@ export const web = await TanStackStart("web", {
   bindings: {
     VITE_SERVER_URL: server.url!,
     VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
-    DOCTOR_MATERIALS_BUCKET: doctorMaterialsBucket,
+    DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     CLERK_SECRET_KEY: alchemy.secret.env.CLERK_SECRET_KEY!,
     VITE_CLERK_PUBLISHABLE_KEY: alchemy.env.CLERK_PUBLISHABLE_KEY!,
     VITE_STRIPE_PUBLISHABLE_KEY: alchemy.env.VITE_STRIPE_PUBLISHABLE_KEY!,

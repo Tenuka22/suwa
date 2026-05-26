@@ -9,12 +9,14 @@ export interface DoctorMaterialFileInput {
 export async function readDoctorMaterialFile(
   input: DoctorMaterialFileInput
 ): Promise<File | null> {
-  const object = await env.DOCTOR_MATERIALS_BUCKET.get(input.fileKey);
-  if (!object) {
+  const data = await env.DOCTOR_MATERIALS_KV.get(input.fileKey, {
+    type: "arrayBuffer",
+  });
+  if (!data) {
     return null;
   }
 
-  return new File([await object.arrayBuffer()], input.fileName, {
+  return new File([data], input.fileName, {
     type: input.mimeType,
   });
 }

@@ -23,7 +23,7 @@ export const deleteDoctorFileRoute = protectedProcedure
     }
 
     await context.db.delete(doctorFiles).where(eq(doctorFiles.id, input.id));
-    await env.DOCTOR_MATERIALS_BUCKET.delete(file.fileKey);
+    await env.DOCTOR_MATERIALS_KV.delete(file.fileKey);
 
     return { ok: true };
   });
