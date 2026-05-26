@@ -122,130 +122,138 @@ export function DoctorFilesPanel({
   };
 
   return (
-    <Card className="border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm backdrop-blur-md">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-lg font-bold">Materials</CardTitle>
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] font-bold px-1.5 h-4 uppercase">{files.length} Item{files.length === 1 ? "" : "s"}</Badge>
-          </div>
-          <p className="text-muted-foreground text-xs font-medium">
-            Public documentation, credentials, and introductory media.
+          <CardTitle>Doctor materials</CardTitle>
+          <p className="text-muted-foreground text-sm">
+            Public images, qualifications, and intro video content.
           </p>
         </div>
+        <Badge variant="outline">{files.length} files</Badge>
       </CardHeader>
       <CardContent className="space-y-6">
         {canManage ? (
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
             <Dropzone
               {...dropzone}
               accept={accept}
-              className="p-4 border-border/60 bg-muted/20 rounded-2xl"
+              className="p-4"
               setStatus={dropzone.setStatus}
             >
-              <DropzoneDescription className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/60 mb-2">
-                Upload System
+              <DropzoneDescription>
+                Click or drag and drop a file to upload. Images, videos, and
+                PDFs are supported.
               </DropzoneDescription>
               <DropzoneMessage />
-              <DropZoneArea className="border-dashed border-2 border-border/40 hover:border-primary/30 transition-colors">
+              <DropZoneArea>
                 <div className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label
-                        className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1"
-                        htmlFor="doctor-material-file-kind"
+                  <div>
+                    <label
+                      className="mb-2 block font-medium text-sm"
+                      htmlFor="doctor-material-file-kind"
+                    >
+                      File type
+                    </label>
+                    <Select
+                      onValueChange={(value) =>
+                        setFileKind(value as DoctorFileKind)
+                      }
+                      value={fileKind}
+                    >
+                      <SelectTrigger
+                        className="w-full"
+                        id="doctor-material-file-kind"
                       >
-                        Classification
-                      </Label>
-                      <Select
-                        onValueChange={(value) =>
-                          setFileKind(value as DoctorFileKind)
-                        }
-                        value={fileKind}
-                      >
-                        <SelectTrigger
-                          className="h-9 w-full bg-background border-border/60 text-xs font-medium"
-                          id="doctor-material-file-kind"
-                        >
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {doctorFileKinds.map((kind) => (
-                            <SelectItem key={kind.value} value={kind.value} className="text-xs">
-                              {kind.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex items-end">
-                      <div className="w-full rounded-lg border border-border/40 bg-background/50 p-2 text-[10px] text-muted-foreground leading-tight italic">
-                        {selectedKind?.description}
-                      </div>
-                    </div>
+                        <SelectValue placeholder="Select file type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {doctorFileKinds.map((kind) => (
+                          <SelectItem key={kind.value} value={kind.value}>
+                            {kind.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label
-                      className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1"
+                  <div className="rounded-xl border bg-muted/20 p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {selectedKind?.label ?? fileKind}
+                      </Badge>
+                      <span className="text-muted-foreground text-sm">
+                        {selectedKind?.description}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-muted-foreground text-xs">
+                      Accepts: {accept}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      className="mb-2 block font-medium text-sm"
                       htmlFor="doctor-material-caption"
                     >
-                      Description
-                    </Label>
+                      Caption
+                    </label>
                     <Textarea
                       id="doctor-material-caption"
-                      className="min-h-[60px] text-xs bg-background border-border/60 resize-none"
                       onChange={(event) => setCaption(event.target.value)}
-                      placeholder="Enter public caption..."
+                      placeholder="Short public description"
                       value={caption}
                     />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
-                    <DropzoneTrigger className="h-9 px-4 text-[10px] font-bold uppercase tracking-widest bg-muted border border-border/60 hover:bg-muted/80">
-                      Select File
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DropzoneTrigger>
+                      Click here or drag and drop
                     </DropzoneTrigger>
                     <Button
-                      className="h-9 font-bold text-[10px] uppercase tracking-widest shadow-lg"
                       disabled={uploadFile.isPending || !selectedFile}
                       onClick={handleUpload}
-                      size="sm"
                     >
-                      {uploadFile.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
-                      Launch Upload
+                      {uploadFile.isPending ? "Uploading..." : "Upload file"}
                     </Button>
+                    {selectedFile ? (
+                      <p className="text-muted-foreground text-sm">
+                        {selectedFile.name}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </DropZoneArea>
               <DropzoneFileList>
                 {selectedFile ? (
-                  <DropzoneFileListItem file={selectedFile} className="mt-4 border-primary/20 bg-primary/5">
+                  <DropzoneFileListItem file={selectedFile}>
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {selectedPreviewUrl ? (
                           <img
                             alt={selectedFile.name}
-                            className="size-10 rounded-lg object-cover border border-border/40"
+                            className="size-10 rounded-md object-cover"
                             height={40}
                             src={selectedPreviewUrl}
                             width={40}
                           />
                         ) : (
-                          <div className="flex size-10 items-center justify-center rounded-lg bg-background border border-border/40 text-[9px] font-bold uppercase">
+                          <div className="flex size-10 items-center justify-center rounded-md bg-muted text-[10px]">
                             File
                           </div>
                         )}
-                        <div className="space-y-0.5">
-                          <div className="font-bold text-xs truncate max-w-[120px]">
+                        <div>
+                          <div className="font-medium text-sm">
                             {selectedFile.name}
                           </div>
-                          <p className="text-[9px] font-medium text-primary uppercase tracking-tighter">
-                            Ready for transmission
+                          <p className="text-muted-foreground text-xs">
+                            {selectedFile.type || "Unknown type"}
                           </p>
                         </div>
                       </div>
-                      <DropzoneRemoveFile className="text-[10px] font-bold text-destructive underline-offset-4 hover:underline">Cancel</DropzoneRemoveFile>
+                      <div className="flex items-center gap-2">
+                        <DropzoneRemoveFile>Remove</DropzoneRemoveFile>
+                      </div>
                     </div>
                   </DropzoneFileListItem>
                 ) : null}
@@ -253,23 +261,18 @@ export function DoctorFilesPanel({
             </Dropzone>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-10 border border-dashed rounded-2xl bg-muted/10 text-center">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-              {isPermanent
-                ? "Transmission Blocked"
-                : "Verification Required"}
-            </p>
-            <p className="mt-1 text-[10px] text-muted-foreground/60 max-w-[240px]">
-               {isPermanent ? "Module updates currently restricted." : "Profile verification must conclude before media injection."}
-            </p>
-          </div>
+          <p className="text-muted-foreground text-sm">
+            {isPermanent
+              ? "Uploads are currently unavailable."
+              : "Wait a moment. Your doctor profile needs to be approved before you can add uploads."}
+          </p>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {files.length === 0 ? (
-            <div className="sm:col-span-2 lg:col-span-3 py-12 flex flex-col items-center justify-center text-muted-foreground/40">
-               <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Zero Inventory</span>
-            </div>
+            <p className="text-muted-foreground text-sm">
+              No doctor materials yet.
+            </p>
           ) : (
             files.map((file) => (
               <DoctorFilePreviewCard
