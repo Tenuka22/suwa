@@ -1,0 +1,19 @@
+{
+    "seq_len": 30,
+    "threshold": 0.1,
+    "threshold_precision": 0.21715149225538347,
+    "threshold_recall": 1.0,
+    "threshold_fbeta": 0.5810521208200234,
+    "mean_stress_probability": 0.38674619793891907,
+    "max_stress_probability": 0.39439040422439575,
+    "min_stress_probability": 0.3763798773288727,
+    "auc": 0.2935299770155426,
+    "accuracy": 0.21715149225538347,
+    "f1": 0.35681916940840525,
+    "precision": 0.21715149225538347,
+    "recall": 1.0,
+    "tp": 5748,
+    "fp": 20722,
+    "tn": 0,
+    "fn": 0
+}

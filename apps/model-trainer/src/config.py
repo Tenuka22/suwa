@@ -15,7 +15,7 @@ class DataConfig:
 
 @dataclass(frozen=True)
 class ModelConfig:
-    lstm_units: int = 48
+    lstm_units: int = 64
     dropout_rate: float = 0.2
     learning_rate: float = 5e-4
     l2_reg: float = 1e-4
@@ -25,9 +25,9 @@ class ModelConfig:
 
 @dataclass(frozen=True)
 class TrainingConfig:
-    sequence_lengths: tuple[int, ...] = (30,)
-    epochs: int = 5
-    batch_size: int = 128
+    sequence_lengths: tuple[int, ...] = (120, 240, 360)
+    epochs: int = 30
+    batch_size: int = 64
     export_onnx: bool = True
 
     patience: int = 8
@@ -37,7 +37,7 @@ class TrainingConfig:
     positive_class_weight: float = 2.5
     decision_threshold_beta: float = 2.0
 
-    models_dir: Path = Path(os.environ.get("MODELS_DIR_OVERRIDE", "models/wesad_lstm"))
+    models_dir: Path = Path(os.environ.get("MODELS_DIR_OVERRIDE", "models"))
 
     def model_dir(self, seq_len: int) -> Path:
         """Return (and create) the output directory for a given sequence length."""

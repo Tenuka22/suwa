@@ -5,7 +5,10 @@ import pandas as pd
 def filter_hardware_features(
     features: np.ndarray, feature_names: list[str], target_hardware: str = "MAX30102"
 ):
-    allowed_keywords = ["RRI", "HR", "HEART_RATE", "DELTA", "ROLLING", "SPO2"]
+    if target_hardware == "MAX30102":
+        allowed_keywords = ["RR", "RMSSD", "SDSD", "pNN", "SD1", "SD2", "HR"]
+    else:
+        allowed_keywords = ["RR", "RMSSD", "SDSD", "pNN", "SD1", "SD2", "HR"]
 
     indices = []
     filtered_names = []
@@ -39,7 +42,8 @@ def create_sequences(
     features: np.ndarray, labels: np.ndarray, seq_len: int
 ):
     X, y = [], []
-    for i in range(0, len(features) - seq_len + 1):
+    for i in range(0, len(features) - 2 * seq_len + 1):
         X.append(features[i : i + seq_len])
-        y.append(labels[i + seq_len - 1])
+        next_mean = float(np.mean(labels[i + seq_len : i + 2 * seq_len]))
+        y.append(1 if next_mean > 0.5 else 0)
     return np.asarray(X, dtype=np.float32), np.asarray(y, dtype=np.uint8)

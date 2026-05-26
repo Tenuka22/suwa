@@ -172,6 +172,9 @@ def train_model(
         ],
     )
 
+    idx = np.random.permutation(len(X_train))
+    X_train, y_train = X_train[idx], y_train[idx]
+
     train_ds = tf.data.Dataset.from_tensor_slices((X_train, y_train))
     train_ds = train_ds.batch(TRAINING.batch_size).prefetch(tf.data.AUTOTUNE)
     val_ds = tf.data.Dataset.from_tensor_slices((X_val, y_val))

@@ -6,8 +6,8 @@ from collections.abc import Iterable
 import numpy as np
 
 from src.config import TRAINING
-from src.data.features import create_sequences
-from src.data.load import load_all_subjects
+from src.data.features import create_sequences, filter_hardware_features
+from src.data.load import load_all_subjects_hrv as load_all_subjects
 from src.evaluate.metrics import plot_correlations
 
 
@@ -20,15 +20,21 @@ if hasattr(sys.stderr, "reconfigure"):
 
 def run(data: dict | None = None) -> None:
     print("Data received:", data)
-    print("Loading raw RRI sensor data for all subjects...")
+    print("Loading raw chest HRV data for all subjects...")
     subjects = list(load_all_subjects())
 
     print(f"Loaded {len(subjects)} subjects")
 
+    filtered_subjects = []
+    for subj_id, features, labels, feature_names in subjects:
+        features_f, names_f = filter_hardware_features(features, feature_names)
+        filtered_subjects.append((subj_id, features_f, labels, names_f))
+    subjects = filtered_subjects
+
     if len(subjects) > 0:
         feature_names = subjects[0][3]
         n_features = len(feature_names)
-        print(f"Hardware-compatible features (MAX30102): {feature_names}")
+        print(f"MAX30102 features ({n_features}): {feature_names}")
         plot_correlations(subjects[0][1], feature_names)
     else:
         n_features = 0
@@ -81,7 +87,7 @@ def _train_local_wrapper(
 ) -> None:
     print(f"\n{'=' * 60}")
     print(f"Sensor sequence -> LSTM (seq_len={seq_len})")
-    print(f"Input: ({seq_len}, {n_features}) RRI features -> LSTM -> stress probability")
+    print(f"Input: ({seq_len}, {n_features}) HRV features -> LSTM -> stress probability")
     print(f"{'=' * 60}")
     print(f"Train sequences: {X_train.shape}, Val: {X_val.shape}, Test: {X_test.shape}")
     print(f"Stress ratio - Train: {y_train.mean():.3f}, Val: {y_val.mean():.3f}, Test: {y_test.mean():.3f}")
