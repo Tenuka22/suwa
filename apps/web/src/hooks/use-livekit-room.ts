@@ -36,16 +36,21 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
 
       try {
         const { Room } = await import("livekit-client");
-        const room = new Room({
-          adaptiveStream: true,
-          dynacast: true,
-          videoCaptureDefaults: {
-            resolution: { height: 720, width: 1280 },
-          },
-          publishDefaults: {
-            videoCodec: "vp8",
-          },
-        });
+         const room = new Room({
+           adaptiveStream: true,
+           dynacast: true,
+           videoCaptureDefaults: {
+             resolution: { height: 720, width: 1280 },
+           },
+           audioCaptureDefaults: {
+             echoCancellation: true,
+             noiseSuppression: true,
+             autoGainControl: true,
+           },
+           publishDefaults: {
+             videoCodec: "vp8",
+           },
+         });
 
         room.on(RoomEvent.Connected satisfies RoomEventType, () => {
           setIsConnected(true);
