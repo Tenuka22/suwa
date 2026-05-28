@@ -1,14 +1,14 @@
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
-import { ActivityIndicator, Text, View } from "react-native";
 import { useUser } from "@clerk/expo";
-import { User } from "lucide-react-native";
-import { orpc } from "@/utils/orpc";
-import { VideoRoom } from "@/components/ui/video-room";
-import { Screen } from "@/components/ui/screen";
-import { Button } from "@/components/ui/button";
-import { useThemeColor } from "@/utils/theme";
+import { useQuery } from "@tanstack/react-query";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+import { Button } from "@/components/ui/button";
+import { Screen } from "@/components/ui/screen";
+import { VideoRoom } from "@/components/ui/video-room";
+import { orpc } from "@/utils/orpc";
+import { useThemeColor } from "@/utils/theme";
 
 export default function AppointmentSessionDetailScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
@@ -16,12 +16,26 @@ export default function AppointmentSessionDetailScreen() {
   const colors = useThemeColor();
   const { user } = useUser();
   const metadataRole = user?.publicMetadata?.role;
-  const userRole: "patient" | "doctor" | "admin" =
-    metadataRole === "admin"
-      ? "admin"
-      : metadataRole === "doctor"
-        ? "doctor"
-        : "patient";
+  let userRole: "patient" | "doctor" | "admin" = "patient";
+  if (metadataRole === "admin") {
+    userRole = "admin";
+  } else if (metadataRole === "doctor") {
+    userRole = "doctor";
+  }
+  const [alias, setAlias] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (userRole === "patient") {
+      orpc.getPatientProfile
+        .call()
+        .then((profile) => {
+          if (profile?.alias) {
+            setAlias(profile.alias);
+          }
+        })
+        .catch(() => undefined);
+    }
+  }, [userRole]);
 
   const sessionQuery = useQuery({
     queryKey: orpc.getLiveKitToken.queryKey({ sessionId: sessionId ?? "" }),
@@ -56,15 +70,15 @@ export default function AppointmentSessionDetailScreen() {
       <Screen contentClassName="px-page py-page gap-6">
         <View className="flex-row items-center gap-4">
           <Button
+            icon={<ArrowLeft color={colors.foreground} size={16} />}
             onPress={() => router.back()}
             size="sm"
             variant="secondary"
-            icon={<ArrowLeft color={colors.foreground} size={16} />}
           >
             Back
           </Button>
           <View className="flex-1">
-            <Text className="font-black font-sans text-xl text-foreground uppercase tracking-tight">
+            <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
               Session Room
             </Text>
             <Text className="font-medium font-sans text-muted-foreground text-xs">
@@ -74,6 +88,7 @@ export default function AppointmentSessionDetailScreen() {
         </View>
 
         <VideoRoom
+          alias={alias}
           endAt={session.endAt}
           onClose={() => router.back()}
           role={userRole}

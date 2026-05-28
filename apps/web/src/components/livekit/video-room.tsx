@@ -1,30 +1,35 @@
+import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import { Card, CardContent } from "@zen-doc/ui/components/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@zen-doc/ui/components/dialog";
-import { Video, VideoOff } from "lucide-react";
+  Camera,
+  CameraOff,
+  Clock,
+  Mic,
+  MicOff,
+  PhoneOff,
+  User,
+  UserX,
+  Video,
+  VideoOff,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 
 import { useLiveKitRoomWeb } from "@/hooks/use-livekit-room";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 
 interface VideoRoomProps {
+  asDialog?: boolean;
   endAt: string;
   onClose: () => void;
   open?: boolean;
   role: "doctor" | "patient" | "admin";
   sessionId: string;
   startAt: string;
-  asDialog?: boolean;
 }
 
-function formatDuration(minutes: number): string {
+function _formatDuration(minutes: number): string {
   if (minutes < 60) {
     return `${minutes}m`;
   }
@@ -110,15 +115,44 @@ function useAttendanceTracker({
   }, [isConnected, sessionId, endAt, role]);
 }
 
-interface VideoRoomContentProps {
-  fetchToken: () => Promise<void>;
-  handleEndSession: () => Promise<void>;
-  isFetchingToken: boolean;
-  liveKit: ReturnType<typeof useLiveKitRoomWeb>;
-  setShowEndConfirm: (v: boolean) => void;
-  showEndConfirm: boolean;
-  timing: ReturnType<typeof useSessionTiming>;
-  tokenError: string | null;
+function formatParticipantLabel(identity: string): string {
+  if (identity.startsWith("doctor_")) {
+    return "Doctor";
+  }
+  if (identity.startsWith("patient_")) {
+    return "Patient";
+  }
+  if (identity.startsWith("admin_")) {
+    return "Admin";
+  }
+  return "Participant";
+}
+
+function AudioVisualizer({
+  levels,
+  identity,
+}: {
+  levels: number[];
+  identity: string;
+}) {
+  return (
+    <div className="flex h-12 items-end gap-[2px] rounded bg-black/40 p-2 backdrop-blur-md">
+      {levels.map((level, i) => (
+        <div
+          className="w-[3px] bg-emerald-500 transition-all duration-75"
+          // biome-ignore lint/suspicious/noArrayIndexKey: indices are stable for waveform history
+          key={i}
+          style={{
+            height: `${Math.max(10, level * 100)}%`,
+            opacity: 0.3 + level * 0.7,
+          }}
+        />
+      ))}
+      <span className="ml-2 font-mono text-[10px] text-emerald-400">
+        {formatParticipantLabel(identity)}
+      </span>
+    </div>
+  );
 }
 
 function VideoRoomContent({
@@ -126,14 +160,87 @@ function VideoRoomContent({
   handleEndSession,
   isFetchingToken,
   liveKit,
-  setShowEndConfirm,
-  showEndConfirm,
+  role,
   timing,
   tokenError,
-}: VideoRoomContentProps) {
+}: {
+  fetchToken: () => Promise<void>;
+  handleEndSession: () => Promise<void>;
+  isFetchingToken: boolean;
+  liveKit: ReturnType<typeof useLiveKitRoomWeb>;
+  role: "doctor" | "patient" | "admin";
+  timing: ReturnType<typeof useSessionTiming>;
+  tokenError: string | null;
+}) {
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [muteSeconds, setMuteSeconds] = useState(0);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (!isMicOn && role === "doctor" && liveKit.isConnected) {
+      interval = setInterval(() => {
+        setMuteSeconds((s) => s + 1);
+      }, 1000);
+    } else {
+      setMuteSeconds(0);
+    }
+    return () => clearInterval(interval);
+  }, [isMicOn, role, liveKit.isConnected]);
+
+  const muteLimit = 60;
+  const remainingMuteTime = Math.max(0, muteLimit - muteSeconds);
+
+  useEffect(() => {
+    if (muteSeconds >= muteLimit && !isMicOn && liveKit.room) {
+      liveKit.room.localParticipant.setMicrophoneEnabled(true);
+      setIsMicOn(true);
+      setMuteSeconds(0);
+    }
+  }, [muteSeconds, isMicOn, liveKit.room]);
+
+  useEffect(() => {
+    if (!liveKit.room) {
+      return;
+    }
+    const room = liveKit.room;
+
+    const updateStates = () => {
+      setIsCameraOn(room.localParticipant.isCameraEnabled);
+      setIsMicOn(room.localParticipant.isMicrophoneEnabled);
+    };
+
+    room.on("localTrackUnpublished", updateStates);
+    room.localParticipant.on("trackPublished", updateStates);
+
+    return () => {
+      room.off("localTrackUnpublished", updateStates);
+      room.localParticipant.off("trackPublished", updateStates);
+    };
+  }, [liveKit.room]);
+
+  const handleToggleCamera = useCallback(async () => {
+    if (!liveKit.room || role === "doctor") {
+      return;
+    }
+    const enabled = !liveKit.room.localParticipant.isCameraEnabled;
+    await liveKit.room.localParticipant.setCameraEnabled(enabled);
+    setIsCameraOn(enabled);
+  }, [liveKit.room, role]);
+
+  const handleToggleMic = useCallback(async () => {
+    if (!liveKit.room) {
+      return;
+    }
+    const enabled = !liveKit.room.localParticipant.isMicrophoneEnabled;
+    await liveKit.room.localParticipant.setMicrophoneEnabled(enabled);
+    setIsMicOn(enabled);
+  }, [liveKit.room]);
+
   if (tokenError) {
     return (
-      <div className="flex flex-col items-center gap-4 py-8">
+      <div className="flex flex-col items-center justify-center gap-4 py-12">
         <VideoOff className="h-12 w-12 text-muted-foreground" />
         <p className="text-muted-foreground text-sm">{tokenError}</p>
         <Button onClick={fetchToken} size="sm" variant="default">
@@ -145,119 +252,217 @@ function VideoRoomContent({
 
   if (isFetchingToken || liveKit.isConnecting) {
     return (
-      <div className="flex flex-col items-center gap-4 py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-primary" />
-        <p className="text-muted-foreground text-sm">
-          Connecting to session...
+      <div className="flex flex-col items-center justify-center py-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted-foreground border-t-primary" />
+        <p className="mt-4 font-medium text-muted-foreground">
+          Establishing secure connection...
         </p>
       </div>
     );
   }
 
   if (timing.canJoin) {
+    const remoteParticipant = liveKit.room?.remoteParticipants
+      ?.values()
+      ?.next()?.value;
+    const remoteLabel = formatParticipantLabel(
+      remoteParticipant?.identity ?? ""
+    );
+    const hasRemote = liveKit.isConnected && !!remoteParticipant;
+
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Remote Video */}
-          <div className="relative aspect-video overflow-hidden rounded-lg border bg-black">
-            {liveKit.isConnected ? (
-              <>
-                <video
-                  autoPlay
-                  className="h-full w-full object-cover"
-                  playsInline
-                  ref={liveKit.videoRef}
-                />
-                <div className="absolute top-3 left-3 rounded-full bg-black/60 px-2 py-1 text-[10px] text-white">
-                  Remote
-                </div>
-                <div className="absolute right-3 bottom-3 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5">
-                  <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                  <span className="text-white text-xs">
-                    {liveKit.participantCount} participant
-                    {liveKit.participantCount === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              </div>
-            )}
-          </div>
-
-          {/* Local Video */}
-          <div className="relative aspect-video overflow-hidden rounded-lg border bg-black">
-            {liveKit.isConnected ? (
-              <>
-                <video
-                  autoPlay
-                  className="h-full w-full object-cover scale-x-[-1]"
-                  muted
-                  playsInline
-                  ref={liveKit.localVideoRef}
-                />
-                <div className="absolute top-3 left-3 rounded-full bg-black/60 px-2 py-1 text-[10px] text-white">
-                  You (Local)
-                </div>
-              </>
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {timing.mustLeave && (
-          <Card className="border-rose-500/30 bg-rose-500/5">
-            <CardContent className="p-3">
-              <p className="text-rose-600 text-sm dark:text-rose-400">
-                Session time has ended. Please disconnect.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex justify-end gap-2">
-          {showEndConfirm ? (
+      <div className="relative flex flex-1 flex-col overflow-hidden rounded-xl bg-neutral-950 shadow-2xl">
+        {/* Main video area */}
+        <div className="relative flex-1 overflow-hidden">
+          {liveKit.isConnected ? (
             <>
-              <Button
-                onClick={() => setShowEndConfirm(false)}
-                size="sm"
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={liveKit.isConnecting}
-                onClick={handleEndSession}
-                size="sm"
-                variant="destructive"
-              >
-                End Session
-              </Button>
+              {hasRemote ? (
+                <>
+                  {/* Remote video */}
+                  <video
+                    autoPlay
+                    className="h-full w-full object-contain"
+                    playsInline
+                    ref={liveKit.videoRef}
+                  />
+                  <audio autoPlay playsInline ref={liveKit.audioRef} />
+
+                  {/* Remote label */}
+                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-lg bg-black/40 px-3 py-1.5 backdrop-blur-md">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                    <span className="font-semibold text-white text-xs uppercase tracking-wide">
+                      {remoteLabel || "Participant"}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-4 bg-neutral-900">
+                  <UserX className="h-12 w-12 text-neutral-600" />
+                  <p className="font-medium text-neutral-400 text-sm">
+                    {role === "admin"
+                      ? "No user connected"
+                      : "Waiting for participant to join..."}
+                  </p>
+                </div>
+              )}
             </>
           ) : (
-            <Button
-              onClick={() => setShowEndConfirm(true)}
-              size="sm"
-              variant="outline"
-            >
-              <VideoOff className="mr-1 h-3 w-3" />
-              End Session
-            </Button>
+            <div className="flex h-full flex-col items-center justify-center gap-4 bg-neutral-900">
+              <div className="relative">
+                <div className="h-16 w-16 animate-ping rounded-full bg-primary/20" />
+                <User className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-primary" />
+              </div>
+              <p className="animate-pulse font-medium text-neutral-400 text-sm">
+                Establishing connection...
+              </p>
+            </div>
+          )}
+
+          {/* Admin Amplitude View */}
+          {role === "admin" && liveKit.isConnected && (
+            <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 flex-col gap-2">
+              {Object.entries(liveKit.audioLevelHistory).map(([id, levels]) => (
+                <AudioVisualizer identity={id} key={id} levels={levels} />
+              ))}
+            </div>
+          )}
+
+          {/* Local PiP */}
+          {liveKit.isConnected && (
+            <div className="absolute top-4 right-4 aspect-video w-[240px] overflow-hidden rounded-lg border border-white/10 bg-neutral-900 shadow-xl lg:w-[320px]">
+              <video
+                autoPlay
+                className="h-full w-full scale-x-[-1] object-cover"
+                muted
+                playsInline
+                ref={liveKit.localVideoRef}
+              />
+              <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 backdrop-blur-sm">
+                <span className="font-bold text-[10px] text-white uppercase tracking-tighter">
+                  You
+                </span>
+              </div>
+              {!isCameraOn && (
+                <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
+                  <CameraOff className="h-8 w-8 text-neutral-600" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Mic warning banner */}
+          {muteSeconds > 30 && role === "doctor" && (
+            <div className="absolute top-20 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-4">
+              <div className="flex items-center gap-3 rounded-lg border border-amber-500/50 bg-amber-500/20 p-3 text-amber-200 backdrop-blur-lg">
+                <MicOff className="h-5 w-5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-bold text-xs uppercase italic">
+                    Microphone Requirement
+                  </p>
+                  <p className="text-xs opacity-90">
+                    Please unmute. Automatic unmute in {remainingMuteTime}s
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
+
+        {/* Floating Controls Bar */}
+        <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-xl transition-all hover:bg-black/80">
+          <button
+            className={`group relative flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
+              isMicOn
+                ? "bg-neutral-800 text-white hover:bg-neutral-700"
+                : "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:bg-red-500"
+            }`}
+            onClick={handleToggleMic}
+            type="button"
+          >
+            {isMicOn ? (
+              <Mic className="h-5 w-5" />
+            ) : (
+              <MicOff className="h-5 w-5" />
+            )}
+            {!isMicOn && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white font-bold text-[10px] text-red-600">
+                !
+              </span>
+            )}
+          </button>
+
+          {role !== "doctor" && (
+            <button
+              className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
+                isCameraOn
+                  ? "bg-neutral-800 text-white hover:bg-neutral-700"
+                  : "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:bg-red-500"
+              }`}
+              onClick={handleToggleCamera}
+              type="button"
+            >
+              {isCameraOn ? (
+                <Camera className="h-5 w-5" />
+              ) : (
+                <CameraOff className="h-5 w-5" />
+              )}
+            </button>
+          )}
+
+          <div className="h-8 w-[1px] bg-white/10" />
+
+          <button
+            className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-red-500"
+            onClick={() => setShowEndConfirm(true)}
+            type="button"
+          >
+            <PhoneOff className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* End confirmation dialog */}
+        {showEndConfirm && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <Card className="mx-4 w-full max-w-sm border-white/10 bg-neutral-900 text-white">
+              <CardContent className="flex flex-col gap-6 p-8">
+                <div className="text-center">
+                  <h3 className="mb-2 font-bold text-lg">End Session?</h3>
+                  <p className="text-neutral-400 text-sm">
+                    This will disconnect all participants from the call.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    className="flex-1 bg-white/5 text-white hover:bg-white/10"
+                    onClick={() => setShowEndConfirm(false)}
+                    variant="ghost"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-red-600 text-white hover:bg-red-500"
+                    onClick={handleEndSession}
+                  >
+                    End Call
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 py-8">
-      <VideoOff className="h-12 w-12 text-muted-foreground" />
-      <p className="text-muted-foreground text-sm">
-        This session is not yet available for joining.
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+        <VideoOff className="h-10 w-10 text-muted-foreground" />
+      </div>
+      <h3 className="font-bold text-xl">Not Ready Yet</h3>
+      <p className="mt-2 max-w-[280px] text-muted-foreground text-sm">
+        This session is not yet available for joining. Please check back at the
+        scheduled time.
       </p>
     </div>
   );
@@ -281,7 +486,6 @@ export function VideoRoomWeb({
   } | null>(null);
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [isFetchingToken, setIsFetchingToken] = useState(false);
-  const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   useAttendanceTracker({
     isConnected: liveKit.isConnected,
@@ -329,7 +533,6 @@ export function VideoRoomWeb({
     await liveKit.disconnect();
     setTokenData(null);
     setTokenError(null);
-    setShowEndConfirm(false);
     onClose();
   }, [liveKit, onClose, sessionId]);
 
@@ -378,36 +581,65 @@ export function VideoRoomWeb({
       handleEndSession={handleEndSession}
       isFetchingToken={isFetchingToken}
       liveKit={liveKit}
-      setShowEndConfirm={setShowEndConfirm}
-      showEndConfirm={showEndConfirm}
+      role={role}
       timing={timing}
       tokenError={tokenError}
     />
   );
 
   if (asDialog) {
+    const { Dialog, DialogContent, DialogHeader, DialogTitle } =
+      require("@zen-doc/ui/components/dialog") as typeof import("@zen-doc/ui/components/dialog");
     return (
-      <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5 text-emerald-500" />
-              Video Session
+      <Dialog onOpenChange={(o: boolean) => !o && onClose()} open={open}>
+        <DialogContent className="max-w-5xl overflow-hidden p-0 sm:rounded-2xl">
+          <div className="flex h-[80vh] flex-col">
+            <div className="flex items-center justify-between border-b px-6 py-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <Video className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-sm tracking-tight">
+                    Clinical Consultation
+                  </h2>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                    Secure Session
+                  </p>
+                </div>
+              </div>
               {statusBadge}
-            </DialogTitle>
-          </DialogHeader>
-          {content}
+            </div>
+            <div className="flex-1 bg-black p-4">{content}</div>
+          </div>
         </DialogContent>
       </Dialog>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex h-full flex-col gap-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Video className="h-5 w-5 text-emerald-500" />
-          <span className="font-bold">Video Session</span>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <Video className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-black text-lg uppercase tracking-tight">
+                Session
+              </span>
+              <Badge
+                className="h-5 rounded-md px-1.5 text-[10px] uppercase"
+                variant="outline"
+              >
+                {role}
+              </Badge>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+              LiveKit Infrastructure
+            </p>
+          </div>
         </div>
         {statusBadge}
       </div>
@@ -416,46 +648,59 @@ export function VideoRoomWeb({
   );
 }
 
-interface SessionJoinButtonProps {
-  endAt: string;
-  label?: string;
-  onJoin: (sessionId: string) => void;
-  role?: "doctor" | "patient" | "admin";
-  startAt: string;
-  sessionId: string;
-}
-
 export function SessionJoinButton({
   endAt,
-  label = "Join Session",
   onJoin,
-  startAt,
-  role = "doctor",
+  role,
   sessionId,
-}: SessionJoinButtonProps) {
-  const timing = useSessionTiming(startAt, endAt, role);
+  startAt,
+}: {
+  endAt: string;
+  onJoin: (id: string) => void;
+  role: string;
+  sessionId: string;
+  startAt: string;
+}) {
+  const timing = useSessionTiming(
+    startAt,
+    endAt,
+    role as "patient" | "doctor" | "admin"
+  );
+
+  if (timing.mustLeave) {
+    return (
+      <Badge className="bg-rose-500/10 text-rose-600" variant="outline">
+        <VideoOff className="mr-1 h-3 w-3" />
+        Expired
+      </Badge>
+    );
+  }
 
   if (timing.canJoin) {
     return (
       <Button onClick={() => onJoin(sessionId)} size="sm" variant="default">
         <Video className="mr-1 h-3 w-3" />
-        {label}
+        Join
       </Button>
     );
   }
 
-  if (timing.timeStatus === "before") {
-    const startMs = new Date(startAt).getTime();
-    const opensInMinutes = Math.max(
-      0,
-      Math.ceil((startMs - 30 * 60 * 1000 - Date.now()) / 60_000)
-    );
+  if (timing.timeStatus === "before" && timing.joinWindowOpenAt) {
+    const diff = timing.joinWindowOpenAt.getTime() - Date.now();
+    const minutes = Math.max(0, Math.ceil(diff / 60_000));
+
     return (
-      <span className="text-muted-foreground text-xs">
-        Opens in {formatDuration(opensInMinutes)}
-      </span>
+      <Badge className="bg-amber-500/10 text-amber-600" variant="outline">
+        <Clock className="mr-1 h-3 w-3" />
+        Join in {minutes}m
+      </Badge>
     );
   }
 
-  return null;
+  return (
+    <Badge variant="outline">
+      <Clock className="mr-1 h-3 w-3" />
+      Scheduled
+    </Badge>
+  );
 }

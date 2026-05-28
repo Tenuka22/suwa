@@ -1,15 +1,11 @@
-import {
-  type Room,
-  type RoomEvent,
-  RoomEvent as RoomEvents,
-  Track,
-  type RemoteTrack,
-  type RemoteTrackPublication,
-  type RemoteParticipant,
-  type LocalTrackPublication,
-  type LocalParticipant,
-} from "livekit-client";
+import { type Room, RoomEvent, Track } from "livekit-client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { MediaStream } from "react-native-webrtc";
+
+interface RemoteParticipantInfo {
+  identity: string;
+  streamURL: string;
+}
 
 interface UseLiveKitRoomOptions {
   onConnected?: () => void;
@@ -22,69 +18,226 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [participants, setParticipants] = useState<string[]>([]);
-  const [tracks, setTracks] = useState<RemoteTrack[]>([]);
+  const [remoteParticipants, setRemoteParticipants] = useState<
+    RemoteParticipantInfo[]
+  >([]);
+  const [localStreamURL, setLocalStreamURL] = useState<string | null>(null);
+  const [isCameraEnabled, setIsCameraEnabled] = useState(true);
+  const [isMicEnabled, setIsMicEnabled] = useState(true);
+  const [room, setRoom] = useState<Room | null>(null);
+
+  // Per-instance track storage — avoid module-level sharing across remounts
+  const participantStreamsRef = useRef<
+    Map<
+      string,
+      {
+        audioTracks: MediaStreamTrack[];
+        videoTracks: MediaStreamTrack[];
+        streamURL: string;
+      }
+    >
+  >(new Map());
 
   const connect = useCallback(
     async (url: string, token: string) => {
       setIsConnecting(true);
       setError(null);
+      participantStreamsRef.current.clear();
 
       try {
         const { Room: RoomClass } = await import("livekit-client");
         const room = new RoomClass({
           adaptiveStream: true,
           dynacast: true,
+          videoCaptureDefaults: {
+            resolution: { height: 720, width: 1280 },
+          },
+          // Enable echo cancellation and noise suppression
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
         });
 
-        room.on(RoomEvents.Connected satisfies RoomEvent, () => {
+        room.on(RoomEvent.Connected, () => {
           setIsConnected(true);
           setIsConnecting(false);
           options.onConnected?.();
+
+          // Capture local video stream
+          for (const pub of room.localParticipant.trackPublications) {
+            if (
+              pub.track?.kind === Track.Kind.Video &&
+              pub.track.mediaStreamTrack
+            ) {
+              try {
+                const stream = new MediaStream([pub.track.mediaStreamTrack]);
+                const url = stream.toURL();
+                if (url) {
+                  setLocalStreamURL(url);
+                }
+              } catch {
+                // Local stream unavailable
+              }
+            }
+          }
+
+          // Build combined streams for existing remote participants
+          const map = participantStreamsRef.current;
+          const initial: RemoteParticipantInfo[] = [];
+          for (const [, p] of room.remoteParticipants) {
+            const entry = {
+              audioTracks: [] as MediaStreamTrack[],
+              videoTracks: [] as MediaStreamTrack[],
+              streamURL: "",
+            };
+            for (const [, pub] of p.trackPublications) {
+              if (
+                pub.track?.kind === Track.Kind.Video &&
+                pub.track.mediaStreamTrack
+              ) {
+                entry.videoTracks.push(pub.track.mediaStreamTrack);
+              }
+              if (
+                pub.track?.kind === Track.Kind.Audio &&
+                pub.track.mediaStreamTrack
+              ) {
+                entry.audioTracks.push(pub.track.mediaStreamTrack);
+              }
+            }
+            map.set(p.identity, entry);
+            const combined = [...entry.audioTracks, ...entry.videoTracks];
+            if (combined.length > 0) {
+              try {
+                const stream = new MediaStream(combined);
+                const streamURL = stream.toURL() ?? "";
+                entry.streamURL = streamURL;
+                initial.push({ identity: p.identity, streamURL });
+              } catch {
+                initial.push({ identity: p.identity, streamURL: "" });
+              }
+            } else {
+              initial.push({ identity: p.identity, streamURL: "" });
+            }
+          }
+          if (initial.length > 0) {
+            setRemoteParticipants(initial);
+          }
         });
 
-        room.on(RoomEvents.Disconnected satisfies RoomEvent, () => {
+        room.on(RoomEvent.Disconnected, () => {
           setIsConnected(false);
           setIsConnecting(false);
-          setTracks([]);
+          setRemoteParticipants([]);
+          setLocalStreamURL(null);
+          setRoom(null);
+          participantStreamsRef.current.clear();
           options.onDisconnected?.();
         });
 
-        room.on(
-          RoomEvents.ParticipantConnected satisfies RoomEvent,
-          (participant: { identity: string }) => {
-            setParticipants((prev) => [...prev, participant.identity]);
-          }
-        );
-
-        room.on(
-          RoomEvents.ParticipantDisconnected satisfies RoomEvent,
-          (participant: { identity: string }) => {
-            setParticipants((prev) =>
-              prev.filter((p) => p !== participant.identity)
-            );
-          }
-        );
-
-        room.on(RoomEvents.TrackSubscribed satisfies RoomEvent, (track) => {
-           if (track.kind === Track.Kind.Video) {
-              setTracks((prev) => [...prev, track as RemoteTrack]);
-           }
+        room.on(RoomEvent.ParticipantConnected, (participant) => {
+          participantStreamsRef.current.set(participant.identity, {
+            audioTracks: [],
+            videoTracks: [],
+            streamURL: "",
+          });
+          setRemoteParticipants((prev) => {
+            if (prev.some((p) => p.identity === participant.identity)) {
+              return prev;
+            }
+            return [...prev, { identity: participant.identity, streamURL: "" }];
+          });
         });
 
-        room.on(RoomEvents.TrackUnsubscribed satisfies RoomEvent, (track) => {
-           if (track.kind === Track.Kind.Video) {
-              setTracks((prev) => prev.filter((t) => t.sid !== track.sid));
-           }
+        room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+          participantStreamsRef.current.delete(participant.identity);
+          setRemoteParticipants((prev) =>
+            prev.filter((p) => p.identity !== participant.identity)
+          );
+        });
+
+        room.on(RoomEvent.TrackSubscribed, (track, _pub, participant) => {
+          if (participant.isLocal) {
+            return;
+          }
+
+          const identity = participant.identity;
+          const map = participantStreamsRef.current;
+          let entry = map.get(identity);
+          if (!entry) {
+            entry = { audioTracks: [], videoTracks: [], streamURL: "" };
+            map.set(identity, entry);
+          }
+
+          if (track.kind === Track.Kind.Audio && track.mediaStreamTrack) {
+            // Avoid duplicates
+            if (!entry.audioTracks.includes(track.mediaStreamTrack)) {
+              entry.audioTracks.push(track.mediaStreamTrack);
+            }
+          } else if (
+            track.kind === Track.Kind.Video &&
+            track.mediaStreamTrack &&
+            !entry.videoTracks.includes(track.mediaStreamTrack)
+          ) {
+            entry.videoTracks.push(track.mediaStreamTrack);
+          }
+
+          const allTracks = [...entry.audioTracks, ...entry.videoTracks];
+          let streamURL = "";
+          if (allTracks.length > 0) {
+            try {
+              const stream = new MediaStream(allTracks);
+              streamURL = stream.toURL() ?? "";
+              entry.streamURL = streamURL;
+            } catch {
+              streamURL = entry.streamURL;
+            }
+          }
+
+          setRemoteParticipants((prev) => {
+            const existing = prev.find((p) => p.identity === identity);
+            if (existing) {
+              return prev.map((p) =>
+                p.identity === identity
+                  ? { ...p, streamURL: streamURL || p.streamURL }
+                  : p
+              );
+            }
+            return [...prev, { identity, streamURL }];
+          });
+        });
+
+        room.on(RoomEvent.TrackUnsubscribed, (track) => {
+          track.detach();
+        });
+
+        room.on(RoomEvent.LocalTrackPublished, (publication) => {
+          if (
+            publication.track?.kind === Track.Kind.Video &&
+            publication.track?.mediaStreamTrack
+          ) {
+            try {
+              const stream = new MediaStream([
+                publication.track.mediaStreamTrack,
+              ]);
+              const url = stream.toURL();
+              if (url) {
+                setLocalStreamURL(url);
+              }
+            } catch {
+              // Local stream unavailable
+            }
+          }
         });
 
         await room.connect(url, token);
-        
-        // Activate local tracks
+
         await room.localParticipant.setCameraEnabled(true);
         await room.localParticipant.setMicrophoneEnabled(true);
 
         roomRef.current = room;
+        setRoom(room);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to connect";
@@ -104,8 +257,31 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
       roomRef.current = null;
     }
     setIsConnected(false);
-    setParticipants([]);
-    setTracks([]);
+    setRemoteParticipants([]);
+    setLocalStreamURL(null);
+    setRoom(null);
+    participantStreamsRef.current.clear();
+  }, []);
+
+  const toggleCamera = useCallback(async () => {
+    const room = roomRef.current;
+    if (room) {
+      const enabled = !room.localParticipant.isCameraEnabled;
+      await room.localParticipant.setCameraEnabled(enabled);
+      setIsCameraEnabled(enabled);
+      if (!enabled) {
+        setLocalStreamURL(null);
+      }
+    }
+  }, []);
+
+  const toggleMic = useCallback(async () => {
+    const room = roomRef.current;
+    if (room) {
+      const enabled = !room.localParticipant.isMicrophoneEnabled;
+      await room.localParticipant.setMicrophoneEnabled(enabled);
+      setIsMicEnabled(enabled);
+    }
   }, []);
 
   useEffect(
@@ -115,6 +291,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
         room.removeAllListeners();
         room.disconnect().catch(() => undefined);
       }
+      participantStreamsRef.current.clear();
     },
     []
   );
@@ -125,8 +302,12 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
     isConnected,
     isConnecting,
     error,
-    participants,
-    tracks,
-    room: roomRef.current,
+    remoteParticipants,
+    localStreamURL,
+    isCameraEnabled,
+    isMicEnabled,
+    toggleCamera,
+    toggleMic,
+    room,
   };
 }

@@ -41,6 +41,12 @@ function AdminDashboardRoute() {
           >
             Doctors
           </Link>
+          <Link
+            className={buttonVariants({ variant: "outline" })}
+            to="/admin/session"
+          >
+            Test Session
+          </Link>
         </CardContent>
       </Card>
     </div>

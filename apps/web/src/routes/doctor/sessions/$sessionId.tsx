@@ -1,12 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useUser } from "@clerk/tanstack-react-start";
 import { useQuery } from "@tanstack/react-query";
-import { orpc } from "@/utils/orpc";
-import { VideoRoomWeb } from "@/components/livekit/video-room";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@zen-doc/ui/components/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
+import { VideoRoomWeb } from "@/components/livekit/video-room";
 import { getMetadataRole } from "@/utils/clerk-auth";
-import { Loader2 } from "lucide-react";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor/sessions/$sessionId")({
   component: DoctorSessionDetailRoute,

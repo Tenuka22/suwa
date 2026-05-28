@@ -39,10 +39,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  SessionJoinButton,
-  VideoRoomWeb,
-} from "@/components/livekit/video-room";
+import { SessionJoinButton } from "@/components/livekit/video-room";
 import { getMetadataRole } from "@/utils/clerk-auth";
 import { orpc } from "@/utils/orpc";
 

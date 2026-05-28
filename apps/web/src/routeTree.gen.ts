@@ -21,6 +21,7 @@ import { Route as DoctorProfileRouteImport } from './routes/doctor/profile'
 import { Route as DoctorPlansRouteImport } from './routes/doctor/plans'
 import { Route as DoctorCreditsRouteImport } from './routes/doctor/credits'
 import { Route as DoctorAvailabilityRouteImport } from './routes/doctor/availability'
+import { Route as AdminSessionRouteImport } from './routes/admin/session'
 import { Route as AdminDoctorsIndexRouteImport } from './routes/admin/doctors/index'
 import { Route as AdminDocRequestsIndexRouteImport } from './routes/admin/doc-requests/index'
 import { Route as DoctorSessionsSessionIdRouteImport } from './routes/doctor/sessions/$sessionId'
@@ -86,6 +87,11 @@ const DoctorAvailabilityRoute = DoctorAvailabilityRouteImport.update({
   path: '/availability',
   getParentRoute: () => DoctorRoute,
 } as any)
+const AdminSessionRoute = AdminSessionRouteImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDoctorsIndexRoute = AdminDoctorsIndexRouteImport.update({
   id: '/doctors/',
   path: '/doctors/',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/doctor': typeof DoctorRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/credits': typeof DoctorCreditsRoute
   '/doctor/plans': typeof DoctorPlansRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/credits': typeof DoctorCreditsRoute
   '/doctor/plans': typeof DoctorPlansRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/doctor': typeof DoctorRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/credits': typeof DoctorCreditsRoute
   '/doctor/plans': typeof DoctorPlansRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/doctor'
     | '/sign-in'
     | '/sign-up'
+    | '/admin/session'
     | '/doctor/availability'
     | '/doctor/credits'
     | '/doctor/plans'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/admin/session'
     | '/doctor/availability'
     | '/doctor/credits'
     | '/doctor/plans'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/doctor'
     | '/sign-in'
     | '/sign-up'
+    | '/admin/session'
     | '/doctor/availability'
     | '/doctor/credits'
     | '/doctor/plans'
@@ -309,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorAvailabilityRouteImport
       parentRoute: typeof DoctorRoute
     }
+    '/admin/session': {
+      id: '/admin/session'
+      path: '/session'
+      fullPath: '/admin/session'
+      preLoaderRoute: typeof AdminSessionRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/doctors/': {
       id: '/admin/doctors/'
       path: '/doctors'
@@ -341,6 +360,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminSessionRoute: typeof AdminSessionRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminDoctorsDoctorIdRoute: typeof AdminDoctorsDoctorIdRoute
   AdminDocRequestsIndexRoute: typeof AdminDocRequestsIndexRoute
@@ -348,6 +368,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminSessionRoute: AdminSessionRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminDoctorsDoctorIdRoute: AdminDoctorsDoctorIdRoute,
   AdminDocRequestsIndexRoute: AdminDocRequestsIndexRoute,

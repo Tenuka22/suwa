@@ -1,9 +1,12 @@
 import {
+  type Participant,
   type Room,
   RoomEvent,
   type RoomEvent as RoomEventType,
 } from "livekit-client";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const AUDIO_HISTORY_LENGTH = 40;
 
 interface UseLiveKitRoomWebOptions {
   onConnected?: () => void;
@@ -17,8 +20,14 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [activeSpeakers, setActiveSpeakers] = useState<Participant[]>([]);
+  const [audioLevelHistory, setAudioLevelHistory] = useState<
+    Record<string, number[]>
+  >({});
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const connect = useCallback(
     async (url: string, token: string) => {
@@ -42,20 +51,23 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
           setIsConnected(true);
           setIsConnecting(false);
           options.onConnected?.();
-          
+
           // Set up local video if available
           const localParticipant = room.localParticipant;
           if (localParticipant) {
-             const videoTrack = Array.from(localParticipant.videoTrackPublications.values())[0]?.videoTrack;
-             if (videoTrack && localVideoRef.current) {
-                videoTrack.attach(localVideoRef.current);
-             }
+            const videoTrack = Array.from(
+              localParticipant.videoTrackPublications.values()
+            )[0]?.videoTrack;
+            if (videoTrack && localVideoRef.current) {
+              videoTrack.attach(localVideoRef.current);
+            }
           }
         });
 
         room.on(RoomEvent.Disconnected satisfies RoomEventType, () => {
           setIsConnected(false);
           setIsConnecting(false);
+          setRoom(null);
           options.onDisconnected?.();
         });
 
@@ -73,12 +85,14 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
         room.on(
           RoomEvent.TrackSubscribed satisfies RoomEventType,
           (track, _publication, participant) => {
-            if (
-              track.kind === "video" &&
-              videoRef.current &&
-              !participant.isLocal
-            ) {
+            if (participant.isLocal) {
+              return;
+            }
+            if (track.kind === "video" && videoRef.current) {
               track.attach(videoRef.current);
+            }
+            if (track.kind === "audio" && audioRef.current) {
+              track.attach(audioRef.current);
             }
           }
         );
@@ -90,19 +104,44 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
           }
         );
 
-        room.on(RoomEvent.LocalTrackPublished satisfies RoomEventType, (publication) => {
-          if (publication.track.kind === "video" && localVideoRef.current) {
-            publication.track.attach(localVideoRef.current);
-          }
+        room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+          setActiveSpeakers(speakers);
+          setAudioLevelHistory((prev) => {
+            const next = { ...prev };
+            // Update for all participants in the room
+            const allParticipants = [
+              room.localParticipant,
+              ...Array.from(room.remoteParticipants.values()),
+            ];
+
+            for (const p of allParticipants) {
+              const history = next[p.identity] || [];
+              const updated = [...history, p.audioLevel].slice(
+                -AUDIO_HISTORY_LENGTH
+              );
+              next[p.identity] = updated;
+            }
+            return next;
+          });
         });
 
+        room.on(
+          RoomEvent.LocalTrackPublished satisfies RoomEventType,
+          (publication) => {
+            if (publication.track.kind === "video" && localVideoRef.current) {
+              publication.track.attach(localVideoRef.current);
+            }
+          }
+        );
+
         await room.connect(url, token);
-        
+
         // Start local tracks
         await room.localParticipant.setCameraEnabled(true);
         await room.localParticipant.setMicrophoneEnabled(true);
 
         roomRef.current = room;
+        setRoom(room);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to connect";
@@ -123,6 +162,7 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
     }
     setIsConnected(false);
     setParticipantCount(0);
+    setRoom(null);
   }, []);
 
   useEffect(
@@ -145,6 +185,9 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
     participantCount,
     videoRef,
     localVideoRef,
-    room: roomRef.current,
+    audioRef,
+    room,
+    activeSpeakers,
+    audioLevelHistory,
   };
 }

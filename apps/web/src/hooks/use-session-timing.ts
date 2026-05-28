@@ -4,6 +4,8 @@ type SessionTimingRole = "patient" | "doctor" | "admin";
 
 interface SessionTiming {
   canJoin: boolean;
+  joinWindowOpenAt: Date | null;
+  leaveDeadlineAt: Date | null;
   mustLeave: boolean;
   remainingMs: number;
   timeStatus: "before" | "during" | "grace" | "must-leave" | "ended";
@@ -24,6 +26,8 @@ function computeTiming(
   const isAdmin = role === "admin";
   const isDoctor = role === "doctor";
 
+  const joinWindowOpenAt = new Date(start - THIRTY_MIN_MS);
+
   const canJoin =
     isAdmin || (now >= start - THIRTY_MIN_MS && now <= end + THIRTY_MIN_MS);
 
@@ -35,6 +39,10 @@ function computeTiming(
   } else {
     leaveDeadline = end + THIRTY_MIN_MS;
   }
+
+  const leaveDeadlineAt = Number.isFinite(leaveDeadline)
+    ? new Date(leaveDeadline)
+    : null;
 
   const mustLeave = !isAdmin && now > leaveDeadline;
 
@@ -55,7 +63,14 @@ function computeTiming(
 
   const remainingMs = Math.max(0, leaveDeadline - now);
 
-  return { canJoin, mustLeave, timeStatus, remainingMs };
+  return {
+    canJoin,
+    joinWindowOpenAt,
+    leaveDeadlineAt,
+    mustLeave,
+    timeStatus,
+    remainingMs,
+  };
 }
 
 export function useSessionTiming(
