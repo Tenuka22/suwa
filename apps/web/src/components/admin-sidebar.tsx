@@ -10,6 +10,8 @@ import {
 } from "@zen-doc/ui/components/sidebar";
 import {
   CalendarDaysIcon,
+  DollarSignIcon,
+  FileTextIcon,
   HouseIcon,
   LayoutDashboardIcon,
   ShieldIcon,
@@ -68,6 +70,24 @@ export function AdminSidebar() {
               icon: UserRoundIcon,
               label: "Patients",
               to: "/admin/patients",
+              search: { page: 1 },
+            },
+            {
+              icon: FileTextIcon,
+              label: "Plans",
+              to: "/admin/plans",
+              search: { page: 1 },
+            },
+            {
+              icon: DollarSignIcon,
+              label: "Credits",
+              to: "/admin/credits",
+              search: { page: 1 },
+            },
+            {
+              icon: UserRoundIcon,
+              label: "Guardians",
+              to: "/admin/guardians",
               search: { page: 1 },
             },
           ]}

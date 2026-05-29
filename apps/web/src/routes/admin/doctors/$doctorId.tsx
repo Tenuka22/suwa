@@ -178,20 +178,28 @@ function AdminDoctorDetailRoute() {
 
   return (
     <div className="flex w-full flex-col gap-6 p-6">
-      <div className="flex items-center gap-3">
-        <Button
-          onClick={() =>
-            router.navigate({
-              to: "/admin/doctors",
-              search: { page: 1, query: "" },
-            })
-          }
-          size="sm"
-          variant="outline"
-        >
-          Back to list
-        </Button>
-      </div>
+      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                onClick={() =>
+                  router.navigate({
+                    to: "/admin/doctors",
+                    search: { page: 1, query: "" },
+                  })
+                }
+                size="sm"
+                variant="outline"
+              >
+                Back to list
+              </Button>
+              <Badge variant="outline">Admin console</Badge>
+              <Badge variant="secondary">{displayName}</Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {profile ? (
         <>
