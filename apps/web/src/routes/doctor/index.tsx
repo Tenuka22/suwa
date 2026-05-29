@@ -511,7 +511,7 @@ function DoctorDashboardRoute() {
                   }
                   size="sm"
                   variant="secondary"
-                ></Button>
+                />
               }
               description="Patients currently waiting for your response"
               title="Pending requests"
@@ -543,7 +543,7 @@ function DoctorDashboardRoute() {
                   }
                   size="sm"
                   variant="secondary"
-                ></Button>
+                />
               }
               description="Latest appointment updates and completed sessions"
               title="Recent activity"

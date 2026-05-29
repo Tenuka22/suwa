@@ -1,9 +1,8 @@
+import { PaymentElement } from "@stripe/react-stripe-js";
 import {
-  Elements,
-  PaymentElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js";
+  CheckoutElementsProvider,
+  useCheckoutElements,
+} from "@stripe/react-stripe-js/checkout";
 import { loadStripe } from "@stripe/stripe-js";
 import { env } from "@zen-doc/env/native";
 import {
@@ -46,19 +45,17 @@ function PaymentSheetModal({
   onResolve: ResolveFn;
   onDismiss: () => void;
 }) {
-  const stripe = useStripe();
-  const elements = useElements();
+  const checkoutState = useCheckoutElements();
   const [paying, setPaying] = useState(false);
   const [elementError, setElementError] = useState<string | null>(null);
 
   const handleConfirm = useCallback(async () => {
-    if (!(stripe && elements)) {
+    if (checkoutState.type !== "ready") {
       return;
     }
 
     setPaying(true);
-    const { error } = await stripe.confirmPayment({
-      elements,
+    const { error } = await checkoutState.checkout.confirm({
       redirect: "if_required",
     });
 
@@ -71,7 +68,69 @@ function PaymentSheetModal({
     }
 
     onResolve({});
-  }, [stripe, elements, onResolve]);
+  }, [checkoutState, onResolve]);
+
+  if (checkoutState.type === "loading") {
+    return (
+      <View
+        style={{
+          backgroundColor: "white",
+          borderRadius: 16,
+          padding: 24,
+          width: "100%",
+          maxWidth: 420,
+          gap: 20,
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator color="#3b82f6" size="large" />
+        <Text style={{ color: "#64748b", fontSize: 14, marginTop: 12 }}>
+          Loading payment form...
+        </Text>
+      </View>
+    );
+  }
+
+  if (checkoutState.type === "error") {
+    return (
+      <View
+        style={{
+          backgroundColor: "white",
+          borderRadius: 16,
+          padding: 24,
+          width: "100%",
+          maxWidth: 420,
+          gap: 20,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "#dc2626",
+          }}
+        >
+          Payment Error
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            textAlign: "center",
+            color: "#64748b",
+          }}
+        >
+          {checkoutState.error.message}
+        </Text>
+        <Pressable
+          onPress={onDismiss}
+          style={{ padding: 10, alignItems: "center" }}
+        >
+          <Text style={{ color: "#3b82f6", fontSize: 14 }}>Try Again</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (elementError) {
     return (
@@ -141,43 +200,35 @@ function PaymentSheetModal({
         }
       />
 
-      {!stripe || elements === null ? (
-        <View style={{ alignItems: "center", padding: 14 }}>
-          <ActivityIndicator color="#3b82f6" size="small" />
-        </View>
-      ) : (
-        <View style={{ gap: 8 }}>
-          <Pressable
-            disabled={!stripe || paying}
-            onPress={handleConfirm}
-            style={{
-              backgroundColor: !stripe || paying ? "#94a3b8" : "#3b82f6",
-              borderRadius: 12,
-              padding: 14,
-              alignItems: "center",
-            }}
-          >
-            {paying ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text
-                style={{ color: "white", fontWeight: "bold", fontSize: 16 }}
-              >
-                Pay Now
-              </Text>
-            )}
-          </Pressable>
-
-          {paying ? null : (
-            <Pressable
-              onPress={onDismiss}
-              style={{ padding: 10, alignItems: "center" }}
-            >
-              <Text style={{ color: "#64748b", fontSize: 14 }}>Cancel</Text>
-            </Pressable>
+      <View style={{ gap: 8 }}>
+        <Pressable
+          disabled={paying}
+          onPress={handleConfirm}
+          style={{
+            backgroundColor: paying ? "#94a3b8" : "#3b82f6",
+            borderRadius: 12,
+            padding: 14,
+            alignItems: "center",
+          }}
+        >
+          {paying ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+              Pay Now
+            </Text>
           )}
-        </View>
-      )}
+        </Pressable>
+
+        {paying ? null : (
+          <Pressable
+            onPress={onDismiss}
+            style={{ padding: 10, alignItems: "center" }}
+          >
+            <Text style={{ color: "#64748b", fontSize: 14 }}>Cancel</Text>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }
@@ -241,7 +292,10 @@ function PaymentSheetProviderInner({ children }: PropsWithChildren) {
               padding: 24,
             }}
           >
-            <Elements options={{ clientSecret }} stripe={stripePromise}>
+            <CheckoutElementsProvider
+              options={{ clientSecret }}
+              stripe={stripePromise}
+            >
               <PaymentSheetModal
                 clientSecret={clientSecret}
                 onDismiss={handleDismiss}
@@ -251,7 +305,7 @@ function PaymentSheetProviderInner({ children }: PropsWithChildren) {
                   handleResolve(result);
                 }}
               />
-            </Elements>
+            </CheckoutElementsProvider>
           </View>
         </Modal>
       ) : null}
