@@ -21,30 +21,29 @@ export const purchaseCreditsRoute = protectedProcedure
     const taxCents = Math.round(subtotalCents * TAX_RATE);
     const amount = subtotalCents + taxCents;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ui_mode: "elements",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `${input.credits} credit top-up`,
-            },
-            unit_amount: amount,
-          },
-          quantity: 1,
-        },
-      ],
-      payment_intent_data: {
-        metadata: {
-          type: "credit_topup",
-          userId,
-          credits: String(input.credits),
-        },
-      },
-      return_url: input.returnUrl ?? DEFAULT_RETURN_URL,
-    });
+     const session = await stripe.checkout.sessions.create({
+       mode: "payment",
+       line_items: [
+         {
+           price_data: {
+             currency: "usd",
+             product_data: {
+               name: `${input.credits} credit top-up`,
+             },
+             unit_amount: amount,
+           },
+           quantity: 1,
+         },
+       ],
+       payment_intent_data: {
+         metadata: {
+           type: "credit_topup",
+           userId,
+           credits: String(input.credits),
+         },
+       },
+       return_url: input.returnUrl ?? DEFAULT_RETURN_URL,
+     });
 
     return {
       clientSecret: session.client_secret,

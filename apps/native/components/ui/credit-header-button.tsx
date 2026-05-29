@@ -60,12 +60,16 @@ export function CreditHeaderButton() {
 
   const handleBuyCredits = () => {
     setPurchaseError(null);
-    purchaseMutation.mutate({
+
+    const mutationOptions: { credits: (typeof CREDIT_OPTIONS)[number]; returnUrl?: string } = {
       credits: selectedCredits,
-      ...(typeof window === "undefined"
-        ? {}
-        : { returnUrl: window.location.href }),
-    });
+    };
+
+    if (typeof window !== "undefined") {
+      mutationOptions.returnUrl = window.location.href;
+    }
+
+    purchaseMutation.mutate(mutationOptions);
   };
 
   return (

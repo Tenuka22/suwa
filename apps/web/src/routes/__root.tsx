@@ -46,16 +46,18 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
-      {
-        title: "My App",
-      },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      {
+        rel: "icon",
+        href: "/Logo.svg",
+      },
     ],
+    title: "ZenDoc",
   }),
 
   component: RootDocument,

@@ -5,6 +5,7 @@
     "": {
       "name": "zen-doc",
       "dependencies": {
+        "@expo/vector-icons": "^15.1.1",
         "@zen-doc/env": "workspace:*",
         "dotenv": "catalog:",
         "react-day-picker": "^10.0.1",

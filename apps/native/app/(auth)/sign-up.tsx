@@ -1,5 +1,4 @@
 import { useAuth, useSignUp } from "@clerk/expo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -181,20 +180,15 @@ export default function Page() {
 
               <View className="mt-4 gap-3">
                 {OAUTH_STRATEGIES.map((provider) => (
-                  <Button
-                    disabled={fetchStatus === "fetching"}
-                    key={provider.strategy}
-                    onPress={() => handleOAuth(provider.strategy)}
-                    variant="secondary"
-                  >
-                    <FontAwesome
-                      color={mutedForeground}
-                      name={provider.icon}
-                      size={18}
-                      style={{ marginRight: 12 }}
-                    />
-                    <Text>Sign up with {provider.label}</Text>
-                  </Button>
+                   <Button
+                     disabled={fetchStatus === "fetching"}
+                     key={provider.strategy}
+                     onPress={() => handleOAuth(provider.strategy)}
+                     variant="secondary"
+                   >
+                     <provider.icon size={18} style={{ marginRight: 12 }} />
+                     <Text>Sign up with {provider.label}</Text>
+                   </Button>
                 ))}
               </View>
             </View>

@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/expo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
+import { User, UserPlus, Users } from "lucide-react-native";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
@@ -164,21 +164,19 @@ export default function OnboardingScreen() {
           <View className="gap-4">
             <SelectableCard
               description="Manage your own appointments, medical records, and daily wellness tracking in one place."
-              icon={<FontAwesome color={foreground} name="user" size={26} />}
+              icon={<User color={foreground} size={26} />}
               onPress={() => handleModeSelect("self")}
               title="Manage for myself"
             />
             <SelectableCard
               description="Set up a guardian to manage your healthcare and appointments on your behalf."
-              icon={
-                <FontAwesome color={foreground} name="user-plus" size={26} />
-              }
+              icon={<UserPlus color={foreground} size={26} />}
               onPress={() => handleModeSelect("has_guardian")}
               title="I have a guardian"
             />
             <SelectableCard
               description="Act as a guardian to manage healthcare and appointments for a family member or dependent."
-              icon={<FontAwesome color={foreground} name="users" size={26} />}
+              icon={<Users color={foreground} size={26} />}
               onPress={() => handleModeSelect("guardian")}
               title="I'm a guardian"
             />

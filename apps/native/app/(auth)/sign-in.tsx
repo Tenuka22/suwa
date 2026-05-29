@@ -1,5 +1,4 @@
 import { useSignIn } from "@clerk/expo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -7,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
-import { TextLink } from "@/components/ui/text-link";
 import { OAUTH_STRATEGIES, pushDecoratedUrl } from "@/utils/auth";
 import { useThemeColor } from "@/utils/theme";
 
@@ -191,10 +189,17 @@ export default function Page() {
             </Button>
 
             <View className="flex-row items-center gap-chip">
-              <Text className="font-normal font-sans text-foreground">
-                Don&apos;t have an account?
-              </Text>
-              <TextLink href="/sign-up">Sign up</TextLink>
+              {OAUTH_STRATEGIES.map((provider) => (
+                     <Button
+                       disabled={fetchStatus === "fetching"}
+                       key={provider.strategy}
+                       onPress={() => handleOAuth(provider.strategy)}
+                       variant="secondary"
+                     >
+                       <provider.icon size={18} style={{ marginRight: 12 }} />
+                       <Text>Sign in with {provider.label}</Text>
+                     </Button>
+              ))}
             </View>
 
             <View className="mt-6">
@@ -204,28 +209,19 @@ export default function Page() {
                 <View className="h-px flex-1 bg-border" />
               </View>
 
-              <View className="mt-4 gap-3">
-                {OAUTH_STRATEGIES.map((provider) => {
-                  const textColor = mutedForeground;
-
-                  return (
-                    <Button
-                      disabled={fetchStatus === "fetching"}
-                      key={provider.strategy}
-                      onPress={() => handleOAuth(provider.strategy)}
-                      variant="secondary"
-                    >
-                      <FontAwesome
-                        color={textColor}
-                        name={provider.icon}
-                        size={18}
-                        style={{ marginRight: 12 }}
-                      />
-                      <Text>Sign in with {provider.label}</Text>
-                    </Button>
-                  );
-                })}
-              </View>
+               <View className="mt-4 gap-3">
+                 {OAUTH_STRATEGIES.map((provider) => (
+                   <Button
+                     disabled={fetchStatus === "fetching"}
+                     key={provider.strategy}
+                     onPress={() => handleOAuth(provider.strategy)}
+                     variant="secondary"
+                   >
+                     <provider.icon size={18} style={{ marginRight: 12 }} />
+                     <Text>Sign in with {provider.label}</Text>
+                   </Button>
+                 ))}
+               </View>
             </View>
           </Card>
         )}

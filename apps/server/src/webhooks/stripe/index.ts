@@ -12,7 +12,9 @@ import Stripe from "stripe";
 export const stripeApp = new Hono();
 
 stripeApp.post("/", async (c) => {
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+  apiVersion: "2025-08-27.basil",
+});
   const db = createDb();
   const signature = c.req.header("stripe-signature");
   if (!signature) {

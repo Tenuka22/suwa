@@ -1,9 +1,10 @@
 import type { Href, useRouter } from "expo-router";
+import { Globe, Monitor, MessageCircle } from "lucide-react-native";
 
 export const OAUTH_STRATEGIES = [
-  { strategy: "oauth_google", label: "Google", icon: "google" as const },
-  { strategy: "oauth_apple", label: "Apple", icon: "apple" as const },
-  { strategy: "oauth_line", label: "LINE", icon: "comments" as const },
+  { strategy: "oauth_google", label: "Google", icon: Globe },
+  { strategy: "oauth_apple", label: "Apple", icon: Monitor },
+  { strategy: "oauth_line", label: "LINE", icon: MessageCircle },
 ] as const;
 
 export function pushDecoratedUrl(
