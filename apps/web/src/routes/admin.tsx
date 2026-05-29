@@ -30,7 +30,7 @@ function AdminLayoutRoute() {
               </p>
             </div>
           </header>
-          <div className="flex-1">
+          <div className="flex-1 p-6">
             <Outlet />
           </div>
         </div>
