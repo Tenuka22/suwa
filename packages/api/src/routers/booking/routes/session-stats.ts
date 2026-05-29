@@ -19,10 +19,7 @@ export const sessionStatsRoute = protectedProcedure
       .where(eq(doctorSessions.doctorId, doctorId))
       .groupBy(doctorSessions.status);
 
-    const totalSessions = statusCounts.reduce(
-      (sum, row) => sum + row.value,
-      0
-    );
+    const totalSessions = statusCounts.reduce((sum, row) => sum + row.value, 0);
 
     const sessionsByStatus: Record<string, number> = {};
     for (const row of statusCounts) {

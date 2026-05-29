@@ -31,6 +31,18 @@ import { Separator } from "@zen-doc/ui/components/separator";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
 import { Switch } from "@zen-doc/ui/components/switch";
 import {
+  CalendarDaysIcon,
+  Clock3Icon,
+  ClockIcon,
+  InboxIcon,
+  Loader2,
+  StethoscopeIcon,
+  Trash2,
+  TrendingUpIcon,
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import {
   Bar,
   BarChart,
   CartesianGrid,
@@ -38,18 +50,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  CalendarDaysIcon,
-  Clock3Icon,
-  ClockIcon,
-  InboxIcon,
-  Loader2,
-  StethoscopeIcon,
-  TrendingUpIcon,
-  Trash2,
-} from "lucide-react";
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { orpc } from "@/utils/orpc";
 
@@ -118,9 +118,7 @@ function MetricCard({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-4xl tracking-tight">
-              {value}
-            </CardTitle>
+            <CardTitle className="text-4xl tracking-tight">{value}</CardTitle>
           </div>
 
           <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
@@ -129,7 +127,7 @@ function MetricCard({
         </div>
       </CardHeader>
 
-      <CardFooter className="mt-auto flex items-center justify-between text-sm text-muted-foreground">
+      <CardFooter className="mt-auto flex items-center justify-between text-muted-foreground text-sm">
         <span>{description}</span>
 
         {trend ? (
@@ -155,8 +153,8 @@ function SectionHeader({
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="font-semibold text-xl tracking-tight">{title}</h2>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
 
       {action}
@@ -416,11 +414,11 @@ function DoctorAvailabilityRoute() {
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-4xl font-semibold tracking-tight">
+              <h1 className="font-semibold text-4xl tracking-tight">
                 Weekly availability
               </h1>
 
-              <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
                 Set your weekly working hours so patients can book sessions that
                 fit your schedule. Days and slots can be individually toggled.
               </p>
@@ -449,9 +447,7 @@ function DoctorAvailabilityRoute() {
           description="Time slots configured"
           icon={<ClockIcon className="size-5" />}
           title="Total slots"
-          value={
-            slots.filter((s) => s.isAvailable).length.toString()
-          }
+          value={slots.filter((s) => s.isAvailable).length.toString()}
         />
 
         <MetricCard
@@ -550,13 +546,13 @@ function DoctorAvailabilityRoute() {
             action={
               <Button
                 className="text-xs"
-                onClick={handleSave}
-                size="sm"
                 disabled={
                   saveMutation.isPending ||
                   slots.filter((slot) => slot.isAvailable).length === 0 ||
                   !hasChanges
                 }
+                onClick={handleSave}
+                size="sm"
               >
                 {saveMutation.isPending ? (
                   <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -613,7 +609,7 @@ function DoctorAvailabilityRoute() {
                               {isDayAvailable ? "Available" : "Off"}
                             </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-muted-foreground text-xs">
                             {daySlots.length === 0
                               ? "No hours set"
                               : `${daySlots.length} slot${daySlots.length === 1 ? "" : "s"} · ${dayHours.toFixed(1)}h`}
@@ -629,7 +625,7 @@ function DoctorAvailabilityRoute() {
                                 toggleDay(dayOfWeek, checked)
                               }
                             />
-                            <Label className="text-xs text-muted-foreground">
+                            <Label className="text-muted-foreground text-xs">
                               {isDayAvailable ? "Working" : "Day off"}
                             </Label>
                           </div>
@@ -647,7 +643,7 @@ function DoctorAvailabilityRoute() {
 
                     <CardContent className="space-y-3">
                       {daySlots.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-border/70 bg-muted/20 px-4 py-6 text-center text-sm text-muted-foreground">
+                        <div className="rounded-lg border border-border/70 border-dashed bg-muted/20 px-4 py-6 text-center text-muted-foreground text-sm">
                           Add a slot for {dayName}.
                         </div>
                       ) : (
@@ -670,7 +666,7 @@ function DoctorAvailabilityRoute() {
                                 <div className="mb-3 flex items-center justify-between">
                                   <div className="flex items-center gap-1.5 text-sm">
                                     <ClockIcon className="size-3.5 text-muted-foreground" />
-                                    <span className="text-xs font-medium">
+                                    <span className="font-medium text-xs">
                                       {slot.startTime} - {slot.endTime}
                                     </span>
                                   </div>
@@ -686,12 +682,16 @@ function DoctorAvailabilityRoute() {
 
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                                   <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">
+                                    <Label className="text-muted-foreground text-xs">
                                       Start
                                     </Label>
                                     <Select
                                       onValueChange={(value) =>
-                                        updateSlot(slotIndex, "startTime", value)
+                                        updateSlot(
+                                          slotIndex,
+                                          "startTime",
+                                          value
+                                        )
                                       }
                                       value={slot.startTime}
                                     >
@@ -709,7 +709,7 @@ function DoctorAvailabilityRoute() {
                                   </div>
 
                                   <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">
+                                    <Label className="text-muted-foreground text-xs">
                                       End
                                     </Label>
                                     <Select
@@ -733,7 +733,7 @@ function DoctorAvailabilityRoute() {
                                   </div>
 
                                   <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">
+                                    <Label className="text-muted-foreground text-xs">
                                       Status
                                     </Label>
                                     <div className="flex h-9 items-center rounded-md border border-border/50 bg-background px-3">
@@ -748,7 +748,7 @@ function DoctorAvailabilityRoute() {
                                           )
                                         }
                                       />
-                                      <span className="ml-2 text-sm text-muted-foreground">
+                                      <span className="ml-2 text-muted-foreground text-sm">
                                         {slot.isAvailable ? "On" : "Off"}
                                       </span>
                                     </div>

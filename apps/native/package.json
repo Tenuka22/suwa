@@ -77,11 +77,16 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "listUnknownPackages": false,
-        "exclude": ["react-native-webrtc"]
+        "exclude": [
+          "react-native-webrtc"
+        ]
       }
     },
     "install": {
-      "exclude": ["@react-navigation/native", "@react-navigation/bottom-tabs"]
+      "exclude": [
+        "@react-navigation/native",
+        "@react-navigation/bottom-tabs"
+      ]
     }
   }
 }

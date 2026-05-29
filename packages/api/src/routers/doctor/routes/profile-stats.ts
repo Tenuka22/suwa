@@ -63,9 +63,7 @@ export const profileStatsRoute = protectedProcedure
     let languageCount = 0;
     if (profile) {
       try {
-        const specialties = JSON.parse(
-          profile.specialties ?? "[]"
-        ) as string[];
+        const specialties = JSON.parse(profile.specialties ?? "[]") as string[];
         specialtyCount = specialties.length;
       } catch {
         specialtyCount = 0;

@@ -1,12 +1,10 @@
 import { acceptRescheduledSessionRoute } from "./routes/accept-rescheduled-session";
+import { availabilityStatsRoute } from "./routes/availability-stats";
 import { bookSessionRoute } from "./routes/book-session";
 import { cancelSessionRoute } from "./routes/cancel-session";
 import { counterProposeSessionRoute } from "./routes/counter-propose-session";
-import { sessionStatsRoute } from "./routes/session-stats";
-import { planStatsRoute } from "./routes/plan-stats";
-import { creditStatsRoute } from "./routes/credit-stats";
-import { availabilityStatsRoute } from "./routes/availability-stats";
 import { createConnectAccountLinkRoute } from "./routes/create-connect-account-link";
+import { creditStatsRoute } from "./routes/credit-stats";
 import {
   getDoctorCreditsRoute,
   requestCashoutRoute,
@@ -22,7 +20,9 @@ import { getConnectAccountStatusRoute } from "./routes/get-connect-account-statu
 import { listDoctorSessionsRoute } from "./routes/list-doctor-sessions";
 import { listPatientSessionsRoute } from "./routes/list-patient-sessions";
 import { markSessionAttendedRoute } from "./routes/mark-session-attended";
+import { planStatsRoute } from "./routes/plan-stats";
 import { respondSessionRoute } from "./routes/respond-session";
+import { sessionStatsRoute } from "./routes/session-stats";
 import { syncConnectAccountStatusRoute } from "./routes/sync-connect-account-status";
 import {
   getDoctorWeeklyAvailabilityRoute,

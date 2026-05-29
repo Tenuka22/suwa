@@ -20,9 +20,7 @@ export const availabilityStatsRoute = protectedProcedure
     const entries = await context.db
       .select()
       .from(doctorWeeklyAvailability)
-      .where(
-        eq(doctorWeeklyAvailability.doctorId, doctorId)
-      );
+      .where(eq(doctorWeeklyAvailability.doctorId, doctorId));
 
     const activeEntries = entries.filter((e) => e.isAvailable);
     const activeDays = new Set(activeEntries.map((e) => e.dayOfWeek)).size;

@@ -36,7 +36,6 @@ export default function Page() {
     });
 
     if (error) {
-      console.error(JSON.stringify(error, null, 2));
       setStatusMessage(
         error.longMessage ?? "Unable to sign in. Please try again."
       );
@@ -63,19 +62,12 @@ export default function Page() {
           `We sent a verification code to ${emailCodeFactor.safeIdentifier}.`
         );
       } else {
-        console.error(
-          "Second factor is required, but email_code is not available:",
-          signIn
-        );
         setStatusMessage(
           "A second factor is required, but this screen only supports email codes right now."
         );
       }
     } else {
-      console.error("Sign-in attempt not complete:", signIn);
-      setStatusMessage(
-        "Sign-in could not be completed. Check the logs for more details."
-      );
+      setStatusMessage("Sign-in could not be completed. Please try again.");
     }
   };
 
@@ -95,7 +87,6 @@ export default function Page() {
         },
       });
     } else {
-      console.error("Sign-in attempt not complete:", signIn);
       setStatusMessage("That code did not complete sign-in. Please try again.");
     }
   };
@@ -112,7 +103,6 @@ export default function Page() {
     });
 
     if (error) {
-      console.error(JSON.stringify(error, null, 2));
       setStatusMessage(
         error.longMessage ?? "Unable to sign in with SSO. Please try again."
       );

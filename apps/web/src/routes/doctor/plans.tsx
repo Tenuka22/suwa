@@ -96,9 +96,7 @@ function MetricCard({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-4xl tracking-tight">
-              {value}
-            </CardTitle>
+            <CardTitle className="text-4xl tracking-tight">{value}</CardTitle>
           </div>
 
           <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
@@ -107,7 +105,7 @@ function MetricCard({
         </div>
       </CardHeader>
 
-      <CardFooter className="mt-auto flex items-center justify-between text-sm text-muted-foreground">
+      <CardFooter className="mt-auto flex items-center justify-between text-muted-foreground text-sm">
         <span>{description}</span>
 
         {trend ? (
@@ -133,8 +131,8 @@ function SectionHeader({
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="font-semibold text-xl tracking-tight">{title}</h2>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
 
       {action}
@@ -245,11 +243,11 @@ function DoctorPlansRoute() {
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-4xl font-semibold tracking-tight">
+              <h1 className="font-semibold text-4xl tracking-tight">
                 Session plans
               </h1>
 
-              <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
                 Manage your session offerings and pricing at a glance. Review
                 plan details, compare credit costs, and see which plan is the
                 default for new patients.
@@ -340,7 +338,7 @@ function DoctorPlansRoute() {
                   content={
                     <ChartTooltipContent
                       formatter={(value: unknown) =>
-                        `${Number(value)} credit${Number(value) !== 1 ? "s" : ""}`
+                        `${Number(value)} credit${Number(value) === 1 ? "" : "s"}`
                       }
                       indicator="dot"
                     />
@@ -403,7 +401,7 @@ function DoctorPlansRoute() {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base font-bold">
+                    <CardTitle className="font-bold text-base">
                       {plan.name}
                     </CardTitle>
                     {plan.isDefault && (
@@ -417,30 +415,30 @@ function DoctorPlansRoute() {
                   </div>
 
                   {plan.description && (
-                    <p className="text-xs leading-relaxed text-muted-foreground">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
                       {plan.description}
                     </p>
                   )}
                 </CardHeader>
 
                 <CardContent className="flex flex-1 flex-col gap-4">
-                  <div className="flex items-center gap-4 border-y border-border/50 py-2">
+                  <div className="flex items-center gap-4 border-border/50 border-y py-2">
                     <div className="flex items-center gap-1.5">
                       <CoinsIcon className="size-4 text-muted-foreground" />
-                      <span className="text-lg font-bold">
+                      <span className="font-bold text-lg">
                         {plan.creditCost}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         credits
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5">
                       <ClockIcon className="size-4 text-muted-foreground" />
-                      <span className="text-lg font-bold">
+                      <span className="font-bold text-lg">
                         {plan.durationMinutes}
                       </span>
-                      <span className="text-xs text-muted-foreground">min</span>
+                      <span className="text-muted-foreground text-xs">min</span>
                     </div>
                   </div>
 
@@ -449,7 +447,7 @@ function DoctorPlansRoute() {
                       {parsedFeatures.slice(0, 3).map((feature, idx) => (
                         <div className="flex items-start gap-2" key={idx}>
                           <CheckIcon className="mt-1 size-3 shrink-0 text-emerald-500" />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {feature}
                           </span>
                         </div>

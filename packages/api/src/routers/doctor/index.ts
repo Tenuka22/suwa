@@ -1,7 +1,7 @@
 import { doctorProfileRoute } from "./routes/profile";
+import { profileStatsRoute } from "./routes/profile-stats";
 import { saveDoctorProfileRoute } from "./routes/save-profile";
 import { doctorStatsRoute } from "./routes/stats";
-import { profileStatsRoute } from "./routes/profile-stats";
 
 export const doctorRouter = {
   doctorProfile: doctorProfileRoute,

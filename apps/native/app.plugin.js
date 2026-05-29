@@ -15,7 +15,9 @@ const addSamsungSensorPermission = (config) => {
     manifestXml.manifest["uses-permission"] ?? [];
 
   const permissions = new Set(
-    manifestXml.manifest["uses-permission"].map((entry) => entry.$["android:name"])
+    manifestXml.manifest["uses-permission"].map(
+      (entry) => entry.$["android:name"]
+    )
   );
 
   for (const permission of [

@@ -38,7 +38,7 @@ const PaymentSheetContext = createContext<PaymentSheetContextValue | null>(
 );
 
 function PaymentSheetModal({
-  clientSecret,
+  clientSecret: _clientSecret,
   onResolve,
   onDismiss,
 }: {
@@ -49,6 +49,7 @@ function PaymentSheetModal({
   const stripe = useStripe();
   const elements = useElements();
   const [paying, setPaying] = useState(false);
+  const [elementError, setElementError] = useState<string | null>(null);
 
   const handleConfirm = useCallback(async () => {
     if (!(stripe && elements)) {
@@ -72,6 +73,47 @@ function PaymentSheetModal({
     onResolve({});
   }, [stripe, elements, onResolve]);
 
+  if (elementError) {
+    return (
+      <View
+        style={{
+          backgroundColor: "white",
+          borderRadius: 16,
+          padding: 24,
+          width: "100%",
+          maxWidth: 420,
+          gap: 20,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "#dc2626",
+          }}
+        >
+          Payment Error
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            textAlign: "center",
+            color: "#64748b",
+          }}
+        >
+          {elementError}
+        </Text>
+        <Pressable
+          onPress={onDismiss}
+          style={{ padding: 10, alignItems: "center" }}
+        >
+          <Text style={{ color: "#3b82f6", fontSize: 14 }}>Try Again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <View
       style={{
@@ -93,37 +135,49 @@ function PaymentSheetModal({
         Complete Payment
       </Text>
 
-      <PaymentElement />
+      <PaymentElement
+        onLoadError={(error) =>
+          setElementError(error.message ?? "Failed to load payment form")
+        }
+      />
 
-      <View style={{ gap: 8 }}>
-        <Pressable
-          disabled={!stripe || paying}
-          onPress={handleConfirm}
-          style={{
-            backgroundColor: !stripe || paying ? "#94a3b8" : "#3b82f6",
-            borderRadius: 12,
-            padding: 14,
-            alignItems: "center",
-          }}
-        >
-          {paying ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
-              Pay Now
-            </Text>
-          )}
-        </Pressable>
-
-        {paying ? null : (
+      {!stripe || elements === null ? (
+        <View style={{ alignItems: "center", padding: 14 }}>
+          <ActivityIndicator color="#3b82f6" size="small" />
+        </View>
+      ) : (
+        <View style={{ gap: 8 }}>
           <Pressable
-            onPress={onDismiss}
-            style={{ padding: 10, alignItems: "center" }}
+            disabled={!stripe || paying}
+            onPress={handleConfirm}
+            style={{
+              backgroundColor: !stripe || paying ? "#94a3b8" : "#3b82f6",
+              borderRadius: 12,
+              padding: 14,
+              alignItems: "center",
+            }}
           >
-            <Text style={{ color: "#64748b", fontSize: 14 }}>Cancel</Text>
+            {paying ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text
+                style={{ color: "white", fontWeight: "bold", fontSize: 16 }}
+              >
+                Pay Now
+              </Text>
+            )}
           </Pressable>
-        )}
-      </View>
+
+          {paying ? null : (
+            <Pressable
+              onPress={onDismiss}
+              style={{ padding: 10, alignItems: "center" }}
+            >
+              <Text style={{ color: "#64748b", fontSize: 14 }}>Cancel</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
     </View>
   );
 }

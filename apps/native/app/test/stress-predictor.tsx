@@ -232,8 +232,6 @@ export default function StressPredictorScreen() {
         ...prev,
         [key]: { result, time: Date.now() - startTime },
       }));
-    } catch (e) {
-      console.error("Prediction failed", e);
     } finally {
       setPredictingId(null);
     }

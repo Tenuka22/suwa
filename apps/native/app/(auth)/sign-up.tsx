@@ -30,7 +30,6 @@ export default function Page() {
     });
 
     if (error) {
-      console.error(JSON.stringify(error, null, 2));
       setStatusMessage(
         error.longMessage ?? "Unable to sign up. Please try again."
       );
@@ -57,7 +56,6 @@ export default function Page() {
         },
       });
     } else {
-      console.error("Sign-up attempt not complete:", signUp);
       setStatusMessage("That code did not complete sign-up. Please try again.");
     }
   };
@@ -74,7 +72,6 @@ export default function Page() {
     });
 
     if (error) {
-      console.error(JSON.stringify(error, null, 2));
       setStatusMessage(
         error.longMessage ?? "Unable to sign up with SSO. Please try again."
       );

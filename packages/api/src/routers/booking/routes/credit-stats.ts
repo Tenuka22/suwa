@@ -38,10 +38,7 @@ export const creditStatsRoute = protectedProcedure
     const monthlyMap = new Map<string, number>();
     for (const req of recentCashouts) {
       const month = req.createdAt.slice(0, 7);
-      monthlyMap.set(
-        month,
-        (monthlyMap.get(month) ?? 0) + req.amountCents
-      );
+      monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + req.amountCents);
     }
 
     const monthlyCashouts = Array.from(monthlyMap.entries()).map(

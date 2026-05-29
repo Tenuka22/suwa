@@ -173,7 +173,10 @@ function DoctorLayoutRoute() {
                     Help
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()} variant="destructive">
+                  <DropdownMenuItem
+                    onClick={() => signOut()}
+                    variant="destructive"
+                  >
                     <LogOutIcon />
                     Sign out
                   </DropdownMenuItem>

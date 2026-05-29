@@ -66,9 +66,7 @@ function MetricCard({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-4xl tracking-tight">
-              {value}
-            </CardTitle>
+            <CardTitle className="text-4xl tracking-tight">{value}</CardTitle>
           </div>
 
           <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
@@ -77,7 +75,7 @@ function MetricCard({
         </div>
       </CardHeader>
 
-      <CardFooter className="mt-auto flex items-center justify-between text-sm text-muted-foreground">
+      <CardFooter className="mt-auto flex items-center justify-between text-muted-foreground text-sm">
         <span>{description}</span>
 
         {trend ? (
@@ -103,8 +101,8 @@ function SectionHeader({
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="font-semibold text-xl tracking-tight">{title}</h2>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
 
       {action}
@@ -195,7 +193,7 @@ function DoctorProfileRoute() {
           <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-start gap-4">
               <Avatar className="size-16 border shadow-sm">
-                <AvatarFallback className="text-lg font-semibold">
+                <AvatarFallback className="font-semibold text-lg">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -214,11 +212,11 @@ function DoctorProfileRoute() {
                 </div>
 
                 <div className="space-y-2">
-                  <h1 className="text-4xl font-semibold tracking-tight">
+                  <h1 className="font-semibold text-4xl tracking-tight">
                     {name}
                   </h1>
 
-                  <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+                  <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
                     Manage your public directory listing, therapeutic
                     credentials, and introductory materials. A complete profile
                     helps patients find and trust you.
@@ -257,7 +255,9 @@ function DoctorProfileRoute() {
           description="Languages you speak with patients"
           icon={<LanguagesIcon className="size-5" />}
           title="Languages"
-          trend={accountAgeDays > 0 ? `${accountAgeDays}d on platform` : undefined}
+          trend={
+            accountAgeDays > 0 ? `${accountAgeDays}d on platform` : undefined
+          }
           value={languageCount.toString()}
         />
       </section>

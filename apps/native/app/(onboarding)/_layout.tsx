@@ -16,8 +16,7 @@ export default function OnboardingLayout() {
         try {
           const data = await orpc.getPatientProfile.call();
           return data ?? null;
-        } catch (e) {
-          console.error(e);
+        } catch {
           return null;
         }
       },
@@ -33,8 +32,7 @@ export default function OnboardingLayout() {
         try {
           const data = await orpc.getGuardianProfile.call();
           return data ?? null;
-        } catch (e) {
-          console.error(e);
+        } catch {
           return null;
         }
       },

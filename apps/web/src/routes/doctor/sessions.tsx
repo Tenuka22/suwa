@@ -119,9 +119,7 @@ function MetricCard({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-4xl tracking-tight">
-              {value}
-            </CardTitle>
+            <CardTitle className="text-4xl tracking-tight">{value}</CardTitle>
           </div>
 
           <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
@@ -130,7 +128,7 @@ function MetricCard({
         </div>
       </CardHeader>
 
-      <CardFooter className="mt-auto flex items-center justify-between text-sm text-muted-foreground">
+      <CardFooter className="mt-auto flex items-center justify-between text-muted-foreground text-sm">
         <span>{description}</span>
 
         {trend ? (
@@ -156,8 +154,8 @@ function SectionHeader({
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="font-semibold text-xl tracking-tight">{title}</h2>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
 
       {action}
@@ -218,15 +216,15 @@ function PendingRequests({
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">
+                  <p className="font-medium text-sm">
                     {session.patientId.slice(0, 12)}...
                   </p>
 
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {format(start, "EEE, MMM d")}
                   </p>
 
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {format(start, "h:mm a")} - {format(end, "h:mm a")}
                   </p>
                 </div>
@@ -328,11 +326,11 @@ function DoctorSessionsRoute() {
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-4xl font-semibold tracking-tight">
+              <h1 className="font-semibold text-4xl tracking-tight">
                 Sessions overview
               </h1>
 
-              <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
                 Track all your patient sessions at a glance. Monitor requests,
                 review completed appointments, and analyze session trends over
                 time.
@@ -431,7 +429,7 @@ function DoctorSessionsRoute() {
                     content={
                       <ChartTooltipContent
                         formatter={(value: unknown) =>
-                          `${Number(value)} session${Number(value) !== 1 ? "s" : ""}`
+                          `${Number(value)} session${Number(value) === 1 ? "" : "s"}`
                         }
                         indicator="line"
                       />
@@ -516,9 +514,7 @@ function DoctorSessionsRoute() {
 
                   const durationMinutes =
                     isValidStart && isValidEnd
-                      ? Math.round(
-                          (end.getTime() - start.getTime()) / 60000
-                        )
+                      ? Math.round((end.getTime() - start.getTime()) / 60_000)
                       : null;
 
                   const sessionValue =
@@ -538,7 +534,7 @@ function DoctorSessionsRoute() {
                               <CalendarClockIcon className="size-4" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium leading-tight">
+                              <p className="font-medium text-sm leading-tight">
                                 {session.patientId.slice(0, 12)}...
                               </p>
                               <p className="text-[10px] text-muted-foreground">
@@ -551,7 +547,7 @@ function DoctorSessionsRoute() {
 
                         <Separator />
 
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs ">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                           <div>
                             <span className="text-muted-foreground">Date</span>
                             <p className="font-medium">
@@ -573,9 +569,9 @@ function DoctorSessionsRoute() {
                               Duration
                             </span>
                             <p className="font-medium">
-                              {durationMinutes != null
-                                ? `${durationMinutes} min`
-                                : "--"}
+                              {durationMinutes == null
+                                ? "--"
+                                : `${durationMinutes} min`}
                             </p>
                           </div>
                           <div>

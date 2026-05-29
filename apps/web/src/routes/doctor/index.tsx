@@ -126,9 +126,7 @@ function MetricCard({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-4xl tracking-tight">
-              {value}
-            </CardTitle>
+            <CardTitle className="text-4xl tracking-tight">{value}</CardTitle>
           </div>
 
           <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
@@ -137,7 +135,7 @@ function MetricCard({
         </div>
       </CardHeader>
 
-      <CardFooter className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
+      <CardFooter className="mt-auto flex items-center justify-between text-muted-foreground text-sm">
         <span>{description}</span>
 
         {trend ? (
@@ -334,10 +332,12 @@ function DoctorDashboardRoute() {
   const recentSessions = (stats?.recentSessions ?? []) as SessionItem[];
 
   const earningsTrend =
-    stats?.monthlyEarnings.map((point: { month: string; earnings: number }) => ({
-      ...point,
-      earnings: point.earnings / 100,
-    })) ?? [];
+    stats?.monthlyEarnings.map(
+      (point: { month: string; earnings: number }) => ({
+        ...point,
+        earnings: point.earnings / 100,
+      })
+    ) ?? [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -346,7 +346,7 @@ function DoctorDashboardRoute() {
           <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-start gap-4">
               <Avatar className="size-16 border shadow-sm">
-                <AvatarFallback className="text-lg font-semibold">
+                <AvatarFallback className="font-semibold text-lg">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -370,7 +370,6 @@ function DoctorDashboardRoute() {
                 </div>
               </div>
             </div>
-
           </div>
         </CardContent>
       </Card>
@@ -501,19 +500,22 @@ function DoctorDashboardRoute() {
 
         <Card className="rounded-3xl border-border/60">
           <CardHeader>
-             <SectionHeader
-               action={
-                 <Button size="sm" variant="secondary" render={(
-                   <Link to="/doctor/availability">
-                     Manage
-                     <ArrowRightIcon />
-                   </Link>
-                 )}>
-                 </Button>
-               }
-               description="Patients currently waiting for your response"
-               title="Pending requests"
-             />
+            <SectionHeader
+              action={
+                <Button
+                  render={
+                    <Link to="/doctor/availability">
+                      Manage
+                      <ArrowRightIcon />
+                    </Link>
+                  }
+                  size="sm"
+                  variant="secondary"
+                ></Button>
+              }
+              description="Patients currently waiting for your response"
+              title="Pending requests"
+            />
           </CardHeader>
 
           <Separator />
@@ -532,13 +534,16 @@ function DoctorDashboardRoute() {
           <CardHeader>
             <SectionHeader
               action={
-                 <Button size="sm" variant="secondary" render={(
-                  <Link to="/doctor/sessions">
-                    View
-                     <ArrowRightIcon />
-                   </Link>
-                 )}>
-                 </Button>
+                <Button
+                  render={
+                    <Link to="/doctor/sessions">
+                      View
+                      <ArrowRightIcon />
+                    </Link>
+                  }
+                  size="sm"
+                  variant="secondary"
+                ></Button>
               }
               description="Latest appointment updates and completed sessions"
               title="Recent activity"
