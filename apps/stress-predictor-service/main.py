@@ -1,9 +1,10 @@
 import tensorflow as tf
 import numpy as np
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Header
 from pydantic import BaseModel
 import uvicorn
+from typing import Annotated
 
 N_FEATURES = 11
 SEQUENCE_LENGTHS = [120, 240, 360]
@@ -29,8 +30,18 @@ class PredictionResponse(BaseModel):
 
 CLASSES = ["baseline", "amusement", "stress"]
 
+API_KEY = os.getenv("STRESS_PREDICTOR_SECRET")
+
+async def verify_api_key(x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None):
+    if not API_KEY:
+        return
+    if not x_api_key:
+        raise HTTPException(status_code=401, detail="Missing X-API-Key header")
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+
 @app.post("/predict", response_model=PredictionResponse)
-def predict(request: PredictionRequest):
+async def predict(request: PredictionRequest, auth: Annotated[None, Depends(verify_api_key)] = None):
     n = len(request.window_samples)
     if n % N_FEATURES != 0:
         raise HTTPException(status_code=400, detail=f"window_samples length ({n}) must be a multiple of {N_FEATURES}")

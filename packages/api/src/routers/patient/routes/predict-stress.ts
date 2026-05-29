@@ -18,9 +18,12 @@ export const predictStressRoute = publicProcedure
   .handler(async ({ input }) => {
     const flattened = input.windowSamples.flat();
 
-    const response = await fetch(`http://${env.STRESS_PREDICTOR_URL}/predict`, {
+    const response = await fetch(`${env.STRESS_PREDICTOR_URL}/predict`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": env.STRESS_PREDICTOR_SECRET,
+      },
       body: JSON.stringify({ window_samples: flattened }),
     });
 
