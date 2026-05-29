@@ -3,18 +3,19 @@ const {
   withMainApplication,
 } = require("expo/config-plugins");
 
-const addSamsungSensorPermission = (manifest) => {
-  const application = manifest.manifest.application?.[0];
+const addSamsungSensorPermission = (config) => {
+  const manifestXml = config.modResults;
+  const application = manifestXml.manifest.application?.[0];
 
   if (!application) {
-    return manifest;
+    return config;
   }
 
-  manifest.manifest["uses-permission"] =
-    manifest.manifest["uses-permission"] ?? [];
+  manifestXml.manifest["uses-permission"] =
+    manifestXml.manifest["uses-permission"] ?? [];
 
   const permissions = new Set(
-    manifest.manifest["uses-permission"].map((entry) => entry.$["android:name"])
+    manifestXml.manifest["uses-permission"].map((entry) => entry.$["android:name"])
   );
 
   for (const permission of [
@@ -23,13 +24,13 @@ const addSamsungSensorPermission = (manifest) => {
     "com.samsung.android.hardware.sensormanager.permission.READ_ADDITIONAL_HEALTH_DATA",
   ]) {
     if (!permissions.has(permission)) {
-      manifest.manifest["uses-permission"].push({
+      manifestXml.manifest["uses-permission"].push({
         $: { "android:name": permission },
       });
     }
   }
 
-  return manifest;
+  return config;
 };
 
 module.exports = function withSamsungSensorBridge(config) {

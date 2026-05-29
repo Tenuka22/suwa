@@ -3,6 +3,7 @@ import {
   D1Database,
   KVNamespace,
   TanStackStart,
+  Website,
   Worker,
 } from "alchemy/cloudflare";
 import { config } from "dotenv";
@@ -12,6 +13,7 @@ config({ path: "./.env" });
 if (process.env.NODE_ENV === "production") {
   config({ path: "../../apps/server/.env.production" });
   config({ path: "../../apps/web/.env.production" });
+  config({ path: "../../apps/native/.env.production" });
 } else {
   config({ path: "../../apps/server/.env" });
   config({ path: "../../apps/web/.env" });
@@ -68,7 +70,25 @@ export const web = await TanStackStart("web", {
   },
 });
 
+export const mobileWeb = await Website("mobile-web", {
+  cwd: "../../apps/native",
+  build: {
+    command: "npx expo export --platform web",
+    env: {
+      ...(process.env.NODE_ENV === "production"
+        ? { ENV_FILE: ".env.production" }
+        : {}),
+    },
+  },
+  assets: {
+    directory: "dist",
+    not_found_handling: "single-page-application",
+  },
+  bindings: {},
+});
+
 console.log(`Server -> ${server.url}`);
 console.log(`Web -> ${web.url}`);
+console.log(`Mobile Web -> ${mobileWeb.url}`);
 
 await app.finalize();
