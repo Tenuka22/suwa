@@ -1,5 +1,5 @@
 import {
-  ElementsProvider,
+  Elements,
   PaymentElement,
   useElements,
   useStripe,
@@ -57,6 +57,18 @@ function PaymentSheetModal({
     }
 
     setPaying(true);
+    const submitResult = await elements.submit();
+    if (submitResult.error) {
+      setPaying(false);
+      onResolve({
+        error: {
+          message: submitResult.error.message ?? "Unable to submit payment",
+          code: submitResult.error.type,
+        },
+      });
+      return;
+    }
+
     const { error } = await stripe.confirmPayment({
       elements,
       clientSecret,
@@ -238,7 +250,7 @@ function PaymentSheetProviderInner({ children }: PropsWithChildren) {
               padding: 24,
             }}
           >
-            <ElementsProvider stripe={stripePromise}>
+            <Elements options={{ clientSecret }} stripe={stripePromise}>
               <PaymentSheetModal
                 clientSecret={clientSecret}
                 onDismiss={handleDismiss}
@@ -248,7 +260,7 @@ function PaymentSheetProviderInner({ children }: PropsWithChildren) {
                   handleResolve(result);
                 }}
               />
-            </ElementsProvider>
+            </Elements>
           </View>
         </Modal>
       ) : null}
