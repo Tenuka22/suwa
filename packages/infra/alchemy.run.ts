@@ -1,11 +1,5 @@
 import alchemy from "alchemy";
-import {
-  D1Database,
-  KVNamespace,
-  TanStackStart,
-  Website,
-  Worker,
-} from "alchemy/cloudflare";
+import { KVNamespace, TanStackStart, Website, Worker,D1Database } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
 config({ path: "./.env" });
@@ -21,7 +15,7 @@ if (process.env.NODE_ENV === "production") {
 
 const app = await alchemy("zen-doc");
 
-const db = await D1Database("database", {
+const db = await D1Database("primary-database", {
   migrationsDir: "../../packages/db/src/migrations",
 });
 

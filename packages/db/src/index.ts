@@ -13,6 +13,8 @@ import {
   type DoctorScheduleEntry as DoctorScheduleEntrySchema,
   type DoctorSession as DoctorSessionSchema,
   type DoctorWeeklyAvailability as DoctorWeeklyAvailabilitySchema,
+  type SessionTaskAssignment as SessionTaskAssignmentSchema,
+  sessionTaskAssignments as sessionTaskAssignmentsTable,
   doctorCashoutRequests as doctorCashoutRequestsTable,
   doctorCredits as doctorCreditsTable,
   doctorEducationEntries as doctorEducationEntriesTable,
@@ -62,6 +64,7 @@ export const doctorCredits = doctorCreditsTable;
 export const doctorCashoutRequests = doctorCashoutRequestsTable;
 export const sessionAttendanceEvents = sessionAttendanceEventsTable;
 export const sessionSnapshots = sessionSnapshotsTable;
+export const sessionTaskAssignments = sessionTaskAssignmentsTable;
 
 export type DoctorProfile = DoctorProfileSchema;
 export type DoctorFile = DoctorFileSchema;
@@ -78,6 +81,7 @@ export type DoctorCredit = DoctorCreditSchema;
 export type DoctorCashoutRequest = DoctorCashoutRequestSchema;
 export type SessionAttendanceEvent = SessionAttendanceEventSchema;
 export type SessionSnapshot = SessionSnapshotSchema;
+export type SessionTaskAssignment = SessionTaskAssignmentSchema;
 
 export function createDb() {
   return drizzle(env.DB, {
@@ -97,6 +101,7 @@ export function createDb() {
       doctorCashoutRequests,
       sessionAttendanceEvents,
       sessionSnapshots,
+      sessionTaskAssignments,
     },
   });
 }

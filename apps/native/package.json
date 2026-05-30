@@ -34,6 +34,7 @@
     "expo-crypto": "~55.0.14",
     "expo-dev-client": "~55.0.28",
     "expo-font": "~55.0.6",
+    "expo-haptics": "^56.0.3",
     "expo-linking": "~55.0.14",
     "expo-network": "~55.0.13",
     "expo-router": "~55.0.13",

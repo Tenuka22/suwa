@@ -1,1 +1,0 @@
-ALTER TABLE `doctor_profiles` DROP COLUMN `verified`;

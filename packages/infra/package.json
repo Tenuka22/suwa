@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_ENV=development alchemy dev",
     "deploy": "NODE_ENV=production alchemy deploy --stage=tenuk",
-    "destroy": "alchemy destroy"
+    "destroy": "alchemy destroy --stage=tenuk"
   },
   "dependencies": {
     "@zen-doc/db": "workspace:*",

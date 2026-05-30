@@ -1,1 +1,0 @@
-ALTER TABLE `doctor_plans` ADD `is_default` integer DEFAULT false NOT NULL;

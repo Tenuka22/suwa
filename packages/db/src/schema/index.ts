@@ -74,6 +74,21 @@ export const doctorSessions = sqliteTable("doctor_sessions", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+export const sessionTaskAssignments = sqliteTable("session_task_assignments", {
+  id: text("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  doctorId: text("doctor_id").notNull(),
+  patientId: text("patient_id").notNull(),
+  taskKey: text("task_key").notNull(),
+  title: text("title").notNull(),
+  minutes: integer("minutes").notNull(),
+  points: integer("points").notNull(),
+  rewardLabel: text("reward_label").notNull(),
+  status: text("status").notNull().default("assigned"),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 export const doctorFiles = sqliteTable(
   "doctor_files",
   {
