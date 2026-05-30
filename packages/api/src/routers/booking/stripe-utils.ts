@@ -8,7 +8,7 @@ export function getStripe(): Stripe {
   if (!stripeInstance) {
     const key = env.STRIPE_SECRET_KEY;
     stripeInstance = new Stripe(key, {
-      apiVersion: "2026-04-22.dahlia",
+      apiVersion: "2025-08-27.basil",
     });
   }
   return stripeInstance;

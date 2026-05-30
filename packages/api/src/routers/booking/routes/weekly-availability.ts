@@ -72,6 +72,10 @@ export const saveWeeklyAvailabilityRoute = protectedProcedure
 export const getDoctorWeeklyAvailabilityRoute = protectedProcedure
   .input(z.object({ doctorId: z.string().min(1) }))
   .handler(async ({ context, input }) => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.toTimeString().slice(0, 5);
+
     const slots = await context.db
       .select()
       .from(doctorWeeklyAvailability)
@@ -86,5 +90,17 @@ export const getDoctorWeeklyAvailabilityRoute = protectedProcedure
         doctorWeeklyAvailability.startTime
       );
 
-    return { slots };
+    const filteredSlots = slots.filter((slot) => {
+      if (slot.dayOfWeek > currentDay) {
+        return true;
+      }
+
+      if (slot.dayOfWeek < currentDay) {
+        return false;
+      }
+
+      return slot.startTime >= currentTime;
+    });
+
+    return { slots: filteredSlots };
   });

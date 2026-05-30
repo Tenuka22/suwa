@@ -218,6 +218,20 @@ export default function BookingScreen() {
     endAt: string;
     available: boolean;
   }>;
+  const filteredSlots = slots.filter((slot) => {
+    if (!selectedDate) {
+      return true;
+    }
+
+    const slotStart = new Date(slot.startAt);
+    const isToday = slotStart.toDateString() === new Date().toDateString();
+
+    if (!isToday) {
+      return true;
+    }
+
+    return slotStart.getTime() > Date.now();
+  });
   const plans = plansQuery.data?.plans ?? [];
   const doctor = doctorQuery.data?.profile;
   const availability = (availabilityQuery.data?.slots ?? []) as Array<{
@@ -460,7 +474,7 @@ export default function BookingScreen() {
                     </Text>
                   </View>
                   <View className="flex-row flex-wrap gap-2">
-                    {slots.map((slot, i) => {
+                    {filteredSlots.map((slot, i) => {
                       const isSelected = selectedSlot?.startAt === slot.startAt;
                       return (
                         <Button

@@ -240,15 +240,14 @@ export default function AppointmentsScreen() {
                       </View>
                     ) : null}
 
-                    {session.status === "approved" ? (
-                      <SessionJoinButton
-                        endAt={session.endAt}
-                        onJoin={handleJoinSession}
-                        role={userRole}
-                        sessionId={session.id}
-                        startAt={session.startAt}
-                      />
-                    ) : null}
+                    <SessionJoinButton
+                      endAt={session.endAt}
+                      onJoin={handleJoinSession}
+                      role={userRole}
+                      sessionId={session.id}
+                      startAt={session.startAt}
+                      status={session.status}
+                    />
                   </Card>
                 );
               })}
@@ -266,17 +265,19 @@ function SessionJoinButton({
   role,
   sessionId,
   startAt,
+  status,
 }: {
   endAt: string;
   onJoin: (id: string) => void;
   role: "patient" | "doctor" | "admin";
   sessionId: string;
   startAt: string;
+  status: string;
 }) {
   const colors = useThemeColor();
   const timing = useSessionTiming(startAt, endAt, role);
 
-  if (timing.canJoin) {
+  if (status === "approved" && timing.canJoin) {
     return (
       <Button
         className="w-full"

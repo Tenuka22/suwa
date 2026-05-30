@@ -5,7 +5,6 @@ import { protectedProcedure } from "../../../index";
 import { getStripe } from "../../booking/stripe-utils";
 
 const DEFAULT_CREDIT_QUANTITY = 1;
-const DEFAULT_RETURN_URL = "https://zen-doc.app";
 
 export const purchaseCreditsRoute = protectedProcedure
   .input(
@@ -21,34 +20,21 @@ export const purchaseCreditsRoute = protectedProcedure
     const taxCents = Math.ceil(subtotalCents * TAX_RATE);
     const amount = subtotalCents + taxCents;
 
-    const returnUrl = input.returnUrl ?? DEFAULT_RETURN_URL;
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Zen Doc Credits",
-              description: `${input.credits} credits for Zen Doc`,
-            },
-            unit_amount: amount,
-          },
-          quantity: 1,
-        },
-      ],
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd",
+      automatic_payment_methods: {
+        enabled: true,
+      },
       metadata: {
         type: "credit_topup",
         userId,
         credits: String(input.credits),
       },
-      success_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: returnUrl,
     });
 
     return {
-      url: session.url,
+      clientSecret: paymentIntent.client_secret,
       amount,
       subtotalCents,
       taxCents,

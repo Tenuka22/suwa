@@ -36,29 +36,68 @@ stripeApp.post("/", async (c) => {
     return c.text("Webhook Error", 400);
   }
 
-  // Handle subscription events
+  // Handle checkout completion for both subscriptions and credit purchases
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    
-    if (session.metadata?.type === "subscription" && session.subscription) {
-      const userId = session.metadata?.userId;
-      const planType = session.metadata?.planType;
-      
-      if (userId && planType === "monthly_5_credits") {
-        // Create subscription record
+    const sessionType = session.metadata?.type;
+    const userId = session.metadata?.userId;
+
+    if (sessionType === "credit_topup" && userId) {
+      const creditsToAdd = Number.parseInt(session.metadata?.credits ?? "0", 10);
+      if (creditsToAdd > 0) {
+        const [existing] = await db
+          .select()
+          .from(userCredits)
+          .where(eq(userCredits.userId, userId))
+          .limit(1);
+
         const now = new Date().toISOString();
+        const newBalance = existing ? existing.balance + creditsToAdd : creditsToAdd;
+
+        if (existing) {
+          await db
+            .update(userCredits)
+            .set({
+              balance: newBalance,
+              updatedAt: now,
+            })
+            .where(eq(userCredits.userId, userId));
+        } else {
+          await db.insert(userCredits).values({
+            userId,
+            balance: creditsToAdd,
+          });
+        }
+
+        await db.insert(creditTransactions).values({
+          id: crypto.randomUUID(),
+          userId,
+          amount: creditsToAdd,
+          type: "purchase",
+          createdAt: now,
+        });
+      }
+    }
+
+    if (sessionType === "subscription" && session.subscription) {
+      const planType = session.metadata?.planType;
+
+      if (userId && planType === "monthly_5_credits") {
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription.toString()
+        );
+        const now = new Date().toISOString();
+
         await db.insert(userSubscriptions).values({
           id: crypto.randomUUID(),
           userId,
-          stripeSubscriptionId: session.subscription.toString(),
+          planId: "monthly_5_credits",
+          stripeSubscriptionId: subscription.id,
           status: "active",
-          currentPeriodStart: new Date(session.current_period_start * 1000).toISOString(),
-          currentPeriodEnd: new Date(session.current_period_end * 1000).toISOString(),
           createdAt: now,
           updatedAt: now,
         });
-        
-        // Add initial 5 credits
+
         const [existingCredits] = await db
           .select()
           .from(userCredits)
@@ -93,21 +132,21 @@ stripeApp.post("/", async (c) => {
 
   // Handle subscription renewal/webhook events
   if (event.type === "invoice.payment_succeeded") {
-    const invoice = event.data.object as Stripe.Invoice;
-    
-    if (invoice.subscription) {
-      // Find the subscription by stripe subscription id
-      const [subscription] = await db
+    const invoiceObject = event.data.object;
+
+    if ("subscription" in invoiceObject && invoiceObject.subscription) {
+      const subscriptionId = invoiceObject.subscription.toString();
+      await stripe.subscriptions.retrieve(subscriptionId);
+      const [userSubscription] = await db
         .select()
         .from(userSubscriptions)
-        .where(eq(userSubscriptions.stripeSubscriptionId, invoice.subscription.toString()))
+        .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId))
         .limit(1);
 
-      if (subscription) {
-        const userId = subscription.userId;
+      if (userSubscription) {
+        const userId = userSubscription.userId;
         const now = new Date().toISOString();
-        
-        // Add 5 credits for the monthly renewal
+
         const [existingCredits] = await db
           .select()
           .from(userCredits)
@@ -141,11 +180,9 @@ stripeApp.post("/", async (c) => {
         await db
           .update(userSubscriptions)
           .set({
-            currentPeriodStart: new Date(invoice.period_start * 1000).toISOString(),
-            currentPeriodEnd: new Date(invoice.period_end * 1000).toISOString(),
             updatedAt: now,
           })
-          .where(eq(userSubscriptions.id, subscription.id));
+          .where(eq(userSubscriptions.id, userSubscription.id));
       }
     }
   }
@@ -191,12 +228,14 @@ stripeApp.post("/", async (c) => {
         ? existing.balance + creditsToAdd
         : creditsToAdd;
 
+      const now = new Date().toISOString();
+
       if (existing) {
         await db
           .update(userCredits)
           .set({
             balance: newBalance,
-            updatedAt: new Date().toISOString(),
+            updatedAt: now,
           })
           .where(eq(userCredits.userId, userId));
       } else {
@@ -211,7 +250,7 @@ stripeApp.post("/", async (c) => {
         userId,
         amount: creditsToAdd,
         type: "purchase",
-        createdAt: new Date().toISOString(),
+        createdAt: now,
       });
     }
   }

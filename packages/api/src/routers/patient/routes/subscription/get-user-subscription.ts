@@ -1,13 +1,10 @@
-import {
-  userSubscriptions,
-} from "@zen-doc/db";
+import { userSubscriptions } from "@zen-doc/db";
 import { and, eq } from "drizzle-orm";
-import { z } from "zod";
-import { requireAuth } from "../../../hooks";
-import { protectedProcedure } from "../../../index";
+import { requireAuth } from "../../../../hooks";
+import { protectedProcedure } from "../../../../index";
 
-export const getUserSubscriptionRoute = protectedProcedure
-  .query(async ({ context }) => {
+export const getUserSubscriptionRoute = protectedProcedure.handler(
+  async ({ context }) => {
     const { userId } = requireAuth(context);
 
     const [subscription] = await context.db
@@ -22,4 +19,5 @@ export const getUserSubscriptionRoute = protectedProcedure
       .limit(1);
 
     return subscription ?? null;
-  });
+  }
+);

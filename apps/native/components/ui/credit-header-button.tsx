@@ -9,7 +9,6 @@ import {
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Linking,
   Modal,
   Pressable,
   Text,
@@ -17,9 +16,11 @@ import {
 } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { usePaymentSheet } from "@/utils/stripe";
 import { orpc } from "@/utils/orpc";
 
 const CREDIT_OPTIONS = [1, 5, 10, 20] as const;
+const SUBSCRIPTION_CREDITS = MONTHLY_PLAN_CREDITS;
 
 function formatPrice(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
@@ -31,21 +32,33 @@ export function CreditHeaderButton() {
   const [selectedCredits, setSelectedCredits] = useState<
     (typeof CREDIT_OPTIONS)[number]
   >(CREDIT_OPTIONS[0]);
-  const [subscriptionType, setSubscriptionType] = useState<"none" | "monthly">(
-    "none"
+  const [selectedOffer, setSelectedOffer] = useState<"credits" | "subscription">(
+    "credits"
   );
   const creditQuery = useQuery(orpc.getUserCredits.queryOptions());
   const subscriptionQuery = useQuery(orpc.getUserSubscription.queryOptions());
+  const paymentSheet = usePaymentSheet();
 
   const purchaseMutation = useMutation(
     orpc.purchaseCredits.mutationOptions({
       onSuccess: async (result) => {
-        if (!result.url) {
-          throw new Error("Stripe did not return a payment URL");
+        if (!result.clientSecret) {
+          throw new Error("Stripe did not return a payment client secret");
         }
 
-        // Open the Stripe Checkout URL in the default browser
-        await Linking.openURL(result.url);
+        const initResult = await paymentSheet.initPaymentSheet({
+          paymentIntentClientSecret: result.clientSecret,
+          merchantDisplayName: "Zen Doc",
+        });
+
+        if (initResult.error) {
+          throw new Error(initResult.error.message ?? "Unable to open payment sheet");
+        }
+
+        const presentResult = await paymentSheet.presentPaymentSheet();
+        if (presentResult.error) {
+          throw new Error(presentResult.error.message ?? "Payment failed");
+        }
 
         await creditQuery.refetch();
         setModalVisible(false);
@@ -62,12 +75,23 @@ export function CreditHeaderButton() {
   const subscriptionMutation = useMutation(
     orpc.createSubscription.mutationOptions({
       onSuccess: async (result) => {
-        if (!result.url) {
-          throw new Error("Stripe did not return a payment URL");
+        if (!result.clientSecret) {
+          throw new Error("Stripe did not return a payment client secret");
         }
 
-        // Open the Stripe Checkout URL in the default browser
-        await Linking.openURL(result.url);
+        const initResult = await paymentSheet.initPaymentSheet({
+          paymentIntentClientSecret: result.clientSecret,
+          merchantDisplayName: "Zen Doc",
+        });
+
+        if (initResult.error) {
+          throw new Error(initResult.error.message ?? "Unable to open payment sheet");
+        }
+
+        const presentResult = await paymentSheet.presentPaymentSheet();
+        if (presentResult.error) {
+          throw new Error(presentResult.error.message ?? "Payment failed");
+        }
 
         await creditQuery.refetch();
         await subscriptionQuery.refetch();
@@ -87,16 +111,11 @@ export function CreditHeaderButton() {
   const handleBuyCredits = () => {
     setPurchaseError(null);
 
-    const mutationOptions: {
-      credits: (typeof CREDIT_OPTIONS)[number];
-      returnUrl?: string;
-    } = {
+    const mutationOptions = {
       credits: selectedCredits,
+      returnUrl:
+        typeof window === "undefined" ? undefined : window.location.href,
     };
-
-    if (typeof window !== "undefined") {
-      mutationOptions.returnUrl = window.location.href;
-    }
 
     purchaseMutation.mutate(mutationOptions);
   };
@@ -105,10 +124,10 @@ export function CreditHeaderButton() {
     setPurchaseError(null);
 
     const mutationOptions = {
-      planType: MONTHLY_PLAN_TYPE as "monthly_5_credits",
+      planType: MONTHLY_PLAN_TYPE,
       returnUrl:
         typeof window === "undefined" ? undefined : window.location.href,
-    };
+    } as const;
 
     subscriptionMutation.mutate(mutationOptions);
   };
@@ -118,7 +137,7 @@ export function CreditHeaderButton() {
       return "Processing...";
     }
 
-    if (subscriptionType === "monthly") {
+    if (selectedOffer === "subscription") {
       return "Subscribe now";
     }
 
@@ -169,16 +188,58 @@ export function CreditHeaderButton() {
             </View>
 
             <Text className="text-muted-foreground text-sm">
-              Add credits to your account.
+              Choose a one-time credit pack or a monthly subscription.
             </Text>
 
-            <View className="flex-row flex-wrap gap-2">
-              {/* Credit Purchase Options */}
-              {subscriptionQuery.data?.status !== "active" && (
-                <>
-                  <Text className="w-full font-sans text-bold text-foreground">
-                    Buy Credits
+            {subscriptionQuery.data?.status !== "active" ? (
+              <View className="flex-row gap-2 rounded-card border-2 border-border bg-muted/20 p-1">
+                <Pressable
+                  accessibilityRole="button"
+                  className={`flex-1 rounded-card px-3 py-2 ${
+                    selectedOffer === "credits"
+                      ? "bg-primary"
+                      : "bg-transparent"
+                  }`}
+                  onPress={() => setSelectedOffer("credits")}
+                >
+                  <Text
+                    className={`text-center font-semibold ${
+                      selectedOffer === "credits"
+                        ? "text-primary-foreground"
+                        : "text-foreground"
+                    }`}
+                  >
+                    Credits
                   </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  className={`flex-1 rounded-card px-3 py-2 ${
+                    selectedOffer === "subscription"
+                      ? "bg-primary"
+                      : "bg-transparent"
+                  }`}
+                  onPress={() => setSelectedOffer("subscription")}
+                >
+                  <Text
+                    className={`text-center font-semibold ${
+                      selectedOffer === "subscription"
+                        ? "text-primary-foreground"
+                        : "text-foreground"
+                    }`}
+                  >
+                    Subscription
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {selectedOffer === "credits" ? (
+              <View className="space-y-3">
+                <Text className="font-sans text-bold text-foreground">
+                  Buy credits
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
                   {CREDIT_OPTIONS.map((amount) => {
                     const isSelected = selectedCredits === amount;
                     const subtotal = amount * CREDIT_PRICE_CENTS;
@@ -215,48 +276,51 @@ export function CreditHeaderButton() {
                       </Pressable>
                     );
                   })}
-                </>
-              )}
+                </View>
+              </View>
+            ) : null}
 
-              {/* Subscription Options */}
-              {subscriptionQuery.data?.status !== "active" && (
-                <>
-                  <Text className="mt-4 w-full font-sans text-bold text-foreground">
-                    Subscribe & Save
+            {selectedOffer === "subscription" &&
+            subscriptionQuery.data?.status !== "active" ? (
+              <View className="gap-1 rounded-card border-2 border-border bg-muted/30 p-card">
+                <Text className="font-sans text-bold text-foreground">
+                  Monthly Subscription
+                </Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-muted-foreground text-sm">
+                    Credits per month:
                   </Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    className={`flex-1 rounded-card border-2 p-card ${
-                      subscriptionType === "monthly"
-                        ? "border-primary bg-primary"
-                        : "border-border bg-card"
-                    }`}
-                    onPress={() => setSubscriptionType("monthly")}
-                  >
-                    <Text
-                      className={`text-center font-bold font-sans text-lg ${
-                        subscriptionType === "monthly"
-                          ? "text-primary-foreground"
-                          : "text-foreground"
-                      }`}
-                    >
-                      5 Credits
-                    </Text>
-                    <Text
-                      className={`text-center font-sans text-sm ${
-                        subscriptionType === "monthly"
-                          ? "text-primary-foreground/80"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {formatPrice(MONTHLY_PLAN_AMOUNT_CENTS)}/month
-                    </Text>
-                  </Pressable>
-                </>
-              )}
-            </View>
+                  <Text className="text-foreground text-sm">
+                    {SUBSCRIPTION_CREDITS} credits
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-muted-foreground text-sm">
+                    Cost per month:
+                  </Text>
+                  <Text className="text-foreground text-sm">
+                    {formatPrice(MONTHLY_PLAN_AMOUNT_CENTS)}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-muted-foreground text-sm">
+                    Effective cost per credit:
+                  </Text>
+                  <Text className="text-foreground text-sm">
+                    {formatPrice(
+                      Math.round(MONTHLY_PLAN_AMOUNT_CENTS / SUBSCRIPTION_CREDITS)
+                    )}
+                  </Text>
+                </View>
+                <View className="mt-1 border-border border-t pt-1">
+                  <Text className="font-sans text-bold text-foreground">
+                    You save 33% vs buying separately
+                  </Text>
+                </View>
+              </View>
+            ) : null}
 
-            {selectedCredits ? (
+            {selectedOffer === "credits" ? (
               <View className="gap-1 rounded-card border-2 border-border bg-muted/30 p-card">
                 <View className="flex-row items-center justify-between">
                   <Text className="text-muted-foreground text-sm">
@@ -297,59 +361,6 @@ export function CreditHeaderButton() {
               </View>
             ) : null}
 
-            {/* Subscription Details */}
-            {subscriptionType === "monthly" && (
-              <View className="mt-4 gap-1 rounded-card border-2 border-border bg-muted/30 p-card">
-                <Text className="font-sans text-bold text-foreground">
-                  Monthly Subscription
-                </Text>
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-muted-foreground text-sm">
-                    Credits per month:
-                  </Text>
-                  <Text className="text-foreground text-sm">
-                    {MONTHLY_PLAN_CREDITS} credits
-                  </Text>
-                </View>
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-muted-foreground text-sm">
-                    Cost per month:
-                  </Text>
-                  <Text className="text-foreground text-sm">
-                    {formatPrice(MONTHLY_PLAN_AMOUNT_CENTS)}
-                  </Text>
-                </View>
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-muted-foreground text-sm">
-                    Effective cost per credit:
-                  </Text>
-                  <Text className="text-foreground text-sm">
-                    {formatPrice(
-                      Math.round(
-                        MONTHLY_PLAN_AMOUNT_CENTS / MONTHLY_PLAN_CREDITS
-                      )
-                    )}
-                  </Text>
-                </View>
-                <View className="mt-1 border-border border-t pt-1">
-                  {/* Calculate savings percentage */}
-                  {/* 
-                    Regular price for 5 credits: 5 * 1500 = 7500 cents
-                    Tax on regular price: 7500 * 0.1 = 750 cents
-                    Total regular price: 7500 + 750 = 8250 cents
-                    Subscription price: 5000 cents
-                    Tax on subscription: 5000 * 0.1 = 500 cents
-                    Total subscription price: 5000 + 500 = 5500 cents
-                    Savings: 8250 - 5500 = 2750 cents
-                    Savings percentage: (2750 / 8250) * 100 = 33.33%
-                    */}
-                  <Text className="font-sans text-bold text-foreground">
-                    You save 33% vs buying separately
-                  </Text>
-                </View>
-              </View>
-            )}
-
             {purchaseError ? (
               <Text className="text-destructive text-sm">{purchaseError}</Text>
             ) : null}
@@ -360,7 +371,7 @@ export function CreditHeaderButton() {
                 purchaseMutation.isPending || subscriptionMutation.isPending
               }
               onPress={
-                subscriptionType === "monthly"
+                selectedOffer === "subscription"
                   ? handleSubscribe
                   : handleBuyCredits
               }

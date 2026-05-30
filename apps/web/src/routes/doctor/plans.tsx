@@ -2,9 +2,10 @@ import {
   SignInButton as ClerkSignInButton,
   useUser,
 } from "@clerk/tanstack-react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
+import { Button } from "@zen-doc/ui/components/button";
 import {
   Card,
   CardContent,
@@ -19,12 +20,23 @@ import {
   ChartTooltipContent,
 } from "@zen-doc/ui/components/chart";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@zen-doc/ui/components/dialog";
+import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from "@zen-doc/ui/components/empty";
+import { Input } from "@zen-doc/ui/components/input";
+import { Label } from "@zen-doc/ui/components/label";
 import { Separator } from "@zen-doc/ui/components/separator";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
 import {
@@ -33,12 +45,16 @@ import {
   CoinsIcon,
   CreditCardIcon,
   LayoutGridIcon,
+  Loader2,
   PackageIcon,
+  PlusIcon,
   StarIcon,
   StethoscopeIcon,
   TrendingUpIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -137,6 +153,109 @@ function SectionHeader({
 
       {action}
     </div>
+  );
+}
+
+function CreatePlanDialog() {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [creditCost, setCreditCost] = useState("1");
+  const [durationMinutes, setDurationMinutes] = useState("60");
+  const [features, setFeatures] = useState("");
+
+  const createMutation = useMutation(
+    orpc.createDoctorPlan.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Plan created");
+        setOpen(false);
+        setName("");
+        setDescription("");
+        setCreditCost("1");
+        setDurationMinutes("60");
+        setFeatures("");
+      },
+      onError: (error: Error) => {
+        toast.error(error.message);
+      },
+    })
+  );
+
+  const handleCreate = () => {
+    const parsedFeatures = features
+      .split("\n")
+      .map((feature) => feature.trim())
+      .filter(Boolean);
+
+    createMutation.mutate({
+      name,
+      description: description.trim() ? description : undefined,
+      creditCost: Number(creditCost),
+      durationMinutes: Number(durationMinutes),
+      features: parsedFeatures.length > 0 ? parsedFeatures : undefined,
+    });
+  };
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger
+        render={
+          <Button className="gap-2" size="sm">
+            <PlusIcon className="size-4" />
+            Create plan
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>Create plan</DialogTitle>
+          <DialogDescription>
+            Add a new consultation plan for your patients.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="plan-name">Plan name</Label>
+            <Input id="plan-name" onChange={(e) => setName(e.target.value)} value={name} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="plan-description">Description</Label>
+            <Input
+              id="plan-description"
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="credit-cost">Credits</Label>
+              <Input id="credit-cost" min="1" onChange={(e) => setCreditCost(e.target.value)} type="number" value={creditCost} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="duration">Duration minutes</Label>
+              <Input id="duration" min="60" onChange={(e) => setDurationMinutes(e.target.value)} type="number" value={durationMinutes} />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="features">Features</Label>
+            <Input
+              id="features"
+              onChange={(e) => setFeatures(e.target.value)}
+              placeholder="One feature per line"
+              value={features}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button disabled={createMutation.isPending} onClick={handleCreate}>
+            {createMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            Create
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -289,96 +408,121 @@ function DoctorPlansRoute() {
         />
       </section>
 
-      <Card className="rounded-3xl border-border/60">
-        <CardHeader>
-          <SectionHeader
-            action={
-              <Badge className="gap-1" variant="secondary">
-                <CreditCardIcon className="size-3" />
-                Credit cost comparison
-              </Badge>
-            }
-            description="Credit cost and duration breakdown across your plans"
-            title="Pricing overview"
-          />
-        </CardHeader>
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
+        <Card className="rounded-3xl border-border/60">
+          <CardHeader>
+            <SectionHeader
+              action={<CreatePlanDialog />}
+              description="Create and manage the plans patients can book"
+              title="Plan controls"
+            />
+          </CardHeader>
 
-        <Separator />
+          <Separator />
 
-        <CardContent>
-          {chartData.length > 0 ? (
-            <ChartContainer
-              className="h-[400px] w-full"
-              config={{
-                credits: {
-                  label: "Credits",
-                  color: "var(--primary)",
-                },
-              }}
-            >
-              <BarChart
-                accessibilityLayer
-                data={chartData}
-                layout="vertical"
-                margin={{ left: 100, right: 40 }}
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
+                <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                  Total plans
+                </p>
+                <p className="mt-2 font-semibold text-2xl">{totalPlans}</p>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
+                <p className="text-muted-foreground text-xs uppercase tracking-wider">
+                  Default plan
+                </p>
+                <p className="mt-2 font-semibold text-2xl">{defaultPlanName ?? "None"}</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
+              Keep your pricing simple and consistent. Use the chart to compare
+              credit cost against session duration.
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-border/60">
+          <CardHeader>
+            <SectionHeader
+              action={
+                <Badge className="gap-1" variant="secondary">
+                  <CreditCardIcon className="size-3" />
+                  Credit cost comparison
+                </Badge>
+              }
+              description="A compact comparison of credits and minutes"
+              title="Plan comparison"
+            />
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent>
+            {chartData.length > 0 ? (
+              <ChartContainer
+                className="h-[280px] w-full"
+                config={{
+                  credits: {
+                    label: "Credits",
+                    color: "var(--primary)",
+                  },
+                }}
               >
-                <CartesianGrid horizontal={false} />
-
-                <XAxis axisLine={false} tickLine={false} type="number" />
-
-                <YAxis
-                  axisLine={false}
-                  dataKey="name"
-                  tickLine={false}
-                  tickMargin={10}
-                  type="category"
-                />
-
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value: unknown) =>
-                        `${Number(value)} credit${Number(value) === 1 ? "" : "s"}`
-                      }
-                      indicator="dot"
-                    />
-                  }
-                  cursor={false}
-                />
-
-                <Bar
-                  dataKey="credits"
-                  fill="var(--primary)"
-                  fillOpacity={0.2}
-                  radius={[0, 6, 6, 0]}
-                  stroke="var(--primary)"
-                  strokeWidth={2}
+                <BarChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{ left: 12, right: 12, top: 8 }}
                 >
-                  <LabelList
+                  <CartesianGrid vertical={false} />
+
+                  <XAxis axisLine={false} tickLine={false} dataKey="name" tick={{ fontSize: 12 }} />
+
+                  <YAxis axisLine={false} tickLine={false} hide />
+
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value: unknown, name: unknown, payload: unknown) => {
+                          const item = payload as { payload?: { minutes?: number } };
+                          return `${Number(value)} credits · ${item.payload?.minutes ?? 0} min`;
+                        }}
+                        indicator="dot"
+                      />
+                    }
+                    cursor={false}
+                  />
+
+                  <Bar
                     dataKey="credits"
                     fill="var(--primary)"
-                    offset={8}
-                    position="right"
-                  />
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <PackageIcon />
-                </EmptyMedia>
-                <EmptyTitle>No plans configured</EmptyTitle>
-                <EmptyDescription>
-                  Create your first session plan to start offering consultations
-                  to patients.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          )}
-        </CardContent>
-      </Card>
+                    fillOpacity={0.3}
+                    radius={[8, 8, 0, 0]}
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                  >
+                    <LabelList dataKey="credits" fill="var(--primary)" position="top" />
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <PackageIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>No plans configured</EmptyTitle>
+                  <EmptyDescription>
+                    Create your first session plan to start offering consultations
+                    to patients.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {chartData.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

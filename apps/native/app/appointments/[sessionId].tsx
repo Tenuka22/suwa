@@ -7,6 +7,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { VideoRoom } from "@/components/ui/video-room";
+import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
@@ -43,6 +44,12 @@ export default function AppointmentSessionDetailScreen() {
     enabled: !!sessionId,
   });
 
+  const timing = useSessionTiming(
+    sessionQuery.data?.session.startAt ?? new Date().toISOString(),
+    sessionQuery.data?.session.endAt ?? new Date().toISOString(),
+    userRole
+  );
+
   if (sessionQuery.isPending) {
     return (
       <Screen contentClassName="items-center justify-center px-page py-page">
@@ -63,6 +70,22 @@ export default function AppointmentSessionDetailScreen() {
   }
 
   const { session } = sessionQuery.data;
+
+  if (!timing.canJoin) {
+    return (
+      <Screen contentClassName="items-center justify-center px-page py-page gap-4">
+        <Text className="text-center font-bold text-foreground text-lg">
+          Join window not open yet
+        </Text>
+        <Text className="text-center text-muted-foreground text-sm">
+          You can join 30 minutes before the session starts and until 30 minutes after it ends.
+        </Text>
+        <Button onPress={() => router.back()} variant="secondary">
+          Back
+        </Button>
+      </Screen>
+    );
+  }
 
   return (
     <>

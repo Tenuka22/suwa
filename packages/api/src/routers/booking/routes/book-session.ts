@@ -1,5 +1,5 @@
 import { doctorPlans, doctorSessions } from "@zen-doc/db";
-import { and, eq, inArray, ne, or } from "drizzle-orm";
+import { and, eq, gt, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
@@ -32,27 +32,27 @@ export const bookSessionRoute = protectedProcedure
       throw new Error("The selected plan is not available");
     }
 
-    // Check for overlapping sessions with this doctor
+    // Allow multiple sessions with the same doctor as long as they don't overlap
     const overlapping = await context.db
       .select({ id: doctorSessions.id })
       .from(doctorSessions)
       .where(
         and(
           eq(doctorSessions.doctorId, input.doctorId),
-          ne(doctorSessions.status, "timing_balance_failure"),
-          ne(doctorSessions.status, "attended"),
           or(
-            inArray(doctorSessions.status, [
-              "requested",
-              "rescheduled",
-              "approved",
-            ])
+            and(
+              lt(doctorSessions.startAt, input.endAt),
+              gt(doctorSessions.endAt, input.startAt)
+            ),
+            eq(doctorSessions.status, "requested"),
+            eq(doctorSessions.status, "rescheduled"),
+            eq(doctorSessions.status, "approved")
           )
         )
       );
 
     if (overlapping.length > 0) {
-      throw new Error("You already have a pending session with this doctor");
+      throw new Error("You already have a session that overlaps with this time");
     }
 
     const now = new Date().toISOString();

@@ -123,66 +123,6 @@ function DoctorLayoutRoute() {
             <SidebarTrigger />
             <Separator className="h-6" orientation="vertical" />
             <Breadcrumbs />
-            <div className="ml-auto flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button className="gap-2 pr-2 pl-1.5" variant="ghost">
-                      <Avatar className="size-6">
-                        <AvatarFallback className="text-[10px]">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden font-medium sm:inline">
-                        {name}
-                      </span>
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="flex items-center gap-3 px-2 py-1.5">
-                    <Avatar>
-                      <AvatarFallback className="text-xs">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate font-medium text-sm">
-                        {name}
-                      </span>
-                      <Badge className="w-fit" variant="secondary">
-                        Doctor
-                      </Badge>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <LayoutDashboardIcon />
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <UserIcon />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <SettingsIcon />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <HelpCircleIcon />
-                    Help
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => signOut()}
-                    variant="destructive"
-                  >
-                    <LogOutIcon />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </header>
           <div className="flex-1 p-6">
             <Outlet />

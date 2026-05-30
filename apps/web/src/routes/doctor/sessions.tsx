@@ -2,7 +2,7 @@ import {
   SignInButton as ClerkSignInButton,
   useUser,
 } from "@clerk/tanstack-react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
@@ -174,10 +174,11 @@ function PendingRequests({
   sessions: SessionItem[];
   refetch: () => void;
 }) {
-  const { mutate: respondSession, isPending: isResponding } =
-    orpc.respondSession.useMutation({
+  const { mutate: respondSession, isPending: isResponding } = useMutation(
+    orpc.respondSession.mutationOptions({
       onSuccess: () => refetch(),
-    });
+    })
+  );
 
   const pendingSessions = sessions.filter(
     (session) =>
@@ -565,6 +566,14 @@ function DoctorSessionsRoute() {
                     session.doctorEarnedCents == null
                       ? "--"
                       : `$${(session.doctorEarnedCents / 100).toFixed(2)}`;
+                  const canJoin =
+                    session.status === "approved" &&
+                    isValidStart &&
+                    isValidEnd &&
+                    isWithinInterval(new Date(), {
+                      start: subMinutes(start, 30),
+                      end: addMinutes(end, 30),
+                    });
 
                   return (
                     <Card
@@ -636,13 +645,7 @@ function DoctorSessionsRoute() {
                           ) : null}
 
                           {/* Join conference button for approved sessions within time window */}
-                          {session.status === "approved" &&
-                            isValidStart &&
-                            isValidEnd &&
-                            isWithinInterval(new Date(), {
-                              start: subMinutes(start, 30),
-                              end: addMinutes(end, 30),
-                            }) && (
+                          {canJoin && (
                               <div className="col-span-2">
                                 <Button
                                   className="mt-2 w-full gap-2"

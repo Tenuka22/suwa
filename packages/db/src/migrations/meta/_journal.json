@@ -141,6 +141,13 @@
       "when": 1779870485635,
       "tag": "0019_jazzy_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1780160202391,
+      "tag": "0020_overconfident_loners",
+      "breakpoints": true
     }
   ]
 }
