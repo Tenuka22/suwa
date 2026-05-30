@@ -1,6 +1,13 @@
 import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import { env } from "@zen-doc/env/native";
-import { createContext, type PropsWithChildren, useContext } from "react";
+import {
+  createContext,
+  type PropsWithChildren,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 
 interface PaymentSheetResult {
   error?: { code?: string; message?: string };
@@ -14,23 +21,52 @@ interface PaymentSheetContextValue {
   presentPaymentSheet: () => Promise<PaymentSheetResult>;
 }
 
+type ResolveFn = (result: PaymentSheetResult) => void;
+
 const PaymentSheetContext = createContext<PaymentSheetContextValue | null>(
   null
 );
 
 function PaymentSheetProviderInner({ children }: PropsWithChildren) {
   const stripe = useStripe();
+  const [isPresenting, setIsPresenting] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const resolveRef = useRef<ResolveFn | null>(null);
+
+  const initPaymentSheet = useCallback(
+    async (params: {
+      paymentIntentClientSecret: string;
+      merchantDisplayName?: string;
+    }): Promise<PaymentSheetResult> => {
+      const result = await stripe.initPaymentSheet({
+        paymentIntentClientSecret: params.paymentIntentClientSecret,
+        merchantDisplayName: params.merchantDisplayName ?? "Zen Doc",
+      });
+      if (result.error) {
+        return {
+          error: { message: result.error.message, code: result.error.code },
+        };
+      }
+      setClientSecret(params.paymentIntentClientSecret);
+      return {};
+    },
+    [stripe]
+  );
+
+  const presentPaymentSheet =
+    useCallback(async (): Promise<PaymentSheetResult> => {
+      const result = await stripe.presentPaymentSheet();
+      if (result.error) {
+        return {
+          error: { message: result.error.message, code: result.error.code },
+        };
+      }
+      return {};
+    }, [stripe]);
 
   return (
     <PaymentSheetContext.Provider
-      value={{
-        initPaymentSheet: async (params) =>
-          stripe.initPaymentSheet({
-            ...params,
-            merchantDisplayName: params.merchantDisplayName ?? "Zen Doc",
-          }),
-        presentPaymentSheet: async () => stripe.presentPaymentSheet(),
-      }}
+      value={{ initPaymentSheet, presentPaymentSheet }}
     >
       {children}
     </PaymentSheetContext.Provider>

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "alchemy dev",
+    "dev": "NODE_ENV=development alchemy dev",
     "deploy": "NODE_ENV=production alchemy deploy --stage=tenuk",
     "destroy": "alchemy destroy"
   },

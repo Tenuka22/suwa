@@ -1,11 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CREDIT_PRICE_CENTS, TAX_RATE } from "@zen-doc/pricing";
 import { useState } from "react";
-import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Modal, Pressable, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { orpc } from "@/utils/orpc";
-import { usePaymentSheet } from "@/utils/stripe";
 
 const CREDIT_OPTIONS = [1, 5, 10, 20] as const;
 
@@ -20,31 +19,16 @@ export function CreditHeaderButton() {
     (typeof CREDIT_OPTIONS)[number]
   >(CREDIT_OPTIONS[0]);
   const creditQuery = useQuery(orpc.getUserCredits.queryOptions());
-  const paymentSheet = usePaymentSheet();
 
   const purchaseMutation = useMutation(
     orpc.purchaseCredits.mutationOptions({
       onSuccess: async (result) => {
-        if (!result.clientSecret) {
-          throw new Error("Stripe did not return a payment sheet secret");
+        if (!result.url) {
+          throw new Error("Stripe did not return a payment URL");
         }
 
-        const initResult = await paymentSheet.initPaymentSheet({
-          paymentIntentClientSecret: result.clientSecret,
-          merchantDisplayName: "Zen Doc",
-        });
-        if (initResult.error) {
-          throw new Error(
-            initResult.error.message ?? "Unable to start payment"
-          );
-        }
-
-        const presentResult = await paymentSheet.presentPaymentSheet();
-        if (presentResult.error) {
-          throw new Error(
-            presentResult.error.message ?? "Unable to complete payment"
-          );
-        }
+        // Open the Stripe Checkout URL in the default browser
+        await Linking.openURL(result.url);
 
         await creditQuery.refetch();
         setModalVisible(false);
@@ -61,7 +45,10 @@ export function CreditHeaderButton() {
   const handleBuyCredits = () => {
     setPurchaseError(null);
 
-    const mutationOptions: { credits: (typeof CREDIT_OPTIONS)[number]; returnUrl?: string } = {
+    const mutationOptions: {
+      credits: (typeof CREDIT_OPTIONS)[number];
+      returnUrl?: string;
+    } = {
       credits: selectedCredits,
     };
 

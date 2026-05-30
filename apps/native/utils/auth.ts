@@ -1,5 +1,5 @@
 import type { Href, useRouter } from "expo-router";
-import { Globe, Monitor, MessageCircle } from "lucide-react-native";
+import { Globe, MessageCircle, Monitor } from "lucide-react-native";
 
 export const OAUTH_STRATEGIES = [
   { strategy: "oauth_google", label: "Google", icon: Globe },

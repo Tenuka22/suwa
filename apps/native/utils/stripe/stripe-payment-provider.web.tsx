@@ -1,8 +1,9 @@
-import { PaymentElement } from "@stripe/react-stripe-js";
 import {
-  CheckoutElementsProvider,
-  useCheckoutElements,
-} from "@stripe/react-stripe-js/checkout";
+  ElementsProvider,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { env } from "@zen-doc/env/native";
 import {
@@ -37,7 +38,7 @@ const PaymentSheetContext = createContext<PaymentSheetContextValue | null>(
 );
 
 function PaymentSheetModal({
-  clientSecret: _clientSecret,
+  clientSecret,
   onResolve,
   onDismiss,
 }: {
@@ -45,17 +46,24 @@ function PaymentSheetModal({
   onResolve: ResolveFn;
   onDismiss: () => void;
 }) {
-  const checkoutState = useCheckoutElements();
+  const stripe = useStripe();
+  const elements = useElements();
   const [paying, setPaying] = useState(false);
   const [elementError, setElementError] = useState<string | null>(null);
 
   const handleConfirm = useCallback(async () => {
-    if (checkoutState.type !== "ready") {
+    if (!(stripe && elements)) {
       return;
     }
 
     setPaying(true);
-    const { error } = await checkoutState.checkout.confirm({
+    const { error } = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: {
+        return_url:
+          typeof window === "undefined" ? undefined : window.location.href,
+      },
       redirect: "if_required",
     });
 
@@ -68,69 +76,7 @@ function PaymentSheetModal({
     }
 
     onResolve({});
-  }, [checkoutState, onResolve]);
-
-  if (checkoutState.type === "loading") {
-    return (
-      <View
-        style={{
-          backgroundColor: "white",
-          borderRadius: 16,
-          padding: 24,
-          width: "100%",
-          maxWidth: 420,
-          gap: 20,
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator color="#3b82f6" size="large" />
-        <Text style={{ color: "#64748b", fontSize: 14, marginTop: 12 }}>
-          Loading payment form...
-        </Text>
-      </View>
-    );
-  }
-
-  if (checkoutState.type === "error") {
-    return (
-      <View
-        style={{
-          backgroundColor: "white",
-          borderRadius: 16,
-          padding: 24,
-          width: "100%",
-          maxWidth: 420,
-          gap: 20,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: "bold",
-            textAlign: "center",
-            color: "#dc2626",
-          }}
-        >
-          Payment Error
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            textAlign: "center",
-            color: "#64748b",
-          }}
-        >
-          {checkoutState.error.message}
-        </Text>
-        <Pressable
-          onPress={onDismiss}
-          style={{ padding: 10, alignItems: "center" }}
-        >
-          <Text style={{ color: "#3b82f6", fontSize: 14 }}>Try Again</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  }, [elements, stripe, clientSecret, onResolve]);
 
   if (elementError) {
     return (
@@ -292,10 +238,7 @@ function PaymentSheetProviderInner({ children }: PropsWithChildren) {
               padding: 24,
             }}
           >
-            <CheckoutElementsProvider
-              options={{ clientSecret }}
-              stripe={stripePromise}
-            >
+            <ElementsProvider stripe={stripePromise}>
               <PaymentSheetModal
                 clientSecret={clientSecret}
                 onDismiss={handleDismiss}
@@ -305,7 +248,7 @@ function PaymentSheetProviderInner({ children }: PropsWithChildren) {
                   handleResolve(result);
                 }}
               />
-            </CheckoutElementsProvider>
+            </ElementsProvider>
           </View>
         </Modal>
       ) : null}

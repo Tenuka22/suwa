@@ -190,15 +190,15 @@ export default function Page() {
 
             <View className="flex-row items-center gap-chip">
               {OAUTH_STRATEGIES.map((provider) => (
-                     <Button
-                       disabled={fetchStatus === "fetching"}
-                       key={provider.strategy}
-                       onPress={() => handleOAuth(provider.strategy)}
-                       variant="secondary"
-                     >
-                       <provider.icon size={18} style={{ marginRight: 12 }} />
-                       <Text>Sign in with {provider.label}</Text>
-                     </Button>
+                <Button
+                  disabled={fetchStatus === "fetching"}
+                  key={provider.strategy}
+                  onPress={() => handleOAuth(provider.strategy)}
+                  variant="secondary"
+                >
+                  <provider.icon size={18} style={{ marginRight: 12 }} />
+                  <Text>Sign in with {provider.label}</Text>
+                </Button>
               ))}
             </View>
 
@@ -209,19 +209,19 @@ export default function Page() {
                 <View className="h-px flex-1 bg-border" />
               </View>
 
-               <View className="mt-4 gap-3">
-                 {OAUTH_STRATEGIES.map((provider) => (
-                   <Button
-                     disabled={fetchStatus === "fetching"}
-                     key={provider.strategy}
-                     onPress={() => handleOAuth(provider.strategy)}
-                     variant="secondary"
-                   >
-                     <provider.icon size={18} style={{ marginRight: 12 }} />
-                     <Text>Sign in with {provider.label}</Text>
-                   </Button>
-                 ))}
-               </View>
+              <View className="mt-4 gap-3">
+                {OAUTH_STRATEGIES.map((provider) => (
+                  <Button
+                    disabled={fetchStatus === "fetching"}
+                    key={provider.strategy}
+                    onPress={() => handleOAuth(provider.strategy)}
+                    variant="secondary"
+                  >
+                    <provider.icon size={18} style={{ marginRight: 12 }} />
+                    <Text>Sign in with {provider.label}</Text>
+                  </Button>
+                ))}
+              </View>
             </View>
           </Card>
         )}
