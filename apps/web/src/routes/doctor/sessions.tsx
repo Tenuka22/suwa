@@ -3,8 +3,9 @@ import {
   useUser,
 } from "@clerk/tanstack-react-start";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
+import { Button } from "@zen-doc/ui/components/button";
 import {
   Card,
   CardContent,
@@ -27,7 +28,7 @@ import {
 } from "@zen-doc/ui/components/empty";
 import { Separator } from "@zen-doc/ui/components/separator";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
-import { format } from "date-fns";
+import { addMinutes, format, isWithinInterval, subMinutes } from "date-fns";
 import {
   CalendarCheckIcon,
   CalendarClockIcon,
@@ -38,6 +39,7 @@ import {
   SparklesIcon,
   StethoscopeIcon,
   TrendingUpIcon,
+  VideoIcon,
   XCircleIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -166,10 +168,17 @@ function SectionHeader({
 function PendingRequests({
   isPending,
   sessions,
+  refetch,
 }: {
   isPending: boolean;
   sessions: SessionItem[];
+  refetch: () => void;
 }) {
+  const { mutate: respondSession, isPending: isResponding } =
+    orpc.respondSession.useMutation({
+      onSuccess: () => refetch(),
+    });
+
   const pendingSessions = sessions.filter(
     (session) =>
       session.status === "requested" || session.status === "rescheduled"
@@ -230,7 +239,37 @@ function PendingRequests({
                 </div>
               </div>
 
-              <SessionStatusBadge status={session.status} />
+              <div className="flex flex-col items-end gap-2">
+                <SessionStatusBadge status={session.status} />
+                <div className="flex gap-2">
+                  <Button
+                    disabled={isResponding}
+                    onClick={() =>
+                      respondSession({
+                        sessionId: session.id,
+                        action: "reject",
+                      })
+                    }
+                    size="sm"
+                    variant="destructive"
+                  >
+                    Reject
+                  </Button>
+                  <Button
+                    disabled={isResponding}
+                    onClick={() =>
+                      respondSession({
+                        sessionId: session.id,
+                        action: "approve",
+                      })
+                    }
+                    size="sm"
+                    variant="default"
+                  >
+                    Approve
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         );
@@ -261,6 +300,7 @@ export const Route = createFileRoute("/doctor/sessions")({
 
 function DoctorSessionsRoute() {
   const user = useUser();
+  const navigate = useNavigate();
 
   const statsQuery = useQuery({
     queryKey: orpc.sessionStats.queryKey(),
@@ -482,6 +522,10 @@ function DoctorSessionsRoute() {
           <CardContent className="size-full">
             <PendingRequests
               isPending={doctorSessionsQuery.isPending}
+              refetch={() => {
+                doctorSessionsQuery.refetch();
+                statsQuery.refetch();
+              }}
               sessions={sessions}
             />
           </CardContent>
@@ -590,6 +634,31 @@ function DoctorSessionsRoute() {
                               </p>
                             </div>
                           ) : null}
+
+                          {/* Join conference button for approved sessions within time window */}
+                          {session.status === "approved" &&
+                            isValidStart &&
+                            isValidEnd &&
+                            isWithinInterval(new Date(), {
+                              start: subMinutes(start, 30),
+                              end: addMinutes(end, 30),
+                            }) && (
+                              <div className="col-span-2">
+                                <Button
+                                  className="mt-2 w-full gap-2"
+                                  onClick={() => {
+                                    navigate({
+                                      to: `/doctor/sessions/${session.id}`,
+                                    });
+                                  }}
+                                  size="sm"
+                                  variant="outline"
+                                >
+                                  <VideoIcon className="size-4" />
+                                  Join Conference
+                                </Button>
+                              </div>
+                            )}
                         </div>
                       </CardContent>
                     </Card>

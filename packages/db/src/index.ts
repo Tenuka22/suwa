@@ -31,7 +31,9 @@ import {
   sessionAttendanceEvents as sessionAttendanceEventsTable,
   sessionSnapshots as sessionSnapshotsTable,
   type UserCredit as UserCreditSchema,
+  type UserSubscription as UserSubscriptionSchema,
   userCredits as userCreditsTable,
+  userSubscriptions as userSubscriptionsTable,
 } from "./schema";
 
 export {
@@ -54,7 +56,9 @@ export const patientProfiles = patientProfilesTable;
 export const guardianProfiles = guardianProfilesTable;
 export const doctorPlans = doctorPlansTable;
 export const userCredits = userCreditsTable;
+export const userSubscriptions = userSubscriptionsTable;
 export const creditTransactions = creditTransactionsTable;
+export const userSubscriptions = userSubscriptionsTable;
 export const doctorWeeklyAvailability = doctorWeeklyAvailabilityTable;
 export const doctorCredits = doctorCreditsTable;
 export const doctorCashoutRequests = doctorCashoutRequestsTable;
@@ -88,6 +92,7 @@ export function createDb() {
       guardianProfiles,
       doctorPlans,
       userCredits,
+      userSubscriptions,
       creditTransactions,
       doctorWeeklyAvailability,
       doctorCredits,

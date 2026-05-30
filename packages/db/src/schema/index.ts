@@ -252,6 +252,21 @@ export const doctorPlans = sqliteTable("doctor_plans", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+export const userSubscriptions = sqliteTable("user_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  planId: text("plan_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  status: text("status").notNull().default("active"), // active, cancelled, past_due, etc.
+  currentPeriodStart: text("current_period_start"),
+  currentPeriodEnd: text("current_period_end"),
+  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 export type DoctorProfile = typeof doctorProfiles.$inferSelect;
 export type DoctorSession = typeof doctorSessions.$inferSelect;
 export type DoctorFile = typeof doctorFiles.$inferSelect;
@@ -269,3 +284,4 @@ export type DoctorCashoutRequest = typeof doctorCashoutRequests.$inferSelect;
 export type SessionAttendanceEvent =
   typeof sessionAttendanceEvents.$inferSelect;
 export type SessionSnapshot = typeof sessionSnapshots.$inferSelect;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
