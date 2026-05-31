@@ -1,5 +1,6 @@
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, Shield } from "lucide-react-native";
+import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,13 @@ function vibrate(pattern: number | number[]) {
 export default function GuardianProfileScreen() {
   const router = useRouter();
   const colors = useThemeColor();
-  const { toggleMode } = useUserMode();
+  const { mode, toggleMode } = useUserMode();
+
+  useEffect(() => {
+    if (mode === "patient") {
+      router.replace("/");
+    }
+  }, [mode, router]);
 
   const handleBack = () => {
     vibrate(15);

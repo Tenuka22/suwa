@@ -339,7 +339,14 @@ export default function ProfileScreen() {
 }
 
 function DevModeToggle() {
+  const router = useRouter();
   const { mode, toggleMode } = useUserMode();
+
+  useEffect(() => {
+    if (mode === "guardian") {
+      router.replace("/dashboard");
+    }
+  }, [mode, router]);
 
   return (
     <View className="overflow-hidden rounded-card border-2 border-dashed border-orange-500 bg-orange-500/5">
