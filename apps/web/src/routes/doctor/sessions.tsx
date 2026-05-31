@@ -646,22 +646,22 @@ function DoctorSessionsRoute() {
 
                           {/* Join conference button for approved sessions within time window */}
                           {canJoin && (
-                              <div className="col-span-2">
-                                <Button
-                                  className="mt-2 w-full gap-2"
-                                  onClick={() => {
-                                    navigate({
-                                      to: `/doctor/sessions/${session.id}`,
-                                    });
-                                  }}
-                                  size="sm"
-                                  variant="outline"
-                                >
-                                  <VideoIcon className="size-4" />
-                                  Join Conference
-                                </Button>
-                              </div>
-                            )}
+                            <div className="col-span-2">
+                              <Button
+                                className="mt-2 w-full gap-2"
+                                onClick={() => {
+                                  navigate({
+                                    to: `/doctor/sessions/${session.id}`,
+                                  });
+                                }}
+                                size="sm"
+                                variant="outline"
+                              >
+                                <VideoIcon className="size-4" />
+                                Join Conference
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

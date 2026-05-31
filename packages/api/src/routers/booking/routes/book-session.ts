@@ -52,7 +52,9 @@ export const bookSessionRoute = protectedProcedure
       );
 
     if (overlapping.length > 0) {
-      throw new Error("You already have a session that overlaps with this time");
+      throw new Error(
+        "You already have a session that overlaps with this time"
+      );
     }
 
     const now = new Date().toISOString();

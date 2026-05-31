@@ -1,9 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
+import { Heart } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text, View } from "react-native";
-
-import { Heart } from "lucide-react-native";
 
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";

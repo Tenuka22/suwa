@@ -78,7 +78,8 @@ export default function AppointmentSessionDetailScreen() {
           Join window not open yet
         </Text>
         <Text className="text-center text-muted-foreground text-sm">
-          You can join 30 minutes before the session starts and until 30 minutes after it ends.
+          You can join 30 minutes before the session starts and until 30 minutes
+          after it ends.
         </Text>
         <Button onPress={() => router.back()} variant="secondary">
           Back

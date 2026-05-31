@@ -43,7 +43,10 @@ stripeApp.post("/", async (c) => {
     const userId = session.metadata?.userId;
 
     if (sessionType === "credit_topup" && userId) {
-      const creditsToAdd = Number.parseInt(session.metadata?.credits ?? "0", 10);
+      const creditsToAdd = Number.parseInt(
+        session.metadata?.credits ?? "0",
+        10
+      );
       if (creditsToAdd > 0) {
         const [existing] = await db
           .select()
@@ -52,7 +55,9 @@ stripeApp.post("/", async (c) => {
           .limit(1);
 
         const now = new Date().toISOString();
-        const newBalance = existing ? existing.balance + creditsToAdd : creditsToAdd;
+        const newBalance = existing
+          ? existing.balance + creditsToAdd
+          : creditsToAdd;
 
         if (existing) {
           await db
@@ -190,7 +195,7 @@ stripeApp.post("/", async (c) => {
   // Handle subscription cancellation
   if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object as Stripe.Subscription;
-    
+
     const [userSubscription] = await db
       .select()
       .from(userSubscriptions)

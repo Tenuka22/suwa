@@ -7,17 +7,11 @@ import {
   TAX_RATE,
 } from "@zen-doc/pricing";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { usePaymentSheet } from "@/utils/stripe";
 import { orpc } from "@/utils/orpc";
+import { usePaymentSheet } from "@/utils/stripe";
 
 const CREDIT_OPTIONS = [1, 5, 10, 20] as const;
 const SUBSCRIPTION_CREDITS = MONTHLY_PLAN_CREDITS;
@@ -32,9 +26,9 @@ export function CreditHeaderButton() {
   const [selectedCredits, setSelectedCredits] = useState<
     (typeof CREDIT_OPTIONS)[number]
   >(CREDIT_OPTIONS[0]);
-  const [selectedOffer, setSelectedOffer] = useState<"credits" | "subscription">(
-    "credits"
-  );
+  const [selectedOffer, setSelectedOffer] = useState<
+    "credits" | "subscription"
+  >("credits");
   const creditQuery = useQuery(orpc.getUserCredits.queryOptions());
   const subscriptionQuery = useQuery(orpc.getUserSubscription.queryOptions());
   const paymentSheet = usePaymentSheet();
@@ -52,7 +46,9 @@ export function CreditHeaderButton() {
         });
 
         if (initResult.error) {
-          throw new Error(initResult.error.message ?? "Unable to open payment sheet");
+          throw new Error(
+            initResult.error.message ?? "Unable to open payment sheet"
+          );
         }
 
         const presentResult = await paymentSheet.presentPaymentSheet();
@@ -85,7 +81,9 @@ export function CreditHeaderButton() {
         });
 
         if (initResult.error) {
-          throw new Error(initResult.error.message ?? "Unable to open payment sheet");
+          throw new Error(
+            initResult.error.message ?? "Unable to open payment sheet"
+          );
         }
 
         const presentResult = await paymentSheet.presentPaymentSheet();
@@ -191,7 +189,7 @@ export function CreditHeaderButton() {
               Choose a one-time credit pack or a monthly subscription.
             </Text>
 
-            {subscriptionQuery.data?.status !== "active" ? (
+            {subscriptionQuery.data?.status === "active" ? null : (
               <View className="flex-row gap-2 rounded-card border-2 border-border bg-muted/20 p-1">
                 <Pressable
                   accessibilityRole="button"
@@ -232,7 +230,7 @@ export function CreditHeaderButton() {
                   </Text>
                 </Pressable>
               </View>
-            ) : null}
+            )}
 
             {selectedOffer === "credits" ? (
               <View className="space-y-3">
@@ -308,7 +306,9 @@ export function CreditHeaderButton() {
                   </Text>
                   <Text className="text-foreground text-sm">
                     {formatPrice(
-                      Math.round(MONTHLY_PLAN_AMOUNT_CENTS / SUBSCRIPTION_CREDITS)
+                      Math.round(
+                        MONTHLY_PLAN_AMOUNT_CENTS / SUBSCRIPTION_CREDITS
+                      )
                     )}
                   </Text>
                 </View>

@@ -6,8 +6,6 @@ import {
   redirect,
   useMatches,
 } from "@tanstack/react-router";
-import { Avatar, AvatarFallback } from "@zen-doc/ui/components/avatar";
-import { Badge } from "@zen-doc/ui/components/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,27 +14,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@zen-doc/ui/components/breadcrumb";
-import { Button } from "@zen-doc/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@zen-doc/ui/components/dropdown-menu";
 import { Separator } from "@zen-doc/ui/components/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@zen-doc/ui/components/sidebar";
-import {
-  HelpCircleIcon,
-  LayoutDashboardIcon,
-  LogOutIcon,
-  SettingsIcon,
-  UserIcon,
-} from "lucide-react";
 
 import { DoctorSidebar } from "@/components/doctor-sidebar";
 import { orpc } from "@/utils/orpc";

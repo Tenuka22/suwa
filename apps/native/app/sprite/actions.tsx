@@ -133,13 +133,13 @@ export default function SpriteActionsScreen() {
                           >
                             <View className="flex-row items-center gap-1">
                               {task.timeSlot === "morning" && (
-                                <Sun size={12} color="#92400e" />
+                                <Sun color="#92400e" size={12} />
                               )}
                               {task.timeSlot === "afternoon" && (
-                                <CloudSun size={12} color="#9a3412" />
+                                <CloudSun color="#9a3412" size={12} />
                               )}
                               {task.timeSlot === "night" && (
-                                <Moon size={12} color="#3730a3" />
+                                <Moon color="#3730a3" size={12} />
                               )}
                               <Text
                                 className={`font-bold text-[10px] uppercase tracking-wider ${
@@ -156,7 +156,7 @@ export default function SpriteActionsScreen() {
                           </View>
                           {completed && (
                             <View className="flex-row items-center gap-1 rounded-full bg-green-200 px-2 py-0.5">
-                              <Check size={10} color="#166534" />
+                              <Check color="#166534" size={10} />
                               <Text className="font-bold text-[10px] text-green-800 uppercase tracking-wider">
                                 Done
                               </Text>
@@ -197,7 +197,7 @@ export default function SpriteActionsScreen() {
                       )}
                       {completed && (
                         <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-green-300 bg-green-100">
-                          <Check size={18} color="#166534" />
+                          <Check color="#166534" size={18} />
                         </View>
                       )}
                     </View>

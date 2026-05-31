@@ -54,7 +54,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -63,6 +62,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
 import { orpc } from "@/utils/orpc";
 
 interface DoctorPlan {
@@ -217,7 +217,11 @@ function CreatePlanDialog() {
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <Label htmlFor="plan-name">Plan name</Label>
-            <Input id="plan-name" onChange={(e) => setName(e.target.value)} value={name} />
+            <Input
+              id="plan-name"
+              onChange={(e) => setName(e.target.value)}
+              value={name}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="plan-description">Description</Label>
@@ -230,11 +234,23 @@ function CreatePlanDialog() {
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
               <Label htmlFor="credit-cost">Credits</Label>
-              <Input id="credit-cost" min="1" onChange={(e) => setCreditCost(e.target.value)} type="number" value={creditCost} />
+              <Input
+                id="credit-cost"
+                min="1"
+                onChange={(e) => setCreditCost(e.target.value)}
+                type="number"
+                value={creditCost}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="duration">Duration minutes</Label>
-              <Input id="duration" min="60" onChange={(e) => setDurationMinutes(e.target.value)} type="number" value={durationMinutes} />
+              <Input
+                id="duration"
+                min="60"
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                type="number"
+                value={durationMinutes}
+              />
             </div>
           </div>
           <div className="grid gap-2">
@@ -250,7 +266,9 @@ function CreatePlanDialog() {
 
         <DialogFooter>
           <Button disabled={createMutation.isPending} onClick={handleCreate}>
-            {createMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            {createMutation.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : null}
             Create
           </Button>
         </DialogFooter>
@@ -432,11 +450,13 @@ function DoctorPlansRoute() {
                 <p className="text-muted-foreground text-xs uppercase tracking-wider">
                   Default plan
                 </p>
-                <p className="mt-2 font-semibold text-2xl">{defaultPlanName ?? "None"}</p>
+                <p className="mt-2 font-semibold text-2xl">
+                  {defaultPlanName ?? "None"}
+                </p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-muted-foreground text-sm">
               Keep your pricing simple and consistent. Use the chart to compare
               credit cost against session duration.
             </div>
@@ -477,15 +497,26 @@ function DoctorPlansRoute() {
                 >
                   <CartesianGrid vertical={false} />
 
-                  <XAxis axisLine={false} tickLine={false} dataKey="name" tick={{ fontSize: 12 }} />
+                  <XAxis
+                    axisLine={false}
+                    dataKey="name"
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                  />
 
-                  <YAxis axisLine={false} tickLine={false} hide />
+                  <YAxis axisLine={false} hide tickLine={false} />
 
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
-                        formatter={(value: unknown, name: unknown, payload: unknown) => {
-                          const item = payload as { payload?: { minutes?: number } };
+                        formatter={(
+                          value: unknown,
+                          name: unknown,
+                          payload: unknown
+                        ) => {
+                          const item = payload as {
+                            payload?: { minutes?: number };
+                          };
                           return `${Number(value)} credits · ${item.payload?.minutes ?? 0} min`;
                         }}
                         indicator="dot"
@@ -502,7 +533,11 @@ function DoctorPlansRoute() {
                     stroke="var(--primary)"
                     strokeWidth={2}
                   >
-                    <LabelList dataKey="credits" fill="var(--primary)" position="top" />
+                    <LabelList
+                      dataKey="credits"
+                      fill="var(--primary)"
+                      position="top"
+                    />
                   </Bar>
                 </BarChart>
               </ChartContainer>
@@ -514,8 +549,8 @@ function DoctorPlansRoute() {
                   </EmptyMedia>
                   <EmptyTitle>No plans configured</EmptyTitle>
                   <EmptyDescription>
-                    Create your first session plan to start offering consultations
-                    to patients.
+                    Create your first session plan to start offering
+                    consultations to patients.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>

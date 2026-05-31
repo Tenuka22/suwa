@@ -5,17 +5,16 @@ import { ScrollView, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { MoonlightCreditsDisplay } from "@/components/ui/moonlight-credits-display";
 import { Screen } from "@/components/ui/screen";
-import type { SpriteAction } from "@/components/ui/sprite-animation";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
 import { WellnessActionCard } from "@/components/ui/wellness-action-card";
 import { orpc } from "@/utils/orpc";
 
-function moodToAction(mood: string): SpriteAction {
+function moodToAction(mood: string): "idle" | "happy" | "thinking" | "alert" {
   if (mood === "sleep") {
-    return "sleep";
+    return "alert";
   }
   if (mood === "yawn") {
-    return "yawn";
+    return "thinking";
   }
   return "idle";
 }
@@ -121,10 +120,7 @@ export default function SpriteScreen() {
           {/* Sprite Visual - no border, large */}
           <View className="items-center py-4">
             <View className="h-48 w-48 items-center justify-center">
-              <SpriteAnimation
-                action={moodToAction(sprite?.mood ?? "idle")}
-                size="lg"
-              />
+              <SpriteAnimation action={moodToAction(sprite?.mood ?? "idle")} size="lg" />
             </View>
           </View>
 
