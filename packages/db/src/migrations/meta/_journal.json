@@ -15,6 +15,13 @@
       "when": 1780222633011,
       "tag": "0001_fancy_human_fly",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780241959163,
+      "tag": "0002_brave_proudstar",
+      "breakpoints": true
     }
   ]
 }

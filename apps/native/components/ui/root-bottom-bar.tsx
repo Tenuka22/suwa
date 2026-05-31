@@ -1,9 +1,6 @@
 import {
   Activity,
   Calendar,
-  HeartHandshake,
-  HeartPulse,
-  Shield,
   Sparkles,
   Stethoscope,
   User,
@@ -11,7 +8,6 @@ import {
 import { Text, useWindowDimensions, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { useUserMode } from "@/utils/user-mode";
 
 const SMALL_BREAKPOINT = 400;
 
@@ -23,26 +19,15 @@ const patientTabs = [
   { href: "/profile", icon: User, label: "Profile" },
 ] as const;
 
-const guardianTabs = [
-  { href: "/dashboard", icon: HeartHandshake, label: "Dashboard" },
-  { href: "/patient-stress", icon: Activity, label: "Stress" },
-  { href: "/patient-activity", icon: HeartPulse, label: "Activity" },
-  { href: "/patient-profile", icon: User, label: "Patient" },
-  { href: "/guardian-profile", icon: Shield, label: "Profile" },
-] as const;
-
 export const RootBottomBar = () => {
-  const { mode } = useUserMode();
   const { width } = useWindowDimensions();
   const isSmall = width < SMALL_BREAKPOINT;
 
-  const tabs = mode === "guardian" ? guardianTabs : patientTabs;
-
   return (
-    <View className="-mx-page grid h-12 grid-cols-5 gap-0 border-border border-t-[3px] bg-card">
-      {tabs.map(({ href, icon: Icon, label }) => (
+    <View className="-mx-page flex-row h-12 border-border border-t-[3px] bg-card">
+      {patientTabs.map(({ href, icon: Icon, label }) => (
         <Button
-          className="h-full w-full rounded-none"
+          className="flex-1 h-full rounded-none"
           href={href}
           key={href}
           variant="secondary"

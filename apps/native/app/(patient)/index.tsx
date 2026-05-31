@@ -5,15 +5,8 @@ import { Button } from "@/components/ui/button";
 import { RootBottomBar } from "@/components/ui/root-bottom-bar";
 import { Screen } from "@/components/ui/screen";
 import { TextLink } from "@/components/ui/text-link";
-import { useUserMode } from "@/utils/user-mode";
 
 export default function HomeScreen() {
-  const { mode } = useUserMode();
-
-  if (mode === "guardian") {
-    return <Redirect href="/dashboard" />;
-  }
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />

@@ -9,15 +9,12 @@ import {
 import { useState } from "react";
 import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 
-import { useUserMode } from "@/utils/user-mode";
-
 import { Button } from "./button";
 import { Card } from "./card";
 import { orpc } from "@/utils/orpc";
 import { usePaymentSheet } from "@/utils/stripe";
 
 const CREDIT_OPTIONS = [1, 5, 10, 20] as const;
-const SUBSCRIPTION_CREDITS = MONTHLY_PLAN_CREDITS;
 
 function formatPrice(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
@@ -28,7 +25,6 @@ interface CreditPurchaseProps {
 }
 
 export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
-  const { mode } = useUserMode();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCredits, setSelectedCredits] = useState<
     (typeof CREDIT_OPTIONS)[number]
@@ -187,17 +183,12 @@ export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
               >
                 <Text className="font-bold text-foreground text-sm">X</Text>
               </Pressable>
-            </View>
+              </View>
 
-            {forPatientUserId && mode === "guardian" && (
-              <Text className="font-normal font-sans text-muted-foreground text-xs">
-                Credits will be added to the patient's account.
-              </Text>
-            )}
-
-            <Text className="font-normal font-sans text-muted-foreground text-sm">
+              <Text className="font-normal font-sans text-muted-foreground text-sm">
               Choose a one-time credit pack or a monthly subscription.
-            </Text>
+              </Text>
+
 
             {subscriptionQuery.data?.status === "active" ? null : (
               <View className="flex-row gap-2 rounded-card border-2 border-border bg-muted/20 p-1">

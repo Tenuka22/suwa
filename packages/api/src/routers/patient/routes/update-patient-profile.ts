@@ -22,22 +22,22 @@ export const updatePatientProfileRoute = protectedProcedure
       updateData.secured = true;
     }
 
-    if (input.guardianEmail !== undefined) {
-      updateData.guardianEmail = input.guardianEmail;
+    if (input.guardianEmail !== undefined || input.guardianPhone !== undefined) {
+      const guardianEmail = input.guardianEmail ?? null;
+      const guardianPhone = input.guardianPhone ?? null;
+
+      updateData.guardianEmail = guardianEmail;
+      updateData.guardianPhone = guardianPhone;
       updateData.guardianRequestStatus = "pending";
 
-      const existingGuardian =
-        await context.db.query.guardianProfiles.findFirst({
-          where: eq(guardianProfiles.email, input.guardianEmail),
-        });
+      const existingGuardian = await context.db.query.guardianProfiles.findFirst({
+        where: guardianEmail
+          ? eq(guardianProfiles.email, guardianEmail)
+          : eq(guardianProfiles.phone, guardianPhone ?? ""),
+      });
 
       if (!existingGuardian) {
-        const newGuardianId = `guardian_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        await context.db.insert(guardianProfiles).values({
-          userId: newGuardianId,
-          email: input.guardianEmail,
-          phone: input.guardianPhone ?? "",
-        });
+        throw new Error("Guardian profile not found");
       }
     }
 

@@ -23,25 +23,6 @@ export default function OnboardingLayout() {
     })
   );
 
-  const guardianProfileQuery = useQuery(
-    orpc.getGuardianProfile.queryOptions({
-      enabled: isLoaded && isSignedIn,
-      retry: false,
-      throwOnError: false,
-      queryFn: async () => {
-        try {
-          const data = await orpc.getGuardianProfile.call();
-          return data ?? null;
-        } catch {
-          return null;
-        }
-      },
-    })
-  );
-
-  const hasPatientProfile = Boolean(patientProfileQuery.data);
-  const hasGuardianProfile = Boolean(guardianProfileQuery.data);
-
   if (!isLoaded) {
     return null;
   }
@@ -50,19 +31,14 @@ export default function OnboardingLayout() {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  if (!(patientProfileQuery.isFetched && guardianProfileQuery.isFetched)) {
+  if (!patientProfileQuery.isFetched) {
     return null;
   }
 
-  if (hasGuardianProfile) {
-    return <Redirect href="/" />;
-  }
-
-  if (hasPatientProfile) {
+  if (patientProfileQuery.data) {
     const profile = patientProfileQuery.data;
-
     if (profile?.secured && profile?._securedData) {
-      return <Redirect href="/" />;
+      return <Redirect href="/(patient)" />;
     }
   }
 

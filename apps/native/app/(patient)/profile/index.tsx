@@ -18,7 +18,6 @@ import {
   storeSecret,
 } from "@/utils/privacy";
 import { useThemeColor } from "@/utils/theme";
-import { useUserMode } from "@/utils/user-mode";
 
 function vibrate(pattern: number | number[]) {
   if (typeof window !== "undefined" && "navigator" in window) {
@@ -32,6 +31,7 @@ function vibrate(pattern: number | number[]) {
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useThemeColor();
+
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -296,6 +296,15 @@ export default function ProfileScreen() {
                   placeholderTextColor={colors.mutedForeground}
                   value={guardianPhone}
                 />
+                <Button
+                  disabled={updateMutation.isPending}
+                  onPress={async () => {
+                    await handleSave();
+                  }}
+                  variant="secondary"
+                >
+                  Find guardian
+                </Button>
               </>
             )}
           </View>
@@ -311,10 +320,6 @@ export default function ProfileScreen() {
             <CreditPurchase />
           </View>
         </View>
-
-        {__DEV__ && (
-          <DevModeToggle />
-        )}
       </Screen>
       <ScreenBottomBar>
         <View className="flex-1 flex-row items-center gap-2">
@@ -335,39 +340,5 @@ export default function ProfileScreen() {
         </View>
       </ScreenBottomBar>
     </>
-  );
-}
-
-function DevModeToggle() {
-  const router = useRouter();
-  const { mode, toggleMode } = useUserMode();
-
-  useEffect(() => {
-    if (mode === "guardian") {
-      router.replace("/dashboard");
-    }
-  }, [mode, router]);
-
-  return (
-    <View className="overflow-hidden rounded-card border-2 border-dashed border-orange-500 bg-orange-500/5">
-      <View className="items-center gap-2 border-border border-b-2 px-card py-3">
-        <Text className="font-black font-sans text-orange-500 text-xs uppercase tracking-[0.2em]">
-          Dev Mode
-        </Text>
-      </View>
-      <View className="flex-row items-center justify-between gap-4 px-card py-4">
-        <View className="flex-1 gap-1">
-          <Text className="font-bold font-sans text-foreground text-sm">
-            User Mode
-          </Text>
-          <Text className="font-normal font-sans text-muted-foreground text-xs">
-            Current: {mode === "patient" ? "Patient" : "Guardian"}
-          </Text>
-        </View>
-        <Button onPress={toggleMode} size="sm" variant="secondary">
-          Switch to {mode === "patient" ? "Guardian" : "Patient"}
-        </Button>
-      </View>
-    </View>
   );
 }

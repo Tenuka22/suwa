@@ -163,15 +163,15 @@ export const doctorEducationEntries = sqliteTable("doctor_education_entries", {
 export const guardianProfiles = sqliteTable(
   "guardian_profiles",
   {
-    userId: text("user_id").primaryKey(),
-    clerkUserId: text("clerk_user_id"),
+    clerkUserId: text("clerk_user_id").primaryKey(),
     email: text("email").notNull(),
-    phone: text("phone"),
+    phone: text("phone").notNull(),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
     updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
   },
   (table) => ({
     emailUnique: uniqueIndex("guardian_email_unique").on(table.email),
+    phoneUnique: uniqueIndex("guardian_phone_unique").on(table.phone),
   })
 );
 

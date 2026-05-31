@@ -1,53 +1,17 @@
 import { useAuth } from "@clerk/expo";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
-import { User, UserPlus, Users } from "lucide-react-native";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
 import { orpc } from "@/utils/orpc";
 import { encryptData, generateUserSecret, storeSecret } from "@/utils/privacy";
-import { useThemeColor } from "@/utils/theme";
 
-type OnboardingMode = "self" | "has_guardian" | "guardian" | null;
-
-interface SelectableCardProps {
-  description: string;
-  icon: React.ReactNode;
-  onPress: () => void;
-  title: string;
-}
-
-function SelectableCard({
-  icon,
-  title,
-  description,
-  onPress,
-}: SelectableCardProps) {
-  return (
-    <Card className="flex-row items-center gap-card p-card" onPress={onPress}>
-      <View className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-card">
-        {icon}
-      </View>
-      <View className="flex-1">
-        <Text className="font-extrabold font-sans text-foreground text-lg tracking-tight">
-          {title}
-        </Text>
-        <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
-          {description}
-        </Text>
-      </View>
-    </Card>
-  );
-}
-
-const selfSchema = z.object({
+const patientSchema = z.object({
   alias: z.string().min(1, "Alias is required"),
   email: z.string().email("Valid email required").optional().or(z.literal("")),
   phone: z.string().optional(),
@@ -55,38 +19,13 @@ const selfSchema = z.object({
   address: z.string().max(500).optional(),
 });
 
-const hasGuardianSchema = z.object({
-  alias: z.string().min(1, "Alias is required"),
-  email: z.string().email("Valid email required").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  fullName: z.string().max(200).optional(),
-  address: z.string().max(500).optional(),
-  guardianEmail: z.string().email("Valid email required"),
-  guardianPhone: z.string().min(1, "Phone is required"),
-});
-
-const guardianSchema = z.object({
-  alias: z.string().min(1, "Alias is required"),
-  email: z.string().email("Valid email required").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  fullName: z.string().max(200).optional(),
-  address: z.string().max(500).optional(),
-  guardianEmail: z.string().email("Valid email required"),
-});
-
-type SelfForm = z.infer<typeof selfSchema>;
-type HasGuardianForm = z.infer<typeof hasGuardianSchema>;
-type GuardianForm = z.infer<typeof guardianSchema>;
+type PatientForm = z.infer<typeof patientSchema>;
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
-  const { foreground } = useThemeColor();
 
-  const [mode, setMode] = useState<OnboardingMode>(null);
-  const [step, setStep] = useState<"select" | "form">("select");
-
-  const selfForm = useForm<SelfForm>({
+  const patientForm = useForm<PatientForm>({
     defaultValues: {
       alias: "",
       email: "",
@@ -94,49 +33,12 @@ export default function OnboardingScreen() {
       fullName: "",
       address: "",
     },
-  });
-
-  const hasGuardianForm = useForm<HasGuardianForm>({
-    defaultValues: {
-      alias: "",
-      email: "",
-      phone: "",
-      fullName: "",
-      address: "",
-      guardianEmail: "",
-      guardianPhone: "",
-    },
-  });
-
-  const guardianForm = useForm<GuardianForm>({
-    defaultValues: {
-      alias: "",
-      email: "",
-      phone: "",
-      fullName: "",
-      address: "",
-      guardianEmail: "",
-    },
-  });
-
-  const pendingGuardiansQuery = useQuery({
-    queryKey: orpc.getPendingGuardianRequests.queryKey(),
-    queryFn: () => orpc.getPendingGuardianRequests.call(),
-    enabled: mode === "guardian",
   });
 
   const completeOnboarding = useMutation(
     orpc.completeOnboarding.mutationOptions({
       onSuccess: () => {
-        router.replace("/");
-      },
-    })
-  );
-
-  const handleApproveGuardian = useMutation(
-    orpc.approveGuardianRequest.mutationOptions({
-      onSuccess: () => {
-        pendingGuardiansQuery.refetch();
+        router.replace("/(patient)");
       },
     })
   );
@@ -146,14 +48,7 @@ export default function OnboardingScreen() {
     return null;
   }
 
-  const handleModeSelect = (
-    selectedMode: "self" | "has_guardian" | "guardian"
-  ) => {
-    setMode(selectedMode);
-    setStep("form");
-  };
-
-  const onSelfSubmit = async (data: SelfForm) => {
+  const onPatientSubmit = async (data: PatientForm) => {
     const secret = generateUserSecret();
     await storeSecret(secret);
 
@@ -168,369 +63,10 @@ export default function OnboardingScreen() {
     );
 
     completeOnboarding.mutate({
-      mode: "self",
       alias: data.alias,
       _securedData,
     });
   };
-
-  const onHasGuardianSubmit = async (data: HasGuardianForm) => {
-    const secret = generateUserSecret();
-    await storeSecret(secret);
-
-    const _securedData = await encryptData(
-      {
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        fullName: data.fullName ?? "",
-        address: data.address ?? "",
-      },
-      secret
-    );
-
-    completeOnboarding.mutate({
-      mode: "has_guardian",
-      alias: data.alias,
-      _securedData,
-      guardianEmail: data.guardianEmail,
-      guardianPhone: data.guardianPhone,
-    });
-  };
-
-  const onGuardianSubmit = async (data: GuardianForm) => {
-    const secret = generateUserSecret();
-    await storeSecret(secret);
-
-    const _securedData = await encryptData(
-      {
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        fullName: data.fullName ?? "",
-        address: data.address ?? "",
-      },
-      secret
-    );
-
-    completeOnboarding.mutate({
-      mode: "guardian",
-      alias: data.alias,
-      _securedData,
-      guardianEmail: data.guardianEmail,
-    });
-  };
-
-  if (step === "select") {
-    return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <Screen contentClassName="flex-1 justify-center gap-section px-page py-page bg-background">
-          <View className="mb-2 gap-2">
-            <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
-              Welcome to ZenDoc
-            </Text>
-            <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
-              Who are you signing up for?
-            </Text>
-            <Text className="mt-1 font-normal font-sans text-base text-muted-foreground leading-6">
-              Choose how you want to configure your medical access and patient
-              details.
-            </Text>
-          </View>
-
-          <View className="gap-4">
-            <SelectableCard
-              description="Manage your own appointments, medical records, and daily wellness tracking in one place."
-              icon={<User color={foreground} size={26} />}
-              onPress={() => handleModeSelect("self")}
-              title="Manage for myself"
-            />
-            <SelectableCard
-              description="Set up a guardian to manage your healthcare and appointments on your behalf."
-              icon={<UserPlus color={foreground} size={26} />}
-              onPress={() => handleModeSelect("has_guardian")}
-              title="I have a guardian"
-            />
-            <SelectableCard
-              description="Act as a guardian to manage healthcare and appointments for a family member or dependent."
-              icon={<Users color={foreground} size={26} />}
-              onPress={() => handleModeSelect("guardian")}
-              title="I'm a guardian"
-            />
-          </View>
-        </Screen>
-      </>
-    );
-  }
-
-  if (mode === "self") {
-    return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <Screen contentClassName="flex-1 justify-between gap-section px-page py-page bg-background">
-          <View className="gap-section">
-            <View className="mb-4 gap-2">
-              <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
-                Your Profile
-              </Text>
-              <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
-                Tell us about yourself
-              </Text>
-            </View>
-
-            <Controller
-              control={selfForm.control}
-              name="alias"
-              render={({ field, fieldState }) => (
-                <View className="gap-2">
-                  <Field
-                    error={fieldState.error?.message}
-                    label="Your Alias"
-                    onChangeText={field.onChange}
-                    placeholder="Enter a nickname"
-                    value={field.value}
-                  />
-                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-xs leading-4">
-                    This is how you will appear to doctors. It can be any name
-                    you choose.
-                  </Text>
-                </View>
-              )}
-            />
-
-            <Controller
-              control={selfForm.control}
-              name="email"
-              render={({ field, fieldState }) => (
-                <Field
-                  autoCapitalize="none"
-                  error={fieldState.error?.message}
-                  keyboardType="email-address"
-                  label="Email"
-                  onChangeText={field.onChange}
-                  placeholder="email@example.com"
-                  value={field.value}
-                />
-              )}
-            />
-
-            <Controller
-              control={selfForm.control}
-              name="phone"
-              render={({ field, fieldState }) => (
-                <Field
-                  error={fieldState.error?.message}
-                  keyboardType="phone-pad"
-                  label="Phone"
-                  onChangeText={field.onChange}
-                  placeholder="+1 (555) 000-0000"
-                  value={field.value}
-                />
-              )}
-            />
-
-            <Controller
-              control={selfForm.control}
-              name="fullName"
-              render={({ field, fieldState }) => (
-                <Field
-                  error={fieldState.error?.message}
-                  label="Full Name"
-                  onChangeText={field.onChange}
-                  placeholder="Your full name"
-                  value={field.value}
-                />
-              )}
-            />
-
-            <Controller
-              control={selfForm.control}
-              name="address"
-              render={({ field, fieldState }) => (
-                <Field
-                  error={fieldState.error?.message}
-                  label="Address"
-                  onChangeText={field.onChange}
-                  placeholder="Your address"
-                  value={field.value}
-                />
-              )}
-            />
-          </View>
-
-          <View className="mt-4 gap-3">
-            <Button
-              className="w-full"
-              disabled={
-                completeOnboarding.isPending || !selfForm.watch("alias")
-              }
-              onPress={selfForm.handleSubmit(onSelfSubmit)}
-            >
-              {completeOnboarding.isPending ? "Setting up..." : "Continue"}
-            </Button>
-            <Button
-              className="w-full"
-              onPress={() => {
-                setMode(null);
-                setStep("select");
-              }}
-              variant="secondary"
-            >
-              Back
-            </Button>
-          </View>
-        </Screen>
-      </>
-    );
-  }
-
-  if (mode === "has_guardian") {
-    return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <Screen contentClassName="flex-1 justify-between gap-section px-page py-page bg-background">
-          <View className="gap-section">
-            <View className="mb-4 gap-2">
-              <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
-                Guardian Setup
-              </Text>
-              <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
-                Set up your guardian
-              </Text>
-            </View>
-
-            <View className="gap-2">
-              <Controller
-                control={hasGuardianForm.control}
-                name="alias"
-                render={({ field, fieldState }) => (
-                  <Field
-                    error={fieldState.error?.message}
-                    label="Your Alias"
-                    onChangeText={field.onChange}
-                    placeholder="Enter a nickname"
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={hasGuardianForm.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <Field
-                    autoCapitalize="none"
-                    error={fieldState.error?.message}
-                    keyboardType="email-address"
-                    label="Email"
-                    onChangeText={field.onChange}
-                    placeholder="email@example.com"
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={hasGuardianForm.control}
-                name="phone"
-                render={({ field, fieldState }) => (
-                  <Field
-                    error={fieldState.error?.message}
-                    keyboardType="phone-pad"
-                    label="Phone"
-                    onChangeText={field.onChange}
-                    placeholder="+1 (555) 000-0000"
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={hasGuardianForm.control}
-                name="fullName"
-                render={({ field, fieldState }) => (
-                  <Field
-                    error={fieldState.error?.message}
-                    label="Full Name"
-                    onChangeText={field.onChange}
-                    placeholder="Your full name"
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={hasGuardianForm.control}
-                name="address"
-                render={({ field, fieldState }) => (
-                  <Field
-                    error={fieldState.error?.message}
-                    label="Address"
-                    onChangeText={field.onChange}
-                    placeholder="Your address"
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={hasGuardianForm.control}
-                name="guardianEmail"
-                render={({ field, fieldState }) => (
-                  <Field
-                    autoCapitalize="none"
-                    error={fieldState.error?.message}
-                    keyboardType="email-address"
-                    label="Guardian Email"
-                    onChangeText={field.onChange}
-                    placeholder="guardian@example.com"
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={hasGuardianForm.control}
-                name="guardianPhone"
-                render={({ field, fieldState }) => (
-                  <Field
-                    error={fieldState.error?.message}
-                    keyboardType="phone-pad"
-                    label="Guardian Phone"
-                    onChangeText={field.onChange}
-                    placeholder="+1 (555) 000-0000"
-                    value={field.value}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          <View className="mt-4 gap-3">
-            <Button
-              className="w-full"
-              disabled={
-                completeOnboarding.isPending ||
-                !hasGuardianForm.formState.isValid
-              }
-              onPress={hasGuardianForm.handleSubmit(onHasGuardianSubmit)}
-            >
-              {completeOnboarding.isPending ? "Setting up..." : "Continue"}
-            </Button>
-            <Button
-              className="w-full"
-              onPress={() => {
-                setMode(null);
-                setStep("select");
-              }}
-              variant="secondary"
-            >
-              Back
-            </Button>
-          </View>
-        </Screen>
-      </>
-    );
-  }
 
   return (
     <>
@@ -539,163 +75,96 @@ export default function OnboardingScreen() {
         <View className="gap-section">
           <View className="mb-4 gap-2">
             <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
-              Guardian Setup
+              Your Profile
             </Text>
             <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
-              Set up your guardian profile
+              Tell us about yourself
             </Text>
           </View>
 
-          <View className="gap-3">
-            <Controller
-              control={guardianForm.control}
-              name="alias"
-              render={({ field, fieldState }) => (
-                <View className="gap-1">
-                  <Field
-                    error={fieldState.error?.message}
-                    label="Your Alias"
-                    onChangeText={field.onChange}
-                    placeholder="Enter a nickname"
-                    value={field.value}
-                  />
-                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-xs leading-4">
-                    This is how patients will identify you.
-                  </Text>
-                </View>
-              )}
-            />
+          <Controller
+            control={patientForm.control}
+            name="alias"
+            render={({ field, fieldState }) => (
+              <Field
+                error={fieldState.error?.message}
+                label="Your Alias"
+                onChangeText={field.onChange}
+                placeholder="Enter a nickname"
+                value={field.value}
+              />
+            )}
+          />
 
-            <Controller
-              control={guardianForm.control}
-              name="email"
-              render={({ field, fieldState }) => (
-                <Field
-                  autoCapitalize="none"
-                  error={fieldState.error?.message}
-                  keyboardType="email-address"
-                  label="Email"
-                  onChangeText={field.onChange}
-                  placeholder="email@example.com"
-                  value={field.value}
-                />
-              )}
-            />
+          <Controller
+            control={patientForm.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <Field
+                autoCapitalize="none"
+                error={fieldState.error?.message}
+                keyboardType="email-address"
+                label="Email"
+                onChangeText={field.onChange}
+                placeholder="email@example.com"
+                value={field.value}
+              />
+            )}
+          />
 
-            <Controller
-              control={guardianForm.control}
-              name="phone"
-              render={({ field, fieldState }) => (
-                <Field
-                  error={fieldState.error?.message}
-                  keyboardType="phone-pad"
-                  label="Phone"
-                  onChangeText={field.onChange}
-                  placeholder="+1 (555) 000-0000"
-                  value={field.value}
-                />
-              )}
-            />
+          <Controller
+            control={patientForm.control}
+            name="phone"
+            render={({ field, fieldState }) => (
+              <Field
+                error={fieldState.error?.message}
+                keyboardType="phone-pad"
+                label="Phone"
+                onChangeText={field.onChange}
+                placeholder="+1 (555) 000-0000"
+                value={field.value}
+              />
+            )}
+          />
 
-            <Controller
-              control={guardianForm.control}
-              name="fullName"
-              render={({ field, fieldState }) => (
-                <Field
-                  error={fieldState.error?.message}
-                  label="Full Name"
-                  onChangeText={field.onChange}
-                  placeholder="Your full name"
-                  value={field.value}
-                />
-              )}
-            />
+          <Controller
+            control={patientForm.control}
+            name="fullName"
+            render={({ field, fieldState }) => (
+              <Field
+                error={fieldState.error?.message}
+                label="Full Name"
+                onChangeText={field.onChange}
+                placeholder="Your full name"
+                value={field.value}
+              />
+            )}
+          />
 
-            <Controller
-              control={guardianForm.control}
-              name="address"
-              render={({ field, fieldState }) => (
-                <Field
-                  error={fieldState.error?.message}
-                  label="Address"
-                  onChangeText={field.onChange}
-                  placeholder="Your address"
-                  value={field.value}
-                />
-              )}
-            />
-
-            <Controller
-              control={guardianForm.control}
-              name="guardianEmail"
-              render={({ field, fieldState }) => (
-                <Field
-                  autoCapitalize="none"
-                  error={fieldState.error?.message}
-                  keyboardType="email-address"
-                  label="Your Email"
-                  onChangeText={field.onChange}
-                  placeholder="guardian@example.com"
-                  value={field.value}
-                />
-              )}
-            />
-
-            {pendingGuardiansQuery.data?.requests?.length ? (
-              <View className="mt-4 gap-chip">
-                <Text className="mb-1 font-bold font-sans text-foreground text-sm uppercase tracking-[0.18em]">
-                  Pending Requests
-                </Text>
-                {pendingGuardiansQuery.data.requests.map((req) => (
-                  <Card className="gap-3 p-4" key={req.userId}>
-                    <View className="flex-row items-center justify-between">
-                      <View className="mr-3 flex-1 gap-1">
-                        <Text className="font-extrabold font-sans text-foreground text-lg tracking-tight">
-                          {req.alias}
-                        </Text>
-                        <Text className="font-normal font-sans text-muted-foreground text-xs">
-                          {req.guardianEmail} • {req.guardianPhone}
-                        </Text>
-                      </View>
-                      <Button
-                        onPress={() =>
-                          handleApproveGuardian.mutate({
-                            patientUserId: req.userId,
-                          })
-                        }
-                        size="sm"
-                      >
-                        Approve
-                      </Button>
-                    </View>
-                  </Card>
-                ))}
-              </View>
-            ) : null}
-          </View>
+          <Controller
+            control={patientForm.control}
+            name="address"
+            render={({ field, fieldState }) => (
+              <Field
+                error={fieldState.error?.message}
+                label="Address"
+                onChangeText={field.onChange}
+                placeholder="Your address"
+                value={field.value}
+              />
+            )}
+          />
         </View>
 
-        <View className="mt-4 gap-3">
-          <Button
-            className="w-full"
-            disabled={
-              completeOnboarding.isPending || !guardianForm.formState.isValid
-            }
-            onPress={guardianForm.handleSubmit(onGuardianSubmit)}
-          >
-            {completeOnboarding.isPending ? "Setting up..." : "Continue"}
-          </Button>
-          <Button
-            className="w-full"
-            onPress={() => {
-              setMode(null);
-              setStep("select");
-            }}
-            variant="secondary"
-          >
-            Back
-          </Button>
-        </View>
+        <Button
+          className="w-full"
+          disabled={
+            completeOnboarding.isPending || !patientForm.watch("alias")
+          }
+          onPress={patientForm.handleSubmit(onPatientSubmit)}
+        >
+          {completeOnboarding.isPending ? "Setting up..." : "Complete Setup"}
+        </Button>
       </Screen>
     </>
   );

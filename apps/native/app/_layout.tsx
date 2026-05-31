@@ -2,20 +2,20 @@ import "../global.css";
 
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { env } from "@zen-doc/env/native";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { orpc } from "@/utils/orpc";
 import { hideAsync, preventAutoHideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
-import { getStoredSecret } from "@/utils/privacy";
-import { orpc, queryClient } from "@/utils/orpc";
+import { queryClient } from "@/utils/orpc";
 import { StripePaymentProvider } from "@/utils/stripe";
 import { useThemeColor } from "@/utils/theme";
-import { UserModeProvider } from "@/utils/user-mode";
 
 preventAutoHideAsync().catch(() => undefined);
 
@@ -36,7 +36,6 @@ function ClerkApiAuthBridge() {
 
   return null;
 }
-
 function OnboardingCheck() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
@@ -46,74 +45,21 @@ function OnboardingCheck() {
       enabled: isLoaded && isSignedIn,
       retry: false,
       throwOnError: false,
-      queryFn: async () => {
-        try {
-          return (await orpc.getPatientProfile.call()) ?? null;
-        } catch {
-          return null;
-        }
-      },
     })
   );
-  const guardianProfileQuery = useQuery(
-    orpc.getGuardianProfile.queryOptions({
-      enabled: isLoaded && isSignedIn,
-      retry: false,
-      throwOnError: false,
-      queryFn: async () => {
-        try {
-          return (await orpc.getGuardianProfile.call()) ?? null;
-        } catch {
-          return null;
-        }
-      },
-    })
-  );
-
-  const hasPatientProfile = Boolean(patientProfileQuery.data);
-  const hasGuardianProfile = Boolean(guardianProfileQuery.data);
 
   useEffect(() => {
-    if (
-      isLoaded &&
-      isSignedIn &&
-      !patientProfileQuery.isLoading &&
-      !guardianProfileQuery.isLoading
-    ) {
-      const profile = patientProfileQuery.data;
-      const encryptionIncomplete =
-        hasPatientProfile &&
-        (!profile?.secured || (profile?.secured && !profile?._securedData));
-
-      if (!(hasPatientProfile || hasGuardianProfile) || encryptionIncomplete) {
-        router.replace("/onboarding");
-        return;
-      }
-
-      if (profile?.secured && profile?._securedData) {
-        getStoredSecret().then((secret) => {
-          if (!secret) {
-            router.replace("/onboarding");
-          }
-        });
-      }
+    if (isLoaded && isSignedIn && patientProfileQuery.isFetched && !patientProfileQuery.data) {
+      router.replace("/(onboarding)/onboarding");
     }
-  }, [
-    guardianProfileQuery.isLoading,
-    isLoaded,
-    isSignedIn,
-    hasGuardianProfile,
-    hasPatientProfile,
-    patientProfileQuery.data,
-    patientProfileQuery.isLoading,
-    router,
-  ]);
+  }, [isLoaded, isSignedIn, patientProfileQuery.isFetched, patientProfileQuery.data, router]);
 
   return null;
 }
 
 export default function RootLayout() {
-  const { background, foreground } = useThemeColor();
+// ... (rest of RootLayout)
+
   const [fontsLoaded, fontError] = useFonts(satoshiFonts);
 
   useEffect(() => {
@@ -133,7 +79,6 @@ export default function RootLayout() {
     >
       <ClerkApiAuthBridge />
       <QueryClientProvider client={queryClient}>
-        <UserModeProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <StripePaymentProvider>
               <Stack
@@ -163,10 +108,6 @@ export default function RootLayout() {
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
-                  name="(guardian)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
                   name="test"
                   options={{ headerShown: false }}
                 />
@@ -175,7 +116,6 @@ export default function RootLayout() {
               <StatusBar style="auto" />
             </StripePaymentProvider>
           </GestureHandlerRootView>
-        </UserModeProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );
