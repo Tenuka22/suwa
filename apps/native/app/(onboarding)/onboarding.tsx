@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
 import { orpc } from "@/utils/orpc";
 import { encryptData, generateUserSecret, storeSecret } from "@/utils/privacy";
+import { useErrorHandler } from "@/utils/use-error-handler";
 
 const patientSchema = z.object({
   alias: z.string().min(1, "Alias is required"),
@@ -24,6 +25,7 @@ type PatientForm = z.infer<typeof patientSchema>;
 export default function OnboardingScreen() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  const { handleError } = useErrorHandler();
 
   const patientForm = useForm<PatientForm>({
     defaultValues: {
@@ -40,6 +42,7 @@ export default function OnboardingScreen() {
       onSuccess: () => {
         router.replace("/(patient)");
       },
+      onError: (err) => handleError(err),
     })
   );
 

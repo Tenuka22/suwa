@@ -9,6 +9,7 @@ import { CreditPurchase } from "@/components/ui/credit-purchase";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
+import { useToast } from "@/components/ui/toast";
 import { orpc, queryClient } from "@/utils/orpc";
 import {
   decryptData,
@@ -18,6 +19,7 @@ import {
   storeSecret,
 } from "@/utils/privacy";
 import { useThemeColor } from "@/utils/theme";
+import { useErrorHandler } from "@/utils/use-error-handler";
 
 function vibrate(pattern: number | number[]) {
   if (typeof window !== "undefined" && "navigator" in window) {
@@ -47,6 +49,9 @@ export default function ProfileScreen() {
   const [guardianPhone, setGuardianPhone] = useState("");
   const [initialGuardianEmail, setInitialGuardianEmail] = useState("");
   const [initialGuardianPhone, setInitialGuardianPhone] = useState("");
+
+  const { toast } = useToast();
+  const { handleError } = useErrorHandler();
 
   const profileQuery = useQuery(orpc.getPatientProfile.queryOptions());
 
@@ -96,8 +101,14 @@ export default function ProfileScreen() {
     orpc.updatePatientProfile.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["getPatientProfile"] });
+        toast({
+          type: "success",
+          title: "Saved",
+          message: "Profile updated successfully.",
+        });
         vibrate([40, 20, 40]);
       },
+      onError: (err) => handleError(err),
     })
   );
 

@@ -7,8 +7,10 @@ import {
 } from "@zen-doc/pricing";
 import { useState } from "react";
 import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import { useToast } from "@/components/ui/toast";
 import { orpc } from "@/utils/orpc";
 import { usePaymentSheet } from "@/utils/stripe";
+import { useErrorHandler } from "@/utils/use-error-handler";
 import { Button } from "./button";
 import { Card } from "./card";
 
@@ -31,6 +33,8 @@ export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
     "credits" | "subscription"
   >("credits");
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { handleError } = useErrorHandler();
   const creditQuery = useQuery(orpc.getUserCredits.queryOptions());
   const subscriptionQuery = useQuery(orpc.getUserSubscription.queryOptions());
   const paymentSheet = usePaymentSheet();
@@ -58,11 +62,17 @@ export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
           throw new Error(presentResult.error.message ?? "Payment failed");
         }
 
+        toast({
+          type: "success",
+          title: "Purchase complete",
+          message: "Credits have been added to your account.",
+        });
         await creditQuery.refetch();
         setModalVisible(false);
         setPurchaseError(null);
       },
       onError: (error) => {
+        handleError(error, { retry: handleBuyCredits });
         setPurchaseError(
           error instanceof Error ? error.message : "Unable to buy credits"
         );
@@ -99,6 +109,7 @@ export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
         setPurchaseError(null);
       },
       onError: (error) => {
+        handleError(error, { retry: handleSubscribe });
         setPurchaseError(
           error instanceof Error
             ? error.message

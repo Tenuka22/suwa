@@ -28,6 +28,7 @@ import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
+import { useErrorHandler } from "@/utils/use-error-handler";
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-US", {
@@ -255,6 +256,7 @@ function VideoModal({
 export default function BookingScreen() {
   const colors = useThemeColor();
   const router = useRouter();
+  const { handleError } = useErrorHandler();
   const { doctorId } = useLocalSearchParams<{ doctorId?: string }>();
   const id = Array.isArray(doctorId) ? doctorId[0] : doctorId;
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -372,6 +374,7 @@ export default function BookingScreen() {
       }, 1500);
     },
     onError: (err: Error) => {
+      handleError(err);
       setErrorMessage(err.message);
       setBookingStep("error");
     },

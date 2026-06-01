@@ -8,10 +8,12 @@ import { useFonts } from "expo-font";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { hideAsync, preventAutoHideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
+import { ToastProvider, useToast } from "@/components/ui/toast";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
-import { orpc, queryClient } from "@/utils/orpc";
+import { orpc, queryClient, setQueryErrorHandler } from "@/utils/orpc";
 import { StripePaymentProvider } from "@/utils/stripe";
 import { useThemeColor } from "@/utils/theme";
 
@@ -48,34 +50,16 @@ function OnboardingCheck() {
   );
 
   useEffect(() => {
-    console.log("OnboardingCheck deps:", {
-      isLoaded,
-      isSignedIn,
-      isFetched: patientProfileQuery.isFetched,
-      data: patientProfileQuery.data,
-      pathname,
-    });
     if (isLoaded && isSignedIn && patientProfileQuery.isFetched) {
       const needsSetup = !(
         patientProfileQuery.data?.secured &&
         patientProfileQuery.data?._securedData
       );
-      console.log("OnboardingCheck needsSetup:", {
-        needsSetup,
-        secured: patientProfileQuery.data?.secured,
-        _securedData: patientProfileQuery.data?._securedData,
-        pathname,
-        shouldRedirect:
-          needsSetup &&
-          pathname !== "/profile" &&
-          !pathname.startsWith("/onboarding"),
-      });
       if (
         needsSetup &&
         pathname !== "/profile" &&
         !pathname.startsWith("/onboarding")
       ) {
-        console.log("OnboardingCheck redirecting to /profile");
         router.replace("/profile");
       }
     }
@@ -91,9 +75,62 @@ function OnboardingCheck() {
   return null;
 }
 
-export default function RootLayout() {
+function GlobalErrorBoundary({
+  showError,
+  children,
+}: {
+  showError: (title: string, message: string) => void;
+  children: React.ReactNode;
+}) {
+  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const handler = (event: ErrorEvent) => {
+      setError(event.error);
+      setHasError(true);
+      showError(
+        "Unexpected error",
+        event.error?.message ?? "Something went wrong. Please restart the app."
+      );
+    };
+    window.addEventListener("error", handler);
+    return () => window.removeEventListener("error", handler);
+  }, [showError]);
+
+  if (hasError) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background px-page">
+        <Text className="text-center font-black font-sans text-2xl text-destructive">
+          Something went wrong
+        </Text>
+        <Text className="mt-2 text-center font-normal font-sans text-foreground text-sm">
+          {error?.message ?? "An unexpected error occurred."}
+        </Text>
+      </View>
+    );
+  }
+
+  return children;
+}
+
+import { Text, View } from "react-native";
+
+function LayoutContent() {
   const { background, foreground } = useThemeColor();
   const [fontsLoaded, fontError] = useFonts(satoshiFonts);
+  const { toast } = useToast();
+  const { dialogProps, showError } = useErrorDialog();
+
+  useEffect(() => {
+    setQueryErrorHandler((error) => {
+      toast({
+        type: "error",
+        title: "Something went wrong",
+        message: (error as Error)?.message ?? "Please try again.",
+      });
+    });
+  }, [toast]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -114,33 +151,47 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <StripePaymentProvider>
-            <Stack
-              screenOptions={{
-                headerStyle: {
-                  backgroundColor: background,
-                },
-                headerTitleStyle: {
-                  fontFamily: "Satoshi",
-                  fontWeight: "500",
-                  color: foreground,
-                },
-                headerTintColor: foreground,
-                headerShadowVisible: false,
-              }}
-            >
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="(onboarding)"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen name="(patient)" options={{ headerShown: false }} />
-              <Stack.Screen name="test" options={{ headerShown: false }} />
-            </Stack>
-            <OnboardingCheck />
+            <GlobalErrorBoundary showError={showError}>
+              <Stack
+                screenOptions={{
+                  headerStyle: {
+                    backgroundColor: background,
+                  },
+                  headerTitleStyle: {
+                    fontFamily: "Satoshi",
+                    fontWeight: "500",
+                    color: foreground,
+                  },
+                  headerTintColor: foreground,
+                  headerShadowVisible: false,
+                }}
+              >
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="(onboarding)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="(patient)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="test" options={{ headerShown: false }} />
+              </Stack>
+              <OnboardingCheck />
+            </GlobalErrorBoundary>
             <StatusBar style="auto" />
           </StripePaymentProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
+      <ErrorDialog {...dialogProps} />
     </ClerkProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ToastProvider>
+      <LayoutContent />
+    </ToastProvider>
   );
 }

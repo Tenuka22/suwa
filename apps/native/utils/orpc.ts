@@ -7,10 +7,16 @@ import { env } from "@zen-doc/env/native";
 
 import { getClerkAuthToken } from "@/utils/clerk-auth";
 
+let globalQueryErrorHandler: ((error: unknown) => void) | null = null;
+
+export function setQueryErrorHandler(handler: (error: unknown) => void) {
+  globalQueryErrorHandler = handler;
+}
+
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
-      console.error(error);
+      globalQueryErrorHandler?.(error);
     },
   }),
 });
