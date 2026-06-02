@@ -9,7 +9,6 @@ export const getManagedPatientWellnessRoute = protectedProcedure
   .handler(async ({ context, input }) => {
     const { userId: guardianId } = requireAuth(context);
 
-    // Verify guardian manages this patient
     const [patient] = await context.db
       .select()
       .from(patientProfiles)

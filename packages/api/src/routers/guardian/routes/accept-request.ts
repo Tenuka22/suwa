@@ -14,7 +14,6 @@ export const acceptRequestRoute = protectedProcedure
     const { userId } = requireAuth(context);
     const { patientUserId } = input;
 
-    // 1. Get user details from Clerk to create the guardian profile if needed
     const clerkUser = await context.clerk.users.getUser(userId);
     const email = clerkUser.emailAddresses[0]?.emailAddress;
     const phone = clerkUser.phoneNumbers[0]?.phoneNumber;
@@ -23,7 +22,6 @@ export const acceptRequestRoute = protectedProcedure
         throw new Error("Guardian must have an email or phone number in Clerk");
     }
 
-    // 2. Create or update guardian profile
     await context.db
       .insert(guardianProfiles)
       .values({
@@ -40,7 +38,6 @@ export const acceptRequestRoute = protectedProcedure
         }
       });
 
-    // 3. Link the patient to this guardian
     await context.db
       .update(patientProfiles)
       .set({

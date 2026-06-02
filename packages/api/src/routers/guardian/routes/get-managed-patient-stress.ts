@@ -10,7 +10,6 @@ export const getManagedPatientStressMetricsRoute = protectedProcedure
   .handler(async ({ context, input }) => {
     const { userId: guardianId } = requireAuth(context);
 
-    // Verify guardian manages this patient
     const [patient] = await context.db
       .select()
       .from(patientProfiles)
@@ -26,7 +25,6 @@ export const getManagedPatientStressMetricsRoute = protectedProcedure
       throw new Error("Patient not found or not managed by you");
     }
 
-    // Get features from KV
     const kvKey = `model-features:${input.patientUserId}`;
     const records = await context.modelFeaturesKv.get<Array<{ sample: number[], timestamp: number }>>(kvKey, "json");
 
@@ -34,7 +32,6 @@ export const getManagedPatientStressMetricsRoute = protectedProcedure
       return [];
     }
 
-    // Call stress predictor service
     const response = await fetch(`${env.STRESS_PREDICTOR_URL}/predict`, {
       method: "POST",
       headers: {

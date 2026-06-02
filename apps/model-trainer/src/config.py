@@ -46,7 +46,6 @@ class TrainingConfig:
     models_dir: Path = Path(os.environ.get("MODELS_DIR_OVERRIDE", "models"))
 
     def model_dir(self, seq_len: int) -> Path:
-        """Return (and create) the output directory for a given sequence length."""
         d = self.models_dir / f"seq_{seq_len}"
         d.mkdir(parents=True, exist_ok=True)
         return d

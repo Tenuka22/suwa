@@ -30,7 +30,6 @@ export const availabilityStatsRoute = protectedProcedure
       return acc + (endMin - startMin) / 60;
     }, 0);
 
-    // Hours by day of week
     const hoursByDay = Array.from({ length: 7 }, (_, day) => {
       const dayEntries = activeEntries.filter((e) => e.dayOfWeek === day);
       const dayHours = dayEntries.reduce((acc, entry) => {

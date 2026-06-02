@@ -146,7 +146,7 @@ export function DoctorFileCard({
   return (
     <Card className="group overflow-hidden border-border/60 bg-card transition-all duration-200 hover:border-border hover:shadow-sm">
       <div className="flex flex-col gap-4 p-4 sm:flex-row">
-        {/* Preview */}
+        
         <div
           className={cn(
             "relative overflow-hidden rounded-2xl border border-border/50 bg-muted/30",
@@ -176,7 +176,7 @@ export function DoctorFileCard({
           </div>
         </div>
 
-        {/* Content */}
+        
         <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -221,7 +221,7 @@ export function DoctorFileCard({
               </DropdownMenu>
             </div>
 
-            {/* Metadata */}
+            
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">{formatFileSize(file.size)}</Badge>
 
@@ -235,7 +235,7 @@ export function DoctorFileCard({
             </div>
           </div>
 
-          {/* Footer */}
+          
           <div className="flex items-center justify-between border-border/50 border-t pt-3">
             <p className="truncate text-muted-foreground text-xs">
               ID: {file.id}

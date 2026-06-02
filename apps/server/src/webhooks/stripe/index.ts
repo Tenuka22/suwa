@@ -36,7 +36,6 @@ stripeApp.post("/", async (c) => {
     return c.text("Webhook Error", 400);
   }
 
-  // Handle checkout completion for both subscriptions and credit purchases
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const sessionType = session.metadata?.type;
@@ -135,7 +134,6 @@ stripeApp.post("/", async (c) => {
     }
   }
 
-  // Handle subscription renewal/webhook events
   if (event.type === "invoice.payment_succeeded") {
     const invoiceObject = event.data.object;
 
@@ -181,7 +179,6 @@ stripeApp.post("/", async (c) => {
           createdAt: now,
         });
 
-        // Update subscription period
         await db
           .update(userSubscriptions)
           .set({
@@ -192,7 +189,6 @@ stripeApp.post("/", async (c) => {
     }
   }
 
-  // Handle subscription cancellation
   if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object as Stripe.Subscription;
 
@@ -213,7 +209,6 @@ stripeApp.post("/", async (c) => {
     }
   }
 
-  // Handle original payment intent events (for one-time purchases)
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const userId = paymentIntent.metadata?.userId;

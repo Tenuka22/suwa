@@ -21,12 +21,10 @@ export const creditStatsRoute = protectedProcedure
       .where(eq(doctorCashoutRequests.doctorId, doctorId))
       .orderBy(doctorCashoutRequests.createdAt);
 
-    // Pending cashout cents
     const pendingCashoutCents = cashoutRequests
       .filter((r) => r.status === "pending")
       .reduce((sum, r) => sum + r.amountCents, 0);
 
-    // Monthly cashout trend (last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     const sixMonthsAgoStr = sixMonthsAgo.toISOString();

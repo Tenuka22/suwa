@@ -1,5 +1,3 @@
-// Auto-generated from WESAD test split — DO NOT EDIT BY HAND
-// 9 sequences (3 baseline, 3 amusement, 3 stress)
 
 export interface TestSequence {
   expected: string;

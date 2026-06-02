@@ -71,7 +71,6 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
       available: boolean;
     }> = [];
 
-    // Iterate through each day in the range
     const currentDate = new Date(fromDate);
     while (currentDate < toDate) {
       const dayOfWeek = getDayOfWeek(currentDate);
@@ -87,7 +86,6 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
         const slotStart = minutesToDate(currentDate, startMinutes);
         const slotEndBase = minutesToDate(currentDate, endMinutes);
 
-        // Generate slots matching the requested duration within this availability range
         let cursor = new Date(slotStart);
         while (cursor < slotEndBase) {
           const slotEnd = new Date(cursor.getTime() + slotDurationMs);
@@ -96,7 +94,6 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
             break;
           }
 
-          // Check if slot overlaps with any booked session
           const cursorTime = cursor.getTime();
           const slotEndTime = slotEnd.getTime();
 

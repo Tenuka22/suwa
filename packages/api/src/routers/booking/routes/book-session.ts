@@ -32,7 +32,6 @@ export const bookSessionRoute = protectedProcedure
       throw new Error("The selected plan is not available");
     }
 
-    // Allow multiple sessions with the same doctor as long as they don't overlap
     const overlapping = await context.db
       .select({ id: doctorSessions.id })
       .from(doctorSessions)

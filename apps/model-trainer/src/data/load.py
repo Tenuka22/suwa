@@ -52,22 +52,17 @@ def load_subject_hrv(subj_id: int, ds_path: str):
         ds_path, "0. interim", "wesad", "Labels", f"S{subj_id}_quest.csv"
     )
 
-    # 1. Load data
     df = pd.read_excel(hrv_path)
     
-    # 2. Extract Time for labeling
     times_min = df["Time"].values
     
-    # 3. Filter hardware specific features using the DataFrame directly
     df_filtered = filter_hardware_features(df)
     features = df_filtered.values.astype(np.float32)
     feature_names = df_filtered.columns.tolist()
 
-    # 4. Generate Labels
     schedule = _parse_quest(quest_path)
     labels = _label_full_timeline(times_min, schedule)
     
-    # 5. Filter out invalid/unlabeled segments
     valid = labels >= 0
     features = features[valid]
     labels = labels[valid]

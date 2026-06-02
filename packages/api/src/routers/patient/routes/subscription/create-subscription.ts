@@ -8,14 +8,13 @@ import { getStripe } from "../../../booking/stripe-utils";
 export const createSubscriptionRoute = protectedProcedure
   .input(
     z.object({
-      planType: z.enum(["monthly_5_credits"]), // $50/month for 5 credits
+      planType: z.enum(["monthly_5_credits"]),
       returnUrl: z.string().url().optional(),
     })
   )
   .handler(async ({ context, input }) => {
     const { userId } = requireAuth(context);
     const stripe = getStripe();
-    // Check if user already has an active subscription for this month
     const [existingSubscription] = await context.db
       .select()
       .from(userSubscriptions)

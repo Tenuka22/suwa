@@ -1,14 +1,14 @@
 {
     "seq_len": 120,
-    "threshold_precision": 0.5216462281679674,
-    "threshold_recall": 0.535011771853877,
-    "threshold_fbeta": 0.48202333808543213,
-    "accuracy": 0.6240000128746033,
-    "test_loss": 0.8011927604675293,
-    "f1": 0.5444076321688261,
-    "precision": 0.5618756936736958,
-    "recall": 0.5868459026353764,
-    "mean_baseline_probability": 0.3743486702442169,
-    "mean_amusement_probability": 0.18411041796207428,
-    "mean_stress_probability": 0.4415408968925476
+    "threshold_precision": 0.5409090909090909,
+    "threshold_recall": 0.5438976228449913,
+    "threshold_fbeta": 0.4965745732255166,
+    "accuracy": 0.5920000076293945,
+    "test_loss": 0.8370410203933716,
+    "f1": 0.5910855934124046,
+    "precision": 0.5931818181818181,
+    "recall": 0.6166552745500113,
+    "mean_baseline_probability": 0.30701833963394165,
+    "mean_amusement_probability": 0.2312423288822174,
+    "mean_stress_probability": 0.46173930168151855
 }

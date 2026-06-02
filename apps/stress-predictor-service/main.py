@@ -6,15 +6,12 @@ from pydantic import BaseModel
 import uvicorn
 from typing import Annotated, List, Dict
 
-# --- Configuration ---
 N_FEATURES = 11
 SEQUENCE_LENGTHS = [120, 240, 360]
 CLASSES = ["baseline", "amusement", "stress"]
 STRESS_THRESHOLD = 0.5
 API_KEY = os.getenv("STRESS_PREDICTOR_SECRET")
 
-# --- Model Loading ---
-# Note: Ensure these paths are correct relative to where the service is run
 MODEL_BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../apps/model-trainer/models"))
 MODELS = {
     seq_len: tf.keras.models.load_model(
@@ -25,7 +22,6 @@ MODELS = {
 
 app = FastAPI()
 
-# --- Schemas ---
 class PredictionRequest(BaseModel):
     window_samples: List[float]
 
@@ -36,9 +32,7 @@ class PredictionResponseItem(BaseModel):
 class PredictionResponse(BaseModel):
     results: Dict[str, PredictionResponseItem]
 
-# --- Helper Functions ---
 def classify_probabilities(probs: np.ndarray) -> int:
-    """Classify based on stress threshold."""
     if probs[2] >= STRESS_THRESHOLD:
         return 2  # Stress
     else:
@@ -52,7 +46,6 @@ async def verify_api_key(x_api_key: Annotated[str | None, Header(alias="X-API-Ke
     if x_api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Invalid API key")
 
-# --- Endpoints ---
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(
     request: PredictionRequest, 
@@ -70,7 +63,6 @@ async def predict(
     
     for model_len in SEQUENCE_LENGTHS:
         if seq_len >= model_len:
-            # Take the most recent 'model_len' samples
             data = samples[:, -model_len:, :]
             probs = MODELS[model_len].predict(data, verbose=0)[0]
             

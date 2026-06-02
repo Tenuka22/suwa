@@ -13,7 +13,6 @@ export const listPatientSessionsRoute = protectedProcedure.handler(
       .where(eq(doctorSessions.patientId, patientId))
       .orderBy(doctorSessions.startAt);
 
-    // Fetch doctor and plan details for each session
     const enhancedSessions = await Promise.all(
       sessions.map(async (session) => {
         const [doctor] = await context.db

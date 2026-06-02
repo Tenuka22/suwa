@@ -9,19 +9,16 @@ export const doctorStatsRoute = protectedProcedure
   .handler(async ({ context }) => {
     const { userId: doctorId } = await requireDoctor(context);
 
-    // Total sessions for this doctor
     const [totalSessionsResult] = await context.db
       .select({ value: count() })
       .from(doctorSessions)
       .where(eq(doctorSessions.doctorId, doctorId));
 
-    // Total earned cents for this doctor
     const [totalEarnedCentsResult] = await context.db
       .select({ value: sum(doctorSessions.doctorEarnedCents) })
       .from(doctorSessions)
       .where(eq(doctorSessions.doctorId, doctorId));
 
-    // Upcoming sessions (approved and future start time)
     const now = new Date().toISOString();
     const [upcomingSessionsResult] = await context.db
       .select({ value: count() })
@@ -34,7 +31,6 @@ export const doctorStatsRoute = protectedProcedure
         )
       );
 
-    // Recent sessions (last 5, ordered by startAt descending)
     const recentSessions = await context.db
       .select({
         id: doctorSessions.id,
@@ -49,7 +45,6 @@ export const doctorStatsRoute = protectedProcedure
       .orderBy(desc(doctorSessions.startAt))
       .limit(5);
 
-    // Monthly earnings for the last 6 months
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     const sixMonthsAgoStr = sixMonthsAgo.toISOString();

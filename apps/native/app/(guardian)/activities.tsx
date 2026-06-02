@@ -24,7 +24,7 @@ export default function GuardianActivitiesScreen() {
         </View>
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {/* Placeholder for future activity charts */}
+            
             <View className="items-center justify-center py-20 rounded-card border-2 border-dashed border-border">
                 <Activity color={colors.mutedForeground} size={48} />
                 <Text className="mt-4 font-bold text-muted-foreground">Activity visualizations coming soon</Text>

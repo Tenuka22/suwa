@@ -27,7 +27,6 @@ export const adminStatsRoute = protectedProcedure
       .select({ value: count() })
       .from(patientProfiles);
 
-    // Get sessions per day for the last 7 days
     const sessionsByDay = await context.db
       .select({
         day: sql<string>`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch'))`,

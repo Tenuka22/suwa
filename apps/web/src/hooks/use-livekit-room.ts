@@ -57,7 +57,6 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
           setIsConnecting(false);
           options.onConnected?.();
 
-          // Set up local video if available
           const localParticipant = room.localParticipant;
           if (localParticipant) {
             const videoTrack = Array.from(
@@ -113,7 +112,6 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
           setActiveSpeakers(speakers);
           setAudioLevelHistory((prev) => {
             const next = { ...prev };
-            // Update for all participants in the room
             const allParticipants = [
               room.localParticipant,
               ...Array.from(room.remoteParticipants.values()),
@@ -141,7 +139,6 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
 
         await room.connect(url, token);
 
-        // Start local tracks
         await room.localParticipant.setCameraEnabled(true);
         await room.localParticipant.setMicrophoneEnabled(true);
 

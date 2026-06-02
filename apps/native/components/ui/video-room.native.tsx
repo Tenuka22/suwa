@@ -139,7 +139,6 @@ function formatParticipantIdentity(
   return identity;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: UI component with many state branches
 export function VideoRoom({
   alias,
   onClose,
@@ -253,7 +252,6 @@ export function VideoRoom({
     onClose();
   }, [liveKit, onClose, sessionId]);
 
-  // Privacy confirmation modal
   if (showConfirmToggle) {
     return (
       <View className="flex-1 items-center justify-center bg-background p-6">
@@ -292,7 +290,6 @@ export function VideoRoom({
     );
   }
 
-  // Initial privacy prompt
   if (showPrivacyPrompt) {
     return (
       <View className="flex-1 items-center justify-center bg-background p-6">
@@ -476,7 +473,6 @@ export function VideoRoom({
     );
   }
 
-  // Anonymous placeholder instead of local video
   const anonymousPlaceholder =
     liveKit.isConnected && isAnonymous ? (
       <View className="absolute top-3 right-3 aspect-[3/4] w-[30%] items-center justify-center overflow-hidden rounded-lg border-2 border-purple-500/50 bg-gray-900">
@@ -498,11 +494,11 @@ export function VideoRoom({
 
   return (
     <View className="flex-1 gap-3">
-      {/* Remote Video (Large) */}
+      
       <View className="relative aspect-video w-full overflow-hidden rounded-card bg-black">
         {remoteContent}
 
-        {/* Remote Participant Info Overlay */}
+        
         {remoteParticipant && (
           <View className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5">
             <Text className="font-bold font-sans text-[10px] text-white drop-shadow-sm">
@@ -518,7 +514,7 @@ export function VideoRoom({
           </View>
         )}
 
-        {/* Connection Status Badge */}
+        
         <View className="absolute top-2 left-2">
           <View
             className={`flex-row items-center gap-1 rounded-full px-2 py-0.5 ${
@@ -536,7 +532,7 @@ export function VideoRoom({
         {anonymousPlaceholder}
       </View>
 
-      {/* Control Bar */}
+      
       <View className="flex-row items-center justify-center gap-4 py-2">
         <Button
           className="h-12 w-12 rounded-full"
@@ -588,7 +584,7 @@ export function VideoRoom({
         )}
       </View>
 
-      {/* Participant Details */}
+      
       {liveKit.isConnected && (
         <Card className="gap-2">
           <View className="flex-row items-center gap-2">
@@ -638,7 +634,7 @@ export function VideoRoom({
         </Card>
       )}
 
-      {/* Session Timing Warnings */}
+      
       {timing.mustLeave && (
         <Card className="border-2 border-destructive bg-destructive/10">
           <View className="px-3 py-2">

@@ -50,8 +50,6 @@ export const updatePatientProfileRoute = protectedProcedure
         updateData.guardianPhone = guardianPhone;
         updateData.guardianRequestStatus = "pending";
 
-        // We don't require the guardian to exist in our DB yet.
-        // They will be matched when they log in and check pending requests.
       }
     }
 

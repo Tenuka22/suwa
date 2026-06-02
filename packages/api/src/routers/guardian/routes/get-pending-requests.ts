@@ -7,7 +7,6 @@ export const getPendingRequestsRoute = protectedProcedure.handler(
   async ({ context }) => {
     const { userId } = requireAuth(context);
 
-    // Get user details from Clerk to match by email/phone
     const clerkUser = await context.clerk.users.getUser(userId);
     const emails = clerkUser.emailAddresses.map((e) => e.emailAddress);
     const phones = clerkUser.phoneNumbers.map((p) => p.phoneNumber);

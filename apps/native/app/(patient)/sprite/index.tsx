@@ -105,7 +105,7 @@ export default function SpriteScreen() {
           className="flex-1"
           contentContainerClassName="gap-section py-page pb-24"
         >
-          {/* Header */}
+          
           <View className="flex-row items-start justify-between gap-2">
             <View className="flex-1 gap-2">
               <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
@@ -121,7 +121,7 @@ export default function SpriteScreen() {
             </View>
           </View>
 
-          {/* Sprite Visual - no border, large */}
+          
           <View className="items-center py-6">
             <Pressable
               className="h-80 w-80 items-center justify-center"
@@ -145,7 +145,7 @@ export default function SpriteScreen() {
             </Pressable>
           </View>
 
-          {/* Sprite Stats */}
+          
           <View className="gap-4">
             <View className="flex-row items-center justify-between">
               <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-[0.2em]">
@@ -211,7 +211,7 @@ export default function SpriteScreen() {
             </View>
           </View>
 
-          {/* Action Buttons */}
+          
         </ScrollView>
       </Screen>
       <ScreenBottomBar>

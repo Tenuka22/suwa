@@ -50,7 +50,6 @@ export const respondSessionRoute = protectedProcedure
     if (input.action === "approve") {
       const earnedCents = session.creditCost * CREDIT_PRICE_CENTS;
 
-      // Deduct credits from the patient
       const [patientCredit] = await context.db
         .select()
         .from(userCredits)
@@ -129,7 +128,6 @@ export const respondSessionRoute = protectedProcedure
         })
         .where(eq(doctorSessions.id, input.sessionId));
     } else {
-      // reject
       await context.db
         .update(doctorSessions)
         .set({

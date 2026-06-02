@@ -131,7 +131,6 @@ function AudioVisualizer({
       {levels.map((level, i) => (
         <div
           className="w-[3px] bg-emerald-500 transition-all duration-75"
-          // biome-ignore lint/suspicious/noArrayIndexKey: indices are stable for waveform history
           key={i}
           style={{
             height: `${Math.max(10, level * 100)}%`,
@@ -263,13 +262,13 @@ function VideoRoomContent({
 
     return (
       <div className="relative flex flex-1 flex-col overflow-hidden rounded-xl bg-neutral-950 shadow-2xl">
-        {/* Main video area */}
+        
         <div className="relative flex-1 overflow-hidden">
           {liveKit.isConnected ? (
             <>
               {hasRemote ? (
                 <>
-                  {/* Remote video */}
+                  
                   <video
                     autoPlay
                     className="h-full w-full object-contain"
@@ -278,7 +277,7 @@ function VideoRoomContent({
                   />
                   <audio autoPlay playsInline ref={liveKit.audioRef} />
 
-                  {/* Remote label */}
+                  
                   <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-lg bg-black/40 px-3 py-1.5 backdrop-blur-md">
                     <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                     <span className="font-semibold text-white text-xs uppercase tracking-wide">
@@ -309,7 +308,7 @@ function VideoRoomContent({
             </div>
           )}
 
-          {/* Admin Amplitude View */}
+          
           {role === "admin" && liveKit.isConnected && (
             <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 flex-col gap-2">
               {Object.entries(liveKit.audioLevelHistory).map(([id, levels]) => (
@@ -318,7 +317,7 @@ function VideoRoomContent({
             </div>
           )}
 
-          {/* Local PiP */}
+          
           {liveKit.isConnected && (
             <div className="absolute top-4 right-4 aspect-video w-[240px] overflow-hidden rounded-lg border border-white/10 bg-neutral-900 shadow-xl lg:w-[320px]">
               <video
@@ -341,7 +340,7 @@ function VideoRoomContent({
             </div>
           )}
 
-          {/* Mic warning banner */}
+          
           {muteSeconds > 30 && role === "doctor" && (
             <div className="absolute top-20 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-4">
               <div className="flex items-center gap-3 rounded-lg border border-amber-500/50 bg-amber-500/20 p-3 text-amber-200 backdrop-blur-lg">
@@ -359,7 +358,7 @@ function VideoRoomContent({
           )}
         </div>
 
-        {/* Floating Controls Bar */}
+        
         <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-xl transition-all hover:bg-black/80">
           <button
             className={`group relative flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
@@ -411,7 +410,7 @@ function VideoRoomContent({
           </button>
         </div>
 
-        {/* End confirmation dialog */}
+        
         {showEndConfirm && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <Card className="mx-4 w-full max-w-sm border-white/10 bg-neutral-900 text-white">

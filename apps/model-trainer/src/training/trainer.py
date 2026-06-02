@@ -107,15 +107,12 @@ def train_model(
         n_features,
     )
 
-    # 1. Build Model
     model = build_rri_lstm(seq_len, n_features)
     
-    # 2. Adapt Normalization Layer (Keras layer handles standardization)
     standardization_layer = model.get_layer("standardization")
     print("Adapting Keras Normalization layer to training data...")
     standardization_layer.adapt(X_train)
     
-    # 3. Compile
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=MODEL.learning_rate),
         loss="sparse_categorical_crossentropy",
@@ -125,21 +122,18 @@ def train_model(
         ],
     )
 
-    # 4. Prepare Datasets
     train_ds = tf.data.Dataset.from_tensor_slices((X_train, y_train))
     train_ds = train_ds.shuffle(len(X_train)).batch(TRAINING.batch_size).prefetch(tf.data.AUTOTUNE)
     
     val_ds = tf.data.Dataset.from_tensor_slices((X_val, y_val))
     val_ds = val_ds.batch(TRAINING.batch_size).prefetch(tf.data.AUTOTUNE)
 
-    # 5. Fit
     classes = np.unique(y_train)
     class_weights = compute_class_weight(
         "balanced", classes=classes, y=y_train
     )
     class_weight_dict = dict(enumerate(class_weights))
     
-    # Increase weight for the Stress class (index 2)
     if 2 in class_weight_dict:
         class_weight_dict[2] *= TRAINING.positive_class_weight
         
@@ -152,7 +146,6 @@ def train_model(
         verbose=1,
     )
 
-    # 6. Save Artifacts
     _save_training_curves(history, model_dir)
     if TRAINING.export_onnx:
         from src.training.export import export_to_onnx

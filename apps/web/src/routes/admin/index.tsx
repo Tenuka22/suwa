@@ -133,7 +133,6 @@ export const Route = createFileRoute("/admin/")({
         queryFn: () => orpc.stats.call(),
       });
     } catch {
-      // noop
     }
   },
   component: AdminDashboardRoute,

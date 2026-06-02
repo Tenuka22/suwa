@@ -46,7 +46,6 @@ import { orpc } from "@/utils/orpc";
 import { useIsDoctorSaved } from "@/utils/saved-doctors";
 import { useThemeColor } from "@/utils/theme";
 
-/* ─── Tag Chip ─────────────────────────────────────────────────────────────── */
 
 function Tag({
   label,
@@ -82,7 +81,6 @@ function Tag({
   );
 }
 
-/* ─── Section Header ────────────────────────────────────────────────────────── */
 
 function SectionHeader({
   icon,
@@ -101,7 +99,6 @@ function SectionHeader({
   );
 }
 
-/* ─── Info Chip ──────────────────────────────────────────────────────────────── */
 
 function InfoChip({
   icon,
@@ -127,7 +124,6 @@ function InfoChip({
   );
 }
 
-/* ─── Plan Card ──────────────────────────────────────────────────────────────── */
 
 function PlanCard({
   plan,
@@ -171,7 +167,6 @@ function PlanCard({
   );
 }
 
-/* ─── Loading State ──────────────────────────────────────────────────────────── */
 
 function LoadingState() {
   const colors = useThemeColor();
@@ -191,7 +186,6 @@ function LoadingState() {
   );
 }
 
-/* ─── Not Found State ────────────────────────────────────────────────────────── */
 
 function NotFoundState() {
   return (
@@ -215,7 +209,6 @@ function NotFoundState() {
   );
 }
 
-/* ─── Back Button ────────────────────────────────────────────────────────────── */
 
 function BackButton() {
   const colors = useThemeColor();
@@ -236,7 +229,6 @@ function BackButton() {
   );
 }
 
-/* ─── Profile Header ─────────────────────────────────────────────────────────── */
 
 function ProfileHeader({
   profile,
@@ -320,7 +312,6 @@ function ProfileHeader({
   );
 }
 
-/* ─── Bio Section ────────────────────────────────────────────────────────────── */
 
 function BioSection({ bio }: { bio?: string | null }) {
   const colors = useThemeColor();
@@ -354,7 +345,6 @@ function BioSection({ bio }: { bio?: string | null }) {
   );
 }
 
-/* ─── Media Viewer Modal ─────────────────────────────────────────────────────── */
 
 function MediaViewerModal({
   file,
@@ -436,7 +426,6 @@ function MediaViewerModal({
   );
 }
 
-/* ─── Media Showcase ───────────────────────────────────────────────────────── */
 
 function MediaPreviewCard({
   caption,
@@ -563,7 +552,6 @@ function MediaShowcase({
   );
 }
 
-/* ─── Details Section ──────────────────────────────────────────────────────── */
 
 function DetailsSection({
   profile,
@@ -642,7 +630,6 @@ function DetailsSection({
   );
 }
 
-/* ─── Tags Overview Section ──────────────────────────────────────────────────── */
 
 function TagsOverviewSection({
   profile,
@@ -734,7 +721,6 @@ function TagsOverviewSection({
   );
 }
 
-/* ─── Approach Steps Section ─────────────────────────────────────────────────── */
 
 function ApproachStepsSection({
   steps,
@@ -786,7 +772,6 @@ function ApproachStepsSection({
   );
 }
 
-/* ─── Education Section ──────────────────────────────────────────────────────── */
 
 function EducationSection({
   education,
@@ -841,7 +826,6 @@ function EducationSection({
   );
 }
 
-/* ─── Plans Section ──────────────────────────────────────────────────────────── */
 
 function PlansSection({ doctorId }: { doctorId: string }) {
   const colors = useThemeColor();
@@ -874,7 +858,6 @@ function PlansSection({ doctorId }: { doctorId: string }) {
   );
 }
 
-/* ─── Save Button ──────────────────────────────────────────────────────────────── */
 
 function SaveButton({ doctorId }: { doctorId: string }) {
   const colors = useThemeColor();
@@ -898,7 +881,6 @@ function SaveButton({ doctorId }: { doctorId: string }) {
   );
 }
 
-/* ─── Back Icon Button ─────────────────────────────────────────────────────────── */
 
 function BackIconButton() {
   const colors = useThemeColor();
@@ -920,7 +902,6 @@ function BackIconButton() {
   );
 }
 
-/* ─── Main Screen ────────────────────────────────────────────────────────────── */
 
 export default function DoctorProfileScreen() {
   const { doctorId } = useLocalSearchParams<{ doctorId?: string }>();

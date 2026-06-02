@@ -8,7 +8,7 @@ import { wearablePackages } from "@/utils/wearable-packages";
 export default function TestIndexScreen() {
   return (
     <Screen contentClassName="gap-section px-page py-page bg-background">
-      {/* Intro Header Section (Flat, Editorial, Direct on Page Background) */}
+      
       <View className="mb-2 gap-2">
         <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
           Connection lab
@@ -22,7 +22,7 @@ export default function TestIndexScreen() {
         </Text>
       </View>
 
-      {/* Connection Cards List */}
+      
       <View className="gap-section">
         <Card className="gap-4">
           <View className="gap-1">

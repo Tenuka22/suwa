@@ -57,7 +57,7 @@ export default function DoctorsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <Screen contentClassName="gap-section px-page py-page pb-40">
-        {/* --- Hero Header ------------------------------------------------------- */}
+        
         <View className="gap-2 border-border border-b pb-6">
           <View className="flex-row items-center gap-3">
             <View className="rounded-card bg-primary p-card">
@@ -76,7 +76,7 @@ export default function DoctorsScreen() {
           </Text>
         </View>
 
-        {/* --- Search ----------------------------------------------------------- */}
+        
         <View className="gap-4">
           <Field
             label="Search Directory"
@@ -89,7 +89,7 @@ export default function DoctorsScreen() {
           />
         </View>
 
-        {/* --- Result Count ------------------------------------------------------ */}
+        
         <View className="flex-row items-center justify-between border-border border-b pb-2">
           <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
             {doctorsQuery.isPending
@@ -101,7 +101,7 @@ export default function DoctorsScreen() {
           </Text>
         </View>
 
-        {/* --- Doctor List ------------------------------------------------------- */}
+        
         <View className="mt-2 gap-4">
           {doctorsQuery.isPending && (
             <Card className="items-center gap-4 p-8">
@@ -148,7 +148,6 @@ export default function DoctorsScreen() {
                 availableSlotCount={availableSlotCount}
                 key={profile.userId}
                 onPress={() => {
-                  // Handled by Card href
                 }}
                 portrait={portrait}
                 profile={profile}
@@ -224,9 +223,6 @@ export default function DoctorsScreen() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Doctor Card (Inline – no new design system tokens)                       */
-/* -------------------------------------------------------------------------- */
 
 interface DoctorCardProps {
   availableSlotCount: number;
@@ -269,9 +265,9 @@ function DoctorCard({
       href={`/doctors/${profile.userId}`}
       onPress={onPress}
     >
-      {/* ── Top Row: Avatar + Identity ────────────────────────────────────── */}
+      
       <View className="flex-row items-start gap-4">
-        {/* Avatar */}
+        
         <View className="h-16 w-16 overflow-hidden rounded-full border-2 border-border bg-muted">
           {previewUrl ? (
             <Image
@@ -290,7 +286,7 @@ function DoctorCard({
           )}
         </View>
 
-        {/* Identity Block */}
+        
         <View className="flex-1 justify-center gap-1">
           <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
             {profile.displayName ?? "Clinician"}
@@ -315,7 +311,7 @@ function DoctorCard({
         </View>
       </View>
 
-      {/* ── Bio (if present) ────────────────────────────────────────────── */}
+      
       {profile.bio && (
         <View className="gap-1.5 rounded-card border border-border/40 bg-secondary/30 p-3">
           <View className="flex-row items-center gap-1.5">
@@ -334,9 +330,9 @@ function DoctorCard({
         </View>
       )}
 
-      {/* ── Specialty & Experience ────────────────────────────────────────── */}
+      
       <View className="flex-row flex-wrap gap-2">
-        {/* Primary Specialty */}
+        
         {profile.specialties && profile.specialties.length > 0 && (
           <View className="flex-row items-center gap-1.5 rounded-chip border-2 border-border bg-card px-3 py-1.5">
             <BriefcaseMedical
@@ -350,7 +346,7 @@ function DoctorCard({
           </View>
         )}
 
-        {/* Experience */}
+        
         {experienceYears !== null && (
           <View className="flex-row items-center gap-1.5 rounded-chip border-2 border-border bg-secondary px-3 py-1.5">
             <GraduationCap
@@ -364,7 +360,7 @@ function DoctorCard({
           </View>
         )}
 
-        {/* Languages */}
+        
         {profile.languages && profile.languages.length > 0 && (
           <View className="flex-row items-center gap-1.5 rounded-chip border border-border/50 bg-card px-3 py-1.5">
             <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
@@ -374,7 +370,7 @@ function DoctorCard({
         )}
       </View>
 
-      {/* ── Focus Areas ───────────────────────────────────────────────────── */}
+      
       {profile.focusAreas && profile.focusAreas.length > 0 && (
         <View className="gap-2">
           <View className="flex-row items-center gap-1.5">
@@ -396,9 +392,9 @@ function DoctorCard({
         </View>
       )}
 
-      {/* ── Bottom Action Bar ─────────────────────────────────────────────── */}
+      
       <View className="flex-row items-center justify-between border-border/10 border-t pt-3">
-        {/* Status */}
+        
         <View className="flex-row items-center gap-1.5">
           {availableSlotCount > 0 ? (
             <>

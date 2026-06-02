@@ -293,7 +293,6 @@ export const Route = createFileRoute("/doctor/sessions")({
         queryFn: () => orpc.listDoctorSessions.call(),
       });
     } catch {
-      // noop
     }
   },
   component: DoctorSessionsRoute,
@@ -644,7 +643,7 @@ function DoctorSessionsRoute() {
                             </div>
                           ) : null}
 
-                          {/* Join conference button for approved sessions within time window */}
+                          
                           {canJoin && (
                             <div className="col-span-2">
                               <Button

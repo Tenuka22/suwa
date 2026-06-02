@@ -94,7 +94,6 @@ function OnboardingCheck() {
       return null;
     }
 
-    // If it's a guardian, we might want to redirect to a guardian specific area
     if (guardianData && !patientData) {
       if (pathname === "/" || pathname.startsWith("/onboarding")) {
         return <Redirect href="/(guardian)" />;

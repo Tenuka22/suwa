@@ -39,7 +39,7 @@ export const DoctorCard = ({
       href={`/doctors/${profile.userId}`}
       onPress={onPress}
     >
-      {/* Profile Header Row */}
+      
       <View className="flex-row items-center gap-4">
         <View className="h-12 w-12 overflow-hidden rounded-full border-2 border-border bg-muted">
           {previewUrl ? (
@@ -73,13 +73,13 @@ export const DoctorCard = ({
         </View>
       </View>
 
-      {/* Headline */}
+      
       <Text className="font-medium font-sans text-foreground text-sm leading-relaxed">
         {profile.headline ??
           "Licensed medical practitioner dedicated to safe, private clinical care."}
       </Text>
 
-      {/* Tags / Info badges */}
+      
       <View className="flex-row flex-wrap gap-2">
         {availableSlotCount > 0 ? (
           <View className="flex-row items-center gap-1 rounded-chip border border-success/30 bg-success/10 px-2 py-0.5">
@@ -114,7 +114,7 @@ export const DoctorCard = ({
         )}
       </View>
 
-      {/* Bottom Action bar */}
+      
       <View className="flex-row items-center justify-between border-border/10 border-t pt-3">
         <Text className="font-black font-sans text-[10px] text-primary uppercase tracking-widest">
           View Profile

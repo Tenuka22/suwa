@@ -44,7 +44,7 @@ export default function GuardianDashboard() {
         ) : (
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <View className="gap-section pb-24">
-              {/* Pending Requests Section */}
+              
               {hasPending && (
                 <View className="gap-4">
                   <View className="flex-row items-center gap-2">
@@ -66,7 +66,7 @@ export default function GuardianDashboard() {
                 </View>
               )}
 
-              {/* Managed Patients Section */}
+              
               <View className="gap-4">
                 <View className="flex-row items-center gap-2">
                   <Users color={colors.primary} size={20} />
@@ -129,7 +129,7 @@ export default function GuardianDashboard() {
                 )}
               </View>
 
-              {/* Quick Actions */}
+              
               <View className="gap-4 mt-4">
                 <Text className="font-black font-sans text-foreground text-sm uppercase tracking-[0.2em]">
                   Guardian Tools

@@ -9,7 +9,6 @@ export const sessionStatsRoute = protectedProcedure
   .handler(async ({ context }) => {
     const { userId: doctorId } = requireAuth(context);
 
-    // Count by status
     const statusCounts = await context.db
       .select({
         status: doctorSessions.status,
@@ -26,7 +25,6 @@ export const sessionStatsRoute = protectedProcedure
       sessionsByStatus[row.status] = row.value;
     }
 
-    // Today's sessions
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
@@ -43,7 +41,6 @@ export const sessionStatsRoute = protectedProcedure
         )
       );
 
-    // Sessions per month trend (last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     const sixMonthsAgoStr = sixMonthsAgo.toISOString();
@@ -62,7 +59,6 @@ export const sessionStatsRoute = protectedProcedure
       )
       .orderBy(asc(doctorSessions.startAt));
 
-    // Group sessions by month and status in JS (DB-agnostic)
     const monthlyMap = new Map<string, Record<string, number>>();
     for (const session of sessions) {
       const month = session.startAt.slice(0, 7);
@@ -81,7 +77,6 @@ export const sessionStatsRoute = protectedProcedure
       })
     );
 
-    // Recent sessions (last 10)
     const recentSessions = await context.db
       .select({
         id: doctorSessions.id,

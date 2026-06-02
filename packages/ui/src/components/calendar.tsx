@@ -128,7 +128,6 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn DayPicker adapter
         Root: ({ className, rootRef, ...props }) => (
           <div
             className={cn(className)}
@@ -137,7 +136,6 @@ function Calendar({
             {...props}
           />
         ),
-        // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn DayPicker adapter
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (
@@ -158,11 +156,9 @@ function Calendar({
             <ChevronDownIcon className={cn("size-4", className)} {...props} />
           );
         },
-        // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn DayPicker adapter
         DayButton: ({ ...props }) => (
           <CalendarDayButton locale={locale} {...props} />
         ),
-        // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn DayPicker adapter
         WeekNumber: ({ children, ...props }) => (
           <td {...props}>
             <div className="flex size-(--cell-size) items-center justify-center text-center">

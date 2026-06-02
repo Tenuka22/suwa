@@ -3,7 +3,6 @@ import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
-// Create a simplified schema for patient onboarding
 const simpleOnboardingSchema = z.object({
   alias: z.string().min(1, "Alias is required"),
   guardianEmail: z.string().email().optional().or(z.literal("")),

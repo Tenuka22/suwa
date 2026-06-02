@@ -22,7 +22,6 @@ export const ingestModelFeaturesRoute = protectedProcedure
   .handler(async ({ context, input }) => {
     const { userId } = requireAuth(context);
 
-    // Feature count is 5 as defined in your model specs
     const featureCount = 5;
     const triggerWindowLength = 360;
 

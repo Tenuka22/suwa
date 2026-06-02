@@ -10,7 +10,6 @@ export interface SensorReading {
 export async function insertSensorData(sample: number[]) {
   const currentData = await getSensorData();
   const newData = [...currentData, { sample, timestamp: Date.now() }];
-  // Keep only the last 360 readings
   await AsyncStorage.setItem(
     SENSOR_DATA_KEY,
     JSON.stringify(newData.slice(-360))

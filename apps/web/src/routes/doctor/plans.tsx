@@ -291,7 +291,6 @@ export const Route = createFileRoute("/doctor/plans")({
         queryFn: () => orpc.listDoctorPlans.call(),
       });
     } catch {
-      // noop
     }
   },
   component: DoctorPlansRoute,

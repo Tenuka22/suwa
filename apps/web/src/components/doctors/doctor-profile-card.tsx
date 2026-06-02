@@ -299,7 +299,7 @@ export function DoctorProfileCard() {
         </CardHeader>
 
         <CardContent className="grid gap-6 pt-6 md:grid-cols-2">
-          {/* Quick Practice Details Grid */}
+          
           <div className="space-y-4">
             <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
               <Building className="size-4 text-primary" />
@@ -348,7 +348,7 @@ export function DoctorProfileCard() {
             </div>
           </div>
 
-          {/* Bio section span 2 */}
+          
           <div className="space-y-2 border-border/20 border-t pt-4 md:col-span-2">
             <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
               Biography
@@ -361,7 +361,7 @@ export function DoctorProfileCard() {
             </p>
           </div>
 
-          {/* Specialties & Focus Areas Tags section */}
+          
           <div className="grid gap-6 border-border/20 border-t pt-4 md:col-span-2 md:grid-cols-2">
             <SummaryBlock
               colorTheme="primary"
@@ -389,7 +389,7 @@ export function DoctorProfileCard() {
             />
           </div>
 
-          {/* Approach Steps */}
+          
           {stepsList.length > 0 && (
             <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
               <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
@@ -414,7 +414,7 @@ export function DoctorProfileCard() {
             </div>
           )}
 
-          {/* Education Timeline */}
+          
           {parsedEducation.length > 0 && (
             <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
               <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
@@ -446,7 +446,7 @@ export function DoctorProfileCard() {
             </div>
           )}
 
-          {/* Proof and Documents Alert Banner */}
+          
           <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
             <div className="space-y-1">
               <h3 className="flex items-center gap-1.5 font-semibold text-foreground text-sm">

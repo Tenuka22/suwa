@@ -260,7 +260,6 @@ export const Route = createFileRoute("/doctor/")({
         queryFn: () => orpc.listDoctorSessions.call(),
       });
     } catch {
-      // noop
     }
   },
   component: DoctorDashboardRoute,

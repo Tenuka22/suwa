@@ -57,7 +57,6 @@ function SvgIcon({ d, size = 20 }: { d: string; size?: number }) {
           if (!s) {
             return null;
           }
-          // biome-ignore lint/suspicious/noArrayIndexKey: SVG path segments are static
           return <path d={`M${s}`} key={i} />;
         })}
     </svg>
@@ -284,19 +283,19 @@ export function VideoRoom({
 
   return (
     <div className="space-y-4">
-      {/* Main video container */}
+      
       <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-        {/* Remote video (large) */}
+        
         {isConnected ? (
           <>
-            {/* biome-ignore lint/a11y/useMediaCaption: WebRTC video stream - captions not applicable */}
+            
             <video
               autoPlay
               className="h-full w-full object-cover"
               playsInline
               ref={videoRef}
             />
-            {/* Remote participant label */}
+            
             <div className="absolute top-3 left-3 rounded-full bg-black/60 px-3 py-1">
               <span className="font-medium text-white text-xs">
                 {remoteLabel || "Remote"}
@@ -314,7 +313,7 @@ export function VideoRoom({
           </div>
         )}
 
-        {/* Local video (PiP - bottom right) */}
+        
         {isConnected && (
           <div className="absolute right-4 bottom-4 aspect-[3/4] w-[180px] overflow-hidden rounded-lg border-2 border-white/30 bg-black shadow-2xl">
             <video
@@ -337,7 +336,7 @@ export function VideoRoom({
           </div>
         )}
 
-        {/* Connection status */}
+        
         {isConnected && (
           <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5">
             <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -346,7 +345,7 @@ export function VideoRoom({
         )}
       </div>
 
-      {/* Participant info */}
+      
       {isConnected && (
         <div className="flex items-center gap-4 rounded-lg border bg-card p-3">
           <div className="flex items-center gap-2">
@@ -388,7 +387,7 @@ export function VideoRoom({
         </div>
       )}
 
-      {/* Control bar */}
+      
       {isConnected && (
         <div className="flex items-center justify-center gap-4">
           <button
@@ -426,7 +425,7 @@ export function VideoRoom({
         </div>
       )}
 
-      {/* End confirmation dialog */}
+      
       {showEndConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-sm rounded-lg border bg-card p-6 shadow-lg">

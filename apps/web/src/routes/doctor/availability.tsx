@@ -171,7 +171,6 @@ export const Route = createFileRoute("/doctor/availability")({
         queryFn: () => orpc.availabilityStats.call(),
       });
     } catch {
-      // noop
     }
   },
   component: DoctorAvailabilityRoute,

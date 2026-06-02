@@ -26,7 +26,6 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [room, setRoom] = useState<Room | null>(null);
 
-  // Per-instance track storage — avoid module-level sharing across remounts
   const participantStreamsRef = useRef<
     Map<
       string,
@@ -52,7 +51,6 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
           videoCaptureDefaults: {
             resolution: { height: 720, width: 1280 },
           },
-          // Enable echo cancellation and noise suppression
           audioCaptureDefaults: {
             echoCancellation: true,
             noiseSuppression: true,
@@ -65,7 +63,6 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
           setIsConnecting(false);
           options.onConnected?.();
 
-          // Capture local video stream
           for (const pub of room.localParticipant.trackPublications) {
             if (
               pub.track?.kind === Track.Kind.Video &&
@@ -78,12 +75,10 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
                   setLocalStreamURL(url);
                 }
               } catch {
-                // Local stream unavailable
               }
             }
           }
 
-          // Build combined streams for existing remote participants
           const map = participantStreamsRef.current;
           const initial: RemoteParticipantInfo[] = [];
           for (const [, p] of room.remoteParticipants) {
@@ -171,7 +166,6 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
           }
 
           if (track.kind === Track.Kind.Audio && track.mediaStreamTrack) {
-            // Avoid duplicates
             if (!entry.audioTracks.includes(track.mediaStreamTrack)) {
               entry.audioTracks.push(track.mediaStreamTrack);
             }
@@ -226,7 +220,6 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
                 setLocalStreamURL(url);
               }
             } catch {
-              // Local stream unavailable
             }
           }
         });

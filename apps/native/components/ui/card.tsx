@@ -14,7 +14,7 @@ export const Card = ({ children, className, onPress, href }: CardProps) => {
 
   const cardContent = (pressed?: boolean) => (
     <>
-      {/* Solid Cohesive Shadow Layer */}
+      
       <View
         className="absolute inset-0 rounded-card bg-border"
         style={{
@@ -22,7 +22,7 @@ export const Card = ({ children, className, onPress, href }: CardProps) => {
         }}
       />
 
-      {/* Main Foreground Card Box */}
+      
       <View
         className={`gap-section rounded-card border-2 border-border bg-card p-card ${className ?? ""}`.trim()}
         style={{

@@ -119,7 +119,6 @@ export const Route = createFileRoute("/doctor/profile")({
         queryFn: () => orpc.profileStats.call(),
       });
     } catch {
-      // noop
     }
   },
   component: DoctorProfileRoute,
@@ -263,7 +262,6 @@ function DoctorProfileRoute() {
   const [devAutoFillDone, setDevAutoFillDone] = useState(false);
   const queryClient = useQueryClient();
 
-  // eslint-disable-next-line react-compiler/react-compiler
   useEffect(() => {
     if (!import.meta.env.DEV) {
       return;
