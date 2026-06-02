@@ -85,10 +85,18 @@ export default function BreathingActionScreen() {
   const completeMutation = useMutation(
     orpc.completeWellnessAction.mutationOptions({
       onSuccess: (result) => {
-        queryClient.invalidateQueries({ queryKey: ["getSpriteState"] });
-        queryClient.invalidateQueries({ queryKey: ["getMoonlightCredits"] });
-        queryClient.invalidateQueries({ queryKey: ["getWellnessHistory"] });
-        queryClient.invalidateQueries({ queryKey: ["getTodayTasks"] });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getSpriteState.key(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getMoonlightCredits.key(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getWellnessHistory.key(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getTodayTasks.key(),
+        });
         setCompleted(true);
         setRunning(false);
       },

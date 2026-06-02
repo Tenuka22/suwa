@@ -1,14 +1,17 @@
 import "../global.css";
 
 import { ClerkProvider, useAuth } from "@clerk/expo";
+import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { env } from "@zen-doc/env/native";
 import { useFonts } from "expo-font";
-import { Stack, usePathname, useRouter } from "expo-router";
+import { Redirect, Stack, usePathname } from "expo-router";
 import { hideAsync, preventAutoHideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
 import { ToastProvider, useToast } from "@/components/ui/toast";
@@ -18,6 +21,7 @@ import { StripePaymentProvider } from "@/utils/stripe";
 import { useThemeColor } from "@/utils/theme";
 
 preventAutoHideAsync().catch(() => undefined);
+WebBrowser.maybeCompleteAuthSession();
 
 const satoshiFonts = {
   Satoshi: require("../assets/Satoshi_Complete/Fonts/TTF/Satoshi-Variable.ttf"),
@@ -37,40 +41,92 @@ function ClerkApiAuthBridge() {
   return null;
 }
 function OnboardingCheck() {
-  const router = useRouter();
   const pathname = usePathname();
   const { isLoaded, isSignedIn } = useAuth();
+
+  console.log("[OnboardingCheck] render", { isLoaded, isSignedIn, pathname });
 
   const patientProfileQuery = useQuery(
     orpc.getPatientProfile.queryOptions({
       enabled: isLoaded && isSignedIn,
       retry: false,
-      throwOnError: false,
     })
   );
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn && patientProfileQuery.isFetched) {
-      const needsSetup = !(
-        patientProfileQuery.data?.secured &&
-        patientProfileQuery.data?._securedData
-      );
+  const guardianProfileQuery = useQuery(
+    orpc.getGuardianProfile.queryOptions({
+      enabled: isLoaded && isSignedIn,
+      retry: false,
+    })
+  );
+
+  const isProfileLoaded =
+    patientProfileQuery.isFetched && guardianProfileQuery.isFetched;
+
+  console.log("[OnboardingCheck] query state", {
+    isFetched: isProfileLoaded,
+    hasPatient: !!patientProfileQuery.data,
+    hasGuardian: !!guardianProfileQuery.data,
+    isLoading: patientProfileQuery.isLoading || guardianProfileQuery.isLoading,
+  });
+
+  if (isLoaded && isSignedIn === false) {
+    if (pathname !== "/sign-in" && pathname !== "/sign-up") {
+      return <Redirect href="/(auth)/sign-in" />;
+    }
+  }
+
+  if (isLoaded && isSignedIn && isProfileLoaded) {
+    const patientData = patientProfileQuery.data;
+    const guardianData = guardianProfileQuery.data;
+
+    if (!patientData && !guardianData) {
+      console.log("[OnboardingCheck] no profile, redirecting to /onboarding");
       if (
-        needsSetup &&
+        pathname !== "/onboarding" &&
+        !pathname.startsWith("/onboarding") &&
+        pathname !== "/profile"
+      ) {
+        return <Redirect href="/onboarding" />;
+      }
+      return null;
+    }
+
+    // If it's a guardian, we might want to redirect to a guardian specific area
+    if (guardianData && !patientData) {
+      if (pathname === "/" || pathname.startsWith("/onboarding")) {
+        return <Redirect href="/(guardian)" />;
+      }
+      return null;
+    }
+
+    if (patientData) {
+      const needsRepair = !(patientData.secured && patientData._securedData);
+      console.log("[OnboardingCheck] patient profile exists", {
+        needsRepair,
+        secured: patientData.secured,
+        hasSecuredData: !!patientData._securedData,
+      });
+      if (
+        needsRepair &&
         pathname !== "/profile" &&
         !pathname.startsWith("/onboarding")
       ) {
-        router.replace("/profile");
+        console.log("[OnboardingCheck] needs repair, redirecting to /profile");
+        return <Redirect href="/profile" />;
+      }
+
+      if (
+        !needsRepair &&
+        (pathname === "/" || pathname.startsWith("/onboarding"))
+      ) {
+        console.log("[OnboardingCheck] valid profile, redirecting to /(patient)");
+        return <Redirect href="/(patient)" />;
       }
     }
-  }, [
-    isLoaded,
-    isSignedIn,
-    patientProfileQuery.isFetched,
-    patientProfileQuery.data,
-    router,
-    pathname,
-  ]);
+
+    console.log("[OnboardingCheck] valid profile, staying on current page");
+  }
 
   return null;
 }
@@ -113,8 +169,6 @@ function GlobalErrorBoundary({
 
   return children;
 }
-
-import { Text, View } from "react-native";
 
 function LayoutContent() {
   const { background, foreground } = useThemeColor();
@@ -168,11 +222,15 @@ function LayoutContent() {
               >
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen
-                  name="(onboarding)"
+                  name="(onboarding)/onboarding"
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
                   name="(patient)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="(guardian)"
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen name="test" options={{ headerShown: false }} />

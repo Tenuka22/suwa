@@ -1,3 +1,4 @@
+import { useClerk } from "@clerk/expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, Shield, User } from "lucide-react-native";
@@ -6,6 +7,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { CreditPurchase } from "@/components/ui/credit-purchase";
+import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
@@ -50,8 +52,10 @@ export default function ProfileScreen() {
   const [initialGuardianEmail, setInitialGuardianEmail] = useState("");
   const [initialGuardianPhone, setInitialGuardianPhone] = useState("");
 
+  const { signOut } = useClerk();
   const { toast } = useToast();
   const { handleError } = useErrorHandler();
+  const { showError, dialogProps } = useErrorDialog();
 
   const profileQuery = useQuery(orpc.getPatientProfile.queryOptions());
 
@@ -100,7 +104,9 @@ export default function ProfileScreen() {
   const updateMutation = useMutation(
     orpc.updatePatientProfile.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["getPatientProfile"] });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getPatientProfile.key(),
+        });
         toast({
           type: "success",
           title: "Saved",
@@ -125,9 +131,19 @@ export default function ProfileScreen() {
         secret
       );
 
+      const guardianChanged =
+        guardianEmail !== initialGuardianEmail ||
+        guardianPhone !== initialGuardianPhone;
+
       updateMutation.mutate({
         alias: alias || undefined,
         _securedData,
+        ...(guardianChanged
+          ? {
+              guardianEmail: guardianEmail || null,
+              guardianPhone: guardianPhone || null,
+            }
+          : {}),
       });
     } catch (err) {
       handleError(err);
@@ -353,6 +369,25 @@ export default function ProfileScreen() {
             <CreditPurchase />
           </View>
         </View>
+
+        <View className="overflow-hidden rounded-card border-2 border-destructive/30 bg-card">
+          <View className="px-card py-card">
+            <Button
+              className="flex-row items-center justify-center gap-2"
+              onPress={() =>
+                showError("Sign Out", "Are you sure you want to sign out?", [
+                  { label: "Cancel", variant: "secondary", onPress: () => {} },
+                  { label: "Sign Out", onPress: () => signOut() },
+                ])
+              }
+              variant="secondary"
+            >
+              <Text className="font-bold font-sans text-destructive text-sm">
+                Sign Out
+              </Text>
+            </Button>
+          </View>
+        </View>
       </Screen>
       <ScreenBottomBar>
         <View className="flex-1 flex-row items-center gap-2">
@@ -372,6 +407,7 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       </ScreenBottomBar>
+      <ErrorDialog {...dialogProps} />
     </>
   );
 }

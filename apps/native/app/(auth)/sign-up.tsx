@@ -1,13 +1,14 @@
 import { useAuth, useSignUp } from "@clerk/expo";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
+import { OAuthButtons } from "@/components/OAuthButtons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
 import { TextLink } from "@/components/ui/text-link";
-import { OAUTH_STRATEGIES, pushDecoratedUrl } from "@/utils/auth";
+import { pushDecoratedUrl } from "@/utils/auth";
 import { useThemeColor } from "@/utils/theme";
 
 export default function Page() {
@@ -59,26 +60,12 @@ export default function Page() {
     }
   };
 
-  const handleOAuth = async (
-    strategy: (typeof OAUTH_STRATEGIES)[number]["strategy"]
-  ) => {
-    setStatusMessage(null);
+  if (isSignedIn) {
+    return <Redirect href="/onboarding" />;
+  }
 
-    const { error } = await signUp.sso({
-      strategy,
-      redirectUrl: "/",
-      redirectCallbackUrl: "/",
-    });
-
-    if (error) {
-      setStatusMessage(
-        error.longMessage ?? "Unable to sign up with SSO. Please try again."
-      );
-    }
-  };
-
-  if (signUp.status === "complete" || isSignedIn) {
-    return null;
+  if (signUp.status === "complete") {
+    return <Redirect href="/onboarding" />;
   }
 
   return (
@@ -179,17 +166,7 @@ export default function Page() {
               </View>
 
               <View className="mt-4 gap-3">
-                {OAUTH_STRATEGIES.map((provider) => (
-                  <Button
-                    disabled={fetchStatus === "fetching"}
-                    key={provider.strategy}
-                    onPress={() => handleOAuth(provider.strategy)}
-                    variant="secondary"
-                  >
-                    <provider.icon size={18} style={{ marginRight: 12 }} />
-                    <Text>Sign up with {provider.label}</Text>
-                  </Button>
-                ))}
+                <OAuthButtons disabled={fetchStatus === "fetching"} />
               </View>
             </View>
 

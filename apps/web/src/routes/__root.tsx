@@ -10,6 +10,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@zen-doc/ui/components/sonner";
 import { TooltipProvider } from "@zen-doc/ui/components/tooltip";
+import { env } from "@zen-doc/env/web";
 import { useEffect } from "react";
 
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
@@ -65,7 +66,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
+    <ClerkProvider
+      publishableKey={env.VITE_CLERK_PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+    >
       <ClerkApiAuthBridge />
       <TooltipProvider>
         <html className="dark" lang="en">

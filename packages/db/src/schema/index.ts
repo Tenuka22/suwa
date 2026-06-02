@@ -164,8 +164,8 @@ export const guardianProfiles = sqliteTable(
   "guardian_profiles",
   {
     clerkUserId: text("clerk_user_id").primaryKey(),
-    email: text("email").notNull(),
-    phone: text("phone").notNull(),
+    email: text("email"),
+    phone: text("phone"),
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
     updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
   },

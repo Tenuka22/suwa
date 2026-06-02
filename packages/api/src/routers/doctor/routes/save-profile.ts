@@ -101,10 +101,6 @@ export const saveDoctorProfileRoute = protectedProcedure
       }
     }
 
-    await context.clerk.users.updateUserMetadata(userId, {
-      publicMetadata: { role: nextRole },
-    });
-
     const [existingPlan] = await context.db
       .select()
       .from(doctorPlans)

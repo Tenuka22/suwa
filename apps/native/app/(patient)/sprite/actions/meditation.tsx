@@ -89,9 +89,15 @@ export default function MeditationActionScreen() {
   const completeMutation = useMutation(
     orpc.completeWellnessAction.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["getSpriteState"] });
-        queryClient.invalidateQueries({ queryKey: ["getMoonlightCredits"] });
-        queryClient.invalidateQueries({ queryKey: ["getWellnessHistory"] });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getSpriteState.key(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getMoonlightCredits.key(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: orpc.getWellnessHistory.key(),
+        });
       },
     })
   );

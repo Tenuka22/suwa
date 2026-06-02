@@ -39,7 +39,11 @@
           }
         }
       ],
-      ["@stripe/stripe-react-native", {}]
+      [
+        "@stripe/stripe-react-native",
+        {}
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

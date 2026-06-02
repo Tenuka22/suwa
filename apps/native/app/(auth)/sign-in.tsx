@@ -1,15 +1,17 @@
-import { useSignIn } from "@clerk/expo";
-import { useRouter } from "expo-router";
+import { useAuth, useSignIn } from "@clerk/expo";
+import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
+import { OAuthButtons } from "@/components/OAuthButtons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Screen } from "@/components/ui/screen";
-import { OAUTH_STRATEGIES, pushDecoratedUrl } from "@/utils/auth";
+import { pushDecoratedUrl } from "@/utils/auth";
 import { useThemeColor } from "@/utils/theme";
 
 export default function Page() {
+  const { isSignedIn, isLoaded } = useAuth();
   const { signIn, errors, fetchStatus } = useSignIn();
   const router = useRouter();
   const { mutedForeground } = useThemeColor();
@@ -17,6 +19,10 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  if (isLoaded && isSignedIn) {
+    return <Redirect href="/onboarding" />;
+  }
 
   const emailCodeFactor = signIn.supportedSecondFactors.find(
     (factor) => factor.strategy === "email_code"
@@ -86,24 +92,6 @@ export default function Page() {
       });
     } else {
       setStatusMessage("That code did not complete sign-in. Please try again.");
-    }
-  };
-
-  const handleOAuth = async (
-    strategy: (typeof OAUTH_STRATEGIES)[number]["strategy"]
-  ) => {
-    setStatusMessage(null);
-
-    const { error } = await signIn.sso({
-      strategy,
-      redirectUrl: "/",
-      redirectCallbackUrl: "/",
-    });
-
-    if (error) {
-      setStatusMessage(
-        error.longMessage ?? "Unable to sign in with SSO. Please try again."
-      );
     }
   };
 
@@ -188,20 +176,6 @@ export default function Page() {
               Sign in
             </Button>
 
-            <View className="flex-row items-center gap-chip">
-              {OAUTH_STRATEGIES.map((provider) => (
-                <Button
-                  disabled={fetchStatus === "fetching"}
-                  key={provider.strategy}
-                  onPress={() => handleOAuth(provider.strategy)}
-                  variant="secondary"
-                >
-                  <provider.icon size={18} style={{ marginRight: 12 }} />
-                  <Text>Sign in with {provider.label}</Text>
-                </Button>
-              ))}
-            </View>
-
             <View className="mt-6">
               <View className="flex-row items-center">
                 <View className="h-px flex-1 bg-border" />
@@ -210,17 +184,7 @@ export default function Page() {
               </View>
 
               <View className="mt-4 gap-3">
-                {OAUTH_STRATEGIES.map((provider) => (
-                  <Button
-                    disabled={fetchStatus === "fetching"}
-                    key={provider.strategy}
-                    onPress={() => handleOAuth(provider.strategy)}
-                    variant="secondary"
-                  >
-                    <provider.icon size={18} style={{ marginRight: 12 }} />
-                    <Text>Sign in with {provider.label}</Text>
-                  </Button>
-                ))}
+                <OAuthButtons disabled={fetchStatus === "fetching"} />
               </View>
             </View>
           </Card>

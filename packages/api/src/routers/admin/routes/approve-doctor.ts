@@ -33,9 +33,6 @@ export const adminApproveDoctorRoute = protectedProcedure
         updatedAt: now,
       })
       .where(eq(doctorProfiles.userId, input.userId));
-    await context.clerk.users.updateUserMetadata(input.userId, {
-      publicMetadata: { role: "doctor" },
-    });
 
     const [existing] = await context.db
       .select()

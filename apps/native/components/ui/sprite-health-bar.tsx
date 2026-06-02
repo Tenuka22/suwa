@@ -25,13 +25,15 @@ export function SpriteHealthBar({
   return (
     <View className="flex-row items-center gap-4 rounded-card border-2 border-border bg-card px-card py-card">
       <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-primary">
-        {mood === "happy"
-          ? "😊"
-          : mood === "sad"
-            ? "😢"
-            : mood === "sleep"
-              ? "😴"
-              : "🤖"}
+        <Text className="text-2xl">
+          {mood === "happy"
+            ? "😊"
+            : mood === "sad"
+              ? "😢"
+              : mood === "sleep"
+                ? "😴"
+                : "🤖"}
+        </Text>
       </View>
       <View className="flex-1">
         <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">

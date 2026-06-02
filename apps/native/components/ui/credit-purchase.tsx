@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CREDIT_PRICE_CENTS,
   MONTHLY_PLAN_AMOUNT_CENTS,
+  MONTHLY_PLAN_CREDITS,
   MONTHLY_PLAN_TYPE,
   TAX_RATE,
 } from "@zen-doc/pricing";
@@ -295,7 +296,7 @@ export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
                     Credits per month:
                   </Text>
                   <Text className="font-normal font-sans text-foreground text-xs">
-                    {SUBSCRIPTION_CREDITS} credits
+                    {MONTHLY_PLAN_CREDITS} credits
                   </Text>
                 </View>
                 <View className="flex-row items-center justify-between">
@@ -313,7 +314,7 @@ export function CreditPurchase({ forPatientUserId }: CreditPurchaseProps) {
                   <Text className="font-normal font-sans text-foreground text-xs">
                     {formatPrice(
                       Math.round(
-                        MONTHLY_PLAN_AMOUNT_CENTS / SUBSCRIPTION_CREDITS
+                        MONTHLY_PLAN_AMOUNT_CENTS / MONTHLY_PLAN_CREDITS
                       )
                     )}
                   </Text>
