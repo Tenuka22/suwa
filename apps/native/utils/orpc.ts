@@ -15,8 +15,10 @@ export function setQueryErrorHandler(handler: (error: unknown) => void) {
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: (error) => {
-      globalQueryErrorHandler?.(error);
+    onError: (error, query) => {
+      if (query.meta?.ignoreError !== true) {
+        globalQueryErrorHandler?.(error);
+      }
     },
   }),
 });

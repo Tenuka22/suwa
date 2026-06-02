@@ -32,8 +32,17 @@ def _summarize_predictions(y_true: np.ndarray, y_prob: np.ndarray) -> dict[str, 
 def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray, seq_len: int):
     eval_result = model.evaluate(X_test, y_test, verbose=0, return_dict=True)
     y_prob = model.predict(X_test, verbose=0)
+    
+    # Custom prediction logic: balance Stress (Class 2) detection
+    y_pred = np.zeros(len(y_prob), dtype=np.intp)
+    stress_threshold = 0.5
+    for i, prob in enumerate(y_prob):
+        if prob[2] >= stress_threshold:
+            y_pred[i] = 2 # Stress
+        else:
+            y_pred[i] = np.argmax(prob[:2]) # Max of Baseline or Amusement
+    
     threshold_metrics = _summarize_predictions(y_test, y_prob)
-    y_pred = np.argmax(y_prob, axis=1)
 
     acc = float(eval_result.get("accuracy", accuracy_score(y_test, y_pred)))
     test_loss = float(eval_result.get("loss", 0.0))

@@ -50,6 +50,7 @@ function OnboardingCheck() {
     orpc.getPatientProfile.queryOptions({
       enabled: isLoaded && isSignedIn,
       retry: false,
+      meta: { ignoreError: true },
     })
   );
 
@@ -57,6 +58,7 @@ function OnboardingCheck() {
     orpc.getGuardianProfile.queryOptions({
       enabled: isLoaded && isSignedIn,
       retry: false,
+      meta: { ignoreError: true },
     })
   );
 

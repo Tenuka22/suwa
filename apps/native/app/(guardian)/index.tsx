@@ -55,7 +55,7 @@ export default function GuardianDashboard() {
                   </View>
                   <View className="gap-3">
                     <Button 
-                      variant="outline" 
+                      variant="secondary" 
                       className="justify-between"
                       onPress={() => router.push("/(onboarding)/onboarding")}
                     >
@@ -108,10 +108,19 @@ export default function GuardianDashboard() {
                             className="flex-1" 
                             variant="secondary"
                             onPress={() => {
-                                // TODO: Navigate to patient detailed view
+                                router.push(`/(guardian)/patient/${patient.userId}/activities`);
                             }}
                           >
-                            View Health
+                            View Activities
+                          </Button>
+                          <Button 
+                            className="flex-1" 
+                            variant="secondary"
+                            onPress={() => {
+                                router.push(`/(guardian)/patient/${patient.userId}/stress-management`);
+                            }}
+                          >
+                            View Stress
                           </Button>
                         </View>
                       </Card>
@@ -123,10 +132,28 @@ export default function GuardianDashboard() {
               {/* Quick Actions */}
               <View className="gap-4 mt-4">
                 <Text className="font-black font-sans text-foreground text-sm uppercase tracking-[0.2em]">
+                  Guardian Tools
+                </Text>
+                <Button 
+                  variant="secondary" 
+                  className="justify-start"
+                  onPress={() => router.push("/(guardian)/activities")}
+                >
+                  <Text className="text-foreground font-bold">View Patient Activities</Text>
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  className="justify-start"
+                  onPress={() => router.push("/(guardian)/track-management")}
+                >
+                  <Text className="text-foreground font-bold">Track Management</Text>
+                </Button>
+
+                <Text className="font-black font-sans text-foreground text-sm uppercase tracking-[0.2em] mt-4">
                   Account
                 </Text>
                 <Button 
-                  variant="ghost" 
+                  variant="secondary" 
                   className="justify-start px-0"
                   onPress={() => router.push("/(guardian)/profile")}
                 >

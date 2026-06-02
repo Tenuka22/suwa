@@ -6,6 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from sklearn.utils.class_weight import compute_class_weight
 from tensorflow.keras import Model
 
 from src.config import MODEL, TRAINING
@@ -132,11 +133,22 @@ def train_model(
     val_ds = val_ds.batch(TRAINING.batch_size).prefetch(tf.data.AUTOTUNE)
 
     # 5. Fit
+    classes = np.unique(y_train)
+    class_weights = compute_class_weight(
+        "balanced", classes=classes, y=y_train
+    )
+    class_weight_dict = dict(enumerate(class_weights))
+    
+    # Increase weight for the Stress class (index 2)
+    if 2 in class_weight_dict:
+        class_weight_dict[2] *= TRAINING.positive_class_weight
+        
     history = model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=TRAINING.epochs,
         callbacks=_build_callbacks(),
+        class_weight=class_weight_dict,
         verbose=1,
     )
 

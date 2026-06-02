@@ -11,6 +11,6 @@ export const getPatientProfileRoute = protectedProcedure.handler(
       where: eq(patientProfiles.userId, userId),
     });
 
-    return patient;
+    return patient ?? null;
   }
 );

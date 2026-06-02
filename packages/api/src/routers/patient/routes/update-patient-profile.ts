@@ -1,4 +1,4 @@
-import { guardianProfiles, patientProfiles } from "@zen-doc/db";
+import { patientProfiles } from "@zen-doc/db";
 import { updatePatientProfileSchema } from "@zen-doc/db/schemas-types";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
