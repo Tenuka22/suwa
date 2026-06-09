@@ -5,18 +5,7 @@ import {
   type MediaStreamTrack as RNMediaStreamTrack,
 } from "react-native-webrtc";
 
-function formatParticipantIdentity(identity: string): string {
-  if (identity.startsWith("doctor_")) {
-    return "Doctor";
-  }
-  if (identity.startsWith("patient_")) {
-    return "Patient";
-  }
-  if (identity.startsWith("admin_")) {
-    return "Admin";
-  }
-  return identity;
-}
+import { formatParticipantLabel } from "@/utils/format-participant";
 
 interface RemoteParticipantInfo {
   displayName: string;
@@ -123,7 +112,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
             }
             map.set(p.identity, entry);
             const combined = [...entry.audioTracks, ...entry.videoTracks];
-            const displayName = formatParticipantIdentity(p.identity);
+            const displayName = formatParticipantLabel(p.identity);
             if (combined.length > 0) {
               try {
                 const stream = new MediaStream(
@@ -179,7 +168,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
             if (prev.some((p) => p.identity === participant.identity)) {
               return prev;
             }
-            const displayName = formatParticipantIdentity(participant.identity);
+            const displayName = formatParticipantLabel(participant.identity);
             return [
               ...prev,
               {
@@ -253,7 +242,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
                 identity,
                 streamURL,
                 isAnonymous: false,
-                displayName: formatParticipantIdentity(identity),
+                displayName: formatParticipantLabel(identity),
               },
             ];
           });

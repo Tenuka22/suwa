@@ -9,10 +9,10 @@ interface SpriteHealthBarProps {
 
 function moodToAction(mood: string): SpriteAction {
   if (mood === "sleep") {
-    return "sleep";
+    return "alert";
   }
   if (mood === "yawn") {
-    return "yawn";
+    return "thinking";
   }
   return "idle";
 }

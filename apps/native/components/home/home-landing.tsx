@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { ImpactFeedbackStyle, impactAsync } from "expo-haptics";
 import { type Href, useRouter } from "expo-router";
 import {
   Activity,
@@ -23,9 +22,11 @@ import {
 } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
@@ -120,40 +121,6 @@ function SectionHeader({
   );
 }
 
-// Brutalist Card Component
-function BrutalistCard({
-  children,
-  className = "",
-  offset = 4,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  offset?: number;
-}) {
-  return (
-    <View className="relative">
-      <View
-        className="absolute inset-0 rounded-card bg-border"
-        style={{ transform: [{ translateX: offset }, { translateY: offset }] }}
-      />
-      <View
-        className={`rounded-card border-2 border-border bg-card p-5 ${className}`}
-      >
-        {children}
-      </View>
-    </View>
-  );
-}
-
-// Hero Sub-component
-interface HeroSectionProps {
-  primaryColor: string;
-  primaryHref: string;
-  primaryLabel: string;
-  secondaryHref: string;
-  secondaryLabel: string;
-}
-
 function HeroSection({
   primaryHref,
   primaryLabel,
@@ -163,7 +130,7 @@ function HeroSection({
 }: HeroSectionProps) {
   return (
     <Animated.View className="px-1" entering={FadeIn.duration(800)}>
-      <BrutalistCard className="overflow-hidden p-0" offset={6}>
+      <Card className="overflow-hidden p-0">
         <View className="absolute -top-16 -right-16 h-40 w-40 rounded-full border-2 border-primary/5" />
         <View className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-primary/5" />
 
@@ -189,7 +156,7 @@ function HeroSection({
           </Text>
 
           {/* CTAs */}
-          <View className="flex-row gap-3">
+          <View className="flex-col sm:flex-row gap-3">
             <Button
               className="h-12 flex-1"
               href={primaryHref}
@@ -207,7 +174,7 @@ function HeroSection({
           </View>
 
           {/* Trust Badges */}
-          <View className="mt-2 flex-row items-center justify-between border-border/10 border-t pt-4">
+          <View className="mt-2 flex-row items-center justify-center gap-8 border-border/10 border-t pt-4 flex-wrap">
             {trustBadges.map(({ label, icon: Icon }) => (
               <View className="flex-row items-center gap-1.5" key={label}>
                 <Icon color={primaryColor} size={14} />
@@ -219,8 +186,8 @@ function HeroSection({
           </View>
         </View>
 
-        <View className="h-2 w-full bg-primary" />
-      </BrutalistCard>
+        <View className="h-1 w-full bg-primary" />
+      </Card>
     </Animated.View>
   );
 }
@@ -229,7 +196,7 @@ function HeroSection({
 function SecurityPipeline({ primaryColor }: { primaryColor: string }) {
   return (
     <View className="px-1">
-      <BrutalistCard className="p-6">
+      <Card className="p-6">
         <View className="relative">
           {/* Connector line */}
           <View className="absolute top-6 bottom-6 left-[23px] w-[2px] bg-border/20" />
@@ -259,7 +226,7 @@ function SecurityPipeline({ primaryColor }: { primaryColor: string }) {
             ))}
           </View>
         </View>
-      </BrutalistCard>
+      </Card>
     </View>
   );
 }
@@ -268,7 +235,7 @@ function SecurityPipeline({ primaryColor }: { primaryColor: string }) {
 function GuardianCollaboration({ primaryColor }: { primaryColor: string }) {
   return (
     <View className="px-1">
-      <BrutalistCard>
+      <Card>
         <View className="gap-4">
           <View className="flex-row items-center justify-between">
             <View className="flex-1 items-center gap-1.5 rounded-card border border-emerald-500/20 bg-emerald-500/10 p-3">
@@ -323,11 +290,10 @@ function GuardianCollaboration({ primaryColor }: { primaryColor: string }) {
             </View>
           </View>
         </View>
-      </BrutalistCard>
+      </Card>
     </View>
   );
 }
-
 
 // Main Component
 export function HomeLanding({ signedIn }: HomeLandingProps) {
@@ -875,13 +841,13 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         <View className="px-1">
           {activeSimTab === "sprite" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <BrutalistCard>{renderSpriteContent()}</BrutalistCard>
+              <Card>{renderSpriteContent()}</Card>
             </Animated.View>
           )}
 
           {activeSimTab === "habits" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <BrutalistCard>
+              <Card>
                 <View className="gap-4">
                   <View className="flex-row items-center justify-between border-border/10 border-b pb-3">
                     <View>
@@ -903,19 +869,19 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                   {/* Dynamic checklist */}
                   <View className="gap-3">{renderHabitsContent()}</View>
                 </View>
-              </BrutalistCard>
+              </Card>
             </Animated.View>
           )}
 
           {activeSimTab === "stress" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <BrutalistCard>{renderStressContent()}</BrutalistCard>
+              <Card>{renderStressContent()}</Card>
             </Animated.View>
           )}
 
           {activeSimTab === "sessions" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <BrutalistCard>{renderSessionsContent()}</BrutalistCard>
+              <Card>{renderSessionsContent()}</Card>
             </Animated.View>
           )}
         </View>
@@ -930,7 +896,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
 
         <View className="gap-4 px-1">
           {/* Feature 1: Sprite Wellness loops */}
-          <BrutalistCard>
+          <Card>
             <View className="flex-row items-start gap-4">
               <View className="h-12 w-12 items-center justify-center rounded-card border border-orange-500/20 bg-orange-500/10">
                 <Sparkles color="#f97316" size={24} />
@@ -946,10 +912,10 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                 </Text>
               </View>
             </View>
-          </BrutalistCard>
+          </Card>
 
           {/* Feature 2: Wearable Ingestion & Stress Predictor */}
-          <BrutalistCard>
+          <Card>
             <View className="flex-row items-start gap-4">
               <View className="h-12 w-12 items-center justify-center rounded-card border border-rose-500/20 bg-rose-500/10">
                 <HeartPulse color="#f43f5e" size={24} />
@@ -965,10 +931,10 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                 </Text>
               </View>
             </View>
-          </BrutalistCard>
+          </Card>
 
           {/* Feature 3: Patient Anonymity & Local Encryption */}
-          <BrutalistCard>
+          <Card>
             <View className="flex-row items-start gap-4">
               <View className="h-12 w-12 items-center justify-center rounded-card border border-emerald-500/20 bg-emerald-500/10">
                 <LockKeyhole color="#10b981" size={24} />
@@ -984,10 +950,10 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                 </Text>
               </View>
             </View>
-          </BrutalistCard>
+          </Card>
 
           {/* Feature 4: LiveKit Teletherapy Rooms */}
-          <BrutalistCard>
+          <Card>
             <View className="flex-row items-start gap-4">
               <View className="h-12 w-12 items-center justify-center rounded-card border border-indigo-500/20 bg-indigo-500/10">
                 <Video color="#6366f1" size={24} />
@@ -1003,7 +969,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                 </Text>
               </View>
             </View>
-          </BrutalistCard>
+          </Card>
         </View>
       </View>
 
@@ -1028,7 +994,6 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
 
         <GuardianCollaboration primaryColor={colors.primary} />
       </View>
-
     </View>
   );
 }

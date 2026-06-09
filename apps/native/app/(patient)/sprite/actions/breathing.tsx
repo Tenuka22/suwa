@@ -2,11 +2,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, View } from "react-native";
+import { Animated, Easing, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
+import { playTone } from "@/utils/audio";
+import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
@@ -14,43 +17,6 @@ type BreathingPhase = "inhale" | "hold" | "exhale" | "rest";
 
 const DEFAULT_PHASES = { inhale: 4, hold: 4, exhale: 6, rest: 2 };
 const PHASES: BreathingPhase[] = ["inhale", "hold", "exhale", "rest"];
-
-function vibrate(pattern: number | number[]) {
-  if (typeof window !== "undefined" && "navigator" in window) {
-    const nav = window.navigator as Navigator & {
-      vibrate?: (pattern: number | number[]) => boolean;
-    };
-    nav.vibrate?.(pattern);
-  }
-}
-
-function playTone(frequency: number, duration: number) {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const AudioContextClass =
-    window.AudioContext ??
-    (window as Window & { webkitAudioContext?: typeof AudioContext })
-      .webkitAudioContext;
-  if (!AudioContextClass) {
-    return;
-  }
-  const context = new AudioContextClass();
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = "sine";
-  oscillator.frequency.value = frequency;
-  gain.gain.setValueAtTime(0.0001, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.04);
-  gain.gain.exponentialRampToValueAtTime(
-    0.0001,
-    context.currentTime + duration
-  );
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start(context.currentTime);
-  oscillator.stop(context.currentTime + duration + 0.05);
-}
 
 export default function BreathingActionScreen() {
   const colors = useThemeColor();
@@ -397,8 +363,9 @@ export default function BreathingActionScreen() {
             Start
           </Button>
         )}
-        <Pressable
-          className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+        <IconButton
+          icon={ArrowLeft}
+          iconSize={16}
           onPress={() => {
             vibrate(15);
             if (router.canGoBack()) {
@@ -407,9 +374,7 @@ export default function BreathingActionScreen() {
               router.replace("/");
             }
           }}
-        >
-          <ArrowLeft color="#ffffff" size={16} />
-        </Pressable>
+        />
       </ScreenBottomBar>
     </>
   );

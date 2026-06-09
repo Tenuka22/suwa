@@ -10,7 +10,7 @@ import { hideAsync, preventAutoHideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
 import { ToastProvider, useToast } from "@/components/ui/toast";
@@ -42,6 +42,7 @@ function ClerkApiAuthBridge() {
 function OnboardingCheck() {
   const pathname = usePathname();
   const { isLoaded, isSignedIn } = useAuth();
+  const colors = useThemeColor();
 
   const patientProfileQuery = useQuery(
     orpc.getPatientProfile.queryOptions({
@@ -61,6 +62,46 @@ function OnboardingCheck() {
 
   const isProfileLoaded =
     patientProfileQuery.isFetched && guardianProfileQuery.isFetched;
+
+  // Prefetch HomeLanding data once profile is confirmed to eliminate loading states
+  useEffect(() => {
+    if (isLoaded && isSignedIn && isProfileLoaded) {
+      const patientData = patientProfileQuery.data;
+      const guardianData = guardianProfileQuery.data;
+
+      const needsRepair = patientData && !(patientData.secured && patientData._securedData);
+      
+      // If profile is fully set up, prefetch the dashboard data
+      if ((patientData && !needsRepair) || guardianData) {
+        queryClient.prefetchQuery(orpc.getSpriteState.queryOptions());
+        queryClient.prefetchQuery(orpc.getMoonlightCredits.queryOptions());
+        queryClient.prefetchQuery(orpc.getTodayTasks.queryOptions());
+        queryClient.prefetchQuery(orpc.listPatientSessions.queryOptions());
+      }
+    }
+  }, [
+    isLoaded,
+    isSignedIn,
+    isProfileLoaded,
+    patientProfileQuery.data,
+    guardianProfileQuery.data,
+  ]);
+
+  if (!isLoaded) {
+    return (
+      <View className="absolute inset-0 z-50 flex-1 items-center justify-center bg-background">
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  if (isLoaded && isSignedIn && !isProfileLoaded) {
+    return (
+      <View className="absolute inset-0 z-50 flex-1 items-center justify-center bg-background">
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
 
   if (
     isLoaded &&

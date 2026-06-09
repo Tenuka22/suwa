@@ -14,7 +14,7 @@ export interface SessionTiming {
 const THIRTY_MIN_MS = 30 * 60 * 1000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
-export function computeSessionTiming(
+export function _computeSessionTiming(
   startAt: string,
   endAt: string,
   role: SessionTimingRole
@@ -80,12 +80,12 @@ export function useSessionTiming(
   role: SessionTimingRole
 ): SessionTiming {
   return useMemo(
-    () => computeSessionTiming(startAt, endAt, role),
+    () => _computeSessionTiming(startAt, endAt, role),
     [startAt, endAt, role]
   );
 }
 
-export function formatDuration(ms: number): string {
+export function _formatDuration(ms: number): string {
   if (!Number.isFinite(ms)) {
     return "";
   }

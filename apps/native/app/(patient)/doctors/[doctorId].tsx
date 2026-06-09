@@ -31,8 +31,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
+import { Tag } from "@/components/ui/tag";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import {
   capitalizeWords,
@@ -45,40 +47,6 @@ import {
 import { orpc } from "@/utils/orpc";
 import { useIsDoctorSaved } from "@/utils/saved-doctors";
 import { useThemeColor } from "@/utils/theme";
-
-function Tag({
-  label,
-  variant = "muted",
-}: {
-  label: string;
-  variant?: "primary" | "secondary" | "success" | "muted";
-}) {
-  const colorMap = {
-    primary: "border-primary bg-primary" as const,
-    secondary: "border-border bg-secondary" as const,
-    success: "border-success bg-success/10" as const,
-    muted: "border-border/50 bg-card" as const,
-  };
-
-  const textMap = {
-    primary: "text-primary-foreground" as const,
-    secondary: "text-foreground" as const,
-    success: "text-success" as const,
-    muted: "text-muted-foreground" as const,
-  };
-
-  return (
-    <View
-      className={`flex-row items-center gap-1.5 rounded-chip border-2 ${colorMap[variant]} px-3 py-1.5`}
-    >
-      <Text
-        className={`font-black font-sans text-[10px] uppercase tracking-widest ${textMap[variant]}`}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
 
 function SectionHeader({
   icon,
@@ -142,11 +110,9 @@ function PlanCard({
         <Text className="flex-1 font-black font-sans text-foreground text-lg uppercase tracking-tight">
           {plan.name}
         </Text>
-        <View className="rounded-chip border-2 border-success bg-success/10 px-3 py-1">
-          <Text className="font-black font-sans text-sm text-success uppercase tracking-widest">
-            1 Credit
-          </Text>
-        </View>
+        <Tag size="lg" variant="success">
+          1 Credit
+        </Tag>
       </View>
       {plan.description && (
         <Text className="mb-4 font-medium font-sans text-muted-foreground text-sm leading-relaxed">
@@ -154,9 +120,11 @@ function PlanCard({
         </Text>
       )}
       <View className="flex-row flex-wrap gap-2">
-        <Tag label={`${plan.durationMinutes} min`} variant="secondary" />
+        <Tag variant="secondary">{plan.durationMinutes} min</Tag>
         {features.map((feature) => (
-          <Tag key={feature} label={feature} variant="muted" />
+          <Tag key={feature} variant="muted">
+            {feature}
+          </Tag>
         ))}
       </View>
     </View>
@@ -265,10 +233,9 @@ function ProfileHeader({
           <Text className="text-center font-black font-sans text-3xl text-foreground uppercase leading-none tracking-tight">
             {profile.displayName ?? "Clinician"}
           </Text>
-          <Tag
-            label={profile.permanent ? "Licensed" : "Pending"}
-            variant={profile.permanent ? "success" : "secondary"}
-          />
+          <Tag variant={profile.permanent ? "success" : "secondary"}>
+            {profile.permanent ? "Licensed" : "Pending"}
+          </Tag>
         </View>
 
         {profile.headline && (
@@ -280,24 +247,14 @@ function ProfileHeader({
 
       <View className="flex-row flex-wrap justify-center gap-2 p-4">
         {profile.location && (
-          <View className="flex-row items-center gap-1.5 rounded-chip border-2 border-border bg-card px-3 py-1.5">
-            <MapPin color={colors.foreground} size={14} strokeWidth={2.5} />
-            <Text className="font-bold font-sans text-[10px] text-foreground uppercase tracking-widest">
-              {profile.location}
-            </Text>
-          </View>
+          <Tag icon={MapPin} size="lg">
+            {profile.location}
+          </Tag>
         )}
         {yearsOfExperience && (
-          <View className="flex-row items-center gap-1.5 rounded-chip border-2 border-border bg-secondary px-3 py-1.5">
-            <GraduationCap
-              color={colors.foreground}
-              size={14}
-              strokeWidth={2.5}
-            />
-            <Text className="font-bold font-sans text-[10px] text-foreground uppercase tracking-widest">
-              {yearsOfExperience}+ years
-            </Text>
-          </View>
+          <Tag icon={GraduationCap} size="lg" variant="secondary">
+            {yearsOfExperience}+ years
+          </Tag>
         )}
       </View>
     </Card>
@@ -646,11 +603,9 @@ function TagsOverviewSection({
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {profile.specialties.map((s) => (
-                <Tag
-                  key={s}
-                  label={specialtyLabels[s] ?? capitalizeWords(s)}
-                  variant="primary"
-                />
+                <Tag key={s} variant="primary">
+                  {specialtyLabels[s] ?? capitalizeWords(s)}
+                </Tag>
               ))}
             </View>
           </View>
@@ -662,11 +617,9 @@ function TagsOverviewSection({
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {profile.languages.map((l) => (
-                <Tag
-                  key={l}
-                  label={languageLabels[l] ?? capitalizeWords(l)}
-                  variant="secondary"
-                />
+                <Tag key={l} variant="secondary">
+                  {languageLabels[l] ?? capitalizeWords(l)}
+                </Tag>
               ))}
             </View>
           </View>
@@ -678,11 +631,9 @@ function TagsOverviewSection({
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {profile.consultationModes.map((m) => (
-                <Tag
-                  key={m}
-                  label={consultationModeLabels[m] ?? capitalizeWords(m)}
-                  variant="muted"
-                />
+                <Tag key={m} variant="muted">
+                  {consultationModeLabels[m] ?? capitalizeWords(m)}
+                </Tag>
               ))}
             </View>
           </View>
@@ -694,11 +645,9 @@ function TagsOverviewSection({
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {profile.focusAreas.map((a) => (
-                <Tag
-                  key={a}
-                  label={focusAreaLabels[a] ?? capitalizeWords(a)}
-                  variant="success"
-                />
+                <Tag key={a} variant="success">
+                  {focusAreaLabels[a] ?? capitalizeWords(a)}
+                </Tag>
               ))}
             </View>
           </View>
@@ -798,11 +747,9 @@ function EducationSection({
               </Text>
             </View>
             {entry.year && (
-              <View className="rounded-chip border-2 border-border bg-secondary px-3 py-1">
-                <Text className="font-black font-sans text-foreground text-xs">
-                  {entry.year}
-                </Text>
-              </View>
+              <Tag size="md" variant="secondary">
+                {entry.year}
+              </Tag>
             )}
           </View>
         ))}
@@ -865,12 +812,12 @@ function SaveButton({ doctorId }: { doctorId: string }) {
 }
 
 function BackIconButton() {
-  const colors = useThemeColor();
   const router = useRouter();
 
   return (
-    <Pressable
-      className="w-12 items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+    <IconButton
+      icon={ArrowLeft}
+      iconSize={20}
       onPress={() => {
         if (router.canGoBack()) {
           router.back();
@@ -878,9 +825,7 @@ function BackIconButton() {
           router.replace("/doctors");
         }
       }}
-    >
-      <ArrowLeft color={colors.foreground} size={20} strokeWidth={2.5} />
-    </Pressable>
+    />
   );
 }
 

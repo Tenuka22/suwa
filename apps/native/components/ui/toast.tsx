@@ -3,14 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Text, View } from "react-native";
 import { create } from "@/utils/context";
 
-export type ToastType = "success" | "error" | "info";
+export type _ToastType = "success" | "error" | "info";
 
 interface ToastItem {
   duration?: number;
   id: string;
   message?: string;
   title: string;
-  type: ToastType;
+  type: _ToastType;
 }
 
 interface ToastContext {

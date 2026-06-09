@@ -12,44 +12,13 @@ import {
 import { useEffect } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
+import { playSoftChime } from "@/utils/audio";
+import { vibrate } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
-
-function vibrate(pattern: number | number[]) {
-  if (typeof window !== "undefined" && "navigator" in window) {
-    const nav = window.navigator as Navigator & {
-      vibrate?: (pattern: number | number[]) => boolean;
-    };
-    nav.vibrate?.(pattern);
-  }
-}
-
-function playSoftChime() {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const AudioContextClass =
-    window.AudioContext ??
-    (window as Window & { webkitAudioContext?: typeof AudioContext })
-      .webkitAudioContext;
-  if (!AudioContextClass) {
-    return;
-  }
-  const context = new AudioContextClass();
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = "sine";
-  oscillator.frequency.value = 523.25;
-  gain.gain.setValueAtTime(0.0001, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.06, context.currentTime + 0.03);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.4);
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start(context.currentTime);
-  oscillator.stop(context.currentTime + 0.45);
-}
 
 const ACTION_ROUTES: Record<string, string> = {
   breathing_morning:
@@ -224,8 +193,9 @@ export default function SpriteActionsScreen() {
             {completedCount}/{tasks.length}
           </Text>
         </View>
-        <Pressable
-          className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+        <IconButton
+          icon={ArrowLeft}
+          iconSize={16}
           onPress={() => {
             vibrate(15);
             if (router.canGoBack()) {
@@ -234,9 +204,7 @@ export default function SpriteActionsScreen() {
               router.replace("/");
             }
           }}
-        >
-          <ArrowLeft color="#ffffff" size={16} />
-        </Pressable>
+        />
       </ScreenBottomBar>
     </>
   );

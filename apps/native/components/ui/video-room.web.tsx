@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { SessionTimingRole } from "@/hooks/use-session-timing";
 import { useSessionTiming } from "@/hooks/use-session-timing";
+import { formatParticipantLabel } from "@/utils/format-participant";
 import { orpc } from "@/utils/orpc";
 
 interface VideoRoomProps {
@@ -61,19 +62,6 @@ function SvgIcon({ d, size = 20 }: { d: string; size?: number }) {
         })}
     </svg>
   );
-}
-
-function formatParticipantLabel(identity: string): string {
-  if (identity.startsWith("doctor_")) {
-    return "Doctor";
-  }
-  if (identity.startsWith("patient_")) {
-    return "Patient";
-  }
-  if (identity.startsWith("admin_")) {
-    return "Admin";
-  }
-  return "Participant";
 }
 
 export function VideoRoom({

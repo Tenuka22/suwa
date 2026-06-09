@@ -5,50 +5,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
+import { playToneSequence } from "@/utils/audio";
+import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
 
 const PEBBLE_COUNT = 36;
-
-function vibrate(pattern: number | number[]) {
-  if (typeof window !== "undefined" && "navigator" in window) {
-    const nav = window.navigator as Navigator & {
-      vibrate?: (pattern: number | number[]) => boolean;
-    };
-    nav.vibrate?.(pattern);
-  }
-}
-
-function playToneSequence() {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const AudioContextClass =
-    window.AudioContext ??
-    (window as Window & { webkitAudioContext?: typeof AudioContext })
-      .webkitAudioContext;
-  if (!AudioContextClass) {
-    return;
-  }
-  const context = new AudioContextClass();
-  const notes = [261.63, 329.63, 392, 523.25];
-  let currentTime = context.currentTime + 0.05;
-  for (const frequency of notes) {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.0001, currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.12, currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.0001, currentTime + 0.35);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(currentTime);
-    oscillator.stop(currentTime + 0.4);
-    currentTime += 0.42;
-  }
-}
 
 interface Pebble {
   size: number;
@@ -322,12 +286,7 @@ export default function MeditationActionScreen() {
             {running ? "Stop" : "Start"}
           </Button>
         )}
-        <Pressable
-          className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
-          onPress={handleBack}
-        >
-          <ArrowLeft color="#ffffff" size={16} />
-        </Pressable>
+        <IconButton icon={ArrowLeft} iconSize={16} onPress={handleBack} />
       </ScreenBottomBar>
     </>
   );

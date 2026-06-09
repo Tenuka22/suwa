@@ -24,8 +24,10 @@ import {
 } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
+import { Tag } from "@/components/ui/tag";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
@@ -38,54 +40,23 @@ const statusLabelMap: Record<string, string> = {
   timing_balance_failure: "Failed to Agree",
 };
 
-const statusColorMap: Record<
+const statusVariantMap: Record<
   string,
-  { bg: string; border: string; text: string }
+  "success" | "warning" | "destructive" | "muted"
 > = {
-  attended: {
-    bg: "bg-success/20",
-    border: "border-success/30",
-    text: "text-success",
-  },
-  approved: {
-    bg: "bg-success/20",
-    border: "border-success/30",
-    text: "text-success",
-  },
-  requested: {
-    bg: "bg-warning/20",
-    border: "border-warning/30",
-    text: "text-warning",
-  },
-  rescheduled: {
-    bg: "bg-blue-500/20",
-    border: "border-blue-500/30",
-    text: "text-blue-500",
-  },
-  timing_balance_failure: {
-    bg: "bg-destructive/15",
-    border: "border-destructive/30",
-    text: "text-destructive",
-  },
+  attended: "success",
+  approved: "success",
+  requested: "warning",
+  timing_balance_failure: "destructive",
 };
-
-const defaultStatusColor = {
-  bg: "bg-muted/20",
-  border: "border-border",
-  text: "text-muted-foreground",
-};
-
-function getStatusColor(status: string) {
-  return statusColorMap[status] ?? defaultStatusColor;
-}
 
 function StatusBadge({ status }: { status: string }) {
-  const sc = getStatusColor(status);
+  const variant = statusVariantMap[status] ?? "muted";
   const label = statusLabelMap[status] ?? status;
   return (
-    <View className={`rounded-full border px-3 py-1 ${sc.bg} ${sc.border}`}>
-      <Text className={`font-bold text-xs ${sc.text}`}>{label}</Text>
-    </View>
+    <Tag shape="pill" variant={variant}>
+      {label}
+    </Tag>
   );
 }
 
@@ -315,28 +286,18 @@ export default function AppointmentsScreen() {
       </Screen>
       <ScreenBottomBar>
         <View className="flex-row gap-2">
-          <Pressable
-            className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+          <IconButton
             disabled={!hasPrev}
+            icon={ChevronLeft}
+            iconSize={18}
             onPress={() => setPage((current) => Math.max(1, current - 1))}
-          >
-            <ChevronLeft
-              color={hasPrev ? colors.foreground : colors.mutedForeground}
-              size={18}
-              strokeWidth={2.5}
-            />
-          </Pressable>
-          <Pressable
-            className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+          />
+          <IconButton
             disabled={!hasMore}
+            icon={ChevronRight}
+            iconSize={18}
             onPress={() => setPage((current) => current + 1)}
-          >
-            <ChevronRight
-              color={hasMore ? colors.foreground : colors.mutedForeground}
-              size={18}
-              strokeWidth={2.5}
-            />
-          </Pressable>
+          />
         </View>
 
         {[
@@ -364,8 +325,9 @@ export default function AppointmentsScreen() {
           );
         })}
 
-        <Pressable
-          className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+        <IconButton
+          icon={ArrowLeft}
+          iconSize={18}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -373,9 +335,7 @@ export default function AppointmentsScreen() {
               router.replace("/");
             }
           }}
-        >
-          <ArrowLeft color={colors.foreground} size={18} strokeWidth={2.5} />
-        </Pressable>
+        />
       </ScreenBottomBar>
     </>
   );

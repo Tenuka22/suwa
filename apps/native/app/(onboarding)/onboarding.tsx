@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { orpc, queryClient } from "@/utils/orpc";
 import { encryptData, generateUserSecret, storeSecret } from "@/utils/privacy";
@@ -251,7 +251,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="alias"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   error={fieldState.error?.message}
                   label="Your Alias"
                   onChangeText={field.onChange}
@@ -265,7 +265,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="email"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   autoCapitalize="none"
                   error={fieldState.error?.message}
                   keyboardType="email-address"
@@ -281,7 +281,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="phone"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   error={fieldState.error?.message}
                   keyboardType="phone-pad"
                   label="Phone"
@@ -296,7 +296,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="fullName"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   error={fieldState.error?.message}
                   label="Full Name"
                   onChangeText={field.onChange}
@@ -310,7 +310,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="address"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   error={fieldState.error?.message}
                   label="Address"
                   onChangeText={field.onChange}
@@ -336,7 +336,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="guardianEmail"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   autoCapitalize="none"
                   error={fieldState.error?.message}
                   keyboardType="email-address"
@@ -352,7 +352,7 @@ export default function OnboardingScreen() {
               control={patientForm.control}
               name="guardianPhone"
               render={({ field, fieldState }) => (
-                <Field
+                <Input
                   error={fieldState.error?.message}
                   keyboardType="phone-pad"
                   label="Guardian Phone"

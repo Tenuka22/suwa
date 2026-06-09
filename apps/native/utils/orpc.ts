@@ -23,7 +23,7 @@ export const queryClient = new QueryClient({
   }),
 });
 
-export const link = new RPCLink({
+export const _link = new RPCLink({
   url: `${env.EXPO_PUBLIC_SERVER_URL}/rpc`,
   headers: async () => {
     const token = await getClerkAuthToken();
@@ -31,6 +31,6 @@ export const link = new RPCLink({
   },
 });
 
-export const client: AppRouterClient = createORPCClient(link);
+export const _client: AppRouterClient = createORPCClient(_link);
 
-export const orpc = createTanstackQueryUtils(client);
+export const orpc = createTanstackQueryUtils(_client);

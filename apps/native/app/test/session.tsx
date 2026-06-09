@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { VideoRoom } from "@/components/ui/video-room";
 import { orpc } from "@/utils/orpc";
@@ -85,7 +85,7 @@ export default function TestSessionScreen() {
               </Text>
             </View>
 
-            <Field
+            <Input
               label="Session ID"
               onChangeText={setSessionId}
               placeholder="Paste a session ID..."

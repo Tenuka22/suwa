@@ -21,6 +21,7 @@ import {
   type SessionTimingRole,
   useSessionTiming,
 } from "@/hooks/use-session-timing";
+import { formatParticipantLabel } from "@/utils/format-participant";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
@@ -121,22 +122,6 @@ function useAttendanceTracker({
       snapshotTimers.current = [];
     };
   }, [isConnected, sessionId, endAt, role]);
-}
-
-function formatParticipantIdentity(
-  identity: string,
-  _role: SessionTimingRole
-): string {
-  if (identity.startsWith("doctor_")) {
-    return "Doctor";
-  }
-  if (identity.startsWith("patient_")) {
-    return "Patient";
-  }
-  if (identity.startsWith("admin_")) {
-    return "Admin";
-  }
-  return identity;
 }
 
 export function VideoRoom({
@@ -386,10 +371,7 @@ export function VideoRoom({
     );
   }
 
-  const remoteLabel = formatParticipantIdentity(
-    remoteParticipant?.identity ?? "",
-    role
-  );
+  const remoteLabel = formatParticipantLabel(remoteParticipant?.identity ?? "");
 
   let remoteContent: React.ReactNode;
   if (liveKit.isConnected && hasRemoteVideo) {

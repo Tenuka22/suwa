@@ -173,6 +173,6 @@ export function parseError(error: unknown): ParsedError {
   };
 }
 
-export function isSoftError(error: unknown): boolean {
+export function _isSoftError(error: unknown): boolean {
   return parseError(error).isSoft;
 }

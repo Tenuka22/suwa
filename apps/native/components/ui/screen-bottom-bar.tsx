@@ -6,7 +6,7 @@ import {
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { useThemeColor } from "@/utils/theme";
+import { IconButton } from "@/components/ui/icon-button";
 
 interface ScreenBottomBarAction {
   icon: LucideIcon;
@@ -34,75 +34,61 @@ export const ScreenBottomBar = ({
   onPrevPage,
   onToggleAction,
   selectedValues,
-}: ScreenBottomBarProps) => {
-  const colors = useThemeColor();
+}: ScreenBottomBarProps) => (
+  <View className="absolute right-page bottom-page left-page">
+    <View className="flex-row gap-2 rounded-card border-2 border-border bg-card p-3 shadow-lg">
+      {children ? (
+        children
+      ) : (
+        <>
+          <View className="flex-1 flex-row overflow-hidden rounded-control border-2 border-border bg-background">
+            {(actions ?? []).map(({ icon: Icon, label, value }) => {
+              const isActive = selectedValues?.includes(value) ?? false;
 
-  return (
-    <View className="absolute right-page bottom-page left-page">
-      <View className="flex-row gap-2 rounded-card border-2 border-border bg-card p-3 shadow-lg">
-        {children ? (
-          children
-        ) : (
-          <>
-            <View className="flex-1 flex-row overflow-hidden rounded-control border-2 border-border bg-background">
-              {(actions ?? []).map(({ icon: Icon, label, value }) => {
-                const isActive = selectedValues?.includes(value) ?? false;
-
-                return (
-                  <Pressable
-                    className="flex-1 border-border border-r-2 last:border-r-0"
-                    key={value}
-                    onPress={() => {
-                      onToggleAction?.(value);
-                    }}
-                  >
-                    {({ pressed }) => (
-                      <View
-                        className={`flex-1 items-center justify-center gap-1 px-2 py-3 ${isActive ? "bg-orange-500" : pressed ? "bg-orange-500/10" : "bg-background"}`}
+              return (
+                <Pressable
+                  className="flex-1 border-border border-r-2 last:border-r-0"
+                  key={value}
+                  onPress={() => {
+                    onToggleAction?.(value);
+                  }}
+                >
+                  {({ pressed }) => (
+                    <View
+                      className={`flex-1 items-center justify-center gap-1 px-2 py-3 ${isActive ? "bg-orange-500" : pressed ? "bg-orange-500/10" : "bg-background"}`}
+                    >
+                      <Icon
+                        color={isActive ? "#ffffff" : "#f97316"}
+                        size={14}
+                      />
+                      <Text
+                        className={`text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] ${isActive ? "text-white" : "text-orange-500"}`}
                       >
-                        <Icon
-                          color={isActive ? "#ffffff" : "#f97316"}
-                          size={14}
-                        />
-                        <Text
-                          className={`text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] ${isActive ? "text-white" : "text-orange-500"}`}
-                        >
-                          {label}
-                        </Text>
-                      </View>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
+                        {label}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
 
-            <View className="flex-row gap-2">
-              <Pressable
-                className="w-12 items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
-                disabled={!hasPrev}
-                onPress={() => onPrevPage?.()}
-              >
-                <ChevronLeft
-                  color={hasPrev ? colors.foreground : colors.mutedForeground}
-                  size={20}
-                  strokeWidth={2.5}
-                />
-              </Pressable>
-              <Pressable
-                className="w-12 items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
-                disabled={!hasNext}
-                onPress={() => onNextPage?.()}
-              >
-                <ChevronRight
-                  color={hasNext ? colors.foreground : colors.mutedForeground}
-                  size={20}
-                  strokeWidth={2.5}
-                />
-              </Pressable>
-            </View>
-          </>
-        )}
-      </View>
+          <View className="flex-row gap-2">
+            <IconButton
+              disabled={!hasPrev}
+              icon={ChevronLeft}
+              iconSize={20}
+              onPress={() => onPrevPage?.()}
+            />
+            <IconButton
+              disabled={!hasNext}
+              icon={ChevronRight}
+              iconSize={20}
+              onPress={() => onNextPage?.()}
+            />
+          </View>
+        </>
+      )}
     </View>
-  );
-};
+  </View>
+);

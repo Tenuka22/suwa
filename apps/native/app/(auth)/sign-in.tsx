@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 import { OAuthButtons } from "@/components/OAuthButtons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { pushDecoratedUrl } from "@/utils/auth";
 import { useThemeColor } from "@/utils/theme";
@@ -109,7 +109,7 @@ export default function Page() {
               </Text>
             ) : null}
 
-            <Field
+            <Input
               autoComplete="one-time-code"
               error={errors.fields.code?.message}
               keyboardType="numeric"
@@ -145,7 +145,7 @@ export default function Page() {
               </Text>
             ) : null}
 
-            <Field
+            <Input
               autoCapitalize="none"
               autoComplete="email"
               error={errors.fields.identifier?.message}
@@ -157,7 +157,7 @@ export default function Page() {
               value={emailAddress}
             />
 
-            <Field
+            <Input
               error={errors.fields.password?.message}
               label="Password"
               onChangeText={setPassword}

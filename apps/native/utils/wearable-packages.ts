@@ -1,5 +1,5 @@
 export interface WearablePackage {
-  actions: readonly WearableAction[];
+  actions: readonly _WearableAction[];
   capabilities: readonly string[];
   caveats: readonly string[];
   connectionMode: "stream";
@@ -16,7 +16,7 @@ export interface WearablePackage {
   title: string;
 }
 
-export interface WearableAction {
+export interface _WearableAction {
   description: string;
   id: string;
   label: string;
@@ -55,7 +55,7 @@ export const wearablePackages = [
   },
 ] as const satisfies readonly WearablePackage[];
 
-export type WearablePackageRoute = (typeof wearablePackages)[number]["route"];
+export type _WearablePackageRoute = (typeof wearablePackages)[number]["route"];
 
-export const getWearablePackage = (route: string) =>
+export const _getWearablePackage = (route: string) =>
   wearablePackages.find((item) => item.route === route);

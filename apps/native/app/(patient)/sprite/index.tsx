@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight, HeartPulse, Moon } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
@@ -224,8 +225,9 @@ export default function SpriteScreen() {
         >
           Actions
         </Button>
-        <Pressable
-          className="aspect-square items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+        <IconButton
+          icon={ArrowLeft}
+          iconSize={16}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -233,9 +235,7 @@ export default function SpriteScreen() {
               router.replace("/");
             }
           }}
-        >
-          <ArrowLeft color="#ffffff" size={16} />
-        </Pressable>
+        />
       </ScreenBottomBar>
     </>
   );

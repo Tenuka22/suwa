@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
-const SMALL_BREAKPOINT = 400;
+const SMALL_BREAKPOINT = 680;
 
 const patientTabs = [
   { href: "/doctors", icon: Stethoscope, label: "Doctors" },

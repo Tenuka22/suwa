@@ -47,7 +47,7 @@ export function useErrorHandler({ onHardError }: UseErrorHandlerOptions = {}) {
   return { handleError };
 }
 
-export function mutationOnError(
+export function _mutationOnError(
   handler: ReturnType<typeof useErrorHandler>["handleError"],
   retry?: () => void
 ) {

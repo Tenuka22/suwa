@@ -1,12 +1,17 @@
 import {
-  ArrowRight,
-  Clock,
+  BriefcaseMedical,
+  Circle,
+  GraduationCap,
   Languages,
   MapPin,
   Sparkles,
+  Stethoscope,
 } from "lucide-react-native";
+import { useMemo } from "react";
 import { Image, Text, View } from "react-native";
+
 import { Card } from "@/components/ui/card";
+import { Tag } from "@/components/ui/tag";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { useThemeColor } from "@/utils/theme";
 
@@ -16,11 +21,15 @@ interface DoctorCardProps {
   portrait: { id: string | null } | null;
   profile: {
     userId: string;
-    displayName?: string;
-    location?: string;
-    headline?: string;
+    displayName?: string | null;
+    location?: string | null;
+    headline?: string | null;
+    bio?: string | null;
     specialties?: string[];
     consultationModes?: string[];
+    languages?: string[];
+    focusAreas?: string[];
+    experienceStartYear?: number | null;
   };
 }
 
@@ -33,14 +42,21 @@ export const DoctorCard = ({
   const colors = useThemeColor();
   const previewUrl = useDoctorMaterialPreviewUrl(portrait?.id ?? null);
 
+  const experienceYears = useMemo(() => {
+    if (!profile.experienceStartYear) {
+      return null;
+    }
+    return Math.max(0, new Date().getFullYear() - profile.experienceStartYear);
+  }, [profile.experienceStartYear]);
+
   return (
     <Card
-      className="gap-4"
+      className="gap-section"
       href={`/doctors/${profile.userId}`}
       onPress={onPress}
     >
-      <View className="flex-row items-center gap-4">
-        <View className="h-12 w-12 overflow-hidden rounded-full border-2 border-border bg-muted">
+      <View className="flex-row items-start gap-4">
+        <View className="h-16 w-16 overflow-hidden rounded-full border-2 border-border bg-muted">
           {previewUrl ? (
             <Image
               className="h-full w-full"
@@ -49,22 +65,32 @@ export const DoctorCard = ({
             />
           ) : (
             <View className="h-full w-full items-center justify-center bg-secondary">
-              <Sparkles color={colors.foreground} size={24} strokeWidth={2} />
+              <Sparkles
+                color={colors.mutedForeground}
+                size={28}
+                strokeWidth={2}
+              />
             </View>
           )}
         </View>
+
         <View className="flex-1 justify-center gap-1">
           <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
             {profile.displayName ?? "Clinician"}
           </Text>
+          {profile.headline && (
+            <Text className="font-medium font-sans text-muted-foreground text-sm leading-snug">
+              {profile.headline}
+            </Text>
+          )}
           {profile.location && (
-            <View className="flex-row items-center gap-1">
+            <View className="mt-0.5 flex-row items-center gap-1.5">
               <MapPin
                 color={colors.mutedForeground}
-                size={12}
+                size={14}
                 strokeWidth={2.5}
               />
-              <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
+              <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
                 {profile.location}
               </Text>
             </View>
@@ -72,50 +98,89 @@ export const DoctorCard = ({
         </View>
       </View>
 
-      <Text className="font-medium font-sans text-foreground text-sm leading-relaxed">
-        {profile.headline ??
-          "Licensed medical practitioner dedicated to safe, private clinical care."}
-      </Text>
+      {profile.bio && (
+        <View className="gap-1.5 rounded-card border border-border/40 bg-secondary/30 p-3">
+          <View className="flex-row items-center gap-1.5">
+            <Stethoscope
+              color={colors.mutedForeground}
+              size={14}
+              strokeWidth={2.5}
+            />
+            <Text className="font-black font-sans text-[10px] text-muted-foreground uppercase tracking-widest">
+              About
+            </Text>
+          </View>
+          <Text className="font-medium font-sans text-foreground/80 text-sm leading-relaxed">
+            {profile.bio}
+          </Text>
+        </View>
+      )}
 
       <View className="flex-row flex-wrap gap-2">
-        {availableSlotCount > 0 ? (
-          <View className="flex-row items-center gap-1 rounded-chip border border-success/30 bg-success/10 px-2 py-0.5">
-            <Clock color={colors.success} size={10} strokeWidth={2.5} />
-            <Text className="font-bold font-sans text-[9px] text-success uppercase tracking-wider">
-              {availableSlotCount} Slots Available
-            </Text>
-          </View>
-        ) : (
-          <View className="flex-row items-center gap-1 rounded-chip border border-border bg-secondary px-2 py-0.5">
-            <Clock color={colors.mutedForeground} size={10} strokeWidth={2.5} />
-            <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-wider">
-              No Slots
-            </Text>
-          </View>
+        {profile.specialties && profile.specialties.length > 0 && (
+          <Tag icon={BriefcaseMedical}>{profile.specialties[0]}</Tag>
         )}
-        {profile.specialties?.[0] && (
-          <View className="flex-row items-center gap-1 rounded-chip border border-border bg-card px-2 py-0.5">
-            <Sparkles color={colors.foreground} size={10} strokeWidth={2.5} />
-            <Text className="font-bold font-sans text-[9px] text-foreground uppercase tracking-wider">
-              {profile.specialties[0]}
-            </Text>
-          </View>
+
+        {experienceYears !== null && (
+          <Tag icon={GraduationCap} variant="secondary">
+            {experienceYears} {experienceYears === 1 ? "yr" : "yrs"} exp.
+          </Tag>
         )}
+
+        {profile.languages && profile.languages.length > 0 && (
+          <Tag variant="muted">{profile.languages.slice(0, 3).join(", ")}</Tag>
+        )}
+
         {profile.consultationModes?.[0] && (
-          <View className="flex-row items-center gap-1 rounded-chip border border-border bg-card px-2 py-0.5">
-            <Languages color={colors.foreground} size={10} strokeWidth={2.5} />
-            <Text className="font-bold font-sans text-[9px] text-foreground uppercase tracking-wider">
-              {profile.consultationModes[0]}
-            </Text>
-          </View>
+          <Tag icon={Languages} size="sm">
+            {profile.consultationModes[0]}
+          </Tag>
         )}
       </View>
 
+      {profile.focusAreas && profile.focusAreas.length > 0 && (
+        <View className="gap-2">
+          <View className="flex-row items-center gap-1.5">
+            <Circle color={colors.mutedForeground} size={8} strokeWidth={2.5} />
+            <Text className="font-black font-sans text-[10px] text-muted-foreground uppercase tracking-widest">
+              Focus Areas
+            </Text>
+          </View>
+          <View className="flex-row flex-wrap gap-2">
+            {profile.focusAreas.slice(0, 4).map((area) => (
+              <Text
+                className="font-bold font-sans text-foreground text-xs uppercase tracking-wider"
+                key={area}
+              >
+                {area}
+              </Text>
+            ))}
+          </View>
+        </View>
+      )}
+
       <View className="flex-row items-center justify-between border-border/10 border-t pt-3">
+        <View className="flex-row items-center gap-1.5">
+          {availableSlotCount > 0 ? (
+            <>
+              <View className="h-2 w-2 rounded-full bg-success" />
+              <Text className="font-black font-sans text-[10px] text-success uppercase tracking-widest">
+                {availableSlotCount} slots open
+              </Text>
+            </>
+          ) : (
+            <>
+              <View className="h-2 w-2 rounded-full bg-muted-foreground/40" />
+              <Text className="font-black font-sans text-[10px] text-muted-foreground uppercase tracking-widest">
+                Fully booked
+              </Text>
+            </>
+          )}
+        </View>
+
         <Text className="font-black font-sans text-[10px] text-primary uppercase tracking-widest">
           View Profile
         </Text>
-        <ArrowRight color={colors.primary} size={16} strokeWidth={2.5} />
       </View>
     </Card>
   );

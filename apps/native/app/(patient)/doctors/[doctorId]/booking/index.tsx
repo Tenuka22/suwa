@@ -22,6 +22,7 @@ import {
 } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 
@@ -626,8 +627,9 @@ export default function BookingScreen() {
           )}
         </Button>
 
-        <Pressable
-          className="w-12 items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
+        <IconButton
+          icon={ArrowLeft}
+          iconSize={20}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -635,9 +637,7 @@ export default function BookingScreen() {
               router.replace("/doctors");
             }
           }}
-        >
-          <ArrowLeft color={colors.foreground} size={20} strokeWidth={2.5} />
-        </Pressable>
+        />
       </ScreenBottomBar>
     </>
   );

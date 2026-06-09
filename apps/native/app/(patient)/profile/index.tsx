@@ -3,15 +3,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, Shield, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { CreditPurchase } from "@/components/ui/credit-purchase";
 import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
-import { Field } from "@/components/ui/field";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { useToast } from "@/components/ui/toast";
+import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
 import {
   decryptData,
@@ -22,15 +24,6 @@ import {
 } from "@/utils/privacy";
 import { useThemeColor } from "@/utils/theme";
 import { useErrorHandler } from "@/utils/use-error-handler";
-
-function vibrate(pattern: number | number[]) {
-  if (typeof window !== "undefined" && "navigator" in window) {
-    const nav = window.navigator as Navigator & {
-      vibrate?: (pattern: number | number[]) => boolean;
-    };
-    nav.vibrate?.(pattern);
-  }
-}
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -118,6 +111,17 @@ export default function ProfileScreen() {
       onError: (err) => handleError(err),
     })
   );
+
+  if (profileQuery.isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  const noProfile = profileQuery.data === null;
+  const hasNoEncryptedData = profileQuery.data && !profileQuery.data._securedData;
 
   const handleSave = async () => {
     try {
@@ -220,7 +224,7 @@ export default function ProfileScreen() {
           </View>
 
           <View className="gap-4 px-card py-card">
-            <Field
+            <Input
               label="Display Name"
               onChangeText={(text) => {
                 setAlias(text);
@@ -230,22 +234,43 @@ export default function ProfileScreen() {
               value={alias}
             />
 
-            {corruptedData && (
+            {noProfile && (
+              <View className="gap-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 p-4">
+                <Text className="font-bold font-sans text-amber-600 text-sm">
+                  Profile not found
+                </Text>
+                <Text className="font-normal font-sans text-amber-600/80 text-xs">
+                  You don't have a profile entry yet. Please enter your details and save to create one.
+                </Text>
+              </View>
+            )}
+
+            {hasNoEncryptedData && !noProfile && (
+              <View className="gap-3 rounded-lg border-2 border-primary bg-primary/10 p-4">
+                <Text className="font-bold font-sans text-primary text-sm">
+                  Encrypted data missing
+                </Text>
+                <Text className="font-normal font-sans text-primary/80 text-xs">
+                  Your profile exists, but your personal information (Email, Phone, etc.) hasn't been encrypted and stored yet. Please fill them in and save.
+                </Text>
+              </View>
+            )}
+
+            {corruptedData && !noProfile && (
               <View className="gap-3 rounded-lg border-2 border-destructive bg-destructive/10 p-4">
                 <Text className="font-bold font-sans text-destructive text-sm">
-                  Your encrypted data could not be decrypted
+                  Decryption failed
                 </Text>
                 <Text className="font-normal font-sans text-destructive/80 text-xs">
-                  This can happen if your device secret was lost or changed.
-                  Please re-enter your information below to create a new secret.
+                  Your encrypted data could not be decrypted with your device's current secret. This happens if the secret was lost. Please re-enter your information.
                 </Text>
                 <Button onPress={handleRecreateSecret} variant="secondary">
-                  Generate new secret & re-enter data
+                  Generate new secret & re-enter
                 </Button>
               </View>
             )}
 
-            <Field
+            <Input
               autoCapitalize="none"
               keyboardType="email-address"
               label="Email"
@@ -257,7 +282,7 @@ export default function ProfileScreen() {
               value={email}
             />
 
-            <Field
+            <Input
               keyboardType="phone-pad"
               label="Phone"
               onChangeText={(text) => {
@@ -268,7 +293,7 @@ export default function ProfileScreen() {
               value={phone}
             />
 
-            <Field
+            <Input
               label="Full Name"
               onChangeText={(text) => {
                 setFullName(text);
@@ -278,7 +303,7 @@ export default function ProfileScreen() {
               value={fullName}
             />
 
-            <Field
+            <Input
               label="Address"
               onChangeText={(text) => {
                 setAddress(text);
@@ -330,7 +355,7 @@ export default function ProfileScreen() {
               </View>
             ) : (
               <>
-                <Field
+                <Input
                   autoCapitalize="none"
                   keyboardType="email-address"
                   label="Guardian Email"
@@ -339,7 +364,7 @@ export default function ProfileScreen() {
                   placeholderTextColor={colors.mutedForeground}
                   value={guardianEmail}
                 />
-                <Field
+                <Input
                   keyboardType="phone-pad"
                   label="Guardian Phone"
                   onChangeText={setGuardianPhone}
@@ -402,12 +427,7 @@ export default function ProfileScreen() {
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </View>
-          <Pressable
-            className="aspect-square h-12 items-center justify-center self-stretch rounded-control border-2 border-border bg-background"
-            onPress={handleBack}
-          >
-            <ArrowLeft color="#ffffff" size={16} />
-          </Pressable>
+          <IconButton icon={ArrowLeft} iconSize={16} onPress={handleBack} />
         </View>
       </ScreenBottomBar>
       <ErrorDialog {...dialogProps} />
