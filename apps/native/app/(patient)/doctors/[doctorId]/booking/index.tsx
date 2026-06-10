@@ -272,24 +272,26 @@ export default function BookingScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [videoFileId, setVideoFileId] = useState<string | null>(null);
 
-  const plansQuery = useQuery({
-    queryKey: ["doctor-plans", id],
-    queryFn: () => orpc.getDoctorPlans.call({ doctorId: id ?? "" }),
-    enabled: !!id,
-  });
+  const plansQuery = useQuery(
+    orpc.getDoctorPlans.queryOptions({
+      input: { doctorId: id ?? "" },
+      enabled: !!id,
+    })
+  );
 
-  const doctorQuery = useQuery({
-    queryKey: ["doctor", id],
-    queryFn: () => orpc.getDoctor.call({ doctorId: id ?? "" }),
-    enabled: !!id,
-  });
+  const doctorQuery = useQuery(
+    orpc.getDoctor.queryOptions({
+      input: { doctorId: id ?? "" },
+      enabled: !!id,
+    })
+  );
 
-  const availabilityQuery = useQuery({
-    queryKey: ["doctor-availability", id],
-    queryFn: () =>
-      orpc.getDoctorWeeklyAvailability.call({ doctorId: id ?? "" }),
-    enabled: !!id,
-  });
+  const availabilityQuery = useQuery(
+    orpc.getDoctorWeeklyAvailability.queryOptions({
+      input: { doctorId: id ?? "" },
+      enabled: !!id,
+    })
+  );
 
   const today = useMemo(() => new Date(), []);
   const fromDate = useMemo(() => selectedDate?.toISOString(), [selectedDate]);
@@ -302,22 +304,21 @@ export default function BookingScreen() {
     return d.toISOString();
   }, [selectedDate]);
 
+  const plans = plansQuery.data?.plans ?? [];
+
+  const selectedPlan = plans.find(
+    (p: { id: string; durationMinutes: number }) => p.id === selectedPlanId
+  );
+
   const slotsQuery = useQuery({
-    queryKey: ["doctor-slots", id, fromDate, selectedPlanId],
-    queryFn: () => {
-      if (!(fromDate && toDate && selectedPlanId)) {
-        throw new Error("Missing required selections");
-      }
-      const plan = plans.find(
-        (p: { id: string; durationMinutes: number }) => p.id === selectedPlanId
-      );
-      return orpc.getDoctorAvailableSlots.call({
+    ...orpc.getDoctorAvailableSlots.queryOptions({
+      input: {
         doctorId: id ?? "",
-        from: fromDate,
-        to: toDate,
-        durationMinutes: plan?.durationMinutes ?? 30,
-      });
-    },
+        from: fromDate ?? "",
+        to: toDate ?? "",
+        durationMinutes: selectedPlan?.durationMinutes ?? 30,
+      },
+    }),
     enabled: !!id && !!selectedDate && !!selectedPlanId,
   });
 
@@ -340,7 +341,6 @@ export default function BookingScreen() {
 
     return slotStart.getTime() > Date.now();
   });
-  const plans = plansQuery.data?.plans ?? [];
   const doctor = doctorQuery.data?.profile;
   const files = doctorQuery.data?.files ?? [];
   const availability = (availabilityQuery.data?.slots ?? []) as Array<{
@@ -352,42 +352,34 @@ export default function BookingScreen() {
   const introVideoFile = files.find((f) => f.fileKind === "intro_video");
   const portraitId = doctorQuery.data?.portrait?.id ?? null;
 
-  const bookMutation = useMutation({
-    mutationFn: async () => {
-      if (!(selectedSlot && id && selectedPlanId)) {
-        throw new Error("Missing required selections");
-      }
-      const result = await orpc.bookSession.call({
-        doctorId: id,
-        planId: selectedPlanId,
-        startAt: selectedSlot.startAt,
-        endAt: selectedSlot.endAt,
-      });
-      if (!result.ok) {
-        throw new Error("Booking failed");
-      }
-      return result;
-    },
-    onSuccess: async () => {
-      setBookingStep("done");
-      setTimeout(() => {
-        router.replace("/appointments?bookingSuccess=true");
-      }, 1500);
-    },
-    onError: (err: Error) => {
-      handleError(err);
-      setErrorMessage(err.message);
-      setBookingStep("error");
-    },
-  });
+  const bookMutation = useMutation(
+    orpc.bookSession.mutationOptions({
+      onSuccess: async () => {
+        setBookingStep("done");
+        setTimeout(() => {
+          router.replace("/appointments?bookingSuccess=true");
+        }, 1500);
+      },
+      onError: (err: Error) => {
+        handleError(err);
+        setErrorMessage(err.message);
+        setBookingStep("error");
+      },
+    })
+  );
 
   const handleBook = useCallback(() => {
-    if (!(selectedSlot && selectedPlanId)) {
+    if (!(selectedSlot && selectedPlanId && id)) {
       return;
     }
     setBookingStep("processing");
-    bookMutation.mutate();
-  }, [bookMutation, selectedSlot, selectedPlanId]);
+    bookMutation.mutate({
+      doctorId: id,
+      planId: selectedPlanId,
+      startAt: selectedSlot.startAt,
+      endAt: selectedSlot.endAt,
+    });
+  }, [bookMutation, selectedSlot, selectedPlanId, id]);
 
   const next7Days = getNext7Days();
 

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type SessionTimingRole = "patient" | "doctor" | "admin";
 
@@ -17,52 +17,36 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 export function _computeSessionTiming(
   startAt: string,
   endAt: string,
-  role: SessionTimingRole
+  role: SessionTimingRole,
 ): SessionTiming {
   const now = Date.now();
   const startMs = new Date(startAt).getTime();
   const endMs = new Date(endAt).getTime();
 
-  const isAdmin = role === "admin";
   const isDoctor = role === "doctor";
 
   const joinWindowOpenAt = new Date(startMs - THIRTY_MIN_MS);
   const patientLeaveDeadline = new Date(endMs + THIRTY_MIN_MS);
   const doctorLeaveDeadline = new Date(endMs + ONE_HOUR_MS);
 
-  let leaveDeadlineAt: Date | null;
-  if (isAdmin) {
-    leaveDeadlineAt = null;
-  } else if (isDoctor) {
-    leaveDeadlineAt = doctorLeaveDeadline;
-  } else {
-    leaveDeadlineAt = patientLeaveDeadline;
-  }
+  const leaveDeadlineAt = isDoctor ? doctorLeaveDeadline : patientLeaveDeadline;
 
-  const canJoin =
-    isAdmin || (now >= startMs - THIRTY_MIN_MS && now <= endMs + THIRTY_MIN_MS);
+  const canJoin = now >= startMs - THIRTY_MIN_MS && now <= endMs;
 
-  const mustLeave =
-    !isAdmin && leaveDeadlineAt !== null && now > leaveDeadlineAt.getTime();
+  const mustLeave = now > leaveDeadlineAt.getTime();
 
   let timeStatus: SessionTiming["timeStatus"];
-  if (isAdmin) {
-    timeStatus = "during";
-  } else if (now < startMs - THIRTY_MIN_MS) {
+  if (now < startMs - THIRTY_MIN_MS) {
     timeStatus = "before";
   } else if (now <= endMs) {
     timeStatus = "during";
-  } else if (now <= (isDoctor ? endMs + ONE_HOUR_MS : endMs + THIRTY_MIN_MS)) {
+  } else if (now <= leaveDeadlineAt.getTime()) {
     timeStatus = "grace";
-  } else if (mustLeave) {
-    timeStatus = "must-leave";
   } else {
     timeStatus = "ended";
   }
 
-  const remainingMs = leaveDeadlineAt
-    ? Math.max(0, leaveDeadlineAt.getTime() - now)
-    : Number.POSITIVE_INFINITY;
+  const remainingMs = Math.max(0, leaveDeadlineAt.getTime() - now);
 
   return {
     canJoin,
@@ -77,11 +61,19 @@ export function _computeSessionTiming(
 export function useSessionTiming(
   startAt: string,
   endAt: string,
-  role: SessionTimingRole
+  role: SessionTimingRole,
 ): SessionTiming {
+  const [_now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 5_000);
+    return () => clearInterval(interval);
+  }, []);
+
   return useMemo(
     () => _computeSessionTiming(startAt, endAt, role),
-    [startAt, endAt, role]
+    // _now triggers recalculation so timing updates as time passes
+    [startAt, endAt, role, _now],
   );
 }
 

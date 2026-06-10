@@ -1,4 +1,4 @@
-import { SpriteMascot } from "@/app/test/gamification/sprite";
+import { SpriteMascot } from "@/components/ui/sprite-mascot";
 
 export type SpriteAction = "idle" | "happy" | "thinking" | "alert";
 

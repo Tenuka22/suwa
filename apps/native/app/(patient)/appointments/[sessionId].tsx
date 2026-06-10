@@ -2,7 +2,6 @@ import { useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
@@ -23,24 +22,21 @@ export default function AppointmentSessionDetailScreen() {
   } else if (metadataRole === "doctor") {
     userRole = "doctor";
   }
-  const [alias, setAlias] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    if (userRole === "patient") {
-      orpc.getPatientProfile
-        .call()
-        .then((profile) => {
-          if (profile?.alias) {
-            setAlias(profile.alias);
-          }
-        })
-        .catch(() => undefined);
-    }
-  }, [userRole]);
+  const profileQuery = useQuery(
+    orpc.getPatientProfile.queryOptions({
+      enabled: userRole === "patient",
+      retry: false,
+      meta: { ignoreError: true },
+    })
+  );
+
+  const alias = profileQuery.data?.alias;
 
   const sessionQuery = useQuery({
-    queryKey: orpc.getLiveKitToken.queryKey({ sessionId: sessionId ?? "" }),
-    queryFn: () => orpc.getLiveKitToken.call({ sessionId: sessionId ?? "" }),
+    ...orpc.getLiveKitToken.queryOptions({
+      input: { sessionId: sessionId ?? "" },
+    }),
     enabled: !!sessionId,
   });
 
@@ -78,8 +74,7 @@ export default function AppointmentSessionDetailScreen() {
           Join window not open yet
         </Text>
         <Text className="text-center text-muted-foreground text-sm">
-          You can join 30 minutes before the session starts and until 30 minutes
-          after it ends.
+          You can join 30 minutes before the session starts until it ends.
         </Text>
         <Button onPress={() => router.back()} variant="secondary">
           Back

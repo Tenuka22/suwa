@@ -12,32 +12,19 @@ import {
   WifiOff,
 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View, ViewStyle } from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { orpc } from "@/utils/orpc";
+import {
+  CLASS_COLORS,
+  CLASS_LABELS,
+  formatStressTime,
+  statusFromPrediction,
+} from "@/utils/stress/analysis";
 import { useThemeColor } from "@/utils/theme";
-
-const CLASS_LABELS = ["Baseline", "Amusement", "Stress"] as const;
-const CLASS_COLORS = ["#3b82f6", "#22c55e", "#ef4444"] as const;
-
-function formatTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) {
-    return "just now";
-  }
-  if (mins < 60) {
-    return `${mins}m ago`;
-  }
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
-  return `${Math.floor(hours / 24)}d ago`;
-}
 
 type PredictionResult = { prediction: string; probabilities: number[] };
 
@@ -52,32 +39,6 @@ interface StressData {
   sampleCount: number;
   samples: StressDataPoint[];
   totalSamples: number;
-}
-
-function statusFromPrediction(prediction: string) {
-  switch (prediction.toLowerCase()) {
-    case "stress":
-      return {
-        label: "High Stress",
-        color: "text-destructive",
-        bg: "bg-destructive/10",
-        icon: AlertTriangle,
-      };
-    case "amusement":
-      return {
-        label: "Relaxed",
-        color: "text-success",
-        bg: "bg-success/10",
-        icon: TrendingDown,
-      };
-    default:
-      return {
-        label: "Baseline",
-        color: "text-primary",
-        bg: "bg-primary/10",
-        icon: Brain,
-      };
-  }
 }
 
 export default function GuardianPatientStressScreen() {
@@ -249,11 +210,11 @@ export default function GuardianPatientStressScreen() {
                           <View
                             className="h-full rounded-full"
                             style={{
-                              width: `${pct}%`,
+                              width: pct + "%",
                               backgroundColor: isActive
                                 ? CLASS_COLORS[i]
                                 : `${CLASS_COLORS[i]}44`,
-                            }}
+                            } as ViewStyle}
                           />
                         </View>
                         <Text className="w-10 text-right font-mono text-[10px] text-muted-foreground">
@@ -300,7 +261,7 @@ export default function GuardianPatientStressScreen() {
                       Sync
                     </Text>
                     <Text className="font-bold font-sans text-foreground text-sm">
-                      {formatTime(streamData.fetchedAt)}
+                      {formatStressTime(streamData.fetchedAt)}
                     </Text>
                   </View>
                 </View>

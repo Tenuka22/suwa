@@ -23,40 +23,25 @@ function computeTiming(
   const start = new Date(startAt).getTime();
   const end = new Date(endAt).getTime();
 
-  const isAdmin = role === "admin";
   const isDoctor = role === "doctor";
 
   const joinWindowOpenAt = new Date(start - THIRTY_MIN_MS);
 
-  const canJoin =
-    isAdmin || (now >= start - THIRTY_MIN_MS && now <= end + THIRTY_MIN_MS);
+  const leaveDeadline = isDoctor ? end + ONE_HOUR_MS : end + THIRTY_MIN_MS;
 
-  let leaveDeadline: number;
-  if (isAdmin) {
-    leaveDeadline = Number.POSITIVE_INFINITY;
-  } else if (isDoctor) {
-    leaveDeadline = end + ONE_HOUR_MS;
-  } else {
-    leaveDeadline = end + THIRTY_MIN_MS;
-  }
+  const leaveDeadlineAt = new Date(leaveDeadline);
 
-  const leaveDeadlineAt = Number.isFinite(leaveDeadline)
-    ? new Date(leaveDeadline)
-    : null;
+  const canJoin = now >= start - THIRTY_MIN_MS && now <= end;
 
-  const mustLeave = !isAdmin && now > leaveDeadline;
+  const mustLeave = now > leaveDeadline;
 
   let timeStatus: SessionTiming["timeStatus"];
-  if (isAdmin) {
-    timeStatus = "during";
-  } else if (now < start - THIRTY_MIN_MS) {
+  if (now < start - THIRTY_MIN_MS) {
     timeStatus = "before";
   } else if (now <= end) {
     timeStatus = "during";
   } else if (now <= leaveDeadline) {
     timeStatus = "grace";
-  } else if (mustLeave) {
-    timeStatus = "must-leave";
   } else {
     timeStatus = "ended";
   }
@@ -87,15 +72,11 @@ export function useSessionTiming(
 
   const timing = useMemo(
     () => computeTiming(startAt, endAt, role),
-    [startAt, endAt, role]
+    [startAt, endAt, role, _now]
   );
 
   const formattedRemaining = useMemo(() => {
-    const ms = timing.remainingMs;
-    if (!Number.isFinite(ms)) {
-      return "";
-    }
-    const totalMinutes = Math.ceil(ms / 60_000);
+    const totalMinutes = Math.ceil(timing.remainingMs / 60_000);
     if (totalMinutes < 60) {
       return `${totalMinutes}m`;
     }

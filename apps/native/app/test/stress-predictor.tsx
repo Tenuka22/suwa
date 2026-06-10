@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Text, View, ViewStyle } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -106,9 +106,9 @@ function ProbabilityBar({
         <View
           className="h-full rounded-full"
           style={{
-            width: `${(value * 100).toFixed(0)}%`,
+            width: `${(value * 100).toFixed(0)}%` as const,
             backgroundColor: color,
-          }}
+          } as ViewStyle}
         />
       </View>
       <Text className="w-10 text-right font-mono text-[10px] text-muted-foreground">
@@ -227,7 +227,7 @@ export default function StressPredictorScreen() {
     try {
       const result = (await orpc.predictStress.call({
         windowSamples: seq.samples,
-      })) as PredictionResponse;
+      })) as unknown as PredictionResponse;
       setResults((prev) => ({
         ...prev,
         [key]: { result, time: Date.now() - startTime },

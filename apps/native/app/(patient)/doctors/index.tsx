@@ -33,11 +33,11 @@ export default function DoctorsScreen() {
 
   const combinedSearch = [search, ...selectedChips].filter(Boolean).join(" ");
 
-  const doctorsQuery = useQuery({
-    queryKey: ["doctors", page, combinedSearch],
-    queryFn: () =>
-      orpc.listDoctors.call({ page, pageSize, search: combinedSearch }),
-  });
+  const doctorsQuery = useQuery(
+    orpc.listDoctors.queryOptions({
+      input: { page, pageSize, search: combinedSearch },
+    })
+  );
 
   const doctors = doctorsQuery.data?.doctors ?? [];
   const hasMore = doctorsQuery.data?.hasMore ?? false;

@@ -761,10 +761,11 @@ function EducationSection({
 function PlansSection({ doctorId }: { doctorId: string }) {
   const colors = useThemeColor();
 
-  const plansQuery = useQuery({
-    queryKey: ["doctor-plans", doctorId],
-    queryFn: () => orpc.getDoctorPlans.call({ doctorId }),
-  });
+  const plansQuery = useQuery(
+    orpc.getDoctorPlans.queryOptions({
+      input: { doctorId },
+    })
+  );
 
   const plans = plansQuery.data?.plans ?? [];
 
@@ -833,11 +834,12 @@ export default function DoctorProfileScreen() {
   const { doctorId } = useLocalSearchParams<{ doctorId?: string }>();
   const id = Array.isArray(doctorId) ? doctorId[0] : doctorId;
 
-  const doctorQuery = useQuery({
-    queryKey: ["doctor", id],
-    queryFn: () => orpc.getDoctor.call({ doctorId: id ?? "" }),
-    enabled: !!id,
-  });
+  const doctorQuery = useQuery(
+    orpc.getDoctor.queryOptions({
+      input: { doctorId: id ?? "" },
+      enabled: !!id,
+    })
+  );
 
   const profile = doctorQuery.data?.profile;
   const files = doctorQuery.data?.files ?? [];

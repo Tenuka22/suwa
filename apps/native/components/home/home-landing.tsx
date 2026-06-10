@@ -95,6 +95,14 @@ const getBarColor = (val: number): string => {
   return "bg-emerald-500";
 };
 
+interface HeroSectionProps {
+  primaryColor: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref: string;
+  secondaryLabel: string;
+}
+
 function HeroSection({
   primaryHref,
   primaryLabel,
