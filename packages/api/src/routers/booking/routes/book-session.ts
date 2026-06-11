@@ -32,17 +32,16 @@ export const bookSessionRoute = protectedProcedure
       throw new Error("The selected plan is not available");
     }
 
-    const overlapping = await context.db
+    const overlappingOwn = await context.db
       .select({ id: doctorSessions.id })
       .from(doctorSessions)
       .where(
         and(
           eq(doctorSessions.doctorId, input.doctorId),
+          eq(doctorSessions.patientId, patientId),
+          lt(doctorSessions.startAt, input.endAt),
+          gt(doctorSessions.endAt, input.startAt),
           or(
-            and(
-              lt(doctorSessions.startAt, input.endAt),
-              gt(doctorSessions.endAt, input.startAt)
-            ),
             eq(doctorSessions.status, "requested"),
             eq(doctorSessions.status, "rescheduled"),
             eq(doctorSessions.status, "approved")
@@ -50,9 +49,31 @@ export const bookSessionRoute = protectedProcedure
         )
       );
 
-    if (overlapping.length > 0) {
+    if (overlappingOwn.length > 0) {
       throw new Error(
         "You already have a session that overlaps with this time"
+      );
+    }
+
+    const overlappingDoctor = await context.db
+      .select({ id: doctorSessions.id })
+      .from(doctorSessions)
+      .where(
+        and(
+          eq(doctorSessions.doctorId, input.doctorId),
+          lt(doctorSessions.startAt, input.endAt),
+          gt(doctorSessions.endAt, input.startAt),
+          or(
+            eq(doctorSessions.status, "requested"),
+            eq(doctorSessions.status, "rescheduled"),
+            eq(doctorSessions.status, "approved")
+          )
+        )
+      );
+
+    if (overlappingDoctor.length > 0) {
+      throw new Error(
+        "The doctor is not available at this time"
       );
     }
 

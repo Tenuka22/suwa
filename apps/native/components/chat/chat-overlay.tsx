@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useToast } from "@/components/ui/toast";
 import { orpc } from "@/utils/orpc";
@@ -69,6 +69,9 @@ async function clearLocalMessages() {
 
 export function ChatOverlay() {
   const router = useRouter();
+  const segments = useSegments();
+  const isHome = segments[0] === "(guardian)"|| segments[0] === "(patient)";
+  const isLanding = segments[0] === "landing";
   const colors = useThemeColor();
   const insets = useSafeAreaInsets();
   const { toast } = useToast();
@@ -260,9 +263,10 @@ export function ChatOverlay() {
       {/* Chat Button */}
       <Pressable
         onPress={() => setVisible(true)}
-        className="absolute bottom-28 right-6 z-50 h-14 w-14 items-center justify-center rounded-full"
+        className="absolute right-6 z-50 h-14 w-14 items-center justify-center rounded-full"
         style={{
           backgroundColor: colors.primary,
+          bottom: isLanding ? 24 : isHome ? 86 : 120,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,

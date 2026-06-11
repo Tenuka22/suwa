@@ -20,6 +20,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from "react-native-reanimated";
@@ -33,6 +34,8 @@ import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
+const SMALL_BREAKPOINT = 680;
+
 export default function AppointmentsScreen() {
   const { user } = useUser();
   const router = useRouter();
@@ -44,6 +47,8 @@ export default function AppointmentsScreen() {
         ? "doctor"
         : "patient";
   const colors = useThemeColor();
+  const { width } = useWindowDimensions();
+  const isSmall = width < SMALL_BREAKPOINT;
   const { bookingSuccess } = useLocalSearchParams<{
     bookingSuccess?: string;
   }>();
@@ -302,7 +307,7 @@ export default function AppointmentsScreen() {
               <Pressable
                 accessibilityLabel={label}
                 accessibilityState={{ selected: isActive }}
-                className={`flex-1 items-center justify-center self-stretch rounded-control border-2 ${isActive ? "border-orange-500 bg-orange-500" : "border-border bg-background"}`}
+                className={`flex-1 items-center h-12 justify-center self-stretch rounded-control border-2 ${isActive ? "border-orange-500 bg-orange-500" : "border-border bg-background"}`}
                 key={value}
                 onPress={() => toggleFilter(value)}
                 style={({ pressed }) => [
@@ -313,13 +318,15 @@ export default function AppointmentsScreen() {
                 ]}
               >
                 <Icon color={isActive ? "#ffffff" : "#f97316"} size={16} />
-                <Text
-                  className="text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em]"
-                  numberOfLines={1}
-                  style={{ color: isActive ? "#ffffff" : "#f97316" }}
-                >
-                  {label}
-                </Text>
+                {!isSmall && (
+                  <Text
+                    className="text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em]"
+                    numberOfLines={1}
+                    style={{ color: isActive ? "#ffffff" : "#f97316" }}
+                  >
+                    {label}
+                  </Text>
+                )}
               </Pressable>
             );
           })}

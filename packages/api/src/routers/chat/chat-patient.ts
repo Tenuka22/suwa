@@ -1,6 +1,9 @@
+import { CloudflareWorkersAIEmbeddings } from "@langchain/cloudflare"
 import { type } from "@orpc/server"
 import type { UIMessage } from "ai"
+import { env } from "@zen-doc/env/server"
 import { publicProcedure } from "../../index"
+import { cosineSimilarity } from "../../services/doctor-index"
 import { streamChatWorkflow } from "../../services/chat-workflow"
 
 const SEVEN_DAYS_SECONDS = 604800
@@ -14,6 +17,12 @@ interface ChatMessage {
   role: "user" | "assistant"
   content: string
   doctors?: StoredDoctor[]
+}
+
+interface HistoryEmbedding {
+  embedding: number[]
+  userMsg: string
+  asstMsg: string
 }
 
 export const chatPatient = publicProcedure
@@ -50,12 +59,52 @@ export const chatPatient = publicProcedure
       }
     }
 
-    const workflowMessages = input.messages
-      .filter((m) => m.role === "user" || m.role === "assistant")
-      .map((m) => ({
-        role: m.role,
-        content: getMessageText(m),
-      }))
+    let relevantHistory: Array<{ role: "user" | "assistant"; content: string }> = []
+    const currentUserId = context.auth?.userId
+
+    if (currentUserId && lastUserText && historyMessages.length > 0) {
+      try {
+        const storedEmbeds = await context.doctorChatKv.get(
+          `chat-hx-embed:${currentUserId}`,
+          "text"
+        )
+        if (storedEmbeds) {
+          const historyEmbeds: HistoryEmbedding[] = JSON.parse(storedEmbeds)
+          if (historyEmbeds.length > 0) {
+            const embeddings = new CloudflareWorkersAIEmbeddings({
+              binding: env.AI,
+              model: "@cf/baai/bge-small-en-v1.5",
+            })
+            const [queryVec] = await embeddings.embedDocuments([lastUserText])
+
+            const scored = historyEmbeds
+              .map((entry) => ({
+                ...entry,
+                score: cosineSimilarity(queryVec ?? [], entry.embedding),
+              }))
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 3)
+
+            relevantHistory = scored.flatMap((entry) => [
+              { role: "user" as const, content: entry.userMsg },
+              { role: "assistant" as const, content: entry.asstMsg },
+            ])
+          }
+        }
+      } catch {
+        // Ignore errors in semantic history retrieval
+      }
+    }
+
+    const workflowMessages = [
+      ...relevantHistory,
+      ...input.messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({
+          role: m.role,
+          content: getMessageText(m),
+        })),
+    ]
 
     const generator = streamChatWorkflow(workflowMessages)
     let fullText = ""
@@ -89,6 +138,35 @@ export const chatPatient = publicProcedure
             JSON.stringify(trimmed),
             { expirationTtl: SEVEN_DAYS_SECONDS }
           )
+
+          try {
+            const embeddings = new CloudflareWorkersAIEmbeddings({
+              binding: env.AI,
+              model: "@cf/baai/bge-small-en-v1.5",
+            })
+            const [embedding] = await embeddings.embedDocuments([lastUserText])
+
+            const storedEmbeds = await context.doctorChatKv.get(
+              `chat-hx-embed:${context.auth.userId}`,
+              "text"
+            )
+            const existingEmbeds: HistoryEmbedding[] = storedEmbeds
+              ? JSON.parse(storedEmbeds)
+              : []
+            existingEmbeds.push({
+              embedding: embedding ?? [],
+              userMsg: lastUserText,
+              asstMsg: fullText,
+            })
+            const trimmedEmbeds = existingEmbeds.slice(-50)
+            await context.doctorChatKv.put(
+              `chat-hx-embed:${context.auth.userId}`,
+              JSON.stringify(trimmedEmbeds),
+              { expirationTtl: SEVEN_DAYS_SECONDS }
+            )
+          } catch {
+            // Ignore errors in embedding storage
+          }
         }
       }
     }

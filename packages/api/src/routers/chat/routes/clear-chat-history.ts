@@ -7,6 +7,7 @@ export const clearChatHistoryRoute = protectedProcedure.handler(
     }
 
     await context.doctorChatKv.delete(`chat:${context.auth.userId}`)
+    await context.doctorChatKv.delete(`chat-hx-embed:${context.auth.userId}`)
 
     return { ok: true }
   }
