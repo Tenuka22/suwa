@@ -13,6 +13,13 @@ import {
   DialogTrigger,
 } from "@zen-doc/ui/components/dialog";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@zen-doc/ui/components/empty";
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -32,13 +39,6 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@zen-doc/ui/components/empty";
 import { useState } from "react";
 
 import { MetricCard } from "@/components/dashboard-metrics";

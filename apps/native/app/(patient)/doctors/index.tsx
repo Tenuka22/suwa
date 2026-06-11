@@ -14,7 +14,6 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { DoctorCard } from "@/components/ui/doctor-card";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +68,7 @@ export default function DoctorsScreen() {
             <Text className="font-black font-sans text-4xl text-foreground uppercase tracking-tight">
               Doctors
             </Text>
+            <View className="h-[3px] flex-1 self-center bg-primary/30" />
           </View>
           <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.15em]">
             Licensed care, private by design.
@@ -100,41 +100,55 @@ export default function DoctorsScreen() {
 
         <View className="mt-2 gap-4">
           {doctorsQuery.isPending && (
-            <Card className="items-center gap-4 p-8">
-              <ActivityIndicator color={colors.primary} size="large" />
-              <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
-                Finding clinicians...
-              </Text>
-            </Card>
+            <View className="relative" style={{ overflow: "visible" }}>
+              <View
+                className="absolute inset-0 rounded-card bg-border"
+                style={{ transform: [{ translateX: 4 }, { translateY: 4 }] }}
+              />
+              <View className="items-center gap-4 rounded-card border-[3px] border-border bg-card p-8">
+                <ActivityIndicator color={colors.primary} size="large" />
+                <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
+                  Finding clinicians...
+                </Text>
+              </View>
+            </View>
           )}
 
           {!doctorsQuery.isPending && doctors.length === 0 && (
-            <Card className="items-center gap-3 p-8">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-secondary">
-                <Search
-                  color={colors.mutedForeground}
-                  size={24}
-                  strokeWidth={2}
-                />
+            <View className="relative" style={{ overflow: "visible" }}>
+              <View
+                className="absolute inset-0 rounded-card bg-border"
+                style={{ transform: [{ translateX: 4 }, { translateY: 4 }] }}
+              />
+              <View className="items-center gap-3 overflow-hidden rounded-card border-[3px] border-border bg-card p-8">
+                <View className="absolute -top-6 -right-6 h-16 w-16 rotate-12 border-[5px] border-primary/15" />
+                <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-muted">
+                  <Search
+                    color={colors.mutedForeground}
+                    size={24}
+                    strokeWidth={2}
+                  />
+                </View>
+                <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
+                  No Clinicians Found
+                </Text>
+                <Text className="max-w-[260px] text-center font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
+                  Try refining your search terms or clearing active filters.
+                </Text>
+                <Button
+                  onPress={() => {
+                    setSearch("");
+                    setSelectedChips([]);
+                    setPage(1);
+                  }}
+                  size="sm"
+                  variant="secondary"
+                >
+                  Clear Filters
+                </Button>
+                <View className="h-[3px] w-12 bg-primary/40" />
               </View>
-              <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
-                No Clinicians Found
-              </Text>
-              <Text className="max-w-[260px] text-center font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
-                Try refining your search terms or clearing active filters.
-              </Text>
-              <Button
-                onPress={() => {
-                  setSearch("");
-                  setSelectedChips([]);
-                  setPage(1);
-                }}
-                size="sm"
-                variant="secondary"
-              >
-                Clear Filters
-              </Button>
-            </Card>
+            </View>
           )}
 
           {!doctorsQuery.isPending &&
@@ -143,7 +157,7 @@ export default function DoctorsScreen() {
               <DoctorCard
                 availableSlotCount={availableSlotCount}
                 key={profile.userId}
-                onPress={() => {}}
+                onPress={() => router.push(`/doctors/${profile.userId}`)}
                 portrait={portrait}
                 profile={profile}
               />
@@ -152,18 +166,8 @@ export default function DoctorsScreen() {
       </Screen>
       <ScreenBottomBar>
         <View className="flex-row gap-2">
-          <IconButton
-            disabled={page === 1}
-            icon={ChevronLeft}
-            iconSize={18}
-            onPress={() => setPage((current) => Math.max(1, current - 1))}
-          />
-          <IconButton
-            disabled={!hasMore}
-            icon={ChevronRight}
-            iconSize={18}
-            onPress={() => setPage((current) => current + 1)}
-          />
+          <IconButton disabled={page === 1} icon={ChevronLeft} iconSize={18} />
+          <IconButton disabled={!hasMore} icon={ChevronRight} iconSize={18} />
         </View>
 
         {[
@@ -176,13 +180,16 @@ export default function DoctorsScreen() {
           return (
             <Pressable
               accessibilityLabel={label}
-              className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 border-border ${isActive ? "bg-orange-500" : "bg-background"}`}
+              className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 border-border ${isActive ? "bg-primary" : "bg-card"}`}
               key={value}
               onPress={() => toggleChip(value)}
             >
-              <Icon color={isActive ? "#ffffff" : "#f97316"} size={14} />
+              <Icon
+                color={isActive ? "#ffffff" : colors.mutedForeground}
+                size={14}
+              />
               <Text
-                className={`hidden text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] sm:flex ${isActive ? "text-white" : "text-orange-500"}`}
+                className={`hidden text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] sm:flex ${isActive ? "text-white" : "text-foreground"}`}
                 numberOfLines={1}
               >
                 {label}

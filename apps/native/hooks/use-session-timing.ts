@@ -17,7 +17,7 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 export function _computeSessionTiming(
   startAt: string,
   endAt: string,
-  role: SessionTimingRole,
+  role: SessionTimingRole
 ): SessionTiming {
   const now = Date.now();
   const startMs = new Date(startAt).getTime();
@@ -61,19 +61,19 @@ export function _computeSessionTiming(
 export function useSessionTiming(
   startAt: string,
   endAt: string,
-  role: SessionTimingRole,
+  role: SessionTimingRole
 ): SessionTiming {
   const [_now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 5_000);
+    const interval = setInterval(() => setNow(Date.now()), 5000);
     return () => clearInterval(interval);
   }, []);
 
   return useMemo(
     () => _computeSessionTiming(startAt, endAt, role),
     // _now triggers recalculation so timing updates as time passes
-    [startAt, endAt, role, _now],
+    [startAt, endAt, role, _now]
   );
 }
 

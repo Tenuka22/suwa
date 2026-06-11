@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { useThemeColor } from "@/utils/theme";
@@ -7,11 +7,11 @@ import { useThemeColor } from "@/utils/theme";
 interface ScreenProps {
   children: ReactNode;
   contentClassName?: string;
-  scrollClassName?: string;
-  loading?: boolean;
   error?: string | null;
-  onRetry?: () => void;
+  loading?: boolean;
   loadingMessage?: string;
+  onRetry?: () => void;
+  scrollClassName?: string;
 }
 
 export const Screen = ({

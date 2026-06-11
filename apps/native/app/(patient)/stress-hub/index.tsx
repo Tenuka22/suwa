@@ -13,7 +13,13 @@ import {
   TrendingUp,
 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
@@ -26,7 +32,6 @@ import {
   classIndex,
   computeInsights,
   statusFromPrediction,
-  type Insights,
 } from "@/utils/stress/analysis";
 import {
   appendBundles,
@@ -423,7 +428,8 @@ export default function StressHubScreen() {
                     const idx = b.prediction
                       ? classIndex(b.prediction.predictedClass)
                       : -1;
-                    const color = idx >= 0 ? CLASS_COLORS[idx] : colors.mutedForeground;
+                    const color =
+                      idx >= 0 ? CLASS_COLORS[idx] : colors.mutedForeground;
                     const height = idx >= 0 ? 16 + idx * 10 : 6;
                     return (
                       <View
@@ -446,7 +452,9 @@ export default function StressHubScreen() {
                         className="h-2.5 w-2.5 rounded-sm"
                         style={{ backgroundColor: CLASS_COLORS[i] }}
                       />
-                      <Text className="font-sans text-xs text-muted-foreground">{label}</Text>
+                      <Text className="font-sans text-muted-foreground text-xs">
+                        {label}
+                      </Text>
                     </View>
                   ))}
                 </View>
@@ -460,35 +468,54 @@ export default function StressHubScreen() {
             </Text>
             <View className="gap-3 rounded-card border-2 border-border bg-card p-4">
               <View className="flex-row items-center justify-between">
-                <Text className="font-sans text-xs text-muted-foreground">Total Bundles</Text>
-                <Text className="font-black font-sans text-foreground">{bundles.length}</Text>
+                <Text className="font-sans text-muted-foreground text-xs">
+                  Total Bundles
+                </Text>
+                <Text className="font-black font-sans text-foreground">
+                  {bundles.length}
+                </Text>
               </View>
               <View className="h-px bg-border" />
               <View className="flex-row items-center justify-between">
-                <Text className="font-sans text-xs text-muted-foreground">Total Samples</Text>
-                <Text className="font-black font-sans text-foreground">{totalSamples.toLocaleString()}</Text>
+                <Text className="font-sans text-muted-foreground text-xs">
+                  Total Samples
+                </Text>
+                <Text className="font-black font-sans text-foreground">
+                  {totalSamples.toLocaleString()}
+                </Text>
               </View>
               {insights && (
                 <>
                   <View className="h-px bg-border" />
                   <View className="flex-row items-center justify-between">
-                    <Text className="font-sans text-xs text-muted-foreground">State Distribution</Text>
+                    <Text className="font-sans text-muted-foreground text-xs">
+                      State Distribution
+                    </Text>
                     <View className="flex-row items-center gap-2">
                       {insights.stateCounts.map((count, i) => (
-                        <View className="flex-row items-center gap-1" key={CLASS_LABELS[i]}>
+                        <View
+                          className="flex-row items-center gap-1"
+                          key={CLASS_LABELS[i]}
+                        >
                           <View
                             className="h-2 w-2 rounded-full"
                             style={{ backgroundColor: CLASS_COLORS[i] }}
                           />
-                          <Text className="font-sans text-xs text-muted-foreground">{count}</Text>
+                          <Text className="font-sans text-muted-foreground text-xs">
+                            {count}
+                          </Text>
                         </View>
                       ))}
                     </View>
                   </View>
                   <View className="h-px bg-border" />
                   <View className="flex-row items-center justify-between">
-                    <Text className="font-sans text-xs text-muted-foreground">Buffered Samples</Text>
-                    <Text className="font-black font-sans text-foreground">{bufferedSamples.toLocaleString()}</Text>
+                    <Text className="font-sans text-muted-foreground text-xs">
+                      Buffered Samples
+                    </Text>
+                    <Text className="font-black font-sans text-foreground">
+                      {bufferedSamples.toLocaleString()}
+                    </Text>
                   </View>
                 </>
               )}

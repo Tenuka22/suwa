@@ -30,9 +30,9 @@ import {
   EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import { Input } from "@zen-doc/ui/components/input";
-import { Textarea } from "@zen-doc/ui/components/textarea";
 import { Label } from "@zen-doc/ui/components/label";
 import { Separator } from "@zen-doc/ui/components/separator";
+import { Textarea } from "@zen-doc/ui/components/textarea";
 import {
   CheckIcon,
   ClockIcon,
@@ -175,8 +175,8 @@ function CreatePlanDialog() {
           <div className="grid gap-2">
             <Label htmlFor="features">Features</Label>
             <Textarea
-              id="features"
               className="min-h-24 resize-y"
+              id="features"
               onChange={(e) => setFeatures(e.target.value)}
               placeholder="One feature per line"
               value={features}

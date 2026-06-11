@@ -33,9 +33,7 @@ const redis = await UpstashRedis(
   process.env.NODE_ENV === "production" ? "prod-zen-doc" : "zen-doc-dev",
   {
     name:
-      process.env.NODE_ENV === "production"
-        ? "prod-zen-doc"
-        : "zen-doc-dev",
+      process.env.NODE_ENV === "production" ? "prod-zen-doc" : "zen-doc-dev",
     primaryRegion: "us-east-1",
   }
 );

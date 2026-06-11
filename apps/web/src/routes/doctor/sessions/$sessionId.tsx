@@ -27,8 +27,11 @@ function DoctorSessionDetailRoute() {
 
   if (sessionQuery.isError) {
     return (
-      <div className="flex h-svh flex-col items-center justify-center gap-4" role="alert">
-        <p className="text-destructive font-medium">Failed to load session</p>
+      <div
+        className="flex h-svh flex-col items-center justify-center gap-4"
+        role="alert"
+      >
+        <p className="font-medium text-destructive">Failed to load session</p>
         <p className="text-muted-foreground text-sm">
           The video session could not be loaded. Please try again.
         </p>

@@ -451,7 +451,7 @@ function DoctorSessionsRoute() {
                                 <p className="font-medium text-sm leading-tight">
                                   {session.patientId.slice(0, 12)}...
                                 </p>
-                                <p className="text-muted-foreground text-[10px]">
+                                <p className="text-[10px] text-muted-foreground">
                                   ID: {session.id.slice(0, 8)}...
                                 </p>
                               </div>
@@ -560,7 +560,7 @@ function DoctorSessionsRoute() {
                               <p className="font-medium text-sm leading-tight">
                                 {session.patientId.slice(0, 12)}...
                               </p>
-                              <p className="text-muted-foreground text-[10px]">
+                              <p className="text-[10px] text-muted-foreground">
                                 ID: {session.id.slice(0, 8)}...
                               </p>
                             </div>

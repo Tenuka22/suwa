@@ -1,11 +1,10 @@
-import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 interface SectionHeaderProps {
+  description?: string;
   subtitle: string;
   title: string;
-  description?: string;
 }
 
 export function SectionHeader({
@@ -15,9 +14,12 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <Animated.View className="gap-2 px-1" entering={FadeInDown.duration(600)}>
-      <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
-        {title}
-      </Text>
+      <View className="flex-row items-center gap-3">
+        <View className="h-[3px] w-6 bg-primary" />
+        <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
+          {title}
+        </Text>
+      </View>
       <Text className="font-black font-sans text-3xl text-foreground leading-none tracking-tighter">
         {subtitle}
       </Text>

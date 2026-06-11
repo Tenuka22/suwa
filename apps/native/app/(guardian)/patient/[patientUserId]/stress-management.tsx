@@ -2,17 +2,21 @@ import { consumeEventIterator } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
-  AlertTriangle,
   ArrowLeft,
   BarChart3,
   Brain,
   Clock,
   Database,
-  TrendingDown,
   WifiOff,
 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View, ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  View,
+  type ViewStyle,
+} from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
@@ -209,12 +213,14 @@ export default function GuardianPatientStressScreen() {
                         <View className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
                           <View
                             className="h-full rounded-full"
-                            style={{
-                              width: pct + "%",
-                              backgroundColor: isActive
-                                ? CLASS_COLORS[i]
-                                : `${CLASS_COLORS[i]}44`,
-                            } as ViewStyle}
+                            style={
+                              {
+                                width: pct + "%",
+                                backgroundColor: isActive
+                                  ? CLASS_COLORS[i]
+                                  : `${CLASS_COLORS[i]}44`,
+                              } as ViewStyle
+                            }
                           />
                         </View>
                         <Text className="w-10 text-right font-mono text-[10px] text-muted-foreground">

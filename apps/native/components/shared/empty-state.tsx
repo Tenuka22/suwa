@@ -5,10 +5,10 @@ import { Text, View } from "react-native";
 import { useThemeColor } from "@/utils/theme";
 
 interface EmptyStateProps {
+  action?: ReactNode;
+  description?: string;
   icon?: LucideIcon;
   title: string;
-  description?: string;
-  action?: ReactNode;
 }
 
 export function EmptyState({

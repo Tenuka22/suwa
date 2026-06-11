@@ -5,6 +5,8 @@ import {
   Activity,
   ArrowRight,
   Award,
+  BarChart3,
+  Brain,
   Calendar,
   Check,
   CheckCircle2,
@@ -17,83 +19,95 @@ import {
   LockKeyhole,
   ShieldCheck,
   Sparkles,
+  TrendingDown,
+  TrendingUp,
   UserCheck,
   Users,
   Video,
 } from "lucide-react-native";
-import { useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { useMemo, useState } from "react";
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { SectionHeader } from "@/components/shared/section-header";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
+import {
+  CLASS_COLORS,
+  CLASS_LABELS,
+  classIndex,
+  computeInsights,
+  type StressBundle,
+  statusFromPrediction,
+} from "@/utils/stress/analysis";
 import { useThemeColor } from "@/utils/theme";
 
 interface HomeLandingProps {
   signedIn: boolean;
 }
 
-// Trust Badges
+// Trust Badges (accurate to @zen-doc/crypto + stress-hub)
 const trustBadges = [
   { label: "On-Device Keys", icon: KeyRound },
-  { label: "Zero-Knowledge DB", icon: Database },
-  { label: "HIPAA Compliant Video", icon: Video },
+  { label: "Zero-Knowledge", icon: Database },
+  { label: "Encrypted Video", icon: Video },
 ] as const;
 
-// Security flow steps
+// Security flow steps (accurate to @zen-doc/crypto)
 const securitySteps = [
   {
     icon: Fingerprint,
     title: "1. Client Key Generation",
     description:
-      "A secure 256-bit AES key is created locally on your device and kept in iOS/Android secure keychain.",
-    badge: "Local Only",
+      "crypto.getRandomValues() generates 32 random bytes (256-bit AES-GCM key) on your device. The key lives exclusively in the OS secure enclave (iOS Keychain / Android Keystore) via expo-secure-store.",
+    badge: "AES-256-GCM",
   },
   {
     icon: LockKeyhole,
     title: "2. Zero-Knowledge Encryption",
     description:
-      "Your name, email, phone, and address are sealed client-side before transmission. The cloud cannot read them.",
-    badge: "AES-256",
+      "Your name, email, phone, and address are serialised to JSON, encrypted via crypto.subtle.encrypt with AES-256-GCM + a 12-byte random IV, then base64-encoded. The server can never decrypt the payload.",
+    badge: "Client-Side",
   },
   {
     icon: ShieldCheck,
-    title: "3. Compliant Storage",
+    title: "3. Opaque Storage",
     description:
-      "Only an encrypted payload (_securedData) is saved to the database. Scanned or viewed only when you log back in.",
-    badge: "Protected",
+      "Only an opaque _securedData TEXT blob is persisted in the patient_profiles table via putPrivacyData. The server has no access to the encryption key — true zero-knowledge architecture.",
+    badge: "Zero-Knowledge",
   },
 ] as const;
 
-// Stress Simulator Mock Data
-const STRESS_PREDICT_MOCK = [
-  { id: "sb-1", val: 20, hour: "0h" },
-  { id: "sb-2", val: 25, hour: "2h" },
-  { id: "sb-3", val: 45, hour: "4h" },
-  { id: "sb-4", val: 60, hour: "6h" },
-  { id: "sb-5", val: 80, hour: "8h" },
-  { id: "sb-6", val: 50, hour: "10h" },
-  { id: "sb-7", val: 30, hour: "12h" },
-  { id: "sb-8", val: 20, hour: "14h" },
-  { id: "sb-9", val: 15, hour: "16h" },
-  { id: "sb-10", val: 30, hour: "18h" },
-  { id: "sb-11", val: 40, hour: "20h" },
-  { id: "sb-12", val: 28, hour: "22h" },
-] as const;
-
-const getBarColor = (val: number): string => {
-  if (val > 70) {
-    return "bg-rose-500";
-  }
-  if (val > 40) {
-    return "bg-amber-500";
-  }
-  return "bg-emerald-500";
-};
+// Generate mock bundle for signed-out preview
+function generateMockBundles(): StressBundle[] {
+  const classes = ["baseline", "amusement", "stress"] as const;
+  const now = Date.now();
+  return Array.from({ length: 24 }, (_, i) => {
+    const cls = classes[i % 3 === 2 ? 2 : i % 3 === 1 ? 1 : 0];
+    const probs: [number, number, number] =
+      cls === "stress"
+        ? [0.1, 0.15, 0.75]
+        : cls === "amusement"
+          ? [0.15, 0.75, 0.1]
+          : [0.75, 0.15, 0.1];
+    return {
+      bundleId: `mock-${i}`,
+      createdAt: now - (24 - i) * 600_000,
+      prediction: { predictedClass: cls, probabilities: probs },
+      samples: [],
+    };
+  });
+}
 
 interface HeroSectionProps {
   primaryColor: string;
@@ -110,66 +124,88 @@ function HeroSection({
   secondaryLabel,
   primaryColor,
 }: HeroSectionProps) {
+  const { height: screenHeight } = useWindowDimensions();
+
   return (
     <Animated.View className="px-1" entering={FadeIn.duration(800)}>
-      <Card className="overflow-hidden p-0">
-        <View className="absolute -top-16 -right-16 h-40 w-40 rounded-full border-2 border-primary/5" />
-        <View className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-primary/5" />
+      <View
+        className="relative flex overflow-hidden rounded-card border-2 border-border bg-card"
+        style={{ height: screenHeight }}
+      >
+        {/* Neo-brutalist decorative geometry */}
+        <View className="absolute -top-10 -right-10 h-40 w-40 rotate-12 border-[6px] border-primary/20" />
+        <View className="absolute -bottom-8 -left-8 h-28 w-28 bg-primary/10" />
+        <View className="absolute top-1/3 right-4 h-1 w-16 bg-primary/30" />
 
-        <View className="gap-6 py-6">
-          <View className="flex-row items-center gap-4">
-            <View className="h-16 w-16 items-center justify-center rounded-card border-2 border-primary bg-primary">
-              <Activity color="white" size={32} />
-            </View>
-            <View className="flex-1">
-              <Text className="font-black font-sans text-[10px] text-primary uppercase tracking-[0.3em]">
-                ZenDoc Native
-              </Text>
-              <Text className="font-black font-sans text-3xl text-foreground leading-none tracking-tighter">
-                Secured Wellness
-              </Text>
-            </View>
-          </View>
-
-          <Text className="font-normal font-sans text-lg text-muted-foreground leading-relaxed">
-            Care for your mental health with an interactive Sprite companion,
-            log daily habits, track real-time wearable stress data, and consult
-            therapists in zero-knowledge privacy.
-          </Text>
-
-          {/* CTAs */}
-          <View className="flex-col gap-3 sm:flex-row">
-            <Button
-              className="h-12 flex-1"
-              href={primaryHref}
-              icon={<ArrowRight color="white" size={18} />}
-            >
-              {primaryLabel}
-            </Button>
-            <Button
-              className="h-12 flex-1"
-              href={secondaryHref}
-              variant="outline"
-            >
-              {secondaryLabel}
-            </Button>
-          </View>
-
-          {/* Trust Badges */}
-          <View className="mt-2 flex-row flex-wrap items-center justify-center gap-8 border-border/10 border-t pt-4">
-            {trustBadges.map(({ label, icon: Icon }) => (
-              <View className="flex-row items-center gap-1.5" key={label}>
-                <Icon color={primaryColor} size={14} />
-                <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wide">
-                  {label}
-                </Text>
+        <View className="h-full flex-1 px-card pb-card">
+          {/* Top - flex-1 pushes buttons to bottom */}
+          <View className="flex-1 items-start justify-start gap-5 pt-card">
+            {/* Brand pill */}
+            <View className="flex-row items-center gap-3">
+              <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-card">
+                <Image
+                  className="size-14"
+                  source={require("@/assets/images/Logo.png")}
+                  style={{ resizeMode: "contain" }}
+                />
               </View>
-            ))}
+              <View className="gap-1">
+                <Text className="font-black font-sans text-[10px] text-primary uppercase tracking-[0.3em]">
+                  ZenDoc Native
+                </Text>
+                <View className="h-[3px] w-10 bg-primary" />
+              </View>
+            </View>
+
+            {/* Main headline */}
+            <View className="gap-1">
+              <Text className="font-black font-sans text-5xl text-foreground leading-[1.05] tracking-tighter">
+                Secured
+              </Text>
+              <Text className="font-black font-sans text-5xl text-primary leading-[1.05] tracking-tighter">
+                Wellness
+              </Text>
+            </View>
+
+            <Text className="max-w-[90%] font-medium font-sans text-base text-muted-foreground leading-relaxed">
+              Care for your mental health with an interactive Sprite companion,
+              log daily habits, track real-time wearable stress data, and
+              consult therapists in zero-knowledge privacy.
+            </Text>
+          </View>
+
+          {/* Bottom - anchored stay */}
+          <View className="gap-4">
+            {/* CTAs */}
+            <View className="flex-col gap-3">
+              <Button
+                className="h-14"
+                href={primaryHref}
+                icon={<ArrowRight color="white" size={18} />}
+              >
+                {primaryLabel}
+              </Button>
+              <Button className="h-14" href={secondaryHref} variant="outline">
+                {secondaryLabel}
+              </Button>
+            </View>
+
+            {/* Trust Badges */}
+            <View className="flex-row flex-wrap items-center justify-center gap-6 border-border/30 border-t-2 pt-4">
+              {trustBadges.map(({ label, icon: Icon }) => (
+                <View className="flex-row items-center gap-1.5" key={label}>
+                  <Icon color={primaryColor} size={14} />
+                  <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wide">
+                    {label}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
 
-        <View className="h-1 w-full bg-primary" />
-      </Card>
+        <View className="absolute bottom-0 h-2 w-full bg-primary" />
+      </View>
     </Animated.View>
   );
 }
@@ -178,37 +214,40 @@ function HeroSection({
 function SecurityPipeline({ primaryColor }: { primaryColor: string }) {
   return (
     <View className="px-1">
-      <Card className="p-6">
-        <View className="relative">
-          {/* Connector line */}
-          <View className="absolute top-6 bottom-6 left-[23px] w-[2px] bg-border/20" />
+      <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+        <View className="p-6">
+          <View className="relative">
+            {/* Connector line */}
+            <View className="absolute top-6 bottom-6 left-[23px] w-[3px] bg-primary/40" />
 
-          <View className="gap-10">
-            {securitySteps.map((step) => (
-              <View className="flex-row items-start gap-5" key={step.title}>
-                <View className="relative z-10 h-12 w-12 items-center justify-center rounded-card border-2 border-border bg-card shadow-sm">
-                  <step.icon color={primaryColor} size={22} />
-                </View>
-                <View className="flex-1">
-                  <View className="flex-row items-center justify-between">
-                    <Text className="font-black font-sans text-base text-foreground tracking-tight">
-                      {step.title}
-                    </Text>
-                    <View className="rounded-full border border-border/5 bg-muted px-2 py-0.5">
-                      <Text className="font-bold text-[8px] text-muted-foreground uppercase">
-                        {step.badge}
-                      </Text>
-                    </View>
+            <View className="gap-10">
+              {securitySteps.map((step) => (
+                <View className="flex-row items-start gap-5" key={step.title}>
+                  <View className="relative z-10 h-12 w-12 items-center justify-center rounded-card border-2 border-border bg-muted">
+                    <step.icon color={primaryColor} size={22} />
                   </View>
-                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-xs leading-relaxed">
-                    {step.description}
-                  </Text>
+                  <View className="flex-1">
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-black font-sans text-base text-foreground tracking-tight">
+                        {step.title}
+                      </Text>
+                      <View className="rounded-full border-2 border-border/30 bg-primary/10 px-2 py-0.5">
+                        <Text className="font-bold text-[8px] text-primary uppercase">
+                          {step.badge}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="mt-1 font-normal font-sans text-muted-foreground text-xs leading-relaxed">
+                      {step.description}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         </View>
-      </Card>
+        <View className="h-1.5 bg-primary/60" />
+      </View>
     </View>
   );
 }
@@ -217,10 +256,10 @@ function SecurityPipeline({ primaryColor }: { primaryColor: string }) {
 function GuardianCollaboration({ primaryColor }: { primaryColor: string }) {
   return (
     <View className="px-1">
-      <Card>
-        <View className="gap-4">
+      <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+        <View className="gap-4 p-card">
           <View className="flex-row items-center justify-between">
-            <View className="flex-1 items-center gap-1.5 rounded-card border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <View className="flex-1 items-center gap-1.5 rounded-card border-2 border-emerald-500/30 bg-emerald-500/20 p-3">
               <UserCheck color="#10b981" size={20} />
               <Text className="font-black font-sans text-foreground text-xs">
                 Patient Profile
@@ -237,7 +276,7 @@ function GuardianCollaboration({ primaryColor }: { primaryColor: string }) {
               <ChevronRight color={primaryColor} size={16} />
             </View>
 
-            <View className="flex-1 items-center gap-1.5 rounded-card border border-indigo-500/20 bg-indigo-500/10 p-3">
+            <View className="flex-1 items-center gap-1.5 rounded-card border-2 border-indigo-500/30 bg-indigo-500/20 p-3">
               <Users color="#6366f1" size={20} />
               <Text className="font-black font-sans text-foreground text-xs">
                 Guardian Profile
@@ -248,7 +287,7 @@ function GuardianCollaboration({ primaryColor }: { primaryColor: string }) {
             </View>
           </View>
 
-          <View className="gap-2 rounded-card border border-border/10 bg-muted/30 p-3">
+          <View className="gap-2 rounded-card border-2 border-border bg-muted p-3">
             <Text className="font-black font-sans text-foreground text-xs">
               Invitation Verification Flow
             </Text>
@@ -272,7 +311,8 @@ function GuardianCollaboration({ primaryColor }: { primaryColor: string }) {
             </View>
           </View>
         </View>
-      </Card>
+        <View className="h-1.5 bg-primary/60" />
+      </View>
     </View>
   );
 }
@@ -356,11 +396,11 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
     );
   };
 
-  // Paths & Labels based on Auth State
-  const primaryHref = signedIn ? "/appointments" : "/(auth)/sign-in";
-  const secondaryHref = signedIn ? "/profile" : "/(auth)/sign-up";
-  const primaryLabel = signedIn ? "Appointments Hub" : "Enter Clinic";
-  const secondaryLabel = signedIn ? "Manage Profile" : "Register Profile";
+  // Paths & Labels — primary action drives users to consultation
+  const primaryHref = "/doctors";
+  const secondaryHref = signedIn ? "/appointments" : "/(auth)/sign-in";
+  const primaryLabel = "Find a Therapist";
+  const secondaryLabel = signedIn ? "My Appointments" : "Sign In";
 
   // Logic to obtain current next upcoming session
   const nextSession = sessionsQuery.data?.sessions?.find(
@@ -388,7 +428,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
 
   const renderSpriteContent = () => (
     <View className="items-center gap-4">
-      <View className="h-56 w-full items-center justify-center rounded-card border border-border/10 bg-muted/20 py-4">
+      <View className="h-56 w-full items-center justify-center rounded-card border-2 border-border bg-muted py-4">
         <SpriteAnimation action={spriteAction} size="md" />
       </View>
 
@@ -402,7 +442,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
           </Text>
         </View>
 
-        <View className="h-3 w-full overflow-hidden rounded-full border border-border/10 bg-muted">
+        <View className="h-3 w-full overflow-hidden rounded-full border-2 border-border bg-muted">
           <View
             className="h-full rounded-full bg-emerald-500"
             style={{
@@ -412,7 +452,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         </View>
 
         <View className="mt-1 flex-row gap-2.5">
-          <View className="flex-1 items-center justify-center rounded-card border border-border/10 bg-muted/20 p-3">
+          <View className="flex-1 items-center justify-center rounded-card border-2 border-border bg-muted p-3">
             <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
               Mood
             </Text>
@@ -423,7 +463,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
               {signedIn ? (spriteQuery.data?.mood ?? "idle") : simMood}
             </Text>
           </View>
-          <View className="flex-1 items-center justify-center rounded-card border border-border/10 bg-muted/20 p-3">
+          <View className="flex-1 items-center justify-center rounded-card border-2 border-border bg-muted p-3">
             <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
               Streak
             </Text>
@@ -434,7 +474,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
               {signedIn ? (spriteQuery.data?.streakDays ?? 0) : 5} Days
             </Text>
           </View>
-          <View className="flex-1 items-center justify-center rounded-card border border-border/10 bg-muted/20 p-3">
+          <View className="flex-1 items-center justify-center rounded-card border-2 border-border bg-muted p-3">
             <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
               Credits
             </Text>
@@ -455,7 +495,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
             <View className="flex-row justify-center gap-2">
               {(["idle", "happy", "thinking", "alert"] as const).map((mood) => (
                 <Pressable
-                  className={`rounded-full border px-3 py-1 ${simMood === mood ? "border-primary bg-primary" : "border-border/30 bg-card"}`}
+                  className={`rounded-full border-2 px-3 py-1 ${simMood === mood ? "border-primary bg-primary" : "border-border bg-muted"}`}
                   key={mood}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -463,7 +503,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                   }}
                 >
                   <Text
-                    className={`font-bold text-[10px] uppercase tracking-wider ${simMood === mood ? "text-white" : "text-muted-foreground"}`}
+                    className={`font-bold text-[10px] uppercase tracking-wider ${simMood === mood ? "text-white" : "text-foreground"}`}
                   >
                     {mood}
                   </Text>
@@ -488,10 +528,10 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
       if (tasksQuery.data?.tasks && tasksQuery.data.tasks.length > 0) {
         return tasksQuery.data.tasks.map((task) => (
           <Pressable
-            className={`flex-row items-center gap-3 rounded-card border p-3 ${
+            className={`flex-row items-center gap-3 rounded-card border-2 p-3 ${
               task.completed
-                ? "border-green-300 bg-green-500/5"
-                : "border-border/30 bg-muted/5"
+                ? "border-green-500/40 bg-green-500/20"
+                : "border-border bg-muted"
             }`}
             key={task.actionType}
             onPress={() => router.push("/sprite/actions")}
@@ -534,10 +574,10 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
 
     return simHabits.map((habit) => (
       <Pressable
-        className={`flex-row items-center gap-3 rounded-card border p-3 ${
+        className={`flex-row items-center gap-3 rounded-card border-2 p-3 ${
           habit.completed
-            ? "border-green-300 bg-green-500/5"
-            : "border-border/30 bg-muted/5"
+            ? "border-green-500/40 bg-green-500/20"
+            : "border-border bg-muted"
         }`}
         key={habit.id}
         onPress={() => toggleSimHabit(habit.id)}
@@ -572,78 +612,174 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
     ));
   };
 
+  const stressQuery = useQuery({
+    ...orpc.getStressData.queryOptions(),
+    enabled: signedIn,
+  });
+
+  const mockBundles = useMemo(() => generateMockBundles(), []);
+  const stressBundles = signedIn
+    ? (stressQuery.data?.bundles ?? [])
+    : mockBundles;
+  const stressInsights = useMemo(
+    () => computeInsights(stressBundles),
+    [stressBundles]
+  );
+
+  const latestBundle =
+    stressBundles.length > 0 ? stressBundles[stressBundles.length - 1] : null;
+  const status = latestBundle?.prediction
+    ? statusFromPrediction(latestBundle.prediction.predictedClass)
+    : null;
+  const StatusIcon = status?.icon ?? Brain;
+
   const renderStressContent = () => {
     return (
       <View className="gap-4">
-        <View className="flex-row items-center justify-between border-border/10 border-b pb-3">
-          <View>
-            <Text className="font-black font-sans text-foreground text-lg tracking-tight">
-              Stress Intelligence Hub
-            </Text>
-            <Text className="mt-0.5 font-normal font-sans text-muted-foreground text-xs">
-              Continuous biometrics ingestion and stress trend analytics.
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-500/10 px-2 py-1">
-            <View className="h-2 w-2 rounded-full bg-rose-500" />
-            <Text className="font-black font-sans text-[10px] text-rose-500 uppercase tracking-wide">
-              Wearable Ingestion Active
-            </Text>
-          </View>
-        </View>
-
-        <View className="flex-row items-center justify-between gap-4 rounded-card border border-border/10 bg-muted/10 p-4">
-          <View className="flex-1 gap-1">
-            <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
-              Heart Rate
-            </Text>
-            <Text className="font-black font-sans text-2xl text-foreground">
-              74 BPM
-            </Text>
-          </View>
-          <View className="flex-1 gap-1">
-            <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
-              Stress Score
-            </Text>
-            <Text className="font-black font-sans text-2xl text-rose-500">
-              Low (28/100)
-            </Text>
-          </View>
-          <View className="flex-1 gap-1">
-            <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
-              Biometrics Stream
-            </Text>
-            <Text className="font-black font-sans text-base text-foreground">
-              5 features / s
-            </Text>
-          </View>
-        </View>
-
-        {/* Trend chart representation */}
-        <View className="gap-2">
-          <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
-            Predicted Stress Trend (24h)
-          </Text>
-          <View className="h-28 justify-end rounded-card border border-border/10 bg-muted/20 p-2">
-            <View className="h-full flex-row items-end gap-2 px-2">
-              {STRESS_PREDICT_MOCK.map((item) => (
-                <View className="flex-1 items-center gap-1" key={item.id}>
-                  <View
-                    className={`w-full rounded-t-sm ${getBarColor(item.val)}`}
-                    style={{ height: `${item.val}%` }}
-                  />
-                  <Text className="font-bold font-sans text-[7px] text-muted-foreground">
-                    {item.hour}
-                  </Text>
-                </View>
-              ))}
+        {/* Status indicator */}
+        <View className="items-center py-2">
+          <View className="h-40 w-40 items-center justify-center rounded-full border-[3px] border-border bg-card">
+            <View
+              className={`h-full w-full items-center justify-center rounded-full ${status?.bg || "bg-muted/30"}`}
+            >
+              <StatusIcon
+                color={
+                  status?.color === "text-destructive"
+                    ? "#ef4444"
+                    : status?.color === "text-success"
+                      ? "#10b981"
+                      : colors.primary
+                }
+                size={48}
+              />
+              <Text
+                className={`mt-2 font-black font-sans text-sm uppercase tracking-widest ${status?.color || "text-muted-foreground"}`}
+              >
+                {status?.label || "No Data"}
+              </Text>
             </View>
           </View>
-          <Text className="mt-1 text-center font-normal font-sans text-[11px] text-muted-foreground italic leading-relaxed">
-            *Analyzing sample sliding windows of size 360 using our secure
-            machine learning predictor.
-          </Text>
         </View>
+
+        {/* Live Stats */}
+        <View className="gap-3 rounded-card border-2 border-border bg-muted p-4">
+          <View className="flex-row items-center gap-3">
+            <View className="rounded-full bg-primary/10 p-3">
+              <Activity color={colors.primary} size={18} />
+            </View>
+            <View className="flex-1 gap-1">
+              <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.18em]">
+                Current State
+              </Text>
+              <Text className="font-black font-sans text-foreground text-lg uppercase tracking-tight">
+                {stressInsights?.dominantLabel || "Idle"}
+              </Text>
+            </View>
+          </View>
+
+          <View className="gap-2">
+            <View className="flex-row items-center justify-between">
+              <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.18em]">
+                Stress Ratio
+              </Text>
+              <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
+                {stressInsights?.stressRatio || 0}%
+              </Text>
+            </View>
+            <View className="h-3 overflow-hidden rounded-full border-2 border-border bg-muted">
+              <View
+                className="h-full rounded-full bg-destructive"
+                style={{
+                  width: `${Math.min(100, stressInsights?.stressRatio || 0)}%`,
+                }}
+              />
+            </View>
+          </View>
+
+          <View className="flex-row gap-2">
+            <View className="flex-1 rounded-card border-2 border-border bg-background px-3 py-3">
+              <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-[0.18em]">
+                Trend
+              </Text>
+              <View className="mt-1 flex-row items-center gap-1">
+                {stressInsights?.trendDirection === "up" ? (
+                  <TrendingUp color="#ef4444" size={16} />
+                ) : stressInsights?.trendDirection === "down" ? (
+                  <TrendingDown color="#10b981" size={16} />
+                ) : (
+                  <BarChart3 color={colors.foreground} size={16} />
+                )}
+                <Text
+                  className="font-black font-sans text-foreground text-lg"
+                  numberOfLines={1}
+                >
+                  {stressInsights?.trendLabel || "Stable"}
+                </Text>
+              </View>
+            </View>
+            <View className="flex-1 rounded-card border-2 border-border bg-background px-3 py-3">
+              <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-[0.18em]">
+                Avg Confidence
+              </Text>
+              <Text className="mt-1 font-black font-sans text-2xl text-foreground">
+                {stressInsights?.averageConfidence || 0}%
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Prediction Timeline */}
+        {stressBundles.length > 0 && (
+          <View className="gap-2">
+            <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
+              Prediction Timeline
+            </Text>
+            <View className="rounded-card border-2 border-border bg-muted p-3">
+              <View className="flex-row items-end gap-[2px]">
+                {stressBundles.slice(-60).map((b, i) => {
+                  const idx = b.prediction
+                    ? classIndex(b.prediction.predictedClass)
+                    : -1;
+                  const color =
+                    idx >= 0 ? CLASS_COLORS[idx] : colors.mutedForeground;
+                  const height = idx >= 0 ? 16 + idx * 10 : 6;
+                  return (
+                    <View
+                      key={b.bundleId ?? i}
+                      style={{
+                        backgroundColor: color,
+                        borderRadius: 2,
+                        flex: 1,
+                        height,
+                        opacity: b.prediction ? 1 : 0.3,
+                      }}
+                    />
+                  );
+                })}
+              </View>
+              <View className="mt-3 flex-row gap-4">
+                {CLASS_LABELS.map((label, i) => (
+                  <View className="flex-row items-center gap-1.5" key={label}>
+                    <View
+                      className="h-2.5 w-2.5 rounded-sm"
+                      style={{ backgroundColor: CLASS_COLORS[i] }}
+                    />
+                    <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
+                      {label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {!signedIn && (
+          <Text className="text-center font-normal font-sans text-[11px] text-muted-foreground italic leading-relaxed">
+            *Simulated stress data preview. Sign in to see your real-time
+            wearable ingestion.
+          </Text>
+        )}
       </View>
     );
   };
@@ -665,13 +801,13 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                 <Text className="font-black font-sans text-base text-foreground uppercase">
                   {nextSession.doctor?.displayName ?? "Clinical Doctor"}
                 </Text>
-                <View className="flex-row items-center gap-2 self-start rounded-full border border-border/5 bg-muted/30 px-3 py-1">
+                <View className="flex-row items-center gap-2 self-start rounded-full border-2 border-border bg-muted px-3 py-1">
                   <Calendar color={colors.primary} size={12} />
-                  <Text className="font-medium font-sans text-foreground text-xs">
+                  <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
                     {new Date(nextSession.startAt).toLocaleDateString()}
                   </Text>
                   <Clock color={colors.primary} size={12} />
-                  <Text className="font-medium font-sans text-foreground text-xs">
+                  <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
                     {new Date(nextSession.startAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -679,7 +815,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                   </Text>
                 </View>
               </View>
-              <View className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1">
+              <View className="rounded-full border-2 border-emerald-500/40 bg-emerald-500/20 px-3 py-1">
                 <Text className="font-black font-sans text-[10px] text-emerald-600 uppercase tracking-wider">
                   {nextSession.status}
                 </Text>
@@ -713,7 +849,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
             <Text className="font-black font-sans text-base text-foreground uppercase">
               Dr. Evelyn Vance, PsyD
             </Text>
-            <View className="flex-row items-center gap-2 self-start rounded-full border border-border/5 bg-muted/30 px-3 py-1">
+            <View className="flex-row items-center gap-2 self-start rounded-full border-2 border-border/30 bg-muted px-3 py-1">
               <Calendar color={colors.primary} size={12} />
               <Text className="font-medium font-sans text-foreground text-xs">
                 Today
@@ -724,14 +860,14 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
               </Text>
             </View>
           </View>
-          <View className="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1">
+          <View className="rounded-full border-2 border-emerald-500/40 bg-emerald-500/20 px-3 py-1">
             <Text className="font-black font-sans text-[10px] text-emerald-600 uppercase tracking-wider">
               Approved
             </Text>
           </View>
         </View>
 
-        <View className="mt-1 rounded-card border border-rose-500/10 bg-rose-500/5 p-3">
+        <View className="mt-1 rounded-card border-2 border-rose-500/30 bg-rose-500/20 p-3">
           <Text className="font-normal font-sans text-rose-500 text-xs leading-normal">
             LiveKit Video room is ready. Press join to launch the secure stream
             room on your device.
@@ -777,6 +913,9 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         secondaryLabel={secondaryLabel}
       />
 
+      {/* Section divider */}
+      <View className="mx-1 h-[3px] bg-primary" />
+
       {/* 2. DYNAMIC LIVE SIMULATOR / DASHBOARD PREVIEW */}
       <View className="gap-6">
         <SectionHeader
@@ -799,7 +938,7 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
                 className={`rounded-card border-2 px-4 py-2 ${
                   isActive
                     ? "border-primary bg-primary"
-                    : "border-border bg-card"
+                    : "border-border bg-muted"
                 }`}
                 key={id}
                 onPress={() => {
@@ -823,51 +962,82 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         <View className="px-1">
           {activeSimTab === "sprite" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <Card>{renderSpriteContent()}</Card>
+              <View className="relative" style={{ overflow: "visible" }}>
+                <View
+                  className="absolute inset-0 rounded-card bg-border"
+                  style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+                />
+                <View className="gap-section rounded-card border-2 border-border bg-card p-card">
+                  {renderSpriteContent()}
+                </View>
+              </View>
             </Animated.View>
           )}
 
           {activeSimTab === "habits" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <Card>
-                <View className="gap-4">
-                  <View className="flex-row items-center justify-between border-border/10 border-b pb-3">
-                    <View>
-                      <Text className="font-black font-sans text-foreground text-lg tracking-tight">
-                        Wellness Habit Tree
-                      </Text>
-                      <Text className="mt-0.5 font-normal font-sans text-muted-foreground text-xs">
-                        Perform daily habits to grow your tree and feed your
-                        Sprite.
-                      </Text>
+              <View className="relative" style={{ overflow: "visible" }}>
+                <View
+                  className="absolute inset-0 rounded-card bg-border"
+                  style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+                />
+                <View className="gap-section rounded-card border-2 border-border bg-card p-card">
+                  <View className="gap-4">
+                    <View className="flex-row items-center justify-between border-border/30 border-b-2 pb-3">
+                      <View>
+                        <Text className="font-black font-sans text-foreground text-lg tracking-tight">
+                          Wellness Habit Tree
+                        </Text>
+                        <Text className="mt-0.5 font-normal font-sans text-muted-foreground text-xs">
+                          Perform daily habits to grow your tree and feed your
+                          Sprite.
+                        </Text>
+                      </View>
+                      <View className="rounded-full border-2 border-primary/30 bg-primary/20 px-3 py-1">
+                        <Text className="font-black font-sans text-primary text-xs">
+                          +10 Credits
+                        </Text>
+                      </View>
                     </View>
-                    <View className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1">
-                      <Text className="font-black font-sans text-primary text-xs">
-                        +10 Credits
-                      </Text>
-                    </View>
+                    <View className="gap-3">{renderHabitsContent()}</View>
                   </View>
-
-                  {/* Dynamic checklist */}
-                  <View className="gap-3">{renderHabitsContent()}</View>
                 </View>
-              </Card>
+              </View>
             </Animated.View>
           )}
 
           {activeSimTab === "stress" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <Card>{renderStressContent()}</Card>
+              <View className="relative" style={{ overflow: "visible" }}>
+                <View
+                  className="absolute inset-0 rounded-card bg-border"
+                  style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+                />
+                <View className="gap-section rounded-card border-2 border-border bg-card p-card">
+                  {renderStressContent()}
+                </View>
+              </View>
             </Animated.View>
           )}
 
           {activeSimTab === "sessions" && (
             <Animated.View entering={FadeIn.duration(400)}>
-              <Card>{renderSessionsContent()}</Card>
+              <View className="relative" style={{ overflow: "visible" }}>
+                <View
+                  className="absolute inset-0 rounded-card bg-border"
+                  style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+                />
+                <View className="gap-section rounded-card border-2 border-border bg-card p-card">
+                  {renderSessionsContent()}
+                </View>
+              </View>
             </Animated.View>
           )}
         </View>
       </View>
+
+      {/* Section divider */}
+      <View className="mx-1 h-[3px] bg-primary" />
 
       {/* 3. PRODUCT CORE CAPABILITIES (FEATURES BUILD ON CODE) */}
       <View className="gap-6">
@@ -878,87 +1048,105 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
 
         <View className="gap-4 px-1">
           {/* Feature 1: Sprite Wellness loops */}
-          <Card>
-            <View className="flex-row items-start gap-4">
-              <View className="h-12 w-12 items-center justify-center rounded-card border border-orange-500/20 bg-orange-500/10">
-                <Sparkles color="#f97316" size={24} />
-              </View>
-              <View className="flex-1 gap-1">
-                <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
-                  Sprite Wellness Loops
-                </Text>
-                <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
-                  Keep a virtual companion healthy by building positive habits.
-                  Gamifying mental health ensures consistency, raising clinical
-                  compliance rates among patient groups.
-                </Text>
+          <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+            <View className="gap-section p-card">
+              <View className="flex-row items-start gap-4">
+                <View className="h-12 w-12 items-center justify-center rounded-card border-2 border-orange-500/30 bg-orange-500/20">
+                  <Sparkles color="#f97316" size={24} />
+                </View>
+                <View className="flex-1 gap-1">
+                  <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
+                    Sprite Wellness Loops
+                  </Text>
+                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
+                    Keep a virtual companion healthy by building positive
+                    habits. Each completed habit rewards Moonlight Credits,
+                    grows your Sprite's health, and maintains your streak.
+                  </Text>
+                </View>
               </View>
             </View>
-          </Card>
+            <View className="h-1.5 bg-orange-500" />
+          </View>
 
           {/* Feature 2: Wearable Ingestion & Stress Predictor */}
-          <Card>
-            <View className="flex-row items-start gap-4">
-              <View className="h-12 w-12 items-center justify-center rounded-card border border-rose-500/20 bg-rose-500/10">
-                <HeartPulse color="#f43f5e" size={24} />
-              </View>
-              <View className="flex-1 gap-1">
-                <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
-                  Real-time Stress Ingestion
-                </Text>
-                <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
-                  Connect smart wearables to automatically stream heart rate,
-                  HRV, and respiratory rates. An AI model parses feature samples
-                  to detect stress escalation trends before you do.
-                </Text>
+          <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+            <View className="gap-section p-card">
+              <View className="flex-row items-start gap-4">
+                <View className="h-12 w-12 items-center justify-center rounded-card border-2 border-rose-500/30 bg-rose-500/20">
+                  <HeartPulse color="#f43f5e" size={24} />
+                </View>
+                <View className="flex-1 gap-1">
+                  <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
+                    Real-time Stress Ingestion
+                  </Text>
+                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
+                    Stream a 5-feature HRV vector (meanRR, SDNN, RMSSD, pNN50,
+                    HR) from your wearable every 250ms. A 360-sample sliding
+                    window feeds an ML predictor over HTTP; results persist to
+                    Upstash Redis.
+                  </Text>
+                </View>
               </View>
             </View>
-          </Card>
+            <View className="h-1.5 bg-rose-500" />
+          </View>
 
           {/* Feature 3: Patient Anonymity & Local Encryption */}
-          <Card>
-            <View className="flex-row items-start gap-4">
-              <View className="h-12 w-12 items-center justify-center rounded-card border border-emerald-500/20 bg-emerald-500/10">
-                <LockKeyhole color="#10b981" size={24} />
-              </View>
-              <View className="flex-1 gap-1">
-                <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
-                  On-Device Key Cryptography
-                </Text>
-                <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
-                  Personal identifying data (PII) is encrypted locally on your
-                  phone via random AES-256 keys. The server only sees encrypted
-                  blobs, guaranteeing complete zero-knowledge privacy.
-                </Text>
+          <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+            <View className="gap-section p-card">
+              <View className="flex-row items-start gap-4">
+                <View className="h-12 w-12 items-center justify-center rounded-card border-2 border-emerald-500/30 bg-emerald-500/20">
+                  <LockKeyhole color="#10b981" size={24} />
+                </View>
+                <View className="flex-1 gap-1">
+                  <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
+                    On-Device Key Cryptography
+                  </Text>
+                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
+                    generateUserSecret() from @zen-doc/crypto creates a 256-bit
+                    AES-GCM key via crypto.getRandomValues(). PII is encrypted
+                    with crypto.subtle.encrypt + a 12-byte IV before
+                    transmission — the server stores only an opaque _securedData
+                    blob.
+                  </Text>
+                </View>
               </View>
             </View>
-          </Card>
+            <View className="h-1.5 bg-emerald-500" />
+          </View>
 
           {/* Feature 4: LiveKit Teletherapy Rooms */}
-          <Card>
-            <View className="flex-row items-start gap-4">
-              <View className="h-12 w-12 items-center justify-center rounded-card border border-indigo-500/20 bg-indigo-500/10">
-                <Video color="#6366f1" size={24} />
-              </View>
-              <View className="flex-1 gap-1">
-                <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
-                  Compliant Video consultations
-                </Text>
-                <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
-                  Book direct appointments with licensed practitioners. Join
-                  sessions securely with audited attendance tracks, compliance
-                  logs, and instant LiveKit connection speeds.
-                </Text>
+          <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+            <View className="gap-section p-card">
+              <View className="flex-row items-start gap-4">
+                <View className="h-12 w-12 items-center justify-center rounded-card border-2 border-indigo-500/30 bg-indigo-500/20">
+                  <Video color="#6366f1" size={24} />
+                </View>
+                <View className="flex-1 gap-1">
+                  <Text className="font-black font-sans text-foreground text-lg leading-none tracking-tight">
+                    Compliant Video consultations
+                  </Text>
+                  <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-5">
+                    Book direct appointments with licensed practitioners. Join
+                    sessions securely with audited attendance tracks, compliance
+                    logs, and instant LiveKit connection speeds.
+                  </Text>
+                </View>
               </View>
             </View>
-          </Card>
+            <View className="h-1.5 bg-indigo-500" />
+          </View>
         </View>
       </View>
+
+      {/* Section divider */}
+      <View className="mx-1 h-[3px] bg-primary" />
 
       {/* 4. SECURITY PIPELINE VISUALIZATION */}
       <View className="gap-6">
         <SectionHeader
-          description="How ZenDoc keeps your medical and identifying data completely private using on-device cryptography."
+          description="generateUserSecret() → encryptUserData() → putPrivacyData. AES-256-GCM with a 12-byte IV, backed by expo-secure-store on iOS/Android. The server never sees the key."
           subtitle="Zero-Knowledge Data Pipeline"
           title="Privacy Infrastructure"
         />
@@ -966,10 +1154,13 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         <SecurityPipeline primaryColor={colors.primary} />
       </View>
 
+      {/* Section divider */}
+      <View className="mx-1 h-[3px] bg-primary" />
+
       {/* 5. GUARDIAN COLLABORATION FLOW (IF GUARDIANS EXIST) */}
       <View className="gap-6">
         <SectionHeader
-          description="Patients can easily invite guardians by email or phone to monitor progress, with encrypted verification flows."
+          description="Guardians subscribe to the patient's stress stream via subscribePatientStressStream. Both parties must acknowledge downloaded data before the 7-day Upstash Redis TTL shortens to 1 day."
           subtitle="Linked Guardian Relationships"
           title="Support Circle"
         />
@@ -1015,7 +1206,7 @@ function SessionJoinAction({
 
     if (minutes < 60) {
       return (
-        <View className="mt-1 items-center justify-center rounded-card border border-amber-500/20 bg-amber-500/10 p-3">
+        <View className="mt-1 items-center justify-center rounded-card border-2 border-amber-500/30 bg-amber-500/20 p-3">
           <Text className="font-bold font-sans text-amber-600 text-xs uppercase tracking-wider">
             Join Room opens in {minutes} minutes
           </Text>
@@ -1025,7 +1216,7 @@ function SessionJoinAction({
   }
 
   return (
-    <View className="mt-1 items-center justify-center rounded-card border border-border/10 bg-muted p-3">
+    <View className="mt-1 items-center justify-center rounded-card border-2 border-border bg-muted p-3">
       <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
         Session Finished
       </Text>

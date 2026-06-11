@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import { Card, CardContent, CardHeader } from "@zen-doc/ui/components/card";
+import { Input } from "@zen-doc/ui/components/input";
 import { Copy, ShieldIcon, Video } from "lucide-react";
 import { useState } from "react";
 import { VideoRoomWeb } from "@/components/livekit/video-room";
@@ -72,8 +73,8 @@ function AdminSessionPage() {
       const result = await orpc.createTestSession.call();
       setGeneratedSessionId(result.sessionId);
       setSessionId(result.sessionId);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Session creation failed silently
     } finally {
       setIsCreating(false);
     }
@@ -169,14 +170,11 @@ function AdminSessionPage() {
           </CardHeader>
 
           <CardContent className="flex flex-col gap-4">
-            <div className="rounded-2xl border bg-muted/40 p-3">
-              <input
-                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                onChange={(e) => setSessionId(e.target.value)}
-                placeholder="Paste or type session ID..."
-                value={sessionId}
-              />
-            </div>
+            <Input
+              onChange={(e) => setSessionId(e.target.value)}
+              placeholder="Paste or type session ID..."
+              value={sessionId}
+            />
 
             <Button disabled={!sessionId} onClick={handleJoinAsDoctor}>
               <Video className="mr-2 size-4" />

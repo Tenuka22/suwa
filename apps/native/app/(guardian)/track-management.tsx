@@ -11,9 +11,8 @@ import {
 } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-
-import { Screen } from "@/components/ui/screen";
 import { RootBottomBar } from "@/components/ui/root-bottom-bar";
+import { Screen } from "@/components/ui/screen";
 import { orpc } from "@/utils/orpc";
 import {
   CLASS_COLORS,
@@ -23,11 +22,9 @@ import {
   computeStressEmergence,
   formatStressDuration,
   formatStressTime,
-  statusFromPrediction,
-  type Insights,
   type StoredPrediction,
-  type StressBundle,
   type StressData,
+  statusFromPrediction,
 } from "@/utils/stress/analysis";
 import { useThemeColor } from "@/utils/theme";
 
@@ -103,10 +100,10 @@ export default function GuardianTrackManagementScreen() {
 
           {patients.length > 0 && (
             <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
               className="-mx-page"
               contentContainerClassName="px-page gap-2"
+              horizontal
+              showsHorizontalScrollIndicator={false}
             >
               {patients.map((patient) => {
                 const isSelected = patient.userId === selectedPatientId;
@@ -258,7 +255,7 @@ export default function GuardianTrackManagementScreen() {
                     Prediction Timeline
                   </Text>
                   {stressEmergence && (
-                    <Text className="font-sans text-xs text-muted-foreground">
+                    <Text className="font-sans text-muted-foreground text-xs">
                       {stressEmergence.stressEpisodeActive
                         ? "Stress active"
                         : `First stress ${stressEmergence.firstStressAgo}`}
@@ -291,12 +288,15 @@ export default function GuardianTrackManagementScreen() {
 
                   <View className="flex-row gap-4">
                     {CLASS_LABELS.map((label, i) => (
-                      <View className="flex-row items-center gap-1.5" key={label}>
+                      <View
+                        className="flex-row items-center gap-1.5"
+                        key={label}
+                      >
                         <View
                           className="h-2.5 w-2.5 rounded-sm"
                           style={{ backgroundColor: CLASS_COLORS[i] }}
                         />
-                        <Text className="font-sans text-xs text-muted-foreground">
+                        <Text className="font-sans text-muted-foreground text-xs">
                           {label}
                         </Text>
                       </View>
@@ -310,34 +310,34 @@ export default function GuardianTrackManagementScreen() {
                       {stressEmergence.stressEpisodeActive && (
                         <View className="flex-row items-center gap-2">
                           <View className="h-2 w-2 rounded-full bg-destructive" />
-                          <Text className="font-bold font-sans text-xs text-destructive uppercase tracking-wider">
+                          <Text className="font-bold font-sans text-destructive text-xs uppercase tracking-wider">
                             Stress episode ongoing ·{" "}
                             {stressEmergence.stressEpisodeDuration}m
                           </Text>
                         </View>
                       )}
                       <View className="flex-row items-center justify-between">
-                        <Text className="font-sans text-xs text-muted-foreground">
+                        <Text className="font-sans text-muted-foreground text-xs">
                           First stress detected
                         </Text>
-                        <Text className="font-bold font-sans text-xs text-foreground">
+                        <Text className="font-bold font-sans text-foreground text-xs">
                           {stressEmergence.firstStressAgo}
                         </Text>
                       </View>
                       <View className="flex-row items-center justify-between">
-                        <Text className="font-sans text-xs text-muted-foreground">
+                        <Text className="font-sans text-muted-foreground text-xs">
                           Stress bundles
                         </Text>
-                        <Text className="font-bold font-sans text-xs text-foreground">
+                        <Text className="font-bold font-sans text-foreground text-xs">
                           {stressEmergence.totalStressBundles} /{" "}
                           {bundles.length}
                         </Text>
                       </View>
                       <View className="flex-row items-center justify-between">
-                        <Text className="font-sans text-xs text-muted-foreground">
+                        <Text className="font-sans text-muted-foreground text-xs">
                           Stress episodes
                         </Text>
-                        <Text className="font-bold font-sans text-xs text-foreground">
+                        <Text className="font-bold font-sans text-foreground text-xs">
                           {stressEmergence.stressPeriodCount}
                         </Text>
                       </View>
@@ -422,7 +422,8 @@ export default function GuardianTrackManagementScreen() {
                           Session Duration
                         </Text>
                         <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-[0.18em]">
-                          {formatStressDuration(insights.sessionMinutes) || "0m"}
+                          {formatStressDuration(insights.sessionMinutes) ||
+                            "0m"}
                         </Text>
                       </View>
                     )}
@@ -436,7 +437,7 @@ export default function GuardianTrackManagementScreen() {
                 </Text>
                 <View className="gap-3 rounded-card border-2 border-border bg-card p-4">
                   <View className="flex-row items-center justify-between">
-                    <Text className="font-sans text-xs text-muted-foreground">
+                    <Text className="font-sans text-muted-foreground text-xs">
                       Total Bundles
                     </Text>
                     <Text className="font-black font-sans text-foreground">
@@ -445,7 +446,7 @@ export default function GuardianTrackManagementScreen() {
                   </View>
                   <View className="h-px bg-border" />
                   <View className="flex-row items-center justify-between">
-                    <Text className="font-sans text-xs text-muted-foreground">
+                    <Text className="font-sans text-muted-foreground text-xs">
                       Total Samples
                     </Text>
                     <Text className="font-black font-sans text-foreground">
@@ -456,7 +457,7 @@ export default function GuardianTrackManagementScreen() {
                     <>
                       <View className="h-px bg-border" />
                       <View className="flex-row items-center justify-between">
-                        <Text className="font-sans text-xs text-muted-foreground">
+                        <Text className="font-sans text-muted-foreground text-xs">
                           State Distribution
                         </Text>
                         <View className="flex-row items-center gap-2">
@@ -471,7 +472,7 @@ export default function GuardianTrackManagementScreen() {
                                   backgroundColor: CLASS_COLORS[i],
                                 }}
                               />
-                              <Text className="font-sans text-xs text-muted-foreground">
+                              <Text className="font-sans text-muted-foreground text-xs">
                                 {count}
                               </Text>
                             </View>
@@ -482,12 +483,14 @@ export default function GuardianTrackManagementScreen() {
                   )}
                   <View className="h-px bg-border" />
                   <View className="flex-row items-center justify-between">
-                    <Text className="font-sans text-xs text-muted-foreground">
+                    <Text className="font-sans text-muted-foreground text-xs">
                       Last Bundle
                     </Text>
                     <Text className="font-bold font-sans text-foreground">
                       {bundles.length > 0
-                        ? formatStressTime(bundles[bundles.length - 1].createdAt)
+                        ? formatStressTime(
+                            bundles[bundles.length - 1].createdAt
+                          )
                         : "N/A"}
                     </Text>
                   </View>

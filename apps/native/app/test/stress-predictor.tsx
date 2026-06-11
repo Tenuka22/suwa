@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, View, ViewStyle } from "react-native";
+import { Text, View, type ViewStyle } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -105,10 +105,12 @@ function ProbabilityBar({
       <View className="h-2 flex-1 overflow-hidden rounded-full bg-muted/30">
         <View
           className="h-full rounded-full"
-          style={{
-            width: `${(value * 100).toFixed(0)}%` as const,
-            backgroundColor: color,
-          } as ViewStyle}
+          style={
+            {
+              width: `${(value * 100).toFixed(0)}%` as const,
+              backgroundColor: color,
+            } as ViewStyle
+          }
         />
       </View>
       <Text className="w-10 text-right font-mono text-[10px] text-muted-foreground">

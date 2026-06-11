@@ -33,7 +33,6 @@ import {
 import { StethoscopeIcon } from "lucide-react";
 
 import { DoctorSidebar } from "@/components/doctor-sidebar";
-import { useRole } from "@/hooks/use-role";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor")({
@@ -99,7 +98,6 @@ function Breadcrumbs() {
 
 function DoctorLayoutRoute() {
   const user = useUser();
-  const role = useRole();
 
   if (!user.isLoaded) {
     return null;
@@ -123,24 +121,6 @@ function DoctorLayoutRoute() {
           <CardContent className="flex justify-center">
             <ClerkSignInButton />
           </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (role !== "doctor") {
-    return (
-      <div className="flex min-h-svh items-center justify-center">
-        <Card className="w-full max-w-md rounded-3xl">
-          <CardHeader className="items-center text-center">
-            <div className="rounded-2xl border bg-muted/40 p-4">
-              <StethoscopeIcon className="size-6" />
-            </div>
-            <div className="space-y-2">
-              <CardTitle>Unauthorized</CardTitle>
-              <CardDescription>You do not have doctor access.</CardDescription>
-            </div>
-          </CardHeader>
         </Card>
       </div>
     );

@@ -21,7 +21,6 @@ import {
   View,
 } from "react-native";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
@@ -91,14 +90,14 @@ function AvailabilityInfo({
     <View className="gap-1.5">
       {availability.map((slot, i) => (
         <View
-          className="flex-row items-center gap-2 rounded-lg border border-border/50 bg-muted/5 px-3 py-2"
+          className="flex-row items-center gap-2 rounded-card border-[3px] border-border bg-muted px-3 py-2.5"
           key={i}
         >
-          <Text className="min-w-[40px] font-bold text-foreground text-xs">
+          <Text className="min-w-[40px] font-black font-sans text-foreground text-xs uppercase tracking-tight">
             {DAY_NAMES[slot.dayOfWeek]}
           </Text>
-          <Clock color={colors.mutedForeground} size={12} />
-          <Text className="font-medium text-muted-foreground text-xs">
+          <Clock color={colors.foreground} size={12} strokeWidth={2.5} />
+          <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
             {slot.startTime} - {slot.endTime}
           </Text>
         </View>
@@ -125,39 +124,45 @@ function PlanSelection({
   }
 
   return (
-    <Card className="gap-4">
-      <View className="flex-row items-center gap-2">
-        <Sparkles color="#000" size={16} strokeWidth={2.5} />
-        <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
-          Select Plan
-        </Text>
-      </View>
-      <View className="gap-2">
-        {plans.map((plan) => (
-          <Card
-            className={
-              plan.id === selectedPlanId
-                ? "border-primary bg-primary/10"
-                : "bg-background"
-            }
-            key={plan.id}
-            onPress={() => onSelectPlan(plan.id)}
-          >
-            <View className="flex-row items-center justify-between">
-              <Text className="font-black font-sans text-foreground text-sm">
-                {plan.name}
-              </Text>
-              <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5">
-                <Clock color="#a22a2a" size={10} strokeWidth={2.5} />
-                <Text className="font-bold font-sans text-primary text-xs">
-                  {plan.durationMinutes} min
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+      />
+      <View className="gap-4 rounded-card border-[3px] border-border bg-card p-card">
+        <View className="flex-row items-center gap-2">
+          <Sparkles color="#000" size={16} strokeWidth={2.5} />
+          <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
+            Select Plan
+          </Text>
+        </View>
+        <View className="gap-2">
+          {plans.map((plan) => (
+            <Pressable
+              className={`rounded-card border-[3px] p-3 ${
+                plan.id === selectedPlanId
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-background"
+              }`}
+              key={plan.id}
+              onPress={() => onSelectPlan(plan.id)}
+            >
+              <View className="flex-row items-center justify-between">
+                <Text className="font-black font-sans text-foreground text-sm">
+                  {plan.name}
                 </Text>
+                <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5">
+                  <Clock color="#a22a2a" size={10} strokeWidth={2.5} />
+                  <Text className="font-bold font-sans text-primary text-xs">
+                    {plan.durationMinutes} min
+                  </Text>
+                </View>
               </View>
-            </View>
-          </Card>
-        ))}
+            </Pressable>
+          ))}
+        </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -173,7 +178,7 @@ function IntroVideoPreview({
 
   return (
     <Pressable onPress={onPress}>
-      <View className="h-24 w-40 overflow-hidden rounded-card border-2 border-border bg-muted">
+      <View className="h-24 w-40 overflow-hidden rounded-card border-[3px] border-border bg-muted">
         {previewUrl ? (
           <View className="h-full w-full">
             <Image
@@ -387,25 +392,35 @@ export default function BookingScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <Screen contentClassName="items-center justify-center gap-6 px-page py-page">
-          <View className="rounded-full bg-destructive/20 p-4">
-            <X color={colors.destructive} size={32} />
+        <Screen contentClassName="items-center justify-center px-page py-page">
+          <View className="relative" style={{ overflow: "visible" }}>
+            <View
+              className="absolute inset-0 rounded-card bg-border"
+              style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+            />
+            <View className="items-center gap-6 overflow-hidden rounded-card border-[3px] border-border bg-card px-8 py-12">
+              <View className="absolute -top-6 -right-6 h-16 w-16 rotate-12 border-[5px] border-destructive/20" />
+              <View className="rounded-full border-2 border-destructive/30 bg-destructive/20 p-4">
+                <X color={colors.destructive} size={32} />
+              </View>
+              <Text className="text-center font-black font-sans text-2xl text-foreground uppercase tracking-tight">
+                Booking Failed
+              </Text>
+              <Text className="max-w-[280px] text-center font-medium font-sans text-muted-foreground text-sm leading-relaxed">
+                {errorMessage ??
+                  "An unexpected error occurred. Please try again."}
+              </Text>
+              <Button
+                onPress={() => {
+                  setBookingStep("select");
+                  setErrorMessage(null);
+                }}
+                variant="primary"
+              >
+                Try Again
+              </Button>
+            </View>
           </View>
-          <Text className="text-center font-black text-2xl text-foreground">
-            Booking Failed
-          </Text>
-          <Text className="max-w-[300px] text-center text-muted-foreground text-sm">
-            {errorMessage ?? "An unexpected error occurred. Please try again."}
-          </Text>
-          <Button
-            onPress={() => {
-              setBookingStep("select");
-              setErrorMessage(null);
-            }}
-            variant="primary"
-          >
-            Try Again
-          </Button>
         </Screen>
       </>
     );
@@ -415,18 +430,27 @@ export default function BookingScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <Screen contentClassName="items-center justify-center gap-6 px-page py-page">
-          <View className="rounded-full bg-success/20 p-4">
-            <Check color={colors.success} size={32} />
+        <Screen contentClassName="items-center justify-center px-page py-page">
+          <View className="relative" style={{ overflow: "visible" }}>
+            <View
+              className="absolute inset-0 rounded-card bg-border"
+              style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+            />
+            <View className="items-center gap-6 overflow-hidden rounded-card border-[3px] border-border bg-card px-8 py-12">
+              <View className="absolute -top-6 -right-6 h-16 w-16 rotate-12 border-[5px] border-emerald-500/20" />
+              <View className="rounded-full border-2 border-emerald-500/30 bg-emerald-500/20 p-4">
+                <Check color={colors.success} size={32} />
+              </View>
+              <Text className="text-center font-black font-sans text-2xl text-foreground uppercase tracking-tight">
+                Request Sent!
+              </Text>
+              <Text className="max-w-[280px] text-center font-medium font-sans text-muted-foreground text-sm leading-relaxed">
+                Your session request has been sent. The doctor will review and
+                respond shortly.
+              </Text>
+              <ActivityIndicator size="small" />
+            </View>
           </View>
-          <Text className="text-center font-black text-2xl text-foreground">
-            Request Sent!
-          </Text>
-          <Text className="max-w-[300px] text-center text-muted-foreground text-sm">
-            Your session request has been sent. The doctor will review and
-            respond shortly.
-          </Text>
-          <ActivityIndicator size="small" />
         </Screen>
       </>
     );
@@ -447,48 +471,67 @@ export default function BookingScreen() {
 
       <Screen contentClassName="gap-6 px-page py-page pb-28">
         {isLoading ? (
-          <View className="items-center justify-center py-12">
-            <ActivityIndicator size="large" />
+          <View className="items-center justify-center py-16">
+            <View className="relative" style={{ overflow: "visible" }}>
+              <View
+                className="absolute inset-0 rounded-card bg-border"
+                style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+              />
+              <View className="items-center gap-4 rounded-card border-[3px] border-border bg-card px-8 py-10">
+                <ActivityIndicator color={colors.primary} size="large" />
+                <Text className="font-black font-sans text-muted-foreground text-xs uppercase tracking-widest">
+                  Loading booking details...
+                </Text>
+              </View>
+            </View>
           </View>
         ) : (
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <View className="gap-6 pb-8">
               {doctor && (
-                <Card className="gap-4">
-                  <View className="flex-row items-start gap-4">
-                    <View className="h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-secondary">
-                      <Text className="font-black font-sans text-foreground text-lg">
-                        {getInitials(doctor.displayName ?? "Dr")}
-                      </Text>
-                    </View>
-                    <View className="flex-1 gap-0.5">
-                      <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
-                        {doctor.displayName}
-                      </Text>
-                      {doctor.location && (
-                        <View className="flex-row items-center gap-1">
-                          <MapPin
-                            color={colors.mutedForeground}
-                            size={12}
-                            strokeWidth={2.5}
-                          />
-                          <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
-                            {doctor.location}
-                          </Text>
-                        </View>
+                <View className="relative" style={{ overflow: "visible" }}>
+                  <View
+                    className="absolute inset-0 rounded-card bg-border"
+                    style={{
+                      transform: [{ translateX: 6 }, { translateY: 6 }],
+                    }}
+                  />
+                  <View className="gap-4 rounded-card border-[3px] border-border bg-card p-card">
+                    <View className="flex-row items-start gap-4">
+                      <View className="h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-secondary">
+                        <Text className="font-black font-sans text-foreground text-lg">
+                          {getInitials(doctor.displayName ?? "Dr")}
+                        </Text>
+                      </View>
+                      <View className="flex-1 gap-0.5">
+                        <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
+                          {doctor.displayName}
+                        </Text>
+                        {doctor.location && (
+                          <View className="flex-row items-center gap-1">
+                            <MapPin
+                              color={colors.mutedForeground}
+                              size={12}
+                              strokeWidth={2.5}
+                            />
+                            <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
+                              {doctor.location}
+                            </Text>
+                          </View>
+                        )}
+                        <Text className="mt-1 font-medium font-sans text-foreground text-sm leading-relaxed">
+                          {doctor.headline ?? "Licensed medical practitioner."}
+                        </Text>
+                      </View>
+                      {introVideoFile && (
+                        <IntroVideoPreview
+                          fileId={introVideoFile.id}
+                          onPress={() => setVideoFileId(introVideoFile.id)}
+                        />
                       )}
-                      <Text className="mt-1 font-medium font-sans text-foreground text-sm leading-relaxed">
-                        {doctor.headline ?? "Licensed medical practitioner."}
-                      </Text>
                     </View>
-                    {introVideoFile && (
-                      <IntroVideoPreview
-                        fileId={introVideoFile.id}
-                        onPress={() => setVideoFileId(introVideoFile.id)}
-                      />
-                    )}
                   </View>
-                </Card>
+                </View>
               )}
 
               <PlanSelection
@@ -504,84 +547,108 @@ export default function BookingScreen() {
                 selectedPlanId={selectedPlanId}
               />
 
-              <Card className="gap-4">
-                <View className="flex-row items-center gap-2">
-                  <Calendar
-                    color={colors.foreground}
-                    size={16}
-                    strokeWidth={2.5}
-                  />
-                  <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
-                    Select Date
-                  </Text>
-                </View>
-                <View className="flex-row flex-wrap gap-2">
-                  {next7Days.map((day) => {
-                    const isSelected =
-                      selectedDate?.toDateString() === day.toDateString();
-                    const isToday = day.toDateString() === today.toDateString();
-                    return (
-                      <Button
-                        key={day.toISOString()}
-                        onPress={() => {
-                          setSelectedDate(day);
-                          setSelectedSlot(null);
-                        }}
-                        size="sm"
-                        variant={isSelected ? "primary" : "secondary"}
-                      >
-                        {isToday ? "Today" : formatDate(day)}
-                      </Button>
-                    );
-                  })}
-                </View>
-              </Card>
-
-              {selectedPlanId && selectedDate && (
-                <Card className="gap-4">
+              <View className="relative" style={{ overflow: "visible" }}>
+                <View
+                  className="absolute inset-0 rounded-card bg-border"
+                  style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+                />
+                <View className="gap-4 rounded-card border-[3px] border-border bg-card p-card">
                   <View className="flex-row items-center gap-2">
-                    <Clock
+                    <Calendar
                       color={colors.foreground}
                       size={16}
                       strokeWidth={2.5}
                     />
                     <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
-                      Weekly Availability
-                    </Text>
-                  </View>
-                  <AvailabilityInfo availability={availability} />
-                </Card>
-              )}
-
-              {selectedPlanId && selectedDate && slots.length > 0 && (
-                <Card className="gap-4">
-                  <View className="flex-row items-center gap-2">
-                    <Clock
-                      color={colors.foreground}
-                      size={16}
-                      strokeWidth={2.5}
-                    />
-                    <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
-                      Available Times
+                      Select Date
                     </Text>
                   </View>
                   <View className="flex-row flex-wrap gap-2">
-                    {filteredSlots.map((slot, i) => {
-                      const isSelected = selectedSlot?.startAt === slot.startAt;
+                    {next7Days.map((day) => {
+                      const isSelected =
+                        selectedDate?.toDateString() === day.toDateString();
+                      const isToday =
+                        day.toDateString() === today.toDateString();
                       return (
                         <Button
-                          disabled={!slot.available}
-                          key={i}
-                          onPress={() => setSelectedSlot(slot)}
+                          key={day.toISOString()}
+                          onPress={() => {
+                            setSelectedDate(day);
+                            setSelectedSlot(null);
+                          }}
                           size="sm"
                           variant={isSelected ? "primary" : "secondary"}
                         >
-                          {`${formatTime(new Date(slot.startAt))} - ${formatTime(new Date(slot.endAt))}`}
+                          {isToday ? "Today" : formatDate(day)}
                         </Button>
                       );
                     })}
                   </View>
-                </Card>
+                </View>
+              </View>
+
+              {selectedPlanId && selectedDate && (
+                <View className="relative" style={{ overflow: "visible" }}>
+                  <View
+                    className="absolute inset-0 rounded-card bg-border"
+                    style={{
+                      transform: [{ translateX: 6 }, { translateY: 6 }],
+                    }}
+                  />
+                  <View className="gap-4 rounded-card border-[3px] border-border bg-card p-card">
+                    <View className="flex-row items-center gap-2">
+                      <Clock
+                        color={colors.foreground}
+                        size={16}
+                        strokeWidth={2.5}
+                      />
+                      <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
+                        Weekly Availability
+                      </Text>
+                    </View>
+                    <AvailabilityInfo availability={availability} />
+                  </View>
+                </View>
+              )}
+
+              {selectedPlanId && selectedDate && slots.length > 0 && (
+                <View className="relative" style={{ overflow: "visible" }}>
+                  <View
+                    className="absolute inset-0 rounded-card bg-border"
+                    style={{
+                      transform: [{ translateX: 6 }, { translateY: 6 }],
+                    }}
+                  />
+                  <View className="gap-4 rounded-card border-[3px] border-border bg-card p-card">
+                    <View className="flex-row items-center gap-2">
+                      <Clock
+                        color={colors.foreground}
+                        size={16}
+                        strokeWidth={2.5}
+                      />
+                      <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
+                        Available Times
+                      </Text>
+                    </View>
+                    <View className="flex-row flex-wrap gap-2">
+                      {filteredSlots.map((slot, i) => {
+                        const isSelected =
+                          selectedSlot?.startAt === slot.startAt;
+                        return (
+                          <Button
+                            disabled={!slot.available}
+                            key={i}
+                            onPress={() => setSelectedSlot(slot)}
+                            size="sm"
+                            variant={isSelected ? "primary" : "secondary"}
+                          >
+                            {`${formatTime(new Date(slot.startAt))} - ${formatTime(new Date(slot.endAt))}`}
+                          </Button>
+                        );
+                      })}
+                    </View>
+                  </View>
+                </View>
               )}
             </View>
           </ScrollView>

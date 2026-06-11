@@ -72,27 +72,35 @@ export function classIndex(predictedClass: string): number {
 export function formatStressTime(ts: number): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return "just now";
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
   return `${Math.floor(hours / 24)}d ago`;
 }
 
 export function formatStressDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export interface StressEmergence {
-  firstStressAt: number;
   firstStressAgo: string;
+  firstStressAt: number;
   stressEpisodeActive: boolean;
   stressEpisodeDuration: number;
-  totalStressBundles: number;
   stressPeriodCount: number;
+  totalStressBundles: number;
 }
 
 export function computeStressEmergence(
@@ -101,7 +109,9 @@ export function computeStressEmergence(
   const stressBundles = bundles.filter(
     (b) => b.prediction?.predictedClass.toLowerCase() === "stress"
   );
-  if (stressBundles.length === 0) return null;
+  if (stressBundles.length === 0) {
+    return null;
+  }
 
   const firstStress = stressBundles[0];
   const lastBundle = bundles[bundles.length - 1];
@@ -159,7 +169,9 @@ export interface Insights {
 
 export function computeInsights(bundles: StressBundle[]): Insights | null {
   const withPrediction = bundles.filter((b) => b.prediction);
-  if (withPrediction.length === 0) return null;
+  if (withPrediction.length === 0) {
+    return null;
+  }
 
   const counts: [number, number, number] = [0, 0, 0];
   let totalConfidence = 0;

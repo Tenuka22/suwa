@@ -30,7 +30,6 @@ import {
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
@@ -57,6 +56,7 @@ function SectionHeader({
 }) {
   return (
     <View className="flex-row items-center gap-3 border-border border-b pb-3">
+      <View className="h-[3px] w-6 bg-primary" />
       <View className="rounded-card bg-primary/10 p-2">{icon}</View>
       <Text className="font-black font-sans text-foreground text-lg uppercase tracking-tight">
         {title}
@@ -75,7 +75,7 @@ function InfoChip({
   value: string;
 }) {
   return (
-    <View className="flex-row items-center gap-2.5 rounded-card border-2 border-border bg-card p-3">
+    <View className="flex-row items-center gap-2.5 rounded-card border-[3px] border-border bg-card p-3">
       <View className="rounded-card bg-primary/10 p-2">{icon}</View>
       <View className="flex-1 gap-0.5">
         <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
@@ -105,7 +105,7 @@ function PlanCard({
     : [];
 
   return (
-    <View className="rounded-card border-2 border-border bg-card p-card">
+    <View className="rounded-card border-[3px] border-border bg-card p-card">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="flex-1 font-black font-sans text-foreground text-lg uppercase tracking-tight">
           {plan.name}
@@ -138,12 +138,18 @@ function LoadingState() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <Screen contentClassName="items-center justify-center px-page py-page">
-        <Card className="items-center gap-4 px-8 py-12">
-          <ActivityIndicator color={colors.primary} size="large" />
-          <Text className="font-black font-sans text-foreground text-lg uppercase tracking-widest">
-            Loading profile...
-          </Text>
-        </Card>
+        <View className="relative" style={{ overflow: "visible" }}>
+          <View
+            className="absolute inset-0 rounded-card bg-border"
+            style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+          />
+          <View className="items-center gap-4 rounded-card border-[3px] border-border bg-card px-8 py-12">
+            <ActivityIndicator color={colors.primary} size="large" />
+            <Text className="font-black font-sans text-foreground text-lg uppercase tracking-widest">
+              Loading profile...
+            </Text>
+          </View>
+        </View>
       </Screen>
     </>
   );
@@ -155,17 +161,24 @@ function NotFoundState() {
       <Stack.Screen options={{ headerShown: false }} />
       <Screen contentClassName="px-page py-page">
         <BackButton />
-        <Card className="items-center gap-3 px-8 py-12">
-          <View className="h-14 w-14 items-center justify-center rounded-full bg-secondary">
-            <Stethoscope size={28} strokeWidth={2} />
+        <View className="relative" style={{ overflow: "visible" }}>
+          <View
+            className="absolute inset-0 rounded-card bg-border"
+            style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+          />
+          <View className="items-center gap-3 overflow-hidden rounded-card border-[3px] border-border bg-card px-8 py-12">
+            <View className="absolute -top-4 -right-4 h-14 w-14 rotate-12 border-[5px] border-primary/15" />
+            <View className="h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-muted">
+              <Stethoscope size={28} strokeWidth={2} />
+            </View>
+            <Text className="font-black font-sans text-2xl text-foreground uppercase tracking-tight">
+              Not Found
+            </Text>
+            <Text className="text-center font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
+              That public profile does not exist yet.
+            </Text>
           </View>
-          <Text className="font-black font-sans text-2xl text-foreground uppercase tracking-tight">
-            Not Found
-          </Text>
-          <Text className="text-center font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
-            That public profile does not exist yet.
-          </Text>
-        </Card>
+        </View>
       </Screen>
     </>
   );
@@ -208,56 +221,61 @@ function ProfileHeader({
   initials: string;
   yearsOfExperience: number | null;
 }) {
-  const colors = useThemeColor();
-
   return (
-    <Card className="gap-0 overflow-hidden p-0">
-      <View className="items-center gap-4 bg-primary/5 p-6">
-        {portraitPreviewUrl ? (
-          <View className="h-24 w-24 overflow-hidden rounded-full border-2 border-border bg-muted">
-            <Image
-              className="h-full w-full"
-              source={{ uri: portraitPreviewUrl }}
-              style={{ resizeMode: "cover" }}
-            />
-          </View>
-        ) : (
-          <View className="h-24 w-24 items-center justify-center rounded-full border-2 border-border bg-primary">
-            <Text className="font-black font-sans text-3xl text-primary-foreground tracking-tighter">
-              {initials}
-            </Text>
-          </View>
-        )}
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
+      />
+      <View className="overflow-hidden rounded-card border-[3px] border-border bg-card">
+        <View className="items-center gap-4 bg-primary/5 p-6">
+          <View className="h-[3px] w-16 bg-primary/40" />
+          {portraitPreviewUrl ? (
+            <View className="h-24 w-24 overflow-hidden rounded-full border-[3px] border-border bg-muted">
+              <Image
+                className="h-full w-full"
+                source={{ uri: portraitPreviewUrl }}
+                style={{ resizeMode: "cover" }}
+              />
+            </View>
+          ) : (
+            <View className="h-24 w-24 items-center justify-center rounded-full border-[3px] border-border bg-primary">
+              <Text className="font-black font-sans text-3xl text-primary-foreground tracking-tighter">
+                {initials}
+              </Text>
+            </View>
+          )}
 
-        <View className="flex items-center gap-2">
-          <Text className="text-center font-black font-sans text-3xl text-foreground uppercase leading-none tracking-tight">
-            {profile.displayName ?? "Clinician"}
-          </Text>
-          <Tag variant={profile.permanent ? "success" : "secondary"}>
-            {profile.permanent ? "Licensed" : "Pending"}
-          </Tag>
+          <View className="flex items-center gap-2">
+            <Text className="text-center font-black font-sans text-3xl text-foreground uppercase leading-none tracking-tight">
+              {profile.displayName ?? "Clinician"}
+            </Text>
+            <Tag variant={profile.permanent ? "success" : "secondary"}>
+              {profile.permanent ? "Licensed" : "Pending"}
+            </Tag>
+          </View>
+
+          {profile.headline && (
+            <Text className="max-w-[320px] text-center font-medium font-sans text-muted-foreground text-sm leading-snug">
+              {profile.headline}
+            </Text>
+          )}
         </View>
 
-        {profile.headline && (
-          <Text className="max-w-[320px] text-center font-medium font-sans text-muted-foreground text-sm leading-snug">
-            {profile.headline}
-          </Text>
-        )}
+        <View className="flex-row flex-wrap justify-center gap-2 border-border border-t-[3px] p-4">
+          {profile.location && (
+            <Tag icon={MapPin} size="lg">
+              {profile.location}
+            </Tag>
+          )}
+          {yearsOfExperience && (
+            <Tag icon={GraduationCap} size="lg" variant="secondary">
+              {yearsOfExperience}+ years
+            </Tag>
+          )}
+        </View>
       </View>
-
-      <View className="flex-row flex-wrap justify-center gap-2 p-4">
-        {profile.location && (
-          <Tag icon={MapPin} size="lg">
-            {profile.location}
-          </Tag>
-        )}
-        {yearsOfExperience && (
-          <Tag icon={GraduationCap} size="lg" variant="secondary">
-            {yearsOfExperience}+ years
-          </Tag>
-        )}
-      </View>
-    </Card>
+    </View>
   );
 }
 
@@ -269,27 +287,34 @@ function BioSection({ bio }: { bio?: string | null }) {
   }
 
   return (
-    <Card className="gap-0 overflow-hidden p-0">
-      <View className="bg-primary/10 p-card">
-        <View className="flex-row items-start gap-3">
-          <View className="rounded-card bg-primary p-2">
-            <BookOpen
-              color={colors.primaryForeground}
-              size={18}
-              strokeWidth={2.5}
-            />
-          </View>
-          <View className="flex-1 gap-1">
-            <Text className="font-black font-sans text-primary text-xs uppercase tracking-widest">
-              About
-            </Text>
-            <Text className="font-medium font-sans text-foreground text-sm leading-relaxed">
-              {bio}
-            </Text>
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 4 }, { translateY: 4 }] }}
+      />
+      <View className="overflow-hidden rounded-card border-[3px] border-border bg-primary/10">
+        <View className="p-card">
+          <View className="flex-row items-start gap-3">
+            <View className="h-[3px] w-6 self-center bg-primary" />
+            <View className="rounded-card bg-primary p-2">
+              <BookOpen
+                color={colors.primaryForeground}
+                size={18}
+                strokeWidth={2.5}
+              />
+            </View>
+            <View className="flex-1 gap-1">
+              <Text className="font-black font-sans text-primary text-xs uppercase tracking-widest">
+                About
+              </Text>
+              <Text className="font-medium font-sans text-foreground text-sm leading-relaxed">
+                {bio}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -340,7 +365,7 @@ function MediaViewerModal({
             </Pressable>
           </View>
 
-          <View className="overflow-hidden rounded-2xl border-2 border-white/20 bg-muted">
+          <View className="overflow-hidden rounded-card border-[3px] border-white/20 bg-muted">
             {previewUrl ? (
               <View>
                 <Image
@@ -389,8 +414,11 @@ function MediaPreviewCard({
   const isVideo = fileKind === "intro_video";
 
   return (
-    <Pressable onPress={onPress}>
-      <View className="w-52 overflow-hidden rounded-card border-2 border-border bg-card">
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
+    >
+      <View className="w-52 overflow-hidden rounded-card border-[3px] border-border bg-card">
         {previewUrl ? (
           <View className="h-36 w-full bg-muted">
             <Image
@@ -469,7 +497,7 @@ function MediaShowcase({
         title="Media"
       />
       {mediaFiles.length === 0 ? (
-        <Text className="font-medium font-sans text-muted-foreground text-sm italic">
+        <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-widest">
           No media assets uploaded.
         </Text>
       ) : (
@@ -512,66 +540,80 @@ function DetailsSection({
   const colors = useThemeColor();
 
   return (
-    <Card className="gap-section">
-      <SectionHeader
-        icon={<Award color={colors.foreground} size={18} strokeWidth={2.5} />}
-        title="Details"
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
       />
-      <View className="gap-2">
-        <View className="flex-row gap-2">
-          <View className="flex-1">
-            <InfoChip
-              icon={
-                <Clock color={colors.foreground} size={16} strokeWidth={2.5} />
-              }
-              label="Experience"
-              value={
-                profile.experienceStartYear
-                  ? `Since ${profile.experienceStartYear}`
-                  : "Not set"
-              }
-            />
+      <View className="gap-section rounded-card border-[3px] border-border bg-card p-card">
+        <SectionHeader
+          icon={<Award color={colors.foreground} size={18} strokeWidth={2.5} />}
+          title="Details"
+        />
+        <View className="gap-2">
+          <View className="flex-row gap-2">
+            <View className="flex-1">
+              <InfoChip
+                icon={
+                  <Clock
+                    color={colors.foreground}
+                    size={16}
+                    strokeWidth={2.5}
+                  />
+                }
+                label="Experience"
+                value={
+                  profile.experienceStartYear
+                    ? `Since ${profile.experienceStartYear}`
+                    : "Not set"
+                }
+              />
+            </View>
+            <View className="flex-1">
+              <InfoChip
+                icon={
+                  <MapPin
+                    color={colors.foreground}
+                    size={16}
+                    strokeWidth={2.5}
+                  />
+                }
+                label="Location"
+                value={profile.location ?? "Not set"}
+              />
+            </View>
           </View>
-          <View className="flex-1">
-            <InfoChip
-              icon={
-                <MapPin color={colors.foreground} size={16} strokeWidth={2.5} />
-              }
-              label="Location"
-              value={profile.location ?? "Not set"}
-            />
-          </View>
-        </View>
-        <View className="flex-row gap-2">
-          <View className="flex-1">
-            <InfoChip
-              icon={
-                <FileText
-                  color={colors.foreground}
-                  size={16}
-                  strokeWidth={2.5}
-                />
-              }
-              label="License"
-              value={profile.licenseNumber ?? "Not set"}
-            />
-          </View>
-          <View className="flex-1">
-            <InfoChip
-              icon={
-                <Building
-                  color={colors.foreground}
-                  size={16}
-                  strokeWidth={2.5}
-                />
-              }
-              label="Practice"
-              value={profile.placeName ?? profile.placeAddress ?? "Not set"}
-            />
+          <View className="flex-row gap-2">
+            <View className="flex-1">
+              <InfoChip
+                icon={
+                  <FileText
+                    color={colors.foreground}
+                    size={16}
+                    strokeWidth={2.5}
+                  />
+                }
+                label="License"
+                value={profile.licenseNumber ?? "Not set"}
+              />
+            </View>
+            <View className="flex-1">
+              <InfoChip
+                icon={
+                  <Building
+                    color={colors.foreground}
+                    size={16}
+                    strokeWidth={2.5}
+                  />
+                }
+                label="Practice"
+                value={profile.placeName ?? profile.placeAddress ?? "Not set"}
+              />
+            </View>
           </View>
         </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -588,72 +630,78 @@ function TagsOverviewSection({
   const colors = useThemeColor();
 
   return (
-    <Card className="gap-section">
-      <SectionHeader
-        icon={
-          <Sparkles color={colors.foreground} size={18} strokeWidth={2.5} />
-        }
-        title="At a Glance"
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
       />
-      <View className="gap-3">
-        {profile.specialties.length > 0 && (
-          <View className="gap-2">
-            <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
-              Specialties
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {profile.specialties.map((s) => (
-                <Tag key={s} variant="primary">
-                  {specialtyLabels[s] ?? capitalizeWords(s)}
-                </Tag>
-              ))}
+      <View className="gap-section rounded-card border-[3px] border-border bg-card p-card">
+        <SectionHeader
+          icon={
+            <Sparkles color={colors.foreground} size={18} strokeWidth={2.5} />
+          }
+          title="At a Glance"
+        />
+        <View className="gap-3">
+          {profile.specialties.length > 0 && (
+            <View className="gap-2">
+              <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
+                Specialties
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {profile.specialties.map((s) => (
+                  <Tag key={s} variant="primary">
+                    {specialtyLabels[s] ?? capitalizeWords(s)}
+                  </Tag>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
-        {profile.languages.length > 0 && (
-          <View className="gap-2">
-            <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
-              Languages
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {profile.languages.map((l) => (
-                <Tag key={l} variant="secondary">
-                  {languageLabels[l] ?? capitalizeWords(l)}
-                </Tag>
-              ))}
+          )}
+          {profile.languages.length > 0 && (
+            <View className="gap-2">
+              <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
+                Languages
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {profile.languages.map((l) => (
+                  <Tag key={l} variant="secondary">
+                    {languageLabels[l] ?? capitalizeWords(l)}
+                  </Tag>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
-        {profile.consultationModes.length > 0 && (
-          <View className="gap-2">
-            <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
-              Consultation
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {profile.consultationModes.map((m) => (
-                <Tag key={m} variant="muted">
-                  {consultationModeLabels[m] ?? capitalizeWords(m)}
-                </Tag>
-              ))}
+          )}
+          {profile.consultationModes.length > 0 && (
+            <View className="gap-2">
+              <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
+                Consultation
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {profile.consultationModes.map((m) => (
+                  <Tag key={m} variant="muted">
+                    {consultationModeLabels[m] ?? capitalizeWords(m)}
+                  </Tag>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
-        {profile.focusAreas.length > 0 && (
-          <View className="gap-2">
-            <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
-              Focus Areas
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {profile.focusAreas.map((a) => (
-                <Tag key={a} variant="success">
-                  {focusAreaLabels[a] ?? capitalizeWords(a)}
-                </Tag>
-              ))}
+          )}
+          {profile.focusAreas.length > 0 && (
+            <View className="gap-2">
+              <Text className="font-bold font-sans text-[9px] text-muted-foreground uppercase tracking-widest">
+                Focus Areas
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {profile.focusAreas.map((a) => (
+                  <Tag key={a} variant="success">
+                    {focusAreaLabels[a] ?? capitalizeWords(a)}
+                  </Tag>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
+          )}
+        </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -669,41 +717,47 @@ function ApproachStepsSection({
   }
 
   return (
-    <Card className="gap-section">
-      <SectionHeader
-        icon={
-          <BriefcaseMedical
-            color={colors.foreground}
-            size={18}
-            strokeWidth={2.5}
-          />
-        }
-        title="Approach"
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
       />
-      <View className="relative ml-1 gap-0">
-        {steps.map((step, index) => (
-          <View className="flex-row" key={step.id}>
-            <View className="items-center pt-3" style={{ width: 28 }}>
-              <View className="h-6 w-6 items-center justify-center rounded-full border-2 border-border bg-primary">
-                <Text className="font-black font-sans text-[10px] text-primary-foreground">
-                  {index + 1}
-                </Text>
+      <View className="gap-section rounded-card border-[3px] border-border bg-card p-card">
+        <SectionHeader
+          icon={
+            <BriefcaseMedical
+              color={colors.foreground}
+              size={18}
+              strokeWidth={2.5}
+            />
+          }
+          title="Approach"
+        />
+        <View className="relative ml-1 gap-0">
+          {steps.map((step, index) => (
+            <View className="flex-row" key={step.id}>
+              <View className="items-center pt-3" style={{ width: 28 }}>
+                <View className="h-6 w-6 items-center justify-center rounded-full border-[3px] border-border bg-primary">
+                  <Text className="font-black font-sans text-[10px] text-primary-foreground">
+                    {index + 1}
+                  </Text>
+                </View>
+                {index < steps.length - 1 && (
+                  <View className="mt-0.5 h-full w-0.5 flex-1 rounded-full bg-border" />
+                )}
               </View>
-              {index < steps.length - 1 && (
-                <View className="mt-0.5 h-full w-0.5 flex-1 rounded-full bg-border" />
-              )}
-            </View>
-            <View className="flex-1 pb-4 pl-3">
-              <View className="rounded-card border-2 border-border bg-card p-3">
-                <Text className="font-medium font-sans text-foreground text-sm leading-relaxed">
-                  {step.text}
-                </Text>
+              <View className="flex-1 pb-4 pl-3">
+                <View className="rounded-card border-[3px] border-border bg-card p-3">
+                  <Text className="font-medium font-sans text-foreground text-sm leading-relaxed">
+                    {step.text}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -724,37 +778,45 @@ function EducationSection({
   }
 
   return (
-    <Card className="gap-section">
-      <SectionHeader
-        icon={<School2 color={colors.foreground} size={18} strokeWidth={2.5} />}
-        title="Education"
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
       />
-      <View className="gap-2">
-        {education.map((entry) => (
-          <View
-            className="flex-row items-center gap-3 rounded-card border-2 border-border bg-card p-3"
-            key={entry.id}
-          >
-            <View className="rounded-card bg-secondary p-2.5">
-              <School2 color={colors.foreground} size={20} strokeWidth={2} />
+      <View className="gap-section rounded-card border-[3px] border-border bg-card p-card">
+        <SectionHeader
+          icon={
+            <School2 color={colors.foreground} size={18} strokeWidth={2.5} />
+          }
+          title="Education"
+        />
+        <View className="gap-2">
+          {education.map((entry) => (
+            <View
+              className="flex-row items-center gap-3 rounded-card border-[3px] border-border bg-card p-3"
+              key={entry.id}
+            >
+              <View className="rounded-card bg-secondary p-2.5">
+                <School2 color={colors.foreground} size={20} strokeWidth={2} />
+              </View>
+              <View className="flex-1 gap-0.5">
+                <Text className="font-black font-sans text-foreground text-sm uppercase tracking-tight">
+                  {entry.degree}
+                </Text>
+                <Text className="font-bold font-sans text-muted-foreground text-xs uppercase">
+                  {entry.institution}
+                </Text>
+              </View>
+              {entry.year && (
+                <Tag size="md" variant="secondary">
+                  {entry.year}
+                </Tag>
+              )}
             </View>
-            <View className="flex-1 gap-0.5">
-              <Text className="font-black font-sans text-foreground text-sm uppercase tracking-tight">
-                {entry.degree}
-              </Text>
-              <Text className="font-bold font-sans text-muted-foreground text-xs uppercase">
-                {entry.institution}
-              </Text>
-            </View>
-            {entry.year && (
-              <Tag size="md" variant="secondary">
-                {entry.year}
-              </Tag>
-            )}
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -774,19 +836,25 @@ function PlansSection({ doctorId }: { doctorId: string }) {
   }
 
   return (
-    <Card className="gap-section">
-      <SectionHeader
-        icon={
-          <FileText color={colors.foreground} size={18} strokeWidth={2.5} />
-        }
-        title="Session Plans"
+    <View className="relative" style={{ overflow: "visible" }}>
+      <View
+        className="absolute inset-0 rounded-card bg-border"
+        style={{ transform: [{ translateX: 6 }, { translateY: 6 }] }}
       />
-      <View className="gap-3">
-        {plans.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} />
-        ))}
+      <View className="gap-section rounded-card border-[3px] border-border bg-card p-card">
+        <SectionHeader
+          icon={
+            <FileText color={colors.foreground} size={18} strokeWidth={2.5} />
+          }
+          title="Session Plans"
+        />
+        <View className="gap-3">
+          {plans.map((plan) => (
+            <PlanCard key={plan.id} plan={plan} />
+          ))}
+        </View>
       </View>
-    </Card>
+    </View>
   );
 }
 
@@ -796,8 +864,15 @@ function SaveButton({ doctorId }: { doctorId: string }) {
 
   return (
     <Pressable
-      className="flex-1 flex-row items-center justify-center gap-2 rounded-control border-2 border-border bg-card px-4"
+      className="flex-1 flex-row items-center justify-center gap-2 rounded-control border-[3px] border-border bg-card px-4"
       onPress={toggleSave}
+      style={({ pressed }) => [
+        {
+          transform: pressed
+            ? [{ translateX: 2 }, { translateY: 2 }]
+            : [{ translateX: 0 }, { translateY: 0 }],
+        },
+      ]}
     >
       <Heart
         color={isSaved ? colors.foreground : colors.mutedForeground}
@@ -875,19 +950,40 @@ export default function DoctorProfileScreen() {
           yearsOfExperience={yearsOfExperience}
         />
 
-        <BioSection bio={profile.bio} />
-
-        <MediaShowcase files={files} />
-
+        {/* At a Glance — specialties, languages, consultation modes */}
         <TagsOverviewSection profile={profile} />
 
+        {/* Section divider */}
+        <View className="h-[3px] bg-primary/30" />
+
+        {/* About the doctor */}
+        <BioSection bio={profile.bio} />
+
+        {/* Section divider */}
+        <View className="h-[3px] bg-primary/30" />
+
+        {/* How they work with patients */}
         <ApproachStepsSection steps={profile.approachSteps} />
+
+        {/* Section divider */}
+        <View className="h-[3px] bg-primary/30" />
+
+        {/* Credentials: license, practice, education */}
+        <DetailsSection profile={profile} />
 
         <EducationSection education={doctorQuery.data?.education ?? []} />
 
-        <PlansSection doctorId={id ?? ""} />
+        {/* Section divider */}
+        <View className="h-[3px] bg-primary/30" />
 
-        <DetailsSection profile={profile} />
+        {/* Qualifications & Intro Video */}
+        <MediaShowcase files={files} />
+
+        {/* Section divider */}
+        <View className="h-[3px] bg-primary/30" />
+
+        {/* Session Plans — just above the CTA */}
+        <PlansSection doctorId={id ?? ""} />
       </Screen>
 
       <ScreenBottomBar>

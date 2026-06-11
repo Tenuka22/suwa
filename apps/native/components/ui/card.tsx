@@ -17,7 +17,7 @@ export const Card = ({ children, className, onPress, href }: CardProps) => {
       <View
         className="absolute inset-0 rounded-card bg-border"
         style={{
-          transform: [{ translateX: 4 }, { translateY: 4 }],
+          transform: [{ translateX: 6 }, { translateY: 6 }],
         }}
       />
 
@@ -26,7 +26,7 @@ export const Card = ({ children, className, onPress, href }: CardProps) => {
         style={{
           transform:
             isPressable && pressed
-              ? [{ translateX: 4 }, { translateY: 4 }]
+              ? [{ translateX: 6 }, { translateY: 6 }]
               : [{ translateX: 0 }, { translateY: 0 }],
         }}
       >

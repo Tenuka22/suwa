@@ -84,12 +84,12 @@ export const Button = ({
           <View
             className="absolute inset-0 size-full rounded-control bg-border"
             style={{
-              transform: [{ translateX: 4 }, { translateY: 4 }],
+              transform: [{ translateX: 6 }, { translateY: 6 }],
             }}
           />
 
           <View
-            className={`w-full flex-row items-center justify-center rounded-control border-1 border-border ${paddingClass} ${
+            className={`w-full flex-row items-center justify-center rounded-control border-2 border-border ${paddingClass} ${
               isPrimary
                 ? "bg-primary"
                 : isDestructive
@@ -99,7 +99,7 @@ export const Button = ({
             style={{
               transform:
                 pressed && !disabled
-                  ? [{ translateX: 4 }, { translateY: 4 }]
+                  ? [{ translateX: 6 }, { translateY: 6 }]
                   : [{ translateX: 0 }, { translateY: 0 }],
             }}
           >

@@ -22,12 +22,13 @@ import {
   Text,
   View,
 } from "react-native";
+import Animated, { FadeInDown, FadeOutUp, LinearTransition } from "react-native-reanimated";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
@@ -143,7 +144,12 @@ export default function AppointmentsScreen() {
         </View>
 
         {showSuccessBanner ? (
-          <View className="flex-row items-start gap-3 rounded-xl border-2 border-success bg-success/10 px-4 py-3">
+          <Animated.View
+            className="flex-row items-start gap-3 rounded-xl border-2 border-success bg-success/10 px-4 py-3"
+            entering={FadeInDown.duration(400)}
+            exiting={FadeOutUp.duration(200)}
+            layout={LinearTransition}
+          >
             <View className="mt-0.5 rounded-full bg-success p-1">
               <Check color="#ffffff" size={14} />
             </View>
@@ -163,7 +169,7 @@ export default function AppointmentsScreen() {
                 variant="secondary"
               />
             </View>
-          </View>
+          </Animated.View>
         ) : null}
 
         {filteredSessions.length === 0 ? (
@@ -195,7 +201,7 @@ export default function AppointmentsScreen() {
         ) : (
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <View className="gap-4 pb-4">
-              {paginatedSessions.map((session) => {
+              {paginatedSessions.map((session, index) => {
                 const startAt = new Date(session.startAt);
                 const endAt = new Date(session.endAt);
                 const dateLabel = startAt.toLocaleDateString("en-US", {
@@ -207,16 +213,25 @@ export default function AppointmentsScreen() {
                 const timeLabel = `${startAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${endAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
 
                 return (
-                  <Card className="gap-3" key={session.id}>
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-center gap-2">
-                        <User color={colors.foreground} size={16} />
-                        <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-wide">
-                          {session.doctor?.displayName ?? "Session"}
-                        </Text>
+                  <Animated.View
+                    entering={FadeInDown.duration(300).delay(index * 100)}
+                    key={session.id}
+                  >
+                    <Card className="gap-3">
+                      <View className="flex-row items-center justify-between">
+                        <Pressable
+                          className="flex-1 flex-row items-center gap-2"
+                          onPress={() =>
+                            router.push(`/doctors/${session.doctorId}`)
+                          }
+                        >
+                          <User color={colors.foreground} size={16} />
+                          <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-wide underline decoration-dotted underline-offset-2">
+                            {session.doctor?.displayName ?? "Session"}
+                          </Text>
+                        </Pressable>
+                        <StatusBadge status={session.status} />
                       </View>
-                      <StatusBadge status={session.status} />
-                    </View>
 
                     <View className="gap-2 rounded-xl border border-border/50 bg-muted/5 p-3">
                       <View className="flex-row items-center gap-2">
@@ -250,6 +265,7 @@ export default function AppointmentsScreen() {
                       status={session.status}
                     />
                   </Card>
+                  </Animated.View>
                 );
               })}
             </View>
@@ -263,39 +279,51 @@ export default function AppointmentsScreen() {
             icon={ChevronLeft}
             iconSize={18}
             onPress={() => setPage((current) => Math.max(1, current - 1))}
+            strokeWidth={2.5}
           />
           <IconButton
             disabled={!hasMore}
             icon={ChevronRight}
             iconSize={18}
             onPress={() => setPage((current) => current + 1)}
+            strokeWidth={2.5}
           />
         </View>
 
-        {[
-          { icon: List, label: "All", value: "all" },
-          { icon: Clock, label: "Requested", value: "requested" },
-          { icon: Check, label: "Approved", value: "approved" },
-          { icon: Calendar, label: "Attended", value: "attended" },
-        ].map(({ icon: Icon, label, value }) => {
-          const isActive = selectedFilter === value;
-          return (
-            <Pressable
-              accessibilityLabel={label}
-              className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 border-border ${isActive ? "bg-orange-500" : "bg-background"}`}
-              key={value}
-              onPress={() => toggleFilter(value)}
-            >
-              <Icon color={isActive ? "#ffffff" : "#f97316"} size={14} />
-              <Text
-                className={`hidden text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] sm:flex ${isActive ? "text-white" : "text-orange-500"}`}
-                numberOfLines={1}
+        <View className="flex-1 flex-row gap-1.5">
+          {[
+            { icon: List, label: "All", value: "all" },
+            { icon: Clock, label: "Requested", value: "requested" },
+            { icon: Check, label: "Approved", value: "approved" },
+            { icon: Calendar, label: "Attended", value: "attended" },
+          ].map(({ icon: Icon, label, value }) => {
+            const isActive = selectedFilter === value;
+            return (
+              <Pressable
+                accessibilityLabel={label}
+                accessibilityState={{ selected: isActive }}
+                className={`flex-1 items-center justify-center self-stretch rounded-control border-2 ${isActive ? "border-orange-500 bg-orange-500" : "border-border bg-background"}`}
+                key={value}
+                onPress={() => toggleFilter(value)}
+                style={({ pressed }) => [
+                  {
+                    opacity: pressed && !isActive ? 0.7 : 1,
+                    transform: pressed && !isActive ? [{ scale: 0.96 }] : [{ scale: 1 }],
+                  },
+                ]}
               >
-                {label}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Icon color={isActive ? "#ffffff" : "#f97316"} size={16} />
+                <Text
+                  className="text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em]"
+                  numberOfLines={1}
+                  style={{ color: isActive ? "#ffffff" : "#f97316" }}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <IconButton
           icon={ArrowLeft}
