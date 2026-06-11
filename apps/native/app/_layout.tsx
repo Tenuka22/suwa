@@ -12,6 +12,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ChatOverlay } from "@/components/chat/chat-overlay";
 import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
@@ -269,6 +270,7 @@ function LayoutContent() {
                 <Stack.Screen name="test" options={{ headerShown: false }} />
               </Stack>
               <OnboardingCheck />
+              <ChatOverlay />
             </GlobalErrorBoundary>
             <StatusBar style="auto" />
           </StripePaymentProvider>

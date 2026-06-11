@@ -4,6 +4,9 @@ interface FallbackEnv {
   CORS_ORIGIN: string;
   DB: D1Database;
   DOCTOR_MATERIALS_KV: KVNamespace;
+  DOCTOR_CHAT_KV: KVNamespace;
+  DOCTOR_EMBEDDINGS_KV: KVNamespace;
+  AI: Ai;
   LIVEKIT_API_KEY: string;
   LIVEKIT_API_SECRET: string;
   LIVEKIT_HOST: string;

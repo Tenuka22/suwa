@@ -287,9 +287,6 @@ export default function ProfileScreen() {
                   current secret. This happens if the secret was lost. Please
                   re-enter your information.
                 </Text>
-                <Button onPress={handleRecreateSecret} variant="secondary">
-                  Generate new secret & re-enter
-                </Button>
               </View>
             )}
 

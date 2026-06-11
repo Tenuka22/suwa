@@ -1,5 +1,6 @@
 import alchemy from "alchemy";
 import {
+  Ai,
   D1Database,
   KVNamespace,
   TanStackStart,
@@ -28,6 +29,8 @@ const db = await D1Database("primary-database", {
 
 const doctorMaterialsKv = await KVNamespace("doctor-materials");
 const modelFeaturesKv = await KVNamespace("model-features");
+const doctorChatKv = await KVNamespace("doctor-chat");
+const doctorEmbeddingsKv = await KVNamespace("doctor-embeddings");
 
 const redis = await UpstashRedis(
   process.env.NODE_ENV === "production" ? "prod-zen-doc" : "zen-doc-dev",
@@ -38,6 +41,8 @@ const redis = await UpstashRedis(
   }
 );
 
+const aiBinding = Ai();
+
 export const server = await Worker("server", {
   cwd: "../../apps/server",
   entrypoint: "src/index.ts",
@@ -46,6 +51,9 @@ export const server = await Worker("server", {
     DB: db,
     DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
+    DOCTOR_CHAT_KV: doctorChatKv,
+    DOCTOR_EMBEDDINGS_KV: doctorEmbeddingsKv,
+    AI: aiBinding,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     UPSTASH_REDIS_REST_URL: redis.endpoint,
     UPSTASH_REDIS_REST_TOKEN: redis.restToken,

@@ -14,6 +14,7 @@ import {
   FileTextIcon,
   HouseIcon,
   LayoutDashboardIcon,
+  MessageCircle,
   ShieldIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -89,6 +90,11 @@ export function AdminSidebar() {
               label: "Guardians",
               to: "/admin/guardians",
               search: { page: 1 },
+            },
+            {
+              icon: MessageCircle,
+              label: "AI Chat",
+              to: "/admin/chat",
             },
           ]}
           label="Secondary"

@@ -41,6 +41,9 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "@langchain/cloudflare": "^1.0.6",
+    "@langchain/core": "^1.1.48",
+    "@langchain/langgraph": "^1.4.1",
     "@zen-doc/env": "workspace:*",
     "dotenv": "catalog:",
     "react-day-picker": "^10.0.1",
