@@ -184,9 +184,7 @@ function AdminSessionPage() {
             />
 
             <div className="flex flex-wrap gap-2">
-              <p className="w-full text-muted-foreground text-xs">
-                Join as
-              </p>
+              <p className="w-full text-muted-foreground text-xs">Join as</p>
               {(["patient", "doctor", "admin"] as const).map((role) => (
                 <Button
                   key={role}

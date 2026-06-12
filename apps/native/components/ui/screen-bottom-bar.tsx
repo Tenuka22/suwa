@@ -55,7 +55,7 @@ export const ScreenBottomBar = ({
                 >
                   {({ pressed }) => (
                     <View
-                      className={`flex-1 items-center justify-center gap-1 px-2 h-14 py-3 ${isActive ? "bg-orange-500" : pressed ? "bg-orange-500/10" : "bg-background"}`}
+                      className={`h-14 flex-1 items-center justify-center gap-1 px-2 py-3 ${isActive ? "bg-orange-500" : pressed ? "bg-orange-500/10" : "bg-background"}`}
                     >
                       <Icon
                         color={isActive ? "#ffffff" : "#f97316"}

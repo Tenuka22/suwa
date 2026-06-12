@@ -913,7 +913,6 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         secondaryLabel={secondaryLabel}
       />
 
-
       {/* 2. DYNAMIC LIVE SIMULATOR / DASHBOARD PREVIEW */}
       <View className="gap-6">
         <SectionHeader

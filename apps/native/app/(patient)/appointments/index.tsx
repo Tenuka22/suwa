@@ -23,7 +23,11 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Animated, { FadeInDown, FadeOutUp, LinearTransition } from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  LinearTransition,
+} from "react-native-reanimated";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -238,38 +242,38 @@ export default function AppointmentsScreen() {
                         <StatusBadge status={session.status} />
                       </View>
 
-                    <View className="gap-2 rounded-xl border border-border/50 bg-muted/5 p-3">
-                      <View className="flex-row items-center gap-2">
-                        <Calendar color={colors.foreground} size={14} />
-                        <Text className="font-medium font-sans text-foreground text-sm">
-                          {dateLabel}
-                        </Text>
+                      <View className="gap-2 rounded-xl border border-border/50 bg-muted/5 p-3">
+                        <View className="flex-row items-center gap-2">
+                          <Calendar color={colors.foreground} size={14} />
+                          <Text className="font-medium font-sans text-foreground text-sm">
+                            {dateLabel}
+                          </Text>
+                        </View>
+                        <View className="flex-row items-center gap-2">
+                          <Clock color={colors.foreground} size={14} />
+                          <Text className="font-medium font-sans text-foreground text-sm">
+                            {timeLabel}
+                          </Text>
+                        </View>
                       </View>
-                      <View className="flex-row items-center gap-2">
-                        <Clock color={colors.foreground} size={14} />
-                        <Text className="font-medium font-sans text-foreground text-sm">
-                          {timeLabel}
-                        </Text>
-                      </View>
-                    </View>
 
-                    {session.plan ? (
-                      <View className="flex-row items-center justify-between rounded-xl border border-border/50 bg-card px-3 py-2">
-                        <Text className="font-bold font-sans text-foreground text-xs uppercase">
-                          {session.plan.name}
-                        </Text>
-                      </View>
-                    ) : null}
+                      {session.plan ? (
+                        <View className="flex-row items-center justify-between rounded-xl border border-border/50 bg-card px-3 py-2">
+                          <Text className="font-bold font-sans text-foreground text-xs uppercase">
+                            {session.plan.name}
+                          </Text>
+                        </View>
+                      ) : null}
 
-                    <SessionJoinButton
-                      endAt={session.endAt}
-                      onJoin={handleJoinSession}
-                      role={userRole}
-                      sessionId={session.id}
-                      startAt={session.startAt}
-                      status={session.status}
-                    />
-                  </Card>
+                      <SessionJoinButton
+                        endAt={session.endAt}
+                        onJoin={handleJoinSession}
+                        role={userRole}
+                        sessionId={session.id}
+                        startAt={session.startAt}
+                        status={session.status}
+                      />
+                    </Card>
                   </Animated.View>
                 );
               })}
@@ -307,13 +311,14 @@ export default function AppointmentsScreen() {
               <Pressable
                 accessibilityLabel={label}
                 accessibilityState={{ selected: isActive }}
-                className={`flex-1 items-center h-12 justify-center self-stretch rounded-control border-2 ${isActive ? "border-orange-500 bg-orange-500" : "border-border bg-background"}`}
+                className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 ${isActive ? "border-orange-500 bg-orange-500" : "border-border bg-background"}`}
                 key={value}
                 onPress={() => toggleFilter(value)}
                 style={({ pressed }) => [
                   {
                     opacity: pressed && !isActive ? 0.7 : 1,
-                    transform: pressed && !isActive ? [{ scale: 0.96 }] : [{ scale: 1 }],
+                    transform:
+                      pressed && !isActive ? [{ scale: 0.96 }] : [{ scale: 1 }],
                   },
                 ]}
               >

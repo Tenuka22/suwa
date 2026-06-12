@@ -29,9 +29,7 @@ const db = await D1Database("primary-database", {
 
 const doctorMaterialsKv = await KVNamespace("doctor-materials");
 const modelFeaturesKv = await KVNamespace("model-features");
-const chatHistoryKv = await KVNamespace("chat-history");
-const doctorEmbeddingsKv = await KVNamespace("doctor-embeddings");
-const chatUserCacheKv = await KVNamespace("chat-user-cache");
+
 
 const redis = await UpstashRedis(
   process.env.NODE_ENV === "production" ? "prod-zen-doc" : "zen-doc-dev",
@@ -42,7 +40,7 @@ const redis = await UpstashRedis(
   }
 );
 
-const aiBinding = Ai();
+const aiBinding = Ai({ binding: "AI" });
 
 export const server = await Worker("server", {
   cwd: "../../apps/server",
@@ -53,9 +51,6 @@ export const server = await Worker("server", {
     DB: db,
     DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
-    CHAT_HISTORY_KV: chatHistoryKv,
-    DOCTOR_EMBEDDINGS_KV: doctorEmbeddingsKv,
-    CHAT_USER_CACHE_KV: chatUserCacheKv,
     AI: aiBinding,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     UPSTASH_REDIS_REST_URL: redis.endpoint,

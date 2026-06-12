@@ -72,9 +72,7 @@ export const bookSessionRoute = protectedProcedure
       );
 
     if (overlappingDoctor.length > 0) {
-      throw new Error(
-        "The doctor is not available at this time"
-      );
+      throw new Error("The doctor is not available at this time");
     }
 
     const now = new Date().toISOString();

@@ -18,7 +18,6 @@ import {
 import { and, eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { indexDoctorProfile } from "../../../services/doctor-index";
 
 export const saveDoctorProfileRoute = protectedProcedure
   .input(doctorProfileInputSchema)
@@ -130,26 +129,6 @@ export const saveDoctorProfileRoute = protectedProcedure
         createdAt: now,
         updatedAt: now,
       });
-    }
-
-    try {
-      await indexDoctorProfile({
-        userId,
-        displayName: profile.displayName,
-        headline: profile.headline,
-        bio: profile.bio,
-        specialties: input.specialties ?? parseJsonStringArray(existingProfile?.specialties),
-        focusAreas: input.focusAreas ?? parseJsonStringArray(existingProfile?.focusAreas),
-        languages: input.languages ?? parseJsonStringArray(existingProfile?.languages),
-        consultationModes: input.consultationModes ?? parseJsonStringArray(existingProfile?.consultationModes),
-        location: profile.location,
-        experienceStartYear: profile.experienceStartYear,
-        approach: profile.approach,
-        approachSteps: input.approachSteps ?? parseJsonApproachSteps(existingProfile?.approachSteps),
-        education: profile.education,
-      });
-    } catch {
-      // Indexing failure should not block profile save
     }
 
     return { ok: true, role: nextRole, profile };
