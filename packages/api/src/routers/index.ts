@@ -5,6 +5,7 @@ import { bookingRouter } from "./booking";
 import { chatHttpRouter, chatWsRouter } from "./chat";
 import { doctorRouter } from "./doctor";
 import { doctorFilesRouter } from "./doctor-files";
+import { doctorMaterialsRouter } from "./doctor-materials";
 import { gamificationRouter } from "./gamification";
 import { guardianRouter } from "./guardian";
 import { liveKitRouter } from "./livekit";
@@ -17,6 +18,7 @@ export const appRouter = {
   ...publicRouter,
   ...doctorRouter,
   ...doctorFilesRouter,
+  ...doctorMaterialsRouter,
   ...adminRouter,
   ...bookingRouter,
   ...liveKitRouter,
