@@ -334,6 +334,35 @@ export const moonlightCreditTransactions = sqliteTable(
   }
 );
 
+export const doctorHubMaterials = sqliteTable("doctor_hub_materials", {
+  id: text("id").primaryKey(),
+  doctorId: text("doctor_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  content: text("content"), // Rich text (normal text area for now)
+  fileKey: text("file_key"),
+  fileType: text("file_type", { enum: ["video", "audio"] }).notNull(),
+  tags: text("tags"), // JSON array of enums
+  metadata: text("metadata"), // JSON object
+  playlistId: text("playlist_id"),
+  isIndividual: integer("is_individual", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const doctorPlaylists = sqliteTable("doctor_playlists", {
+  id: text("id").primaryKey(),
+  doctorId: text("doctor_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export type DoctorMaterial = typeof doctorHubMaterials.$inferSelect;
+export type DoctorPlaylist = typeof doctorPlaylists.$inferSelect;
 export type DoctorProfile = typeof doctorProfiles.$inferSelect;
 export type DoctorSession = typeof doctorSessions.$inferSelect;
 export type DoctorFile = typeof doctorFiles.$inferSelect;
