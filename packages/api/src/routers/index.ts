@@ -2,6 +2,7 @@ import type { RouterClient } from "@orpc/server";
 
 import { adminRouter } from "./admin";
 import { bookingRouter } from "./booking";
+import { chatRouter } from "./chat";
 import { doctorRouter } from "./doctor";
 import { doctorFilesRouter } from "./doctor-files";
 import { gamificationRouter } from "./gamification";
@@ -26,5 +27,12 @@ export const appRouter = {
   ...stressHubRouter,
 };
 
+export const wsAppRouter = {
+  ...chatRouter,
+};
+
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
+
+export type WSAppRouter = typeof wsAppRouter;
+export type WSAppRouterClient = RouterClient<typeof wsAppRouter>;

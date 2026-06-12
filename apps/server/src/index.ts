@@ -2,11 +2,13 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
+import { RPCHandler as WebSocketRPCHandler } from "@orpc/server/websocket";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createContext } from "@zen-doc/api/context";
-import { appRouter } from "@zen-doc/api/routers/index";
+import { appRouter, wsAppRouter } from "@zen-doc/api/routers/index";
 import { env } from "@zen-doc/env/server";
 import { Hono } from "hono";
+import { upgradeWebSocket } from "hono/cloudflare-workers";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import webhookApp from "./webhooks";
@@ -47,7 +49,35 @@ export const rpcHandler = new RPCHandler(appRouter, {
   ],
 });
 
+export const wsRpcHandler = new WebSocketRPCHandler(wsAppRouter, {
+  interceptors: [
+    onError((error) => {
+      console.error("WebSocket Error:", error);
+    }),
+  ],
+});
+
 app.route("/", webhookApp);
+
+app.get(
+  "/rpc-ws",
+  upgradeWebSocket(async (c) => {
+    const context = await createContext({ context: c });
+
+    return {
+      onMessage(event, ws) {
+        if (ws.raw) {
+          wsRpcHandler.message(ws.raw, event.data, { context });
+        }
+      },
+      onClose(_event, ws) {
+        if (ws.raw) {
+          wsRpcHandler.close(ws.raw);
+        }
+      },
+    };
+  })
+);
 
 app.use("/*", async (c, next) => {
   const context = await createContext({ context: c });
