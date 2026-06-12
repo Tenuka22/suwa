@@ -29,6 +29,7 @@ const db = await D1Database("primary-database", {
 
 const doctorMaterialsKv = await KVNamespace("doctor-materials");
 const modelFeaturesKv = await KVNamespace("model-features");
+const chatMessagesKv = await KVNamespace("chat-messages");
 
 
 const redis = await UpstashRedis(
@@ -49,6 +50,7 @@ export const server = await Worker("server", {
   compatibilityFlags: ["no_handle_cross_request_promise_resolution"],
   bindings: {
     DB: db,
+    CHAT_MESSAGES_KV: chatMessagesKv,
     DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
     AI: aiBinding,

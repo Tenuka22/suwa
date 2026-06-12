@@ -369,3 +369,5 @@ export type {
   StressPrediction,
 } from "./stress-predictions";
 export { stressPredictions } from "./stress-predictions";
+export type { Conversation, Message, NewConversation, NewMessage } from "./chats";
+export { conversations, messages } from "./chats";

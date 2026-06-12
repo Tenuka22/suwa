@@ -1,7 +1,66 @@
 import { z } from "zod";
 import { protectedProcedure } from "../../index";
+import { conversations } from "@zen-doc/db";
+import { eq, desc } from "drizzle-orm";
 
-export const chatRouter = {
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp: string;
+}
+
+export const chatHttpRouter = {
+  getConversations: protectedProcedure
+    .input(z.object({}))
+    .handler(async ({ context }) => {
+      const userId = context.auth!.userId;
+      const results = await context.db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.userId, userId))
+        .orderBy(desc(conversations.updatedAt));
+      return results;
+    }),
+
+  getMessages: protectedProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        cursor: z.number().optional(), // index offset
+        limit: z.number().min(1).max(100).default(20),
+      })
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.auth!.userId;
+      
+      const [conversation] = await context.db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, input.conversationId))
+        .limit(1);
+
+      if (!conversation || conversation.userId !== userId) {
+        throw new Error("Conversation not found or access denied");
+      }
+
+      const key = `chat:${input.conversationId}:messages`;
+      const messagesRaw = await context.chatMessagesKv.get(key);
+      const allMessages: ChatMessage[] = messagesRaw ? JSON.parse(messagesRaw) : [];
+
+      const reversed = [...allMessages].reverse();
+      const start = input.cursor ?? 0;
+      const end = start + input.limit;
+      const items = reversed.slice(start, end);
+      
+      const nextCursor = end < reversed.length ? end : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
   sendMessage: protectedProcedure
     .input(
       z.object({
@@ -9,14 +68,58 @@ export const chatRouter = {
         conversationId: z.string().optional(),
       })
     )
-    .handler(async ({ context, input }) => ({
-      id: crypto.randomUUID(),
-      message: input.message,
-      userId: context.auth!.userId,
-      conversationId: input.conversationId || crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-    })),
+    .handler(async ({ context, input }) => {
+      const userId = context.auth!.userId;
+      let conversationId = input.conversationId;
 
+      if (!conversationId) {
+        conversationId = crypto.randomUUID();
+        await context.db.insert(conversations).values({
+          id: conversationId,
+          userId,
+          title: input.message.slice(0, 50),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        const [conversation] = await context.db
+          .select()
+          .from(conversations)
+          .where(eq(conversations.id, conversationId))
+          .limit(1);
+
+        if (!conversation || conversation.userId !== userId) {
+          throw new Error("Conversation not found or access denied");
+        }
+
+        await context.db
+          .update(conversations)
+          .set({ updatedAt: new Date().toISOString() })
+          .where(eq(conversations.id, conversationId));
+      }
+
+      const key = `chat:${conversationId}:messages`;
+      const messagesRaw = await context.chatMessagesKv.get(key);
+      const allMessages: ChatMessage[] = messagesRaw ? JSON.parse(messagesRaw) : [];
+
+      const newMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: input.message,
+        timestamp: new Date().toISOString(),
+      };
+
+      allMessages.push(newMessage);
+      await context.chatMessagesKv.put(key, JSON.stringify(allMessages));
+
+      return {
+        message: newMessage,
+        conversationId,
+      };
+    }),
+};
+
+export const chatWsRouter = {
   subscribeMessages: protectedProcedure
     .input(
       z.object({
@@ -24,33 +127,7 @@ export const chatRouter = {
       })
     )
     .handler(async function* ({ context, input, signal }) {
-      const userId = context.auth!.userId;
-
-      yield {
-        type: "connected" as const,
-        conversationId: input.conversationId,
-        userId,
-      };
-
-      let count = 0;
-      while (!signal?.aborted) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-
-        if (signal?.aborted) {
-          break;
-        }
-
-        yield {
-          type: "heartbeat" as const,
-          conversationId: input.conversationId,
-          timestamp: new Date().toISOString(),
-          count: ++count,
-        };
-      }
-
-      yield {
-        type: "disconnected" as const,
-        conversationId: input.conversationId,
-      };
+      // WS placeholder for now
+      yield { type: "connected", conversationId: input.conversationId };
     }),
 };

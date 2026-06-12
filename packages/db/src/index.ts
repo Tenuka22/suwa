@@ -47,6 +47,8 @@ import {
   userSubscriptions as userSubscriptionsTable,
   type WellnessAction as WellnessActionSchema,
   wellnessActions as wellnessActionsTable,
+  conversations as conversationsTable,
+  messages as messagesTable,
 } from "./schema";
 
 export {
@@ -83,6 +85,8 @@ export const moonlightCredits = moonlightCreditsTable;
 export const moonlightCreditTransactions = moonlightCreditTransactionsTable;
 export const stressPredictions = stressPredictionsTable;
 export const stressDownloadAcknowledgments = stressDownloadAcknowledgmentsTable;
+export const conversations = conversationsTable;
+export const messages = messagesTable;
 
 export type DoctorProfile = DoctorProfileSchema;
 export type DoctorFile = DoctorFileSchema;
@@ -132,6 +136,8 @@ export function createDb() {
       moonlightCreditTransactions,
       stressPredictions,
       stressDownloadAcknowledgments,
+      conversations,
+      messages,
     },
   });
 }
