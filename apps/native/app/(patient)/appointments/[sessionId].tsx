@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react-native";
 import { ActivityIndicator, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
-import { VideoRoom } from "@/components/ui/video-room";
+import { VideoRoom } from "@/components/ui/video-room.native";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";

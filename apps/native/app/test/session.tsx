@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
-import { VideoRoom } from "@/components/ui/video-room";
+import { VideoRoom } from "@/components/ui/video-room.native";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
