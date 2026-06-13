@@ -14,6 +14,7 @@ import {
   DollarSignIcon,
   HouseIcon,
   LayoutDashboardIcon,
+  PlayCircleIcon,
   TagsIcon,
   UserIcon,
 } from "lucide-react";
@@ -48,6 +49,11 @@ export function DoctorSidebar() {
         <SidebarNavSection
           items={[
             { icon: LayoutDashboardIcon, label: "Dashboard", to: "/doctor" },
+            {
+              icon: PlayCircleIcon,
+              label: "Hub",
+              to: "/doctor/hub",
+            },
             {
               icon: CalendarCheckIcon,
               label: "Sessions",
