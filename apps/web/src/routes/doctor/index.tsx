@@ -4,36 +4,34 @@ import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import { Card, CardContent, CardHeader } from "@zen-doc/ui/components/card";
 import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@zen-doc/ui/components/chart";
 import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import { Separator } from "@zen-doc/ui/components/separator";
 import { format } from "date-fns";
 import {
-	ArrowRightIcon,
-	CalendarClockIcon,
-	CalendarDaysIcon,
-	Clock3Icon,
-	DollarSignIcon,
-	InboxIcon,
-	SparklesIcon,
-	TrendingUpIcon,
+  ArrowRightIcon,
+  CalendarClockIcon,
+  CalendarDaysIcon,
+  Clock3Icon,
+  DollarSignIcon,
+  InboxIcon,
+  SparklesIcon,
+  TrendingUpIcon,
 } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import {
-	MetricCard,
-	SectionHeader,
-} from "@/components/dashboard-metrics";
+import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { SessionStatusBadge } from "@/components/session-status-badge";
+import { DoctorHospitalAffiliations } from "@/components/tenant/doctor-hospital-affiliations";
 import { orpc } from "@/utils/orpc";
 
 interface SessionItem {
@@ -45,28 +43,24 @@ interface SessionItem {
   status: string;
 }
 
-function PendingRequests({
-  sessions,
-}: {
-  sessions: SessionItem[];
-}) {
+function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
   const pendingSessions = sessions.filter(
     (session) =>
       session.status === "requested" || session.status === "rescheduled"
   );
 
-	if (!sessions) {
-		return (
-			<div className="flex flex-col gap-3">
-				{Array.from({ length: 3 }).map((_, index) => (
-					<div
-						className="h-24 animate-pulse rounded-2xl bg-muted"
-						key={index.toString()}
-					/>
-				))}
-			</div>
-		);
-	}
+  if (!sessions) {
+    return (
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            className="h-24 animate-pulse rounded-2xl bg-muted"
+            key={index.toString()}
+          />
+        ))}
+      </div>
+    );
+  }
 
   if (pendingSessions.length === 0) {
     return (
@@ -126,30 +120,32 @@ function PendingRequests({
 }
 
 export const Route = createFileRoute("/doctor/")({
-	loaderDeps: () => ({}),
-	loader: async ({ context }) => {
-		const [stats, sessions] = await Promise.all([
-			context.queryClient.ensureQueryData(orpc.doctorStats.queryOptions()),
-			context.queryClient.ensureQueryData(orpc.listDoctorSessions.queryOptions()),
-		]);
-		return { stats, sessions };
-	},
-	component: DoctorDashboardRoute,
+  loaderDeps: () => ({}),
+  loader: async ({ context }) => {
+    const [stats, sessions] = await Promise.all([
+      context.queryClient.ensureQueryData(orpc.doctorStats.queryOptions()),
+      context.queryClient.ensureQueryData(
+        orpc.listDoctorSessions.queryOptions()
+      ),
+    ]);
+    return { stats, sessions };
+  },
+  component: DoctorDashboardRoute,
 });
 
 function DoctorDashboardRoute() {
-	const { session } = Route.useRouteContext();
-	const { stats, sessions: sessionsData } = Route.useLoaderData();
-	const sessions = (sessionsData?.sessions as SessionItem[]) ?? [];
+  const { session } = Route.useRouteContext();
+  const { stats, sessions: sessionsData } = Route.useLoaderData();
+  const sessions = (sessionsData?.sessions as SessionItem[]) ?? [];
 
-	const name = session?.name ?? session?.email ?? "Doctor";
+  const name = session?.name ?? session?.email ?? "Doctor";
 
-	const initials = name
-		.split(" ")
-		.map((part) => part[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   const pendingSessions = sessions.filter(
     (session) =>
@@ -351,10 +347,7 @@ function DoctorDashboardRoute() {
           <Separator />
 
           <CardContent className="size-full">
-          <PendingRequests
-            sessions={sessions}
-          />
-
+            <PendingRequests sessions={sessions} />
           </CardContent>
         </Card>
       </div>
@@ -450,6 +443,9 @@ function DoctorDashboardRoute() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Hospital Affiliations Section */}
+      <DoctorHospitalAffiliations />
     </div>
   );
 }

@@ -4,8 +4,9 @@ import {
   doctorProfiles,
   parseJsonApproachSteps,
   parseJsonStringArray,
+  tenantAdmins,
 } from "@zen-doc/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import type { Context } from "./context";
 
@@ -187,4 +188,84 @@ export function paginateItems<T>(
     firstItem: pagedItems[0] ?? null,
     lastItem: pagedItems.at(-1) ?? null,
   };
+}
+
+export async function requireTenantAdmin(
+  context: AuthContext & DbOnly,
+  tenantId: string
+): Promise<WithAuth> {
+  const auth = requireAuth(context);
+
+  // Platform admins can manage any tenant
+  if (auth.auth.sessionClaims?.metadata?.role === "admin") {
+    return auth;
+  }
+
+  const [adminRecord] = await context.db
+    .select()
+    .from(tenantAdmins)
+    .where(
+      and(
+        eq(tenantAdmins.tenantId, tenantId),
+        eq(tenantAdmins.userId, auth.userId)
+      )
+    )
+    .limit(1);
+
+  if (!adminRecord) {
+    throw new ORPCError("FORBIDDEN", {
+      message: "Tenant admin access required",
+    });
+  }
+
+  return auth;
+}
+
+export async function requireTenantAdminOrDoctor(
+  context: AuthContext & DbOnly,
+  tenantId: string
+): Promise<WithAuth> {
+  const auth = requireAuth(context);
+
+  // Platform admins can access any tenant
+  if (auth.auth.sessionClaims?.metadata?.role === "admin") {
+    return auth;
+  }
+
+  // Check if tenant admin
+  const [adminRecord] = await context.db
+    .select()
+    .from(tenantAdmins)
+    .where(
+      and(
+        eq(tenantAdmins.tenantId, tenantId),
+        eq(tenantAdmins.userId, auth.userId)
+      )
+    )
+    .limit(1);
+
+  if (adminRecord) {
+    return auth;
+  }
+
+  // Check if affiliated doctor
+  const { doctorHospitalAffiliations } = await import("@zen-doc/db");
+  const [affiliation] = await context.db
+    .select()
+    .from(doctorHospitalAffiliations)
+    .where(
+      and(
+        eq(doctorHospitalAffiliations.tenantId, tenantId),
+        eq(doctorHospitalAffiliations.doctorId, auth.userId)
+      )
+    )
+    .limit(1);
+
+  if (affiliation) {
+    return auth;
+  }
+
+  throw new ORPCError("FORBIDDEN", {
+    message: "Tenant admin or affiliated doctor access required",
+  });
 }

@@ -1,4 +1,9 @@
-import { doctorSessions, doctorWeeklyAvailability } from "@zen-doc/db";
+import {
+  doctorHospitalAffiliations,
+  doctorSessions,
+  doctorWeeklyAvailability,
+  hospitalAvailabilityOverrides,
+} from "@zen-doc/db";
 import { and, eq, gte, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure } from "../../../index";
@@ -65,6 +70,69 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
       end: new Date(s.endAt).getTime(),
     }));
 
+    // Fetch hospital-blocked windows from affiliations
+    const affiliations = await context.db
+      .select()
+      .from(doctorHospitalAffiliations)
+      .where(
+        and(
+          eq(doctorHospitalAffiliations.doctorId, input.doctorId),
+          eq(doctorHospitalAffiliations.status, "ACTIVE")
+        )
+      );
+
+    const hospitalBlockedRanges: Array<{
+      start: number;
+      end: number;
+      label: string;
+    }> = [];
+
+    // Add recurring affiliation windows
+    for (const aff of affiliations) {
+      if (!aff.availabilityWindows) continue;
+      const windows = JSON.parse(aff.availabilityWindows) as Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+      }>;
+
+      // Expand recurring windows across the date range
+      const dateCursor = new Date(fromDate);
+      while (dateCursor < toDate) {
+        const dayOfWeek = dateCursor.getDay();
+        for (const w of windows) {
+          if (w.dayOfWeek === dayOfWeek) {
+            const startMin = timeToMinutes(w.startTime);
+            const endMin = timeToMinutes(w.endTime);
+            hospitalBlockedRanges.push({
+              start: minutesToDate(dateCursor, startMin).getTime(),
+              end: minutesToDate(dateCursor, endMin).getTime(),
+              label: "Hospital Duty",
+            });
+          }
+        }
+        dateCursor.setDate(dateCursor.getDate() + 1);
+      }
+    }
+
+    // Add one-off overrides
+    const overrides = await context.db
+      .select()
+      .from(hospitalAvailabilityOverrides)
+      .where(eq(hospitalAvailabilityOverrides.doctorId, input.doctorId));
+
+    for (const o of overrides) {
+      const oStart = new Date(o.startAt).getTime();
+      const oEnd = new Date(o.endAt).getTime();
+      if (oEnd >= fromDate.getTime() && oStart <= toDate.getTime()) {
+        hospitalBlockedRanges.push({
+          start: oStart,
+          end: oEnd,
+          label: "Hospital Duty (override)",
+        });
+      }
+    }
+
     const slots: Array<{
       startAt: string;
       endAt: string;
@@ -101,10 +169,14 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
             (b) => cursorTime < b.end && slotEndTime > b.start
           );
 
+          const isHospitalBlocked = hospitalBlockedRanges.some(
+            (h) => cursorTime < h.end && slotEndTime > h.start
+          );
+
           slots.push({
             startAt: cursor.toISOString(),
             endAt: slotEnd.toISOString(),
-            available: !hasOverlap,
+            available: !hasOverlap && !isHospitalBlocked,
           });
 
           cursor = slotEnd;

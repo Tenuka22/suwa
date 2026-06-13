@@ -3,7 +3,6 @@ import {
   createFileRoute,
   Link,
   Outlet,
-  redirect,
   useMatches,
 } from "@tanstack/react-router";
 import {
@@ -27,36 +26,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@zen-doc/ui/components/sidebar";
-import { StethoscopeIcon } from "lucide-react";
+import { BuildingIcon } from "lucide-react";
 
-import { DoctorSidebar } from "@/components/doctor-sidebar";
+import { TenantSidebar } from "@/components/tenant-sidebar";
 import { getServerSession } from "@/utils/clerk-auth";
-import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/doctor")({
-  beforeLoad: async ({ context, location }) => {
+export const Route = createFileRoute("/tenant")({
+  beforeLoad: async () => {
     const session = await getServerSession();
-
-    if (!session) {
-      return { session: null };
-    }
-
-    if (location.pathname === "/doctor/profile") {
-      return { session };
-    }
-
-    const data = await context.queryClient.ensureQueryData(
-      orpc.doctorProfile.queryOptions()
-    );
-
-    if (!data?.profile) {
-      throw redirect({ to: "/doctor/profile" });
-    }
-
     return { session };
   },
   loader: ({ context }) => ({ session: context.session }),
-  component: DoctorLayoutRoute,
+  component: TenantLayoutRoute,
 });
 
 function Breadcrumbs() {
@@ -70,7 +51,6 @@ function Breadcrumbs() {
         const href = `/${segments.slice(0, index + 1).join("/")}`;
         const isLast = index === segments.length - 1;
         const label = segment.charAt(0).toUpperCase() + segment.slice(1);
-
         return { href, label, isLast };
       });
     })
@@ -103,7 +83,7 @@ function Breadcrumbs() {
   );
 }
 
-function DoctorLayoutRoute() {
+function TenantLayoutRoute() {
   const { session } = Route.useLoaderData();
 
   if (!session) {
@@ -112,12 +92,12 @@ function DoctorLayoutRoute() {
         <Card className="w-full max-w-md rounded-3xl">
           <CardHeader className="items-center text-center">
             <div className="rounded-2xl border bg-muted/40 p-4">
-              <StethoscopeIcon className="size-6" />
+              <BuildingIcon className="size-6" />
             </div>
             <div className="space-y-2">
               <CardTitle>Sign in required</CardTitle>
               <CardDescription>
-                Access your doctor dashboard after signing in.
+                Access the hospital portal after signing in.
               </CardDescription>
             </div>
           </CardHeader>
@@ -131,7 +111,7 @@ function DoctorLayoutRoute() {
 
   return (
     <SidebarProvider>
-      <DoctorSidebar />
+      <TenantSidebar />
       <SidebarInset>
         <div className="flex min-h-svh flex-col">
           <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 px-4 py-2 backdrop-blur-md supports-backdrop-filter:bg-background/60">

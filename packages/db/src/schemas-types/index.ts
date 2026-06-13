@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export * from "./doctor-materials";
+export * from "./tenants";
 
 import {
   doctorConsultationModeValues,

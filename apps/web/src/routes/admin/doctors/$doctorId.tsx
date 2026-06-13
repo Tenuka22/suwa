@@ -46,22 +46,24 @@ import {
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/admin/doctors/$doctorId")({
-	loader: async ({ context, params }) => {
-		const input = { doctorId: params.doctorId };
-		return context.queryClient.ensureQueryData(orpc.getDoctor.queryOptions({ input }));
-	},
-	component: AdminDoctorDetailRoute,
+  loader: async ({ context, params }) => {
+    const input = { doctorId: params.doctorId };
+    return context.queryClient.ensureQueryData(
+      orpc.getDoctor.queryOptions({ input })
+    );
+  },
+  component: AdminDoctorDetailRoute,
 });
 
 function AdminDoctorDetailRoute() {
-	const user = useUser();
-	const router = useRouter();
-	const params = Route.useParams();
-	const data = Route.useLoaderData();
-	const doctorId = params.doctorId;
+  const user = useUser();
+  const router = useRouter();
+  const params = Route.useParams();
+  const data = Route.useLoaderData();
+  const doctorId = params.doctorId;
 
-	const profile = data?.profile;
-	const files = data?.files ?? [];
+  const profile = data?.profile;
+  const files = data?.files ?? [];
 
   const displayName =
     profile?.displayName ?? profile?.licenseNumber ?? "Doctor";

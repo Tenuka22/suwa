@@ -467,3 +467,34 @@ export type {
   StressPrediction,
 } from "./stress-predictions";
 export { stressPredictions } from "./stress-predictions";
+export {
+  tenants,
+  tenantAdmins,
+  doctorHospitalAffiliations,
+  hospitalAttendanceEvents,
+  clinics,
+  clinicAttendance,
+  doctorHospitalInvitations,
+  hospitalAvailabilityOverrides,
+  tenantAuditLogs,
+  tenantNotifications,
+  tenantTypeValues,
+  tenantStatusValues,
+  hospitalServiceValues,
+  affiliationStatusValues,
+  attendanceEventTypeValues,
+  invitationStatusValues,
+  notificationTypeValues,
+} from "./tenants";
+export type {
+  Tenant,
+  TenantAdmin,
+  DoctorHospitalAffiliation,
+  HospitalAttendanceEvent,
+  Clinic,
+  ClinicAttendance as ClinicAttendanceRecord,
+  DoctorHospitalInvitation,
+  HospitalAvailabilityOverride,
+  TenantAuditLog,
+  TenantNotification,
+} from "./tenants";

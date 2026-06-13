@@ -1,12 +1,12 @@
+import { conversations } from "@zen-doc/db";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure } from "../../index";
-import { conversations } from "@zen-doc/db";
-import { eq, desc } from "drizzle-orm";
 
 export interface ChatMessage {
+  content: string;
   id: string;
   role: "user" | "assistant" | "system";
-  content: string;
   timestamp: string;
 }
 
@@ -33,7 +33,7 @@ export const chatHttpRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.auth!.userId;
-      
+
       const [conversation] = await context.db
         .select()
         .from(conversations)
@@ -46,13 +46,15 @@ export const chatHttpRouter = {
 
       const key = `chat:${input.conversationId}:messages`;
       const messagesRaw = await context.chatMessagesKv.get(key);
-      const allMessages: ChatMessage[] = messagesRaw ? JSON.parse(messagesRaw) : [];
+      const allMessages: ChatMessage[] = messagesRaw
+        ? JSON.parse(messagesRaw)
+        : [];
 
       const reversed = [...allMessages].reverse();
       const start = input.cursor ?? 0;
       const end = start + input.limit;
       const items = reversed.slice(start, end);
-      
+
       const nextCursor = end < reversed.length ? end : null;
 
       return {
@@ -72,16 +74,7 @@ export const chatHttpRouter = {
       const userId = context.auth!.userId;
       let conversationId = input.conversationId;
 
-      if (!conversationId) {
-        conversationId = crypto.randomUUID();
-        await context.db.insert(conversations).values({
-          id: conversationId,
-          userId,
-          title: input.message.slice(0, 50),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-      } else {
+      if (conversationId) {
         const [conversation] = await context.db
           .select()
           .from(conversations)
@@ -96,11 +89,22 @@ export const chatHttpRouter = {
           .update(conversations)
           .set({ updatedAt: new Date().toISOString() })
           .where(eq(conversations.id, conversationId));
+      } else {
+        conversationId = crypto.randomUUID();
+        await context.db.insert(conversations).values({
+          id: conversationId,
+          userId,
+          title: input.message.slice(0, 50),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
       }
 
       const key = `chat:${conversationId}:messages`;
       const messagesRaw = await context.chatMessagesKv.get(key);
-      const allMessages: ChatMessage[] = messagesRaw ? JSON.parse(messagesRaw) : [];
+      const allMessages: ChatMessage[] = messagesRaw
+        ? JSON.parse(messagesRaw)
+        : [];
 
       const newMessage: ChatMessage = {
         id: crypto.randomUUID(),

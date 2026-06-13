@@ -1,0 +1,105 @@
+"use client";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+  useSidebar,
+} from "@zen-doc/ui/components/sidebar";
+import {
+  BuildingIcon,
+  CalendarCheckIcon,
+  ChartBarIcon,
+  HouseIcon,
+  LayoutDashboardIcon,
+  StethoscopeIcon,
+  UserPlusIcon,
+  UsersIcon,
+} from "lucide-react";
+import { useParams } from "@tanstack/react-router";
+
+import { SidebarNavSection } from "@/components/sidebar-nav-section";
+import { SidebarUserFooter } from "@/components/sidebar-user-footer";
+
+export function TenantSidebar() {
+  const { state } = useSidebar();
+  const { tenantId } = useParams({ strict: false }) as { tenantId?: string };
+  const base = tenantId ? `/tenant/${tenantId}` : "/tenant";
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        {state === "collapsed" ? (
+          <div className="flex items-center justify-center py-1">
+            <BuildingIcon className="size-4 text-primary" />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1 px-2 py-1">
+            <span className="font-semibold text-sm">Hospital Portal</span>
+            <span className="text-muted-foreground text-xs">ZenDoc</span>
+          </div>
+        )}
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarNavSection
+          items={[{ icon: HouseIcon, label: "Home", to: "/" }]}
+          label="Main"
+        />
+        {tenantId ? (
+          <SidebarNavSection
+            items={[
+              {
+                icon: LayoutDashboardIcon,
+                label: "Dashboard",
+                to: `${base}/`,
+              },
+              {
+                icon: UsersIcon,
+                label: "Doctors",
+                to: `${base}/doctors`,
+              },
+              {
+                icon: CalendarCheckIcon,
+                label: "Attendance",
+                to: `${base}/attendance`,
+              },
+              {
+                icon: StethoscopeIcon,
+                label: "Clinics",
+                to: `${base}/clinics`,
+              },
+              {
+                icon: UserPlusIcon,
+                label: "Invite Doctor",
+                to: `${base}/invite`,
+              },
+              {
+                icon: ChartBarIcon,
+                label: "Settings",
+                to: `${base}/settings`,
+              },
+            ]}
+            label="Hospital"
+          />
+        ) : (
+          <SidebarNavSection
+            items={[
+              {
+                icon: BuildingIcon,
+                label: "My Hospitals",
+                to: "/tenant",
+              },
+            ]}
+            label="Tenant"
+          />
+        )}
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarUserFooter />
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
+  );
+}

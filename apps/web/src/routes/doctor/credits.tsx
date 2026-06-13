@@ -4,40 +4,40 @@ import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import { Card, CardContent, CardHeader } from "@zen-doc/ui/components/card";
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@zen-doc/ui/components/dialog";
 import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
 } from "@zen-doc/ui/components/input-group";
 import { Label } from "@zen-doc/ui/components/label";
 import { Separator } from "@zen-doc/ui/components/separator";
 import { format } from "date-fns";
 import {
-	ArrowUpCircle,
-	BanknoteIcon,
-	CheckCircle2,
-	Clock,
-	DollarSignIcon,
-	History,
-	Info,
-	Loader2,
-	Wallet,
-	XCircle,
+  ArrowUpCircle,
+  BanknoteIcon,
+  CheckCircle2,
+  Clock,
+  DollarSignIcon,
+  History,
+  Info,
+  Loader2,
+  Wallet,
+  XCircle,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -46,73 +46,73 @@ import { notify } from "@/lib/notify";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor/credits")({
-	loader: async ({ context }) => {
-		const [credits, connectStatus] = await Promise.all([
-			context.queryClient.ensureQueryData(orpc.getDoctorCredits.queryOptions()),
-			context.queryClient.ensureQueryData(
-				orpc.getConnectAccountStatus.queryOptions(),
-			),
-		]);
-		return { credits, connectStatus };
-	},
-	component: DoctorCreditsRoute,
+  loader: async ({ context }) => {
+    const [credits, connectStatus] = await Promise.all([
+      context.queryClient.ensureQueryData(orpc.getDoctorCredits.queryOptions()),
+      context.queryClient.ensureQueryData(
+        orpc.getConnectAccountStatus.queryOptions()
+      ),
+    ]);
+    return { credits, connectStatus };
+  },
+  component: DoctorCreditsRoute,
 });
 
 function DoctorCreditsRoute() {
-	const { credits, connectStatus } = Route.useLoaderData();
-	const [showCashout, setShowCashout] = useState(false);
-	const [cashoutCents, setCashoutCents] = useState("");
+  const { credits, connectStatus } = Route.useLoaderData();
+  const [showCashout, setShowCashout] = useState(false);
+  const [cashoutCents, setCashoutCents] = useState("");
 
-	const queryClient = useQueryClient();
-	const creditsQuery = {
-		refetch: () =>
-			queryClient.invalidateQueries({
-				queryKey: orpc.getDoctorCredits.queryKey(),
-			}),
-	};
+  const queryClient = useQueryClient();
+  const creditsQuery = {
+    refetch: () =>
+      queryClient.invalidateQueries({
+        queryKey: orpc.getDoctorCredits.queryKey(),
+      }),
+  };
 
-	const cashoutMutation = useMutation(
-		orpc.requestCashout.mutationOptions({
-			onSuccess: async () => {
-				notify.success("Cashout initiated successfully");
-				setShowCashout(false);
-				setCashoutCents("");
-				await creditsQuery.refetch();
-			},
-			onError: (error: Error) => {
-				notify.error(error instanceof Error ? error.message : "Cashout failed");
-			},
-		}),
-	);
+  const cashoutMutation = useMutation(
+    orpc.requestCashout.mutationOptions({
+      onSuccess: async () => {
+        notify.success("Cashout initiated successfully");
+        setShowCashout(false);
+        setCashoutCents("");
+        await creditsQuery.refetch();
+      },
+      onError: (error: Error) => {
+        notify.error(error instanceof Error ? error.message : "Cashout failed");
+      },
+    })
+  );
 
-	const stripeConnected = connectStatus?.stripeAccountEnabled;
+  const stripeConnected = connectStatus?.stripeAccountEnabled;
 
-	const createConnectLinkMutation = useMutation(
-		orpc.createConnectAccountLink.mutationOptions({
-			onSuccess: (data) => {
-				window.open(data.url, "_blank");
-			},
-			onError: (error: Error) => {
-				notify.error(
-					error instanceof Error
-						? error.message
-						: "Failed to create Stripe link",
-				);
-			},
-		}),
-	);
+  const createConnectLinkMutation = useMutation(
+    orpc.createConnectAccountLink.mutationOptions({
+      onSuccess: (data) => {
+        window.open(data.url, "_blank");
+      },
+      onError: (error: Error) => {
+        notify.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to create Stripe link"
+        );
+      },
+    })
+  );
 
-	const creditsData = credits?.credits;
-	const cashoutRequests = (credits?.cashoutRequests ?? []) as Array<{
-		amountCents: number;
-		createdAt: string;
-		id: string;
-		status: string;
-	}>;
+  const creditsData = credits?.credits;
+  const cashoutRequests = (credits?.cashoutRequests ?? []) as Array<{
+    amountCents: number;
+    createdAt: string;
+    id: string;
+    status: string;
+  }>;
 
-	const balanceCents = creditsData?.balanceCents ?? 0;
-	const totalEarnedCents = creditsData?.totalEarnedCents ?? 0;
-	const totalCashedOutCents = creditsData?.totalCashedOutCents ?? 0;
+  const balanceCents = creditsData?.balanceCents ?? 0;
+  const totalEarnedCents = creditsData?.totalEarnedCents ?? 0;
+  const totalCashedOutCents = creditsData?.totalCashedOutCents ?? 0;
 
   function formatCents(cents: number): string {
     return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -212,26 +212,26 @@ function DoctorCreditsRoute() {
                   requesting a payout.
                 </p>
               )}
-							{connectStatus && stripeConnected === false && (
-								<p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700 text-xs dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
-									Stripe Connect account not set up.{" "}
-									<button
-										className="font-medium underline"
-										disabled={createConnectLinkMutation.isPending}
-										onClick={() =>
-											createConnectLinkMutation.mutate({
-												returnUrl: window.location.href,
-												refreshUrl: window.location.href,
-											})
-										}
-										type="button"
-									>
-										{createConnectLinkMutation.isPending
-											? "Connecting..."
-											: "Connect now"}
-									</button>
-								</p>
-							)}
+              {connectStatus && stripeConnected === false && (
+                <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700 text-xs dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                  Stripe Connect account not set up.{" "}
+                  <button
+                    className="font-medium underline"
+                    disabled={createConnectLinkMutation.isPending}
+                    onClick={() =>
+                      createConnectLinkMutation.mutate({
+                        returnUrl: window.location.href,
+                        refreshUrl: window.location.href,
+                      })
+                    }
+                    type="button"
+                  >
+                    {createConnectLinkMutation.isPending
+                      ? "Connecting..."
+                      : "Connect now"}
+                  </button>
+                </p>
+              )}
               <div className="grid gap-2">
                 <Label className="font-semibold text-sm" htmlFor="amount">
                   Amount to Withdraw (USD)
@@ -281,110 +281,108 @@ function DoctorCreditsRoute() {
         </Dialog>
       </div>
 
-			{/* Balance widgets */}
-			<div className="space-y-6">
-				<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <MetricCard
-              description="Available for your next payout request"
-              icon={<Wallet className="size-5" />}
-              title="Current balance"
-              trend="Ready"
-              value={formatCents(balanceCents)}
-            />
+      {/* Balance widgets */}
+      <div className="space-y-6">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <MetricCard
+            description="Available for your next payout request"
+            icon={<Wallet className="size-5" />}
+            title="Current balance"
+            trend="Ready"
+            value={formatCents(balanceCents)}
+          />
 
-            <MetricCard
-              description="Total revenue generated from completed sessions"
-              icon={<DollarSignIcon className="size-5" />}
-              title="Lifetime earnings"
-              value={formatCents(totalEarnedCents)}
-            />
+          <MetricCard
+            description="Total revenue generated from completed sessions"
+            icon={<DollarSignIcon className="size-5" />}
+            title="Lifetime earnings"
+            value={formatCents(totalEarnedCents)}
+          />
 
-            <MetricCard
-              description="Funds already withdrawn to Stripe"
-              icon={<BanknoteIcon className="size-5" />}
-              title="Total payouts"
-              value={formatCents(totalCashedOutCents)}
-            />
-          </section>
+          <MetricCard
+            description="Funds already withdrawn to Stripe"
+            icon={<BanknoteIcon className="size-5" />}
+            title="Total payouts"
+            value={formatCents(totalCashedOutCents)}
+          />
+        </section>
 
-          <Card className="rounded-3xl border-border/60">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h2 className="font-semibold text-xl tracking-tight">
-                    Transaction history
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    Recent payout requests and their statuses
-                  </p>
-                </div>
-
-                <Badge className="gap-1" variant="secondary">
-                  <History className="size-3" />
-                  Payout timeline
-                </Badge>
+        <Card className="rounded-3xl border-border/60">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="font-semibold text-xl tracking-tight">
+                  Transaction history
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Recent payout requests and their statuses
+                </p>
               </div>
-            </CardHeader>
 
-            <Separator />
+              <Badge className="gap-1" variant="secondary">
+                <History className="size-3" />
+                Payout timeline
+              </Badge>
+            </div>
+          </CardHeader>
 
-            <CardContent>
-              {sortedHistory.length === 0 ? (
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <History />
-                    </EmptyMedia>
-                    <EmptyTitle>No transactions found</EmptyTitle>
-                    <EmptyDescription>
-                      Your payout requests will appear here.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {sortedHistory.map((req) => (
-                    <Card
-                      className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
-                      key={req.id}
-                    >
-                      <CardContent className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={`rounded-2xl border bg-muted/40 p-2.5 ${statusStyle(req.status).bg}`}
-                          >
-                            {statusStyle(req.status).icon}
-                          </div>
+          <Separator />
 
-                          <div className="space-y-1">
-                            <p className="font-medium text-sm">
-                              Payout request
-                            </p>
-                            <p className="text-muted-foreground text-sm">
-                              {format(
-                                new Date(req.createdAt),
-                                "EEE, MMM d • h:mm a"
-                              )}
-                            </p>
-                          </div>
+          <CardContent>
+            {sortedHistory.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <History />
+                  </EmptyMedia>
+                  <EmptyTitle>No transactions found</EmptyTitle>
+                  <EmptyDescription>
+                    Your payout requests will appear here.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {sortedHistory.map((req) => (
+                  <Card
+                    className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
+                    key={req.id}
+                  >
+                    <CardContent className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`rounded-2xl border bg-muted/40 p-2.5 ${statusStyle(req.status).bg}`}
+                        >
+                          {statusStyle(req.status).icon}
                         </div>
 
-                        <div className="flex flex-col items-end gap-2">
-                          <p className="font-semibold text-sm tracking-tight">
-                            -{formatCents(req.amountCents)}
+                        <div className="space-y-1">
+                          <p className="font-medium text-sm">Payout request</p>
+                          <p className="text-muted-foreground text-sm">
+                            {format(
+                              new Date(req.createdAt),
+                              "EEE, MMM d • h:mm a"
+                            )}
                           </p>
-                          <Badge className="h-6 px-2" variant="outline">
-                            {req.status}
-                          </Badge>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2">
+                        <p className="font-semibold text-sm tracking-tight">
+                          -{formatCents(req.amountCents)}
+                        </p>
+                        <Badge className="h-6 px-2" variant="outline">
+                          {req.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    );
+    </div>
+  );
 }

@@ -11,17 +11,17 @@ import {
   VideoOff,
 } from "lucide-react-native";
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { RTCView } from "react-native-webrtc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAttendanceTracker } from "@/hooks/use-attendance-tracker";
 import { useLiveKitRoom } from "@/hooks/use-livekit-room";
 import {
   type SessionTimingRole,
   useSessionTiming,
 } from "@/hooks/use-session-timing";
-import { useAttendanceTracker } from "@/hooks/use-attendance-tracker";
 import { formatParticipantLabel } from "@/utils/format-participant";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
@@ -47,8 +47,6 @@ interface VideoRoomProps {
   sessionId: string;
   startAt: string;
 }
-
-
 
 export function VideoRoom({
   alias,

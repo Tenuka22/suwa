@@ -7,10 +7,10 @@ export interface ClerkContextAuth {
 
 export interface ClerkRequestContext {
   auth: ClerkContextAuth | null;
+  chatMessagesKv: KVNamespace;
   clerk: typeof clerkClient;
   db: ReturnType<typeof createDb>;
   modelFeaturesKv: KVNamespace;
-  chatMessagesKv: KVNamespace;
   session: null;
 }
 

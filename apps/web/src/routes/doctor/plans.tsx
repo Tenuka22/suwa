@@ -3,61 +3,58 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "@zen-doc/ui/components/card";
 import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@zen-doc/ui/components/chart";
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@zen-doc/ui/components/dialog";
 import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import { Input } from "@zen-doc/ui/components/input";
 import { Label } from "@zen-doc/ui/components/label";
 import { Separator } from "@zen-doc/ui/components/separator";
 import { Textarea } from "@zen-doc/ui/components/textarea";
 import {
-	CheckIcon,
-	ClockIcon,
-	CoinsIcon,
-	CreditCardIcon,
-	LayoutGridIcon,
-	Loader2,
-	PackageIcon,
-	PlusIcon,
-	StarIcon,
+  CheckIcon,
+  ClockIcon,
+  CoinsIcon,
+  CreditCardIcon,
+  LayoutGridIcon,
+  Loader2,
+  PackageIcon,
+  PlusIcon,
+  StarIcon,
 } from "lucide-react";
 import { useState } from "react";
 import {
-	Bar,
-	BarChart,
-	CartesianGrid,
-	LabelList,
-	XAxis,
-	YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  XAxis,
+  YAxis,
 } from "recharts";
 
-import {
-	MetricCard,
-	SectionHeader,
-} from "@/components/dashboard-metrics";
+import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { notify } from "@/lib/notify";
 import { orpc } from "@/utils/orpc";
 
@@ -196,20 +193,20 @@ function CreatePlanDialog() {
 }
 
 export const Route = createFileRoute("/doctor/plans")({
-	loaderDeps: () => ({}),
-	loader: async ({ context }) => {
-		const [stats, plansData] = await Promise.all([
-			context.queryClient.ensureQueryData(orpc.planStats.queryOptions()),
-			context.queryClient.ensureQueryData(orpc.listDoctorPlans.queryOptions()),
-		]);
-		return { stats, plansData };
-	},
-	component: DoctorPlansRoute,
+  loaderDeps: () => ({}),
+  loader: async ({ context }) => {
+    const [stats, plansData] = await Promise.all([
+      context.queryClient.ensureQueryData(orpc.planStats.queryOptions()),
+      context.queryClient.ensureQueryData(orpc.listDoctorPlans.queryOptions()),
+    ]);
+    return { stats, plansData };
+  },
+  component: DoctorPlansRoute,
 });
 
 function DoctorPlansRoute() {
-	const { stats, plansData } = Route.useLoaderData();
-	const plans = (plansData?.plans as DoctorPlan[]) ?? [];
+  const { stats, plansData } = Route.useLoaderData();
+  const plans = (plansData?.plans as DoctorPlan[]) ?? [];
 
   const totalPlans = stats?.totalPlans ?? 0;
   const averageCreditCost = stats?.averageCreditCost ?? 0;

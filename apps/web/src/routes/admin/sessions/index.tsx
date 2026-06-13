@@ -3,11 +3,11 @@ import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import { Card, CardContent, CardHeader } from "@zen-doc/ui/components/card";
 import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import { Separator } from "@zen-doc/ui/components/separator";
 import { format } from "date-fns";
@@ -22,23 +22,23 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/sessions/")({
-	validateSearch: searchSchema,
-	loaderDeps: ({ search }) => ({ page: search.page }),
-	loader: async ({ context, deps }) => {
-		const input = { page: deps.page };
-		return context.queryClient.ensureQueryData(
-			orpc.sessions.queryOptions({ input }),
-		);
-	},
-	component: AdminSessionsRoute,
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ page: search.page }),
+  loader: async ({ context, deps }) => {
+    const input = { page: deps.page };
+    return context.queryClient.ensureQueryData(
+      orpc.sessions.queryOptions({ input })
+    );
+  },
+  component: AdminSessionsRoute,
 });
 
 function AdminSessionsRoute() {
-	const navigate = Route.useNavigate();
-	const search = Route.useSearch();
-	const data = Route.useLoaderData();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+  const data = Route.useLoaderData();
 
-	const rows = data?.items ?? [];
+  const rows = data?.items ?? [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -184,7 +184,6 @@ function AdminSessionsRoute() {
                   <ChevronRight className="ml-1 size-3" />
                 </Button>
               </div>
-
             </div>
           ) : null}
         </CardContent>

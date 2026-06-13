@@ -56,6 +56,26 @@ import {
   userSubscriptions as userSubscriptionsTable,
   type WellnessAction as WellnessActionSchema,
   wellnessActions as wellnessActionsTable,
+  type Tenant as TenantSchema,
+  type TenantAdmin as TenantAdminSchema,
+  type DoctorHospitalAffiliation as DoctorHospitalAffiliationSchema,
+  type HospitalAttendanceEvent as HospitalAttendanceEventSchema,
+  type Clinic as ClinicSchema,
+  type ClinicAttendanceRecord as ClinicAttendanceSchema,
+  type DoctorHospitalInvitation as DoctorHospitalInvitationSchema,
+  type HospitalAvailabilityOverride as HospitalAvailabilityOverrideSchema,
+  type TenantAuditLog as TenantAuditLogSchema,
+  type TenantNotification as TenantNotificationSchema,
+  tenants as tenantsTable,
+  tenantAdmins as tenantAdminsTable,
+  doctorHospitalAffiliations as doctorHospitalAffiliationsTable,
+  hospitalAttendanceEvents as hospitalAttendanceEventsTable,
+  clinics as clinicsTable,
+  clinicAttendance as clinicAttendanceTable,
+  doctorHospitalInvitations as doctorHospitalInvitationsTable,
+  hospitalAvailabilityOverrides as hospitalAvailabilityOverridesTable,
+  tenantAuditLogs as tenantAuditLogsTable,
+  tenantNotifications as tenantNotificationsTable,
 } from "./schema";
 
 export {
@@ -98,6 +118,16 @@ export const stressPredictions = stressPredictionsTable;
 export const stressDownloadAcknowledgments = stressDownloadAcknowledgmentsTable;
 export const conversations = conversationsTable;
 export const messages = messagesTable;
+export const tenants = tenantsTable;
+export const tenantAdmins = tenantAdminsTable;
+export const doctorHospitalAffiliations = doctorHospitalAffiliationsTable;
+export const hospitalAttendanceEvents = hospitalAttendanceEventsTable;
+export const clinics = clinicsTable;
+export const clinicAttendance = clinicAttendanceTable;
+export const doctorHospitalInvitations = doctorHospitalInvitationsTable;
+export const hospitalAvailabilityOverrides = hospitalAvailabilityOverridesTable;
+export const tenantAuditLogs = tenantAuditLogsTable;
+export const tenantNotifications = tenantNotificationsTable;
 
 export type DoctorProfile = DoctorProfileSchema;
 export type DoctorFile = DoctorFileSchema;
@@ -124,6 +154,16 @@ export type MoonlightCredit = MoonlightCreditSchema;
 export type MoonlightCreditTransaction = MoonlightCreditTransactionSchema;
 export type StressPrediction = StressPredictionSchema;
 export type StressDownloadAcknowledgment = StressDownloadAcknowledgmentSchema;
+export type Tenant = TenantSchema;
+export type TenantAdmin = TenantAdminSchema;
+export type DoctorHospitalAffiliation = DoctorHospitalAffiliationSchema;
+export type HospitalAttendanceEvent = HospitalAttendanceEventSchema;
+export type Clinic = ClinicSchema;
+export type ClinicAttendanceRecord = ClinicAttendanceSchema;
+export type DoctorHospitalInvitation = DoctorHospitalInvitationSchema;
+export type HospitalAvailabilityOverride = HospitalAvailabilityOverrideSchema;
+export type TenantAuditLog = TenantAuditLogSchema;
+export type TenantNotification = TenantNotificationSchema;
 
 export function createDb() {
   return drizzle(env.DB, {
@@ -156,6 +196,16 @@ export function createDb() {
       doctorPlaylists,
       doctorHubChannels,
       hubUploadSessions,
+      tenants,
+      tenantAdmins,
+      doctorHospitalAffiliations,
+      hospitalAttendanceEvents,
+      clinics,
+      clinicAttendance,
+      doctorHospitalInvitations,
+      hospitalAvailabilityOverrides,
+      tenantAuditLogs,
+      tenantNotifications,
     },
   });
 }

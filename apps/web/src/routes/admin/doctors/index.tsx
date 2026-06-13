@@ -3,21 +3,21 @@ import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import { Card, CardContent, CardHeader } from "@zen-doc/ui/components/card";
 import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import { Input } from "@zen-doc/ui/components/input";
 import { Separator } from "@zen-doc/ui/components/separator";
 import {
-	ArrowRightIcon,
-	CheckCircle2Icon,
-	ChevronLeft,
-	ChevronRight,
-	Search,
-	StethoscopeIcon,
+  ArrowRightIcon,
+  CheckCircle2Icon,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  StethoscopeIcon,
 } from "lucide-react";
 import { z } from "zod";
 
@@ -29,26 +29,26 @@ const adminSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/doctors/")({
-	validateSearch: adminSearchSchema,
-	loaderDeps: ({ search }) => ({
-		page: search.page,
-		query: search.query,
-	}),
-	loader: async ({ context, deps }) => {
-		const input = { page: deps.page, query: deps.query };
-		return context.queryClient.ensureQueryData(
-			orpc.approvedDoctors.queryOptions({ input }),
-		);
-	},
-	component: AdminDoctorsRoute,
+  validateSearch: adminSearchSchema,
+  loaderDeps: ({ search }) => ({
+    page: search.page,
+    query: search.query,
+  }),
+  loader: async ({ context, deps }) => {
+    const input = { page: deps.page, query: deps.query };
+    return context.queryClient.ensureQueryData(
+      orpc.approvedDoctors.queryOptions({ input })
+    );
+  },
+  component: AdminDoctorsRoute,
 });
 
 function AdminDoctorsRoute() {
-	const navigate = Route.useNavigate();
-	const search = Route.useSearch();
-	const data = Route.useLoaderData();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+  const data = Route.useLoaderData();
 
-	const rows = data?.items ?? [];
+  const rows = data?.items ?? [];
 
   return (
     <div className="flex flex-col gap-6">

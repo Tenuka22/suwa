@@ -31,7 +31,6 @@ const doctorMaterialsKv = await KVNamespace("doctor-materials");
 const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
 
-
 const redis = await UpstashRedis(
   process.env.NODE_ENV === "production" ? "prod-zen-doc" : "zen-doc-dev",
   {

@@ -9,6 +9,7 @@ import {
   useSidebar,
 } from "@zen-doc/ui/components/sidebar";
 import {
+  BuildingIcon,
   CalendarCheckIcon,
   ClockIcon,
   DollarSignIcon,
@@ -43,7 +44,9 @@ export function DoctorSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarNavSection
-          items={[{ icon: HouseIcon, label: "Home", to: "/" }]}
+          items={[
+            { icon: HouseIcon, label: "Home", to: "/" },
+          ]}
           label="Main"
         />
         <SidebarNavSection
@@ -69,6 +72,16 @@ export function DoctorSidebar() {
             { icon: UserIcon, label: "Profile", to: "/doctor/profile" },
           ]}
           label="Secondary"
+        />
+        <SidebarNavSection
+          items={[
+            {
+              icon: BuildingIcon,
+              label: "Hospitals",
+              to: "/tenant",
+            },
+          ]}
+          label="Tenant"
         />
       </SidebarContent>
       <SidebarFooter>

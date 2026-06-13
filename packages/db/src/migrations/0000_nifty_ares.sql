@@ -1,3 +1,42 @@
+CREATE TABLE `conversations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`title` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `messages` (
+	`id` text PRIMARY KEY NOT NULL,
+	`conversation_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`role` text NOT NULL,
+	`content` text NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `clinic_attendance` (
+	`id` text PRIMARY KEY NOT NULL,
+	`clinic_id` text NOT NULL,
+	`doctor_id` text NOT NULL,
+	`date` text NOT NULL,
+	`arrived_at` text,
+	`left_at` text,
+	`recorded_by` text NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `clinics` (
+	`id` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`name` text NOT NULL,
+	`specialization` text,
+	`schedule` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `credit_transactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
@@ -53,6 +92,66 @@ CREATE TABLE `doctor_files` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `doctor_files_file_key_unique` ON `doctor_files` (`file_key`);--> statement-breakpoint
+CREATE TABLE `doctor_hospital_affiliations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`tenant_id` text NOT NULL,
+	`status` text DEFAULT 'PENDING' NOT NULL,
+	`availability_windows` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `doctor_hospital_affiliations_doctor_tenant_unique` ON `doctor_hospital_affiliations` (`doctor_id`,`tenant_id`);--> statement-breakpoint
+CREATE TABLE `doctor_hospital_invitations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`doctor_id` text NOT NULL,
+	`invited_by` text NOT NULL,
+	`status` text DEFAULT 'PENDING' NOT NULL,
+	`message` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `doctor_hospital_invitations_tenant_doctor_unique` ON `doctor_hospital_invitations` (`tenant_id`,`doctor_id`);--> statement-breakpoint
+CREATE TABLE `doctor_hub_channels` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`name` text NOT NULL,
+	`handle` text NOT NULL,
+	`description` text,
+	`avatar_key` text,
+	`banner_key` text,
+	`is_default` integer DEFAULT false NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `doctor_hub_materials` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`channel_id` text,
+	`title` text NOT NULL,
+	`description` text,
+	`content` text,
+	`file_key` text,
+	`thumbnail_key` text,
+	`file_type` text NOT NULL,
+	`file_name` text,
+	`mime_type` text,
+	`size` integer,
+	`duration_seconds` integer,
+	`visibility` text DEFAULT 'private' NOT NULL,
+	`status` text DEFAULT 'uploading' NOT NULL,
+	`tags` text,
+	`metadata` text,
+	`playlist_id` text,
+	`is_individual` integer DEFAULT true NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `doctor_plans` (
 	`id` text PRIMARY KEY NOT NULL,
 	`doctor_id` text NOT NULL,
@@ -64,6 +163,15 @@ CREATE TABLE `doctor_plans` (
 	`is_active` integer DEFAULT true NOT NULL,
 	`is_default` integer DEFAULT false NOT NULL,
 	`sort_order` integer DEFAULT 0 NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `doctor_playlists` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`title` text NOT NULL,
+	`description` text,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
@@ -135,15 +243,55 @@ CREATE TABLE `doctor_weekly_availability` (
 );
 --> statement-breakpoint
 CREATE TABLE `guardian_profiles` (
-	`user_id` text PRIMARY KEY NOT NULL,
-	`clerk_user_id` text,
-	`email` text NOT NULL,
+	`clerk_user_id` text PRIMARY KEY NOT NULL,
+	`email` text,
 	`phone` text,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `guardian_email_unique` ON `guardian_profiles` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX `guardian_phone_unique` ON `guardian_profiles` (`phone`);--> statement-breakpoint
+CREATE TABLE `hospital_attendance_events` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`tenant_id` text NOT NULL,
+	`clinic_id` text,
+	`timestamp` text NOT NULL,
+	`event_type` text NOT NULL,
+	`note` text,
+	`recorded_by` text NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `hospital_availability_overrides` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`tenant_id` text NOT NULL,
+	`start_at` text NOT NULL,
+	`end_at` text NOT NULL,
+	`reason` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `hub_upload_sessions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`doctor_id` text NOT NULL,
+	`material_id` text,
+	`file_name` text NOT NULL,
+	`mime_type` text NOT NULL,
+	`total_size` integer NOT NULL,
+	`chunk_size` integer NOT NULL,
+	`total_chunks` integer NOT NULL,
+	`uploaded_chunks` text,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`file_key` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `moonlight_credit_transactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
@@ -166,13 +314,13 @@ CREATE TABLE `moonlight_credits` (
 CREATE TABLE `patient_profiles` (
 	`user_id` text PRIMARY KEY NOT NULL,
 	`alias` text NOT NULL,
-	`phone` text,
-	`email` text,
 	`guardian_user_id` text,
 	`guardian_email` text,
 	`guardian_phone` text,
 	`guardian_request_status` text,
 	`is_onboarding_complete` integer DEFAULT false NOT NULL,
+	`_secured_data` text,
+	`secured` integer DEFAULT false NOT NULL,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
@@ -218,6 +366,74 @@ CREATE TABLE `sprite_states` (
 	`mood` text DEFAULT 'idle' NOT NULL,
 	`streak_days` integer DEFAULT 0 NOT NULL,
 	`last_interaction_at` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `stress_download_acknowledgments` (
+	`user_id` text PRIMARY KEY NOT NULL,
+	`patient_acknowledged_at` text,
+	`guardian_acknowledged_at` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `stress_predictions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`prediction` text NOT NULL,
+	`predicted_class` text,
+	`probabilities` text,
+	`sample_count` integer DEFAULT 0 NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
+	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `tenant_admins` (
+	`id` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `tenant_admins_tenant_user_unique` ON `tenant_admins` (`tenant_id`,`user_id`);--> statement-breakpoint
+CREATE TABLE `tenant_audit_logs` (
+	`id` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`actor_id` text NOT NULL,
+	`action` text NOT NULL,
+	`entity_type` text NOT NULL,
+	`entity_id` text NOT NULL,
+	`details` text,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `tenant_notifications` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`type` text NOT NULL,
+	`title` text NOT NULL,
+	`message` text NOT NULL,
+	`entity_id` text,
+	`is_read` integer DEFAULT false NOT NULL,
+	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `tenants` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`type` text NOT NULL,
+	`address` text NOT NULL,
+	`contact_info` text,
+	`logo` text,
+	`status` text DEFAULT 'ACTIVE' NOT NULL,
+	`services` text,
+	`latitude` text,
+	`longitude` text,
+	`phone` text,
+	`website` text,
+	`place_data_ref` text,
+	`created_by` text NOT NULL,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );

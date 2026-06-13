@@ -15,6 +15,7 @@ import { patientRouter } from "./patient";
 import { publicRouter } from "./public";
 import { sessionAttendanceRouter } from "./session-attendance";
 import { stressHubRouter } from "./stress-hub";
+import { tenantRouter } from "./tenant";
 
 export const appRouter = {
   ...publicRouter,
@@ -32,6 +33,7 @@ export const appRouter = {
   ...guardianRouter,
   ...stressHubRouter,
   ...chatHttpRouter,
+  ...tenantRouter,
 };
 
 export const wsAppRouter = {

@@ -28,23 +28,19 @@ import {
 } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import {
-  MetricCard,
-  SectionHeader,
-} from "@/components/dashboard-metrics";
+import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/admin/")({
-	loaderDeps: () => ({}),
-	loader: async ({ context }) => {
-		return context.queryClient.ensureQueryData(orpc.stats.queryOptions());
-	},
-	component: AdminDashboardRoute,
+  loaderDeps: () => ({}),
+  loader: async ({ context }) =>
+    context.queryClient.ensureQueryData(orpc.stats.queryOptions()),
+  component: AdminDashboardRoute,
 });
 
 function AdminDashboardRoute() {
-	const stats = Route.useLoaderData();
-	const sessionsByDay = stats?.sessionsByDay ?? [];
+  const stats = Route.useLoaderData();
+  const sessionsByDay = stats?.sessionsByDay ?? [];
 
   return (
     <div className="flex flex-col gap-6">
