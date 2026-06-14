@@ -1,4 +1,10 @@
-export type Roles = "admin" | "doctor" | "user" | "pending-doctor" | "guardian" | "tenant-admin";
+export type Roles =
+  | "admin"
+  | "doctor"
+  | "user"
+  | "pending-doctor"
+  | "guardian"
+  | "tenant-admin";
 
 interface CustomJwtSessionClaimsMetadata {
   email?: string;

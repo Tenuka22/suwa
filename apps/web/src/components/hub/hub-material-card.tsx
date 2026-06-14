@@ -96,7 +96,7 @@ export function HubMaterialCard({
         {/* Duration badge */}
         {durationSeconds ? (
           <Badge
-            className="absolute right-2 bottom-2 border-none bg-black/80 px-1.5 py-0 font-medium text-[11px] text-white"
+            className="absolute right-2 bottom-2 border-none bg-black/80 font-medium text-[11px] text-white"
             variant="outline"
           >
             {formatDuration(durationSeconds)}
@@ -136,7 +136,7 @@ export function HubMaterialCard({
       </div>
 
       {/* Info */}
-      <div className="mt-3 flex gap-3">
+      <div className="flex gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
           {isVideo ? (
             <FilmIcon className="size-4 text-primary" />
@@ -149,24 +149,20 @@ export function HubMaterialCard({
           <h3 className="line-clamp-2 font-medium text-sm leading-snug transition-colors group-hover:text-primary">
             {title}
           </h3>
-          <div className="mt-1 flex items-center gap-1.5 text-muted-foreground text-xs">
+          <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
             {size ? <span>{formatFileSize(size)}</span> : null}
             {size && <span>&middot;</span>}
             <span>{timeAgo}</span>
           </div>
           {tags && tags.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1">
               {tags.slice(0, 3).map((tag) => (
-                <Badge
-                  className="px-1.5 py-0 text-[10px]"
-                  key={tag}
-                  variant="secondary"
-                >
+                <Badge className="text-[10px]" key={tag} variant="secondary">
                   {tag}
                 </Badge>
               ))}
               {tags.length > 3 && (
-                <Badge className="px-1.5 py-0 text-[10px]" variant="secondary">
+                <Badge className="text-[10px]" variant="secondary">
                   +{tags.length - 3}
                 </Badge>
               )}
@@ -187,12 +183,12 @@ export function HubMaterialCard({
           <DropdownMenuContent align="end">
             {onEdit && (
               <DropdownMenuItem onClick={() => onEdit(id)}>
-                <PencilIcon className="mr-2 size-4" />
+                <PencilIcon className="size-4" />
                 Edit details
               </DropdownMenuItem>
             )}
             <DropdownMenuItem>
-              <ClockIcon className="mr-2 size-4" />
+              <ClockIcon className="size-4" />
               Change visibility
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -200,7 +196,7 @@ export function HubMaterialCard({
               className="text-destructive focus:text-destructive"
               onClick={() => onDelete?.(id)}
             >
-              <Trash2Icon className="mr-2 size-4" />
+              <Trash2Icon className="size-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

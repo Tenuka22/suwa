@@ -55,6 +55,7 @@ import {
 } from "recharts";
 
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
+import { BodyText, PageTitle } from "@/components/typography";
 import { notify } from "@/lib/notify";
 import { orpc } from "@/utils/orpc";
 
@@ -245,16 +246,14 @@ function DoctorPlansRoute() {
               <Badge variant="secondary">Pricing overview</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
-                Session plans
-              </h1>
+            <div className="flex flex-col gap-2">
+              <PageTitle>Session plans</PageTitle>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <BodyText className="max-w-2xl">
                 Manage your session offerings and pricing at a glance. Review
                 plan details, compare credit costs, and see which plan is the
                 default for new patients.
-              </p>
+              </BodyText>
             </div>
           </div>
         </CardContent>
@@ -304,7 +303,7 @@ function DoctorPlansRoute() {
 
           <Separator />
 
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
                 <p className="text-muted-foreground text-xs uppercase tracking-wider">
@@ -446,7 +445,7 @@ function DoctorPlansRoute() {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="font-bold text-base">
+                    <CardTitle className="text-sm font-medium">
                       {plan.name}
                     </CardTitle>
                     {plan.isDefault && (
@@ -470,7 +469,7 @@ function DoctorPlansRoute() {
                   <div className="flex items-center gap-4 border-border/50 border-y py-2">
                     <div className="flex items-center gap-1.5">
                       <CoinsIcon className="size-4 text-muted-foreground" />
-                      <span className="font-bold text-lg">
+                      <span className="text-lg font-semibold">
                         {plan.creditCost}
                       </span>
                       <span className="text-muted-foreground text-xs">
@@ -480,7 +479,7 @@ function DoctorPlansRoute() {
 
                     <div className="flex items-center gap-1.5">
                       <ClockIcon className="size-4 text-muted-foreground" />
-                      <span className="font-bold text-lg">
+                      <span className="text-lg font-semibold">
                         {plan.durationMinutes}
                       </span>
                       <span className="text-muted-foreground text-xs">min</span>
@@ -488,7 +487,7 @@ function DoctorPlansRoute() {
                   </div>
 
                   {parsedFeatures.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
                       {parsedFeatures.slice(0, 3).map((feature, idx) => (
                         <div className="flex items-start gap-2" key={idx}>
                           <CheckIcon className="mt-1 size-3 shrink-0 text-emerald-500" />

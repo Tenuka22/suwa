@@ -46,27 +46,25 @@ function AdminDashboardRoute() {
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
         <CardContent>
-          <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
-                <ShieldIcon className="size-8" />
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+              <ShieldIcon className="size-8" />
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">Admin console</Badge>
+                <Badge variant="secondary">Live overview</Badge>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">Admin console</Badge>
-                  <Badge variant="secondary">Live overview</Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <h1 className="font-semibold text-4xl tracking-tight">
-                    Welcome back
-                  </h1>
-                  <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
-                    Monitor platform activity, manage doctor registrations, and
-                    oversee all sessions from one unified dashboard.
-                  </p>
-                </div>
+              <div className="flex flex-col gap-2">
+                <h1 className="font-semibold text-lg tracking-tight">
+                  Welcome back
+                </h1>
+                <p className="max-w-2xl text-muted-foreground text-sm">
+                  Monitor platform activity, manage doctor registrations, and
+                  oversee all sessions from one unified dashboard.
+                </p>
               </div>
             </div>
           </div>

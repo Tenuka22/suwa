@@ -103,6 +103,32 @@ app.use("/*", async (c, next) => {
   await next();
 });
 
+app.get("/seed", async (c) => {
+  try {
+    const { runSeed } = await import("./seed/index");
+    const env = c.env as {
+      DOCTOR_MATERIALS_KV: KVNamespace;
+      CHAT_MESSAGES_KV: KVNamespace;
+      MODEL_FEATURES_KV: KVNamespace;
+    };
+    const result = await runSeed({
+      doctorMaterialsKv: env.DOCTOR_MATERIALS_KV,
+      chatMessagesKv: env.CHAT_MESSAGES_KV,
+      modelFeaturesKv: env.MODEL_FEATURES_KV,
+    });
+    return c.json({ success: true, result });
+  } catch (error) {
+    console.error("Seed error:", error);
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Seed failed",
+      },
+      500
+    );
+  }
+});
+
 app.get("/", (c) => c.text("OK"));
 
 export default {

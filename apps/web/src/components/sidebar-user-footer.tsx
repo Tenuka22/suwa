@@ -16,7 +16,7 @@ export function SidebarUserFooter() {
   const name = user.user.fullName ?? user.user.username ?? "User";
 
   return (
-    <div className="flex items-center gap-3 rounded-md p-2">
+    <div className="flex items-center gap-3 rounded-md">
       <UserButton />
       {isCollapsed ? null : (
         <div className="min-w-0">

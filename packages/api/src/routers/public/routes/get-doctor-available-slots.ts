@@ -89,7 +89,9 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
 
     // Add recurring affiliation windows
     for (const aff of affiliations) {
-      if (!aff.availabilityWindows) continue;
+      if (!aff.availabilityWindows) {
+        continue;
+      }
       const windows = JSON.parse(aff.availabilityWindows) as Array<{
         dayOfWeek: number;
         startTime: string;
@@ -176,7 +178,7 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
           slots.push({
             startAt: cursor.toISOString(),
             endAt: slotEnd.toISOString(),
-            available: !hasOverlap && !isHospitalBlocked,
+            available: !(hasOverlap || isHospitalBlocked),
           });
 
           cursor = slotEnd;

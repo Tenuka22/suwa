@@ -106,7 +106,7 @@ function AdminDoctorDetailRoute() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-6 p-6">
+    <div className="flex w-full flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
         <CardContent>
           <div className="flex flex-col gap-4">
@@ -133,7 +133,7 @@ function AdminDoctorDetailRoute() {
       {profile ? (
         <>
           <Card>
-            <CardHeader className="flex flex-col gap-4 border-border/30 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
+            <CardHeader className="flex flex-col gap-4 border-border/30 border-b sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Avatar
                   className="size-16 border-2 border-primary/20 shadow-md"
@@ -142,16 +142,16 @@ function AdminDoctorDetailRoute() {
                   {profile.placeName ? (
                     <AvatarImage alt={displayName} src={profile.placeName} />
                   ) : null}
-                  <AvatarFallback className="bg-primary/10 font-bold text-lg text-primary">
+                  <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
                     {displayName.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <CardTitle className="font-bold text-xl tracking-tight">
+                    <CardTitle className="font-medium text-sm">
                       {displayName}
                     </CardTitle>
-                    <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary text-xs">
+                    <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 text-primary text-xs">
                       {profile.permanent ? (
                         <>
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
@@ -165,20 +165,20 @@ function AdminDoctorDetailRoute() {
                       )}
                     </div>
                   </div>
-                  <p className="mt-1 text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm">
                     {profile.headline ?? "No professional headline set yet"}
                   </p>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="grid gap-6 pt-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
+            <CardContent className="grid gap-6 md:grid-cols-2">
+              <div className="flex flex-col gap-4">
+                <h3 className="flex items-center gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   <Building className="size-4 text-primary" />
                   Practice Details
                 </h3>
-                <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+                <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5">
                   <SummaryItem
                     icon={<Clock className="size-3.5 text-muted-foreground" />}
                     label="Experience"
@@ -199,12 +199,12 @@ function AdminDoctorDetailRoute() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
+              <div className="flex flex-col gap-4">
+                <h3 className="flex items-center gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   <Award className="size-4 text-primary" />
                   Professional Info
                 </h3>
-                <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+                <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5">
                   <SummaryItem
                     icon={
                       <FileText className="size-3.5 text-muted-foreground" />
@@ -229,16 +229,16 @@ function AdminDoctorDetailRoute() {
                 </div>
               </div>
 
-              <div className="space-y-2 border-border/20 border-t pt-4 md:col-span-2">
-                <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
+              <div className="flex flex-col gap-2 border-border/20 border-t md:col-span-2">
+                <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   Biography
                 </h3>
-                <p className="rounded-xl border border-border/30 bg-muted/5 p-4 text-foreground/90 text-sm italic leading-relaxed">
+                <p className="rounded-xl border border-border/30 bg-muted/5 text-foreground/90 text-sm italic leading-relaxed">
                   "{profile.bio ?? "No biography provided yet."}"
                 </p>
               </div>
 
-              <div className="grid gap-6 border-border/20 border-t pt-4 md:col-span-2 md:grid-cols-2">
+              <div className="grid gap-6 border-border/20 border-t md:col-span-2 md:grid-cols-2">
                 <SummaryBlock
                   colorTheme="primary"
                   label="Specialties"
@@ -266,21 +266,21 @@ function AdminDoctorDetailRoute() {
               </div>
 
               {stepsList.length > 0 && (
-                <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
-                  <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
+                <div className="flex flex-col gap-3 border-border/20 border-t md:col-span-2">
+                  <h3 className="flex items-center gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                     <Sparkles className="size-4 text-primary" />
                     Therapeutic Approach
                   </h3>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {stepsList.map((step, idx) => (
                       <div
-                        className="relative rounded-xl border border-border/50 bg-muted/5 p-3.5 transition-all duration-200 hover:bg-muted/15"
+                        className="relative rounded-xl border border-border/50 bg-muted/5 transition-all duration-200 hover:bg-muted/15"
                         key={step.id}
                       >
-                        <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 px-2 py-0.5 font-bold font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
+                        <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
                           Step {idx + 1}
                         </span>
-                        <p className="pr-10 font-medium text-foreground/80 text-sm leading-relaxed">
+                        <p className="font-medium text-foreground/80 text-sm leading-relaxed">
                           {step.text}
                         </p>
                       </div>
@@ -290,27 +290,25 @@ function AdminDoctorDetailRoute() {
               )}
 
               {parsedEducation.length > 0 && (
-                <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
-                  <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
+                <div className="flex flex-col gap-3 border-border/20 border-t md:col-span-2">
+                  <h3 className="flex items-center gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                     <Award className="size-4 text-primary" />
                     Education & Credentials
                   </h3>
                   <div className="divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-muted/5">
                     {parsedEducation.map((edu) => (
                       <div
-                        className="flex items-center justify-between p-3.5 text-sm transition-all duration-200 hover:bg-muted/10"
+                        className="flex items-center justify-between text-sm transition-all duration-200 hover:bg-muted/10"
                         key={edu.id}
                       >
-                        <div className="space-y-0.5">
-                          <p className="font-semibold text-foreground/80">
-                            {edu.degree}
-                          </p>
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-foreground/80">{edu.degree}</p>
                           <p className="text-muted-foreground text-xs">
                             {edu.institution}
                           </p>
                         </div>
                         {edu.year && (
-                          <span className="rounded-full border bg-muted px-2.5 py-1 font-mono font-semibold text-muted-foreground text-xs">
+                          <span className="rounded-full border bg-muted font-mono text-muted-foreground text-xs">
                             {edu.year}
                           </span>
                         )}
@@ -320,9 +318,9 @@ function AdminDoctorDetailRoute() {
                 </div>
               )}
 
-              <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
-                <div className="space-y-1">
-                  <h3 className="flex items-center gap-1.5 font-semibold text-foreground text-sm">
+              <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
+                <div className="flex flex-col gap-1">
+                  <h3 className="flex items-center gap-1.5 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                     <FileText className="size-4" />
                     Doctor Materials
                   </h3>

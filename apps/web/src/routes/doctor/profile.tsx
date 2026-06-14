@@ -1,5 +1,4 @@
 import { useUser } from "@clerk/tanstack-react-start";
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Avatar, AvatarFallback } from "@zen-doc/ui/components/avatar";
 import { Badge } from "@zen-doc/ui/components/badge";
@@ -15,7 +14,6 @@ import {
   UserCircleIcon,
   VideoIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { DoctorFilesPanel, DoctorProfileCard } from "@/components/doctors";
 import { orpc } from "@/utils/orpc";
@@ -32,172 +30,10 @@ export const Route = createFileRoute("/doctor/profile")({
   component: DoctorProfileRoute,
 });
 
-const FILE_KIND_COLORS: Record<string, string> = {
-  portrait: "#4A90D9",
-  qualification: "#50C878",
-  intro_video: "#FF6B6B",
-  other: "#9B59B6",
-};
-
-async function seedDevProfile(_userId: string) {
-  await orpc.saveDoctorProfile.call({
-    displayName: "Dr. Sarah Chen",
-    headline:
-      "Licensed Clinical Psychologist specializing in anxiety and trauma recovery",
-    bio: "With over 12 years of clinical experience, I specialize in evidence-based treatments for anxiety disorders, trauma recovery, and stress management. My approach integrates cognitive-behavioral therapy with mindfulness practices to help patients achieve lasting well-being.",
-    licenseNumber: "PSY-2024-12345",
-    location: "San Francisco, CA",
-    experienceStartYear: 2012,
-    specialties: ["psychology", "counseling"],
-    languages: ["english", "spanish", "french"],
-    consultationModes: ["video", "in_person"],
-    focusAreas: [
-      "anxiety",
-      "depression",
-      "stress",
-      "trauma",
-      "burnout",
-      "sleep",
-    ],
-    approach:
-      "I use a combination of CBT, DBT, and mindfulness-based approaches tailored to each patient's unique needs and circumstances.",
-    education:
-      "Ph.D. in Clinical Psychology - Stanford University\nM.A. in Counseling Psychology - UC Berkeley",
-    placeName: "Mindful Growth Therapy Center",
-    placeAddress: "456 Wellness Avenue, Suite 200, San Francisco, CA 94102",
-    placeDescription:
-      "A warm, welcoming therapeutic space designed for comfort, privacy, and healing.",
-    approachSteps: [
-      {
-        id: crypto.randomUUID(),
-        text: "Initial consultation and comprehensive assessment",
-      },
-      {
-        id: crypto.randomUUID(),
-        text: "Collaborative goal setting and personalized treatment planning",
-      },
-      {
-        id: crypto.randomUUID(),
-        text: "Evidence-based therapy sessions with progress tracking",
-      },
-      {
-        id: crypto.randomUUID(),
-        text: "Regular progress evaluation and plan adjustment",
-      },
-    ],
-    educationEntries: [
-      {
-        id: crypto.randomUUID(),
-        institution: "Stanford University",
-        degree: "Ph.D. in Clinical Psychology",
-        year: 2012,
-      },
-      {
-        id: crypto.randomUUID(),
-        institution: "UC Berkeley",
-        degree: "M.A. in Counseling Psychology",
-        year: 2008,
-      },
-      {
-        id: crypto.randomUUID(),
-        institution: "UCLA",
-        degree: "B.A. in Psychology",
-        year: 2005,
-      },
-    ],
-  });
-}
-
-function createFakeImageFile(name: string, kind: string): File {
-  const color = FILE_KIND_COLORS[kind] ?? "#CCCCCC";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="${color}"/><text x="50%" y="45%" fill="white" font-size="18" text-anchor="middle" font-family="sans-serif">${name}</text><text x="50%" y="65%" fill="rgba(255,255,255,0.7)" font-size="12" text-anchor="middle" font-family="sans-serif">${kind}</text></svg>`;
-  const blob = new Blob([svg], { type: "image/svg+xml" });
-  return new File([blob], `${name}.svg`, {
-    type: "image/svg+xml",
-  });
-}
-
-async function seedDevFiles(userId: string) {
-  const fakeFiles = [
-    {
-      kind: "portrait" as const,
-      caption: "Professional headshot",
-      name: "Professional Portrait",
-    },
-    {
-      kind: "qualification" as const,
-      caption: "Clinical Psychology License",
-      name: "License Certificate",
-    },
-    {
-      kind: "intro_video" as const,
-      caption: "Introduction video thumbnail",
-      name: "Intro Video",
-    },
-  ];
-
-  for (const f of fakeFiles) {
-    try {
-      await orpc.createDoctorFile.call({
-        caption: f.caption,
-        doctorId: userId,
-        file: createFakeImageFile(f.name, f.kind),
-        fileKind: f.kind,
-      });
-    } catch {
-      // File upload failed silently in dev mode
-    }
-  }
-}
-
 function DoctorProfileRoute() {
   const user = useUser();
   const { stats, profileData } = Route.useLoaderData();
   const canManageFiles = profileData?.profile?.permanent ?? false;
-
-  const [devAutoFillDone, setDevAutoFillDone] = useState(false);
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) {
-      return;
-    }
-    if (!user.user) {
-      return;
-    }
-    if (devAutoFillDone) {
-      return;
-    }
-
-    if (profileData?.profile || (stats?.fileCount ?? 0) > 0) {
-      setDevAutoFillDone(true);
-      return;
-    }
-
-    setDevAutoFillDone(true);
-
-    (async () => {
-      try {
-        if (!profileData?.profile) {
-          await seedDevProfile(user.user.id);
-        }
-
-        if ((stats?.fileCount ?? 0) === 0) {
-          await seedDevFiles(user.user.id);
-        }
-        queryClient.invalidateQueries();
-      } catch {
-        // Dev auto-fill failed silently
-      }
-    })();
-  }, [
-    user.isLoaded,
-    user.user,
-    profileData,
-    stats,
-    devAutoFillDone,
-    queryClient,
-  ]);
 
   const name = user.user?.fullName ?? user.user?.username ?? "Doctor";
   const initials = name
@@ -229,12 +65,12 @@ function DoctorProfileRoute() {
                 </AvatarFallback>
               </Avatar>
 
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">Doctor profile</Badge>
                   {isPermanent ? (
                     <Badge variant="default">
-                      <BadgeCheckIcon className="mr-1 size-3.5" />
+                      <BadgeCheckIcon className="size-3.5" />
                       Verified
                     </Badge>
                   ) : (
@@ -242,12 +78,12 @@ function DoctorProfileRoute() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <h1 className="font-semibold text-4xl tracking-tight">
+                <div className="flex flex-col gap-2">
+                  <h1 className="font-semibold text-lg tracking-tight">
                     {name}
                   </h1>
 
-                  <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+                  <p className="max-w-2xl text-muted-foreground text-sm">
                     Manage your public directory listing, therapeutic
                     credentials, and introductory materials. A complete profile
                     helps patients find and trust you.

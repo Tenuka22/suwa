@@ -172,20 +172,18 @@ function DoctorHubPage() {
         <div className="flex items-end gap-5">
           <Avatar className="size-24 border-4 border-background shadow-xl">
             <AvatarImage src={user?.imageUrl} />
-            <AvatarFallback className="font-bold text-xl">
-              {initials}
-            </AvatarFallback>
+            <AvatarFallback className="text-xl">{initials}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1 pb-2">
             <div className="flex items-center gap-3">
-              <h1 className="font-bold text-2xl tracking-tight">{name}</h1>
+              <h1 className="font-semibold text-lg tracking-tight">{name}</h1>
               <Badge className="gap-1" variant="default">
                 <FilmIcon className="size-3" />
                 Doctor Hub
               </Badge>
             </div>
-            <div className="mt-1 flex items-center gap-4 text-muted-foreground text-sm">
+            <div className="flex items-center gap-4 text-muted-foreground text-sm">
               <span>
                 {allChannels.length}{" "}
                 {allChannels.length === 1 ? "channel" : "channels"}
@@ -232,7 +230,7 @@ function DoctorHubPage() {
 
       {/* Channel Tabs (YouTube-style horizontal scroll) */}
       {allChannels.length > 0 && (
-        <div className="mt-4 px-6">
+        <div className="px-6">
           <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto pb-2">
             <Button
               className="shrink-0 rounded-full"
@@ -259,9 +257,9 @@ function DoctorHubPage() {
       )}
 
       {/* Main Content Area */}
-      <div className="mt-4 flex-1 px-6">
+      <div className="flex-1 px-6 flex gap-4 flex-col">
         {/* Toolbar */}
-        <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex max-w-md flex-1 items-center gap-3">
             <div className="relative flex-1">
               <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -355,11 +353,11 @@ function DoctorHubPage() {
         {materialsLoading ? (
           <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div className="space-y-3" key={i.toString()}>
+              <div className="flex flex-col gap-3" key={i.toString()}>
                 <Skeleton className="aspect-video rounded-xl" />
                 <div className="flex gap-3">
                   <Skeleton className="size-9 rounded-full" />
-                  <div className="flex-1 space-y-2">
+                  <div className="flex flex-1 flex-col gap-2">
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-3 w-1/2" />
                   </div>
@@ -368,8 +366,8 @@ function DoctorHubPage() {
             ))}
           </div>
         ) : sortedMaterials.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-4 rounded-full bg-muted/40 p-6">
+          <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+            <div className="rounded-full bg-muted/40">
               {activeTab === "uploading" ? (
                 <UploadIcon className="size-8 text-muted-foreground" />
               ) : activeTab === "audio" ? (
@@ -378,7 +376,7 @@ function DoctorHubPage() {
                 <FilmIcon className="size-8 text-muted-foreground" />
               )}
             </div>
-            <h3 className="mb-1 font-semibold text-lg">
+            <h3 className="font-medium text-sm">
               {activeTab === "uploading"
                 ? "No uploads in progress"
                 : searchQuery
@@ -392,7 +390,7 @@ function DoctorHubPage() {
             </p>
             {!searchQuery && activeTab !== "uploading" && (
               <Button
-                className="mt-4 gap-2 rounded-full"
+                className="gap-2 rounded-full"
                 onClick={() => setUploadOpen(true)}
               >
                 <UploadIcon className="size-4" />
@@ -441,7 +439,7 @@ function DoctorHubPage() {
           <div className="flex flex-col gap-2">
             {sortedMaterials.map((material) => (
               <div
-                className="flex items-center gap-4 rounded-xl p-3 transition-colors hover:bg-muted/30"
+                className="flex items-center gap-4 rounded-xl transition-colors hover:bg-muted/30"
                 key={material.id}
               >
                 <div className="relative flex aspect-video w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-muted/20">
@@ -466,10 +464,10 @@ function DoctorHubPage() {
                   <h3 className="truncate font-medium text-sm">
                     {material.title}
                   </h3>
-                  <p className="mt-0.5 truncate text-muted-foreground text-xs">
+                  <p className="truncate text-muted-foreground text-xs">
                     {material.description ?? "No description"}
                   </p>
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <Badge
                       className="px-1.5 py-0 text-[10px]"
                       variant="secondary"
@@ -515,18 +513,6 @@ function DoctorHubPage() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Floating Quick Upload */}
-      <div className="fixed right-8 bottom-8">
-        <Button
-          className="h-14 gap-3 rounded-full px-6 shadow-2xl shadow-primary/40"
-          onClick={() => setUploadOpen(true)}
-          size="lg"
-        >
-          <UploadIcon className="size-5" />
-          <span className="font-semibold">Quick Upload</span>
-        </Button>
       </div>
 
       {/* Dialogs */}

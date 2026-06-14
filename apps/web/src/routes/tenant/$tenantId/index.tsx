@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { buttonVariants } from "@zen-doc/ui/components/button";
 import {
@@ -39,7 +39,7 @@ function TenantDashboardPage() {
 
   if (tenantLoading) {
     return (
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
@@ -59,7 +59,7 @@ function TenantDashboardPage() {
 
   if (!tenant) {
     return (
-      <Card className="flex flex-col items-center justify-center py-16">
+      <Card className="flex flex-col items-center justify-center">
         <CardTitle>Hospital not found</CardTitle>
         <CardDescription>
           The hospital you're looking for doesn't exist.
@@ -69,12 +69,14 @@ function TenantDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-bold text-2xl tracking-tight">{tenant.name}</h1>
-          <div className="mt-1 flex items-center gap-3">
+          <h1 className="font-semibold text-lg tracking-tight">
+            {tenant.name}
+          </h1>
+          <div className="flex items-center gap-3">
             <Badge
               variant={
                 tenant.type === "PRIVATE_HOSPITAL" ? "default" : "secondary"
@@ -94,7 +96,7 @@ function TenantDashboardPage() {
               {tenant.status}
             </Badge>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-4 text-muted-foreground text-sm">
+          <div className="flex flex-wrap items-center gap-4 text-muted-foreground text-sm">
             <div className="flex items-center gap-1.5">
               <MapPinIcon className="size-3.5" />
               {tenant.address}
@@ -109,17 +111,17 @@ function TenantDashboardPage() {
         </div>
         <div className="flex gap-2">
           <Link
+            className={buttonVariants({ size: "sm", variant: "outline" })}
             params={{ tenantId }}
             to="/tenant/$tenantId/invite"
-            className={buttonVariants({ size: "sm", variant: "outline" })}
           >
-            <UserPlusIcon className="mr-2 size-4" />
+            <UserPlusIcon className="size-4" />
             Invite Doctor
           </Link>
           <Link
+            className={buttonVariants({ size: "sm" })}
             params={{ tenantId }}
             to="/tenant/$tenantId/settings"
-            className={buttonVariants({ size: "sm" })}
           >
             Settings
           </Link>
@@ -129,9 +131,9 @@ function TenantDashboardPage() {
       {/* Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardDescription>Active Doctors</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardTitle className="font-semibold text-2xl">
               {affLoading ? "..." : activeDoctors.length}
             </CardTitle>
           </CardHeader>
@@ -141,9 +143,9 @@ function TenantDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardDescription>Total Affiliations</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardTitle className="font-semibold text-2xl">
               {affLoading ? "..." : affiliations.length}
             </CardTitle>
           </CardHeader>
@@ -153,9 +155,9 @@ function TenantDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardDescription>Services</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardTitle className="font-semibold text-2xl">
               {tenant.services?.length ?? 0}
             </CardTitle>
           </CardHeader>
@@ -165,9 +167,9 @@ function TenantDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader>
             <CardDescription>Admins</CardDescription>
-            <CardTitle className="text-3xl">
+            <CardTitle className="font-semibold text-2xl">
               {tenantData?.admins?.length ?? 0}
             </CardTitle>
           </CardHeader>
@@ -218,9 +220,7 @@ function TenantDashboardPage() {
                 <CalendarCheckIcon className="size-5 text-primary" />
                 <CardTitle className="text-base">Attendance</CardTitle>
               </div>
-              <CardDescription>
-                Manage doctor attendance logs
-              </CardDescription>
+              <CardDescription>Manage doctor attendance logs</CardDescription>
             </CardHeader>
           </Card>
         </Link>

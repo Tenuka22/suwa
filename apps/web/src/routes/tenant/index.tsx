@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { buttonVariants } from "@zen-doc/ui/components/button";
 import {
@@ -26,19 +26,16 @@ function TenantListPage() {
   const { data, isLoading } = useListTenants();
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl tracking-tight">My Hospitals</h1>
+          <h1 className="font-semibold text-lg tracking-tight">My Hospitals</h1>
           <p className="text-muted-foreground">
             Manage your hospital organizations and tenant settings.
           </p>
         </div>
-        <Link
-          to="/tenant/create"
-          className={buttonVariants({})}
-        >
-          <PlusIcon className="mr-2 size-4" />
+        <Link className={buttonVariants({})} to="/tenant/create">
+          <PlusIcon className="size-4" />
           Register Hospital
         </Link>
       </div>
@@ -57,23 +54,7 @@ function TenantListPage() {
             </Card>
           ))}
         </div>
-      ) : !data?.tenants?.length ? (
-        <Card className="flex flex-col items-center justify-center py-16">
-          <BuildingIcon className="mb-4 size-12 text-muted-foreground/40" />
-          <CardTitle className="mb-1">No hospitals yet</CardTitle>
-          <CardDescription className="mb-4 text-center">
-            Register your first hospital to start managing doctors and
-            attendance.
-          </CardDescription>
-          <Link
-            to="/tenant/create"
-            className={buttonVariants({})}
-          >
-            <PlusIcon className="mr-2 size-4" />
-            Register Hospital
-          </Link>
-        </Card>
-      ) : (
+      ) : data?.tenants?.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.tenants.map((tenant) => (
             <Link
@@ -93,12 +74,12 @@ function TenantListPage() {
                           {tenant.name}
                         </CardTitle>
                         <Badge
+                          className="text-[10px]"
                           variant={
                             tenant.type === "PRIVATE_HOSPITAL"
                               ? "default"
                               : "secondary"
                           }
-                          className="mt-1 text-[10px]"
                         >
                           {tenant.type === "PRIVATE_HOSPITAL"
                             ? "Private"
@@ -125,18 +106,18 @@ function TenantListPage() {
                     <span className="truncate">{tenant.address}</span>
                   </div>
                   {tenant.services && tenant.services.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1">
                       {tenant.services.slice(0, 4).map((service) => (
                         <Badge
+                          className="text-[10px]"
                           key={service}
                           variant="outline"
-                          className="text-[10px]"
                         >
                           {service}
                         </Badge>
                       ))}
                       {tenant.services.length > 4 && (
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge className="text-[10px]" variant="outline">
                           +{tenant.services.length - 4}
                         </Badge>
                       )}
@@ -147,6 +128,19 @@ function TenantListPage() {
             </Link>
           ))}
         </div>
+      ) : (
+        <Card className="flex flex-col items-center justify-center">
+          <BuildingIcon className="size-12 text-muted-foreground/40" />
+          <CardTitle>No hospitals yet</CardTitle>
+          <CardDescription className="text-center">
+            Register your first hospital to start managing doctors and
+            attendance.
+          </CardDescription>
+          <Link className={buttonVariants({})} to="/tenant/create">
+            <PlusIcon className="size-4" />
+            Register Hospital
+          </Link>
+        </Card>
       )}
     </div>
   );

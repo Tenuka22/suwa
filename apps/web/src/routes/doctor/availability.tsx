@@ -43,6 +43,7 @@ import {
 } from "recharts";
 
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
+import { BodyText, PageTitle } from "@/components/typography";
 import { notify } from "@/lib/notify";
 import { orpc } from "@/utils/orpc";
 
@@ -276,15 +277,13 @@ function DoctorAvailabilityRoute() {
               <Badge variant="secondary">Schedule overview</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
-                Weekly availability
-              </h1>
+            <div className="flex flex-col gap-2">
+              <PageTitle>Weekly availability</PageTitle>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <BodyText className="max-w-2xl">
                 Set your weekly working hours so patients can book sessions that
                 fit your schedule. Days and slots can be individually toggled.
-              </p>
+              </BodyText>
             </div>
           </div>
         </CardContent>
@@ -449,7 +448,7 @@ function DoctorAvailabilityRoute() {
                 >
                   <CardHeader className="pb-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="space-y-1">
+                      <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <CardTitle className="text-base">{dayName}</CardTitle>
                           <Badge
@@ -496,14 +495,14 @@ function DoctorAvailabilityRoute() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="space-y-3">
+                  <CardContent className="flex flex-col gap-3">
                     {daySlots.length === 0 ? (
                       <div className="rounded-lg border border-border/70 border-dashed bg-muted/20 px-4 py-6 text-center text-muted-foreground text-xs">
                         No slots yet — tap "Add Slot" to set your available
                         hours for {dayName}.
                       </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="flex flex-col gap-3">
                         {daySlots.map((slot, slotOffset) => {
                           const slotIndex = slots.indexOf(slot);
                           const validEndOptions = TIME_OPTIONS.filter(
@@ -519,7 +518,7 @@ function DoctorAvailabilityRoute() {
                                 `${dayName}-${slot.startTime}-${slot.endTime}-${slotOffset}`
                               }
                             >
-                              <div className="mb-3 flex items-center justify-between">
+                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5 text-sm">
                                   <ClockIcon className="size-3.5 text-muted-foreground" />
                                   <span className="font-medium text-xs">
@@ -538,7 +537,7 @@ function DoctorAvailabilityRoute() {
                               </div>
 
                               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                <div className="space-y-1.5">
+                                <div className="flex flex-col gap-1.5">
                                   <Label className="text-muted-foreground text-xs">
                                     Start
                                   </Label>
@@ -561,7 +560,7 @@ function DoctorAvailabilityRoute() {
                                   </Select>
                                 </div>
 
-                                <div className="space-y-1.5">
+                                <div className="flex flex-col gap-1.5">
                                   <Label className="text-muted-foreground text-xs">
                                     End
                                   </Label>
@@ -585,7 +584,7 @@ function DoctorAvailabilityRoute() {
                                   </Select>
                                 </div>
 
-                                <div className="space-y-1.5">
+                                <div className="flex flex-col gap-1.5">
                                   <Label className="text-muted-foreground text-xs">
                                     Status
                                   </Label>

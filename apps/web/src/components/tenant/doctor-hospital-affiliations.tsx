@@ -17,13 +17,8 @@ import {
   EmptyTitle,
 } from "@zen-doc/ui/components/empty";
 import { Separator } from "@zen-doc/ui/components/separator";
+import { BuildingIcon, CheckIcon, ClockIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
-import {
-  BuildingIcon,
-  CheckIcon,
-  ClockIcon,
-  XIcon,
-} from "lucide-react";
 
 import {
   useListDoctorAffiliations,
@@ -78,7 +73,9 @@ export function DoctorHospitalAffiliations() {
     return (
       <Card className="rounded-3xl border-border/60">
         <CardHeader>
-          <CardTitle className="text-base">My Hospital Affiliations</CardTitle>
+          <CardTitle className="font-semibold text-lg tracking-tight">
+            My Hospital Affiliations
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-24 animate-pulse rounded-2xl bg-muted" />
@@ -87,15 +84,14 @@ export function DoctorHospitalAffiliations() {
     );
   }
 
-  const hasContent =
-    affiliations.length > 0 || pendingInvitations.length > 0;
+  const hasContent = affiliations.length > 0 || pendingInvitations.length > 0;
 
   return (
     <Card className="rounded-3xl border-border/60">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-semibold text-lg tracking-tight">
               <BuildingIcon className="size-4" />
               My Hospital Affiliations
             </CardTitle>
@@ -109,17 +105,17 @@ export function DoctorHospitalAffiliations() {
 
       <Separator />
 
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         {/* Pending Invitations */}
         {pendingInvitations.length > 0 && (
-          <div className="space-y-2">
-            <p className="font-medium text-sm text-amber-500">
+          <div className="flex flex-col gap-2">
+            <p className="font-medium text-amber-500 text-sm">
               Pending Invitations ({pendingInvitations.length})
             </p>
             {pendingInvitations.map((inv) => (
               <div
+                className="flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/5"
                 key={inv.id}
-                className="flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/5 p-3"
               >
                 <div>
                   <p className="font-medium text-sm">Hospital Invitation</p>
@@ -134,20 +130,20 @@ export function DoctorHospitalAffiliations() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    size="sm"
-                    onClick={() => handleRespond(inv.id, "ACCEPTED")}
                     disabled={respondInvitation.isPending}
+                    onClick={() => handleRespond(inv.id, "ACCEPTED")}
+                    size="sm"
                   >
-                    <CheckIcon className="mr-1 size-3" />
+                    <CheckIcon className="size-3" />
                     Accept
                   </Button>
                   <Button
+                    disabled={respondInvitation.isPending}
+                    onClick={() => handleRespond(inv.id, "DECLINED")}
                     size="sm"
                     variant="outline"
-                    onClick={() => handleRespond(inv.id, "DECLINED")}
-                    disabled={respondInvitation.isPending}
                   >
-                    <XIcon className="mr-1 size-3" />
+                    <XIcon className="size-3" />
                     Decline
                   </Button>
                 </div>
@@ -158,18 +154,16 @@ export function DoctorHospitalAffiliations() {
 
         {/* Active Affiliations */}
         {affiliations.length > 0 ? (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             {affiliations.map((aff) => (
-              <div
-                key={aff.id}
-                className="rounded-xl border p-3"
-              >
+              <div className="rounded-xl border" key={aff.id}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <BuildingIcon className="size-4 text-primary" />
                     <p className="font-medium text-sm">{aff.tenantName}</p>
                   </div>
                   <Badge
+                    className="text-[10px]"
                     variant={
                       aff.status === "ACTIVE"
                         ? "default"
@@ -177,30 +171,29 @@ export function DoctorHospitalAffiliations() {
                           ? "secondary"
                           : "outline"
                     }
-                    className="text-[10px]"
                   >
                     {aff.status}
                   </Badge>
                 </div>
                 {aff.tenantType && (
-                  <p className="mt-1 text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-xs">
                     {aff.tenantType === "PRIVATE_HOSPITAL"
                       ? "Private Hospital"
                       : "Public Hospital"}
                   </p>
                 )}
                 {aff.availabilityWindows.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-muted-foreground text-xs mb-1">
-                      <ClockIcon className="inline mr-1 size-3" />
+                  <div>
+                    <p className="text-muted-foreground text-xs">
+                      <ClockIcon className="inline size-3" />
                       Availability:
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {aff.availabilityWindows.map((w, i) => (
                         <Badge
+                          className="text-[10px]"
                           key={i}
                           variant="outline"
-                          className="text-[10px]"
                         >
                           {DAYS[w.dayOfWeek]} {w.startTime}–{w.endTime}
                         </Badge>

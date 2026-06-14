@@ -234,7 +234,7 @@ function VideoRoomContent({
 
   if (tokenError) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12">
+      <div className="flex flex-col items-center justify-center gap-4">
         <VideoOff className="h-12 w-12 text-muted-foreground" />
         <p className="text-muted-foreground text-sm">{tokenError}</p>
         <Button onClick={fetchToken} size="sm" variant="default">
@@ -246,9 +246,9 @@ function VideoRoomContent({
 
   if (isFetchingToken || liveKit.isConnecting) {
     return (
-      <div className="flex flex-col items-center justify-center py-24">
+      <div className="flex flex-col items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted-foreground border-t-primary" />
-        <p className="mt-4 font-medium text-muted-foreground">
+        <p className="font-medium text-muted-foreground">
           Establishing secure connection...
         </p>
       </div>
@@ -282,7 +282,7 @@ function VideoRoomContent({
             <audio autoPlay playsInline ref={liveKit.audioRef} />
 
             {liveKit.isConnected && hasRemote && (
-              <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-lg bg-black/40 px-3 py-1.5 backdrop-blur-md">
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-lg bg-black/40 backdrop-blur-md">
                 <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                 <span className="font-semibold text-white text-xs uppercase tracking-wide">
                   {formatParticipantLabel(
@@ -324,8 +324,8 @@ function VideoRoomContent({
                   playsInline
                   ref={liveKit.localVideoRef}
                 />
-                <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 backdrop-blur-sm">
-                  <span className="font-bold text-[10px] text-white uppercase tracking-tighter">
+                <div className="absolute bottom-2 left-2 rounded bg-black/60 backdrop-blur-sm">
+                  <span className="font-medium text-[10px] text-white uppercase">
                     You
                   </span>
                 </div>
@@ -338,11 +338,11 @@ function VideoRoomContent({
             )}
 
             {muteSeconds > 30 && role === "doctor" && (
-              <div className="absolute top-20 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-4">
-                <div className="flex items-center gap-3 rounded-lg border border-amber-500/50 bg-amber-500/20 p-3 text-amber-200 backdrop-blur-lg">
+              <div className="absolute top-20 left-1/2 z-20 w-full max-w-md -translate-x-1/2">
+                <div className="flex items-center gap-3 rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-200 backdrop-blur-lg">
                   <MicOff className="h-5 w-5 shrink-0" />
                   <div className="flex-1">
-                    <p className="font-bold text-xs uppercase italic">
+                    <p className="font-medium text-xs uppercase italic">
                       Microphone Requirement
                     </p>
                     <p className="text-xs opacity-90">
@@ -354,7 +354,7 @@ function VideoRoomContent({
             )}
           </div>
 
-          <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-xl transition-all hover:bg-black/80">
+          <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl transition-all hover:bg-black/80">
             <button
               className={`group relative flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
                 isMicOn
@@ -370,7 +370,7 @@ function VideoRoomContent({
                 <MicOff className="h-5 w-5" />
               )}
               {!isMicOn && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white font-bold text-[10px] text-red-600">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white font-semibold text-[10px] text-red-600">
                   !
                 </span>
               )}
@@ -407,10 +407,10 @@ function VideoRoomContent({
 
           {showEndConfirm && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-              <Card className="mx-4 w-full max-w-sm border-white/10 bg-neutral-900 text-white">
-                <CardContent className="flex flex-col gap-6 p-8">
+              <Card className="w-full max-w-sm border-white/10 bg-neutral-900 text-white">
+                <CardContent className="flex flex-col gap-6">
                   <div className="text-center">
-                    <h3 className="mb-2 font-bold text-lg">End Session?</h3>
+                    <h3 className="font-medium text-sm">End Session?</h3>
                     <p className="text-neutral-400 text-sm">
                       This will disconnect all participants from the call.
                     </p>
@@ -438,7 +438,7 @@ function VideoRoomContent({
 
         {liveKit.isConnected && (
           <div className="flex w-auto flex-col gap-3 overflow-y-auto">
-            <p className="font-bold text-muted-foreground text-xs uppercase tracking-wider">
+            <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
               Participants ({allParticipants.length})
             </p>
             {allParticipants.map((p) => {
@@ -459,7 +459,7 @@ function VideoRoomContent({
                   }`}
                   key={p.identity}
                 >
-                  <CardContent className="flex flex-col gap-2 p-3">
+                  <CardContent className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div
@@ -513,12 +513,12 @@ function VideoRoomContent({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+    <div className="flex flex-col items-center justify-center text-center">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
         <VideoOff className="h-10 w-10 text-muted-foreground" />
       </div>
-      <h3 className="font-bold text-xl">Not Ready Yet</h3>
-      <p className="mt-2 max-w-[280px] text-muted-foreground text-sm">
+      <h3 className="font-semibold text-lg tracking-tight">Not Ready Yet</h3>
+      <p className="max-w-[280px] text-muted-foreground text-sm">
         This session is not yet available for joining. Please check back at the
         scheduled time.
       </p>
@@ -616,7 +616,7 @@ export function VideoRoomWeb({
     }
     if (timing.mustLeave) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 font-medium text-rose-600 text-xs dark:text-rose-400">
+        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 font-medium text-rose-600 text-xs dark:text-rose-400">
           <VideoOff className="h-3 w-3" />
           Must leave
         </span>
@@ -624,13 +624,13 @@ export function VideoRoomWeb({
     }
     if (timing.timeStatus === "grace") {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 font-medium text-amber-600 text-xs dark:text-amber-400">
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 font-medium text-amber-600 text-xs dark:text-amber-400">
           Grace period ({timing.formattedRemaining})
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 font-medium text-emerald-600 text-xs dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 font-medium text-emerald-600 text-xs dark:text-emerald-400">
         <Video className="h-3 w-3" />
         Live
       </span>
@@ -656,15 +656,13 @@ export function VideoRoomWeb({
       <Dialog onOpenChange={(o: boolean) => !o && onClose()} open={open}>
         <DialogContent className="max-w-5xl overflow-hidden p-0 sm:rounded-2xl">
           <div className="flex h-[80vh] flex-col">
-            <div className="flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center justify-between border-b">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                   <Video className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-sm tracking-tight">
-                    Clinical Consultation
-                  </h2>
+                  <h2 className="font-medium text-sm">Clinical Consultation</h2>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                     Secure Session
                   </p>
@@ -672,7 +670,7 @@ export function VideoRoomWeb({
               </div>
               {statusBadge}
             </div>
-            <div className="flex-1 bg-black p-4">{content}</div>
+            <div className="flex-1 bg-black">{content}</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -688,11 +686,11 @@ export function VideoRoomWeb({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-lg uppercase tracking-tight">
+              <span className="font-semibold text-lg tracking-tight">
                 Session
               </span>
               <Badge
-                className="h-5 rounded-md px-1.5 text-[10px] uppercase"
+                className="h-5 rounded-md text-[10px] uppercase"
                 variant="outline"
               >
                 {role}
@@ -732,7 +730,7 @@ export function SessionJoinButton({
   if (timing.mustLeave) {
     return (
       <Badge className="bg-rose-500/10 text-rose-600" variant="outline">
-        <VideoOff className="mr-1 h-3 w-3" />
+        <VideoOff className="h-3 w-3" />
         Expired
       </Badge>
     );
@@ -741,7 +739,7 @@ export function SessionJoinButton({
   if (timing.canJoin) {
     return (
       <Button onClick={() => onJoin(sessionId)} size="sm" variant="default">
-        <Video className="mr-1 h-3 w-3" />
+        <Video className="h-3 w-3" />
         Join
       </Button>
     );
@@ -753,7 +751,7 @@ export function SessionJoinButton({
 
     return (
       <Badge className="bg-amber-500/10 text-amber-600" variant="outline">
-        <Clock className="mr-1 h-3 w-3" />
+        <Clock className="h-3 w-3" />
         Join in {minutes}m
       </Badge>
     );
@@ -761,7 +759,7 @@ export function SessionJoinButton({
 
   return (
     <Badge variant="outline">
-      <Clock className="mr-1 h-3 w-3" />
+      <Clock className="h-3 w-3" />
       Scheduled
     </Badge>
   );

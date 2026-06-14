@@ -107,9 +107,7 @@ export function useUpdateAffiliationWindows() {
   return useMutation({
     ...orpc.updateAffiliationWindows.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(
-        orpc.listDoctorAffiliations.queryOptions()
-      );
+      queryClient.invalidateQueries(orpc.listDoctorAffiliations.queryOptions());
     },
   });
 }
@@ -125,10 +123,7 @@ export function useGetAttendance(
   );
 }
 
-export function useGetDoctorHospitalStatus(
-  tenantId: string,
-  doctorId: string
-) {
+export function useGetDoctorHospitalStatus(tenantId: string, doctorId: string) {
   return useQuery(
     orpc.getDoctorHospitalStatus.queryOptions({ input: { tenantId, doctorId } })
   );
@@ -173,7 +168,9 @@ export function useCreateClinic() {
     ...orpc.createClinic.mutationOptions(),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(
-        orpc.listClinics.queryOptions({ input: { tenantId: variables.tenantId } })
+        orpc.listClinics.queryOptions({
+          input: { tenantId: variables.tenantId },
+        })
       );
     },
   });

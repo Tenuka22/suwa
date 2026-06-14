@@ -107,7 +107,7 @@ function PendingRequests({
                   <CalendarClockIcon className="size-4" />
                 </div>
 
-                <div className="space-y-1">
+                <div className="flex flex-col gap-1">
                   <p className="font-medium text-sm">
                     {session.patientId.slice(0, 12)}...
                   </p>
@@ -200,12 +200,12 @@ function DoctorSessionsRoute() {
               <Badge variant="secondary">Live overview</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">
                 Sessions overview
               </h1>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 Track all your patient sessions at a glance. Monitor requests,
                 review completed appointments, and analyze session trends over
                 time.
@@ -464,7 +464,7 @@ function DoctorSessionsRoute() {
                           </div>
 
                           <Button
-                            className="mt-2 w-full gap-2"
+                            className="w-full gap-2"
                             onClick={() => {
                               navigate({
                                 to: `/doctor/sessions/${session.id}`,
@@ -599,7 +599,7 @@ function DoctorSessionsRoute() {
                           {canJoin && (
                             <div className="col-span-2">
                               <Button
-                                className="mt-2 w-full gap-2"
+                                className="w-full gap-2"
                                 onClick={() => {
                                   navigate({
                                     to: `/doctor/sessions/${session.id}`,

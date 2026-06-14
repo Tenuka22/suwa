@@ -50,12 +50,12 @@ function AdminSessionsRoute() {
               <Badge variant="secondary">Sessions</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">
                 All sessions
               </h1>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 View all sessions across the platform, monitor their status, and
                 track platform activity over time.
               </p>
@@ -67,10 +67,8 @@ function AdminSessionsRoute() {
       <Card className="rounded-3xl border-border/60">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Session history
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">Session history</h2>
               <p className="text-muted-foreground text-sm">
                 All sessions ordered by most recent.
               </p>
@@ -115,7 +113,7 @@ function AdminSessionsRoute() {
                           <CalendarDaysIcon className="size-4" />
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-sm">
                               {session.doctorId.slice(0, 12)}...
@@ -146,7 +144,7 @@ function AdminSessionsRoute() {
           )}
 
           {rows.length > 0 ? (
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 Page {data?.page ?? search.page}
               </p>

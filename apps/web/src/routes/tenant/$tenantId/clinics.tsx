@@ -19,12 +19,9 @@ import { Input } from "@zen-doc/ui/components/input";
 import { Label } from "@zen-doc/ui/components/label";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
 import { Textarea } from "@zen-doc/ui/components/textarea";
-import { toast } from "sonner";
+import { PlusIcon, StethoscopeIcon } from "lucide-react";
 import { useState } from "react";
-import {
-  PlusIcon,
-  StethoscopeIcon,
-} from "lucide-react";
+import { toast } from "sonner";
 
 import { useCreateClinic, useListClinics } from "@/hooks/queries/tenant";
 
@@ -66,20 +63,20 @@ function TenantClinicsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl tracking-tight">Clinics</h1>
+          <h1 className="font-semibold text-lg tracking-tight">Clinics</h1>
           <p className="text-muted-foreground">
             Manage clinics within this public hospital.
           </p>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
           <DialogTrigger
             render={
               <Button>
-                <PlusIcon className="mr-2 size-4" />
+                <PlusIcon className="size-4" />
                 Create Clinic
               </Button>
             }
@@ -88,38 +85,38 @@ function TenantClinicsPage() {
             <DialogHeader>
               <DialogTitle>Create New Clinic</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
                 <Label>Clinic Name *</Label>
                 <Input
-                  value={clinicName}
                   onChange={(e) => setClinicName(e.target.value)}
                   placeholder="e.g., Cardiology OPD"
+                  value={clinicName}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label>Specialization</Label>
                 <Input
-                  value={specialization}
                   onChange={(e) => setSpecialization(e.target.value)}
                   placeholder="e.g., Cardiology"
+                  value={specialization}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label>Schedule</Label>
                 <Textarea
-                  value={schedule}
                   onChange={(e) => setSchedule(e.target.value)}
                   placeholder="e.g., Mon-Fri 17:00-20:00"
                   rows={2}
+                  value={schedule}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button onClick={() => setDialogOpen(false)} variant="outline">
                 Cancel
               </Button>
-              <Button onClick={handleCreate} disabled={createClinic.isPending}>
+              <Button disabled={createClinic.isPending} onClick={handleCreate}>
                 {createClinic.isPending ? "Creating..." : "Create Clinic"}
               </Button>
             </DialogFooter>
@@ -140,19 +137,7 @@ function TenantClinicsPage() {
             </Card>
           ))}
         </div>
-      ) : !data?.clinics?.length ? (
-        <Card className="flex flex-col items-center justify-center py-16">
-          <StethoscopeIcon className="mb-4 size-12 text-muted-foreground/40" />
-          <CardTitle className="mb-1">No clinics yet</CardTitle>
-          <CardDescription className="mb-4 text-center">
-            Create clinics to organize doctor attendance within this hospital.
-          </CardDescription>
-          <Button onClick={() => setDialogOpen(true)}>
-            <PlusIcon className="mr-2 size-4" />
-            Create Clinic
-          </Button>
-        </Card>
-      ) : (
+      ) : data?.clinics?.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.clinics.map((clinic) => (
             <Card key={clinic.id}>
@@ -171,13 +156,25 @@ function TenantClinicsPage() {
                     📅 {clinic.schedule}
                   </p>
                 )}
-                <p className="mt-1 text-muted-foreground text-xs">
+                <p className="text-muted-foreground text-xs">
                   Created {new Date(clinic.createdAt).toLocaleDateString()}
                 </p>
               </CardContent>
             </Card>
           ))}
         </div>
+      ) : (
+        <Card className="flex flex-col items-center justify-center">
+          <StethoscopeIcon className="size-12 text-muted-foreground/40" />
+          <CardTitle>No clinics yet</CardTitle>
+          <CardDescription className="text-center">
+            Create clinics to organize doctor attendance within this hospital.
+          </CardDescription>
+          <Button onClick={() => setDialogOpen(true)}>
+            <PlusIcon className="size-4" />
+            Create Clinic
+          </Button>
+        </Card>
       )}
     </div>
   );

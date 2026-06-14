@@ -47,11 +47,11 @@ function AdminPlansRoute() {
               <Badge variant="outline">Admin console</Badge>
               <Badge variant="secondary">Plans</Badge>
             </div>
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">
                 Consultation plans
               </h1>
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 View all consultation plans across the platform, including
                 pricing, duration, and features.
               </p>
@@ -63,10 +63,8 @@ function AdminPlansRoute() {
       <Card className="rounded-3xl border-border/60">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                All plans
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">All plans</h2>
               <p className="text-muted-foreground text-sm">
                 Plans ordered by most recently created.
               </p>
@@ -146,7 +144,7 @@ function AdminPlansRoute() {
           )}
 
           {rows.length > 0 ? (
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 Page {data?.page ?? search.page}
               </p>

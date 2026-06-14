@@ -27,8 +27,6 @@ import {
 } from "@zen-doc/ui/components/select";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
 import { Textarea } from "@zen-doc/ui/components/textarea";
-import { toast } from "sonner";
-import { useState } from "react";
 import {
   CalendarCheckIcon,
   LogInIcon,
@@ -37,6 +35,8 @@ import {
   RotateCcwIcon,
   TrashIcon,
 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import {
   useDeleteAttendanceEvent,
@@ -79,18 +79,20 @@ function TenantAttendancePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // New event form state
-  const [eventType, setEventType] = useState<(typeof EVENT_TYPES)[number]>("CHECKED_IN");
+  const [eventType, setEventType] =
+    useState<(typeof EVENT_TYPES)[number]>("CHECKED_IN");
   const [eventTimestamp, setEventTimestamp] = useState("");
   const [eventNote, setEventNote] = useState("");
 
   const { data: affiliationsData } = useListTenantAffiliations(tenantId);
-  const { data: attendanceData, isLoading, refetch } = useGetAttendance(
-    tenantId,
-    {
-      doctorId: selectedDoctorId || undefined,
-      date: selectedDate,
-    }
-  );
+  const {
+    data: attendanceData,
+    isLoading,
+    refetch,
+  } = useGetAttendance(tenantId, {
+    doctorId: selectedDoctorId || undefined,
+    date: selectedDate,
+  });
 
   const logEvent = useLogAttendanceEvent();
   const deleteEvent = useDeleteAttendanceEvent();
@@ -136,20 +138,20 @@ function TenantAttendancePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl tracking-tight">Attendance</h1>
+          <h1 className="font-semibold text-lg tracking-tight">Attendance</h1>
           <p className="text-muted-foreground">
             Track doctor attendance at this hospital.
           </p>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
           <DialogTrigger
             render={
               <Button>
-                <PlusIcon className="mr-2 size-4" />
+                <PlusIcon className="size-4" />
                 Log Event
               </Button>
             }
@@ -161,10 +163,13 @@ function TenantAttendancePage() {
                 Record a check-in, check-out, or other event for a doctor.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
                 <Label>Doctor</Label>
-                <Select value={selectedDoctorId} onValueChange={(v) => setSelectedDoctorId(v ?? "")}>
+                <Select
+                  onValueChange={(v) => setSelectedDoctorId(v ?? "")}
+                  value={selectedDoctorId}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select doctor..." />
                   </SelectTrigger>
@@ -180,13 +185,15 @@ function TenantAttendancePage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label>Event Type</Label>
                 <Select
-                  value={eventType}
                   onValueChange={(v) => {
-                    if (v) setEventType(v as (typeof EVENT_TYPES)[number]);
+                    if (v) {
+                      setEventType(v as (typeof EVENT_TYPES)[number]);
+                    }
                   }}
+                  value={eventType}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -201,33 +208,33 @@ function TenantAttendancePage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label>Timestamp</Label>
                 <Input
+                  onChange={(e) => setEventTimestamp(e.target.value)}
                   type="datetime-local"
                   value={eventTimestamp}
-                  onChange={(e) => setEventTimestamp(e.target.value)}
                 />
                 <p className="text-muted-foreground text-xs">
                   Leave empty to use current time
                 </p>
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label>Note (optional)</Label>
                 <Textarea
-                  value={eventNote}
                   onChange={(e) => setEventNote(e.target.value)}
                   placeholder="Add a note..."
                   rows={2}
+                  value={eventNote}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button onClick={() => setDialogOpen(false)} variant="outline">
                 Cancel
               </Button>
-              <Button onClick={handleLogEvent} disabled={logEvent.isPending}>
+              <Button disabled={logEvent.isPending} onClick={handleLogEvent}>
                 {logEvent.isPending ? "Logging..." : "Log Event"}
               </Button>
             </DialogFooter>
@@ -237,19 +244,19 @@ function TenantAttendancePage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <Label className="text-xs">Date</Label>
           <Input
+            onChange={(e) => setSelectedDate(e.target.value)}
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
           />
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <Label className="text-xs">Doctor</Label>
           <Select
-            value={selectedDoctorId}
             onValueChange={(v) => setSelectedDoctorId(v ?? "")}
+            value={selectedDoctorId}
           >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="All doctors" />
@@ -270,33 +277,32 @@ function TenantAttendancePage() {
 
       {/* Events Timeline */}
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" key={i} />
           ))}
         </div>
       ) : events.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center py-12">
-          <CalendarCheckIcon className="mb-3 size-8 text-muted-foreground/40" />
+        <Card className="flex flex-col items-center justify-center">
+          <CalendarCheckIcon className="size-8 text-muted-foreground/40" />
           <CardTitle className="text-base">No events for this date</CardTitle>
           <CardDescription>
             Log an attendance event to start tracking.
           </CardDescription>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {events.map((event) => {
             const Icon = EVENT_ICONS[event.eventType] ?? CalendarCheckIcon;
-            const colorClass = EVENT_COLORS[event.eventType] ?? "text-muted-foreground";
+            const colorClass =
+              EVENT_COLORS[event.eventType] ?? "text-muted-foreground";
             const doctor = doctors.find((d) => d.doctorId === event.doctorId);
 
             return (
               <Card key={event.id}>
-                <CardContent className="flex items-center justify-between py-4">
+                <CardContent className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div
-                      className={`rounded-full border p-2 ${colorClass}`}
-                    >
+                    <div className={`rounded-full border p-2 ${colorClass}`}>
                       <Icon className="size-4" />
                     </div>
                     <div>
@@ -304,7 +310,7 @@ function TenantAttendancePage() {
                         <p className="font-medium">
                           {doctor?.doctorName ?? event.doctorId}
                         </p>
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge className="text-[10px]" variant="outline">
                           {event.eventType.replace(/_/g, " ")}
                         </Badge>
                       </div>
@@ -319,10 +325,10 @@ function TenantAttendancePage() {
                     </div>
                   </div>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteEvent(event.id)}
                     className="text-muted-foreground hover:text-destructive"
+                    onClick={() => handleDeleteEvent(event.id)}
+                    size="icon"
+                    variant="ghost"
                   >
                     <TrashIcon className="size-4" />
                   </Button>

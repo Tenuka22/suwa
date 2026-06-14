@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "@tanstack/react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +19,6 @@ import {
   UserPlusIcon,
   UsersIcon,
 } from "lucide-react";
-import { useParams } from "@tanstack/react-router";
 
 import { SidebarNavSection } from "@/components/sidebar-nav-section";
 import { SidebarUserFooter } from "@/components/sidebar-user-footer";
@@ -32,12 +32,12 @@ export function TenantSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         {state === "collapsed" ? (
-          <div className="flex items-center justify-center py-1">
+          <div className="flex items-center justify-center">
             <BuildingIcon className="size-4 text-primary" />
           </div>
         ) : (
-          <div className="flex flex-col gap-1 px-2 py-1">
-            <span className="font-semibold text-sm">Hospital Portal</span>
+          <div className="flex flex-col gap-1">
+            <span className="font-medium text-sm">Hospital Portal</span>
             <span className="text-muted-foreground text-xs">ZenDoc</span>
           </div>
         )}

@@ -56,7 +56,7 @@ function DoctorSessionDetailRoute() {
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="font-bold text-lg">Session Room</h1>
+          <h1 className="font-semibold text-lg tracking-tight">Session Room</h1>
           <p className="text-muted-foreground text-xs">ID: {sessionId}</p>
         </div>
       </header>

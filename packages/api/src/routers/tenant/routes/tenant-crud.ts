@@ -1,8 +1,4 @@
-import {
-  tenantAdmins,
-  tenantAuditLogs,
-  tenants,
-} from "@zen-doc/db";
+import { tenantAdmins, tenantAuditLogs, tenants } from "@zen-doc/db";
 import {
   createTenantSchema,
   tenantIdSchema,
@@ -110,18 +106,32 @@ export const updateTenantRoute = protectedProcedure
     const now = new Date().toISOString();
 
     const updateData: Record<string, unknown> = { updatedAt: now };
-    if (input.name !== undefined) updateData.name = input.name;
-    if (input.address !== undefined) updateData.address = input.address;
-    if (input.contactInfo !== undefined)
+    if (input.name !== undefined) {
+      updateData.name = input.name;
+    }
+    if (input.address !== undefined) {
+      updateData.address = input.address;
+    }
+    if (input.contactInfo !== undefined) {
       updateData.contactInfo = input.contactInfo;
-    if (input.logo !== undefined) updateData.logo = input.logo;
-    if (input.status !== undefined) updateData.status = input.status;
-    if (input.services !== undefined)
+    }
+    if (input.logo !== undefined) {
+      updateData.logo = input.logo;
+    }
+    if (input.status !== undefined) {
+      updateData.status = input.status;
+    }
+    if (input.services !== undefined) {
       updateData.services = input.services
         ? JSON.stringify(input.services)
         : null;
-    if (input.phone !== undefined) updateData.phone = input.phone;
-    if (input.website !== undefined) updateData.website = input.website;
+    }
+    if (input.phone !== undefined) {
+      updateData.phone = input.phone;
+    }
+    if (input.website !== undefined) {
+      updateData.website = input.website;
+    }
 
     await context.db
       .update(tenants)
@@ -172,9 +182,7 @@ export const listTenantsRoute = protectedProcedure
       return {
         tenants: allTenants.map((t) => ({
           ...t,
-          services: t.services
-            ? (JSON.parse(t.services) as string[])
-            : [],
+          services: t.services ? (JSON.parse(t.services) as string[]) : [],
         })),
       };
     }
@@ -191,16 +199,12 @@ export const listTenantsRoute = protectedProcedure
 
     const tenantIds = adminRecords.map((r) => r.tenantId);
     const allTenants = await context.db.select().from(tenants);
-    const managedTenants = allTenants.filter((t) =>
-      tenantIds.includes(t.id)
-    );
+    const managedTenants = allTenants.filter((t) => tenantIds.includes(t.id));
 
     return {
       tenants: managedTenants.map((t) => ({
         ...t,
-        services: t.services
-          ? (JSON.parse(t.services) as string[])
-          : [],
+        services: t.services ? (JSON.parse(t.services) as string[]) : [],
       })),
     };
   });

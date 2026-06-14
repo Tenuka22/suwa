@@ -70,7 +70,8 @@ export const inviteDoctorRoute = protectedProcedure
       userId: input.doctorId,
       type: "HOSPITAL_INVITATION",
       title: "Hospital Invitation",
-      message: `You have been invited to join a hospital. Please review the invitation.`,
+      message:
+        "You have been invited to join a hospital. Please review the invitation.",
       entityId: invitationId,
       isRead: false,
       createdAt: now,
@@ -101,7 +102,7 @@ export const listTenantInvitationsRoute = protectedProcedure
   .handler(async ({ context, input }) => {
     await requireTenantAdmin(context, input.tenantId);
 
-    let query = context.db
+    const query = context.db
       .select()
       .from(doctorHospitalInvitations)
       .where(eq(doctorHospitalInvitations.tenantId, input.tenantId));
@@ -216,7 +217,7 @@ export const respondInvitationRoute = protectedProcedure
           userId: admin.userId,
           type: "AFFILIATION_STATUS",
           title: "Doctor Accepted Invitation",
-          message: `A doctor has accepted your hospital invitation.`,
+          message: "A doctor has accepted your hospital invitation.",
           entityId: affiliationId,
           isRead: false,
           createdAt: now,

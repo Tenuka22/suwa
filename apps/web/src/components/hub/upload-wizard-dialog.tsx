@@ -178,7 +178,7 @@ export function UploadWizardDialog({
     <Dialog onOpenChange={handleClose} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="font-medium text-sm">
             {step === "select" && "Upload video or audio"}
             {step === "details" && "Video details"}
             {step === "uploading" && "Uploading..."}
@@ -210,11 +210,9 @@ export function UploadWizardDialog({
             }}
             onDrop={handleDrop}
           >
-            <UploadIcon className="mb-4 size-12 text-muted-foreground" />
-            <p className="mb-1 font-medium text-lg">
-              Drag and drop your file here
-            </p>
-            <p className="mb-4 text-muted-foreground text-sm">
+            <UploadIcon className="size-12 text-muted-foreground" />
+            <p className="font-medium text-sm">Drag and drop your file here</p>
+            <p className="text-muted-foreground text-sm">
               Videos and audio files supported
             </p>
             <Button
@@ -241,7 +239,7 @@ export function UploadWizardDialog({
 
         {/* Step: Details */}
         {step === "details" && selectedFile && (
-          <div className="grid gap-4 py-2">
+          <div className="grid gap-4">
             <div className="flex items-center gap-3 rounded-lg bg-muted/40 p-3">
               {selectedFile.type.startsWith("video/") ? (
                 <FileVideoIcon className="size-8 text-primary" />
@@ -335,7 +333,7 @@ export function UploadWizardDialog({
               <div className="grid gap-2">
                 {VISIBILITY_OPTIONS.map((opt) => (
                   <button
-                    className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
+                    className={`flex items-center gap-3 rounded-lg border text-left transition-colors ${
                       visibility === opt.value
                         ? "border-primary bg-primary/5"
                         : "border-border/60 hover:border-border"
@@ -360,8 +358,8 @@ export function UploadWizardDialog({
 
         {/* Step: Uploading */}
         {step === "uploading" && progress && (
-          <div className="grid gap-4 py-2">
-            <div className="space-y-3">
+          <div className="grid gap-4">
+            <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <p className="truncate font-medium text-sm">
                   {progress.fileName}
@@ -418,7 +416,7 @@ export function UploadWizardDialog({
 
         {/* Step: Done */}
         {step === "done" && (
-          <div className="flex flex-col items-center gap-4 py-6">
+          <div className="flex flex-col items-center gap-4">
             <div className="rounded-full bg-primary/10 p-3">
               <FileVideoIcon className="size-8 text-primary" />
             </div>

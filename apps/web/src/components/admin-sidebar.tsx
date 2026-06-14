@@ -28,14 +28,14 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         {state === "collapsed" ? (
-          <div className="flex items-center justify-center py-1">
-            <span className="select-none font-bold text-lg text-primary">
+          <div className="flex items-center justify-center">
+            <span className="select-none font-semibold text-lg text-primary">
               Z
             </span>
           </div>
         ) : (
-          <div className="flex flex-col gap-1 px-2 py-1.5">
-            <span className="font-semibold text-sm">Admin Console</span>
+          <div className="flex flex-col gap-1">
+            <span className="font-medium text-sm">Admin Console</span>
             <span className="text-muted-foreground text-xs">ZenDoc</span>
           </div>
         )}

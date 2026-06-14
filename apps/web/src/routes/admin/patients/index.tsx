@@ -48,12 +48,10 @@ function AdminPatientsRoute() {
               <Badge variant="secondary">Patients</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
-                Patients
-              </h1>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">Patients</h1>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 View all registered patients on the platform and their
                 onboarding status.
               </p>
@@ -65,10 +63,8 @@ function AdminPatientsRoute() {
       <Card className="rounded-3xl border-border/60">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Registered patients
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">Registered patients</h2>
               <p className="text-muted-foreground text-sm">
                 All patients ordered by registration date.
               </p>
@@ -109,7 +105,7 @@ function AdminPatientsRoute() {
                         <UserRoundIcon className="size-4" />
                       </div>
 
-                      <div className="space-y-1">
+                      <div className="flex flex-col gap-1">
                         <p className="font-medium text-sm">{patient.alias}</p>
                         <div className="flex flex-wrap gap-3 text-muted-foreground text-xs">
                           {patient.guardianEmail ? (
@@ -136,7 +132,7 @@ function AdminPatientsRoute() {
           )}
 
           {rows.length > 0 ? (
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 Page {data?.page ?? search.page}
               </p>

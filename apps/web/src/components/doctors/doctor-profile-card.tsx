@@ -261,7 +261,7 @@ export function DoctorProfileCard() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col gap-4 border-border/30 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
+        <CardHeader className="flex flex-col gap-4 border-border/30 border-b sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Avatar
               className="size-16 border-2 border-primary/20 shadow-md"
@@ -270,20 +270,20 @@ export function DoctorProfileCard() {
               {user.user?.imageUrl ? (
                 <AvatarImage alt={displayName} src={user.user.imageUrl} />
               ) : null}
-              <AvatarFallback className="bg-primary/10 font-bold text-lg text-primary">
+              <AvatarFallback className="bg-primary/10 text-lg text-primary">
                 {displayName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <CardTitle className="font-bold text-xl tracking-tight">
+                <CardTitle className="font-medium text-sm">
                   {displayName}
                 </CardTitle>
-                <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary text-xs">
+                <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 font-semibold text-primary text-xs px-2">
                   {statusBadge}
                 </div>
               </div>
-              <p className="mt-1 text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm">
                 {profile?.headline ?? "No professional headline set yet"}
               </p>
             </div>
@@ -293,18 +293,18 @@ export function DoctorProfileCard() {
             onClick={() => setOpen(true)}
             variant="outline"
           >
-            <Sparkles className="mr-2 h-4 w-4 text-primary" />
+            <Sparkles className="h-4 w-4 text-primary" />
             Edit Profile
           </Button>
         </CardHeader>
 
-        <CardContent className="grid gap-6 pt-6 md:grid-cols-2">
-          <div className="space-y-4">
+        <CardContent className="grid gap-6 md:grid-cols-2">
+          <div className="flex flex-col gap-4">
             <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
               <Building className="size-4 text-primary" />
               Practice Details
             </h3>
-            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5">
               <SummaryItem
                 icon={<Clock className="size-3.5 text-muted-foreground" />}
                 label="Experience"
@@ -323,12 +323,12 @@ export function DoctorProfileCard() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
               <Award className="size-4 text-primary" />
               Professional Info
             </h3>
-            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5">
               <SummaryItem
                 icon={<FileText className="size-3.5 text-muted-foreground" />}
                 label="License Number"
@@ -347,11 +347,11 @@ export function DoctorProfileCard() {
             </div>
           </div>
 
-          <div className="space-y-2 border-border/20 border-t pt-4 md:col-span-2">
+          <div className="flex flex-col gap-2 border-border/20 border-t md:col-span-2">
             <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
               Biography
             </h3>
-            <p className="rounded-xl border border-border/30 bg-muted/5 p-4 text-foreground/90 text-sm italic leading-relaxed">
+            <p className="rounded-xl border border-border/30 bg-muted/5 text-foreground/90 text-sm italic leading-relaxed">
               "
               {profile?.bio ??
                 "Welcome to my profile. Set up your biography using the edit button above."}
@@ -359,7 +359,7 @@ export function DoctorProfileCard() {
             </p>
           </div>
 
-          <div className="grid gap-6 border-border/20 border-t pt-4 md:col-span-2 md:grid-cols-2">
+          <div className="grid gap-6 border-border/20 border-t md:col-span-2 md:grid-cols-2">
             <SummaryBlock
               colorTheme="primary"
               label="Specialties"
@@ -387,7 +387,7 @@ export function DoctorProfileCard() {
           </div>
 
           {stepsList.length > 0 && (
-            <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
+            <div className="flex flex-col gap-3 border-border/20 border-t md:col-span-2">
               <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
                 <Sparkles className="size-4 text-primary" />
                 Therapeutic Approach
@@ -395,13 +395,13 @@ export function DoctorProfileCard() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {stepsList.map((step, idx) => (
                   <div
-                    className="relative rounded-xl border border-border/50 bg-muted/5 p-3.5 transition-all hover:bg-muted/15"
+                    className="relative rounded-xl border border-border/50 bg-muted/5 transition-all hover:bg-muted/15"
                     key={step.id}
                   >
-                    <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 px-2 py-0.5 font-bold font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
+                    <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
                       Step {idx + 1}
                     </span>
-                    <p className="pr-10 font-medium text-foreground/80 text-sm leading-relaxed">
+                    <p className="font-medium text-foreground/80 text-sm leading-relaxed">
                       {step.text}
                     </p>
                   </div>
@@ -411,7 +411,7 @@ export function DoctorProfileCard() {
           )}
 
           {parsedEducation.length > 0 && (
-            <div className="space-y-3 border-border/20 border-t pt-4 md:col-span-2">
+            <div className="flex flex-col gap-3 border-border/20 border-t md:col-span-2">
               <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
                 <Award className="size-4 text-primary" />
                 Education & Credentials
@@ -419,10 +419,10 @@ export function DoctorProfileCard() {
               <div className="divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-muted/5">
                 {parsedEducation.map((edu) => (
                   <div
-                    className="flex items-center justify-between p-3.5 text-sm transition-all hover:bg-muted/10"
+                    className="flex items-center justify-between text-sm transition-all hover:bg-muted/10"
                     key={edu.id}
                   >
-                    <div className="space-y-0.5">
+                    <div className="flex flex-col gap-0.5">
                       <p className="font-semibold text-foreground/80">
                         {edu.degree}
                       </p>
@@ -431,7 +431,7 @@ export function DoctorProfileCard() {
                       </p>
                     </div>
                     {edu.year && (
-                      <span className="rounded-full border bg-muted px-2.5 py-1 font-mono font-semibold text-muted-foreground text-xs">
+                      <span className="rounded-full border bg-muted font-mono font-semibold text-muted-foreground text-xs">
                         {edu.year}
                       </span>
                     )}
@@ -441,8 +441,8 @@ export function DoctorProfileCard() {
             </div>
           )}
 
-          <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
-            <div className="space-y-1">
+          <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
+            <div className="flex flex-col gap-1">
               <h3 className="flex items-center gap-1.5 font-semibold text-foreground text-sm">
                 <FileText className="size-4" />
                 Proof of Credentials & Marketing Materials
@@ -477,28 +477,28 @@ export function DoctorProfileCard() {
             <Tabs className="w-full" defaultValue="basic">
               <TabsList>
                 <TabsTrigger
-                  className="flex items-center justify-center gap-2 py-2"
+                  className="flex items-center justify-center gap-2"
                   value="basic"
                 >
                   <User className="size-4 shrink-0" />
                   <span>Basic Info</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  className="flex items-center justify-center gap-2 py-2"
+                  className="flex items-center justify-center gap-2"
                   value="practice"
                 >
                   <Building className="size-4 shrink-0" />
                   <span>Practice Place</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  className="flex items-center justify-center gap-2 py-2"
+                  className="flex items-center justify-center gap-2"
                   value="specialties"
                 >
                   <Sparkles className="size-4 shrink-0" />
                   <span>Specialties</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  className="flex items-center justify-center gap-2 py-2"
+                  className="flex items-center justify-center gap-2"
                   value="experience"
                 >
                   <Award className="size-4 shrink-0" />
@@ -507,7 +507,7 @@ export function DoctorProfileCard() {
               </TabsList>
 
               <TabsContent
-                className="space-y-5 outline-none focus:outline-none"
+                className="flex flex-col gap-5 outline-none focus:outline-none"
                 value="basic"
               >
                 <FieldGroup>
@@ -579,7 +579,7 @@ export function DoctorProfileCard() {
               </TabsContent>
 
               <TabsContent
-                className="space-y-5 outline-none focus:outline-none"
+                className="flex flex-col gap-5 outline-none focus:outline-none"
                 value="practice"
               >
                 <FieldGroup>
@@ -618,20 +618,17 @@ export function DoctorProfileCard() {
               </TabsContent>
 
               <TabsContent
-                className="space-y-6 outline-none focus:outline-none"
+                className="flex flex-col gap-6 outline-none focus:outline-none"
                 value="specialties"
               >
                 <FieldSet>
-                  <FieldLegend
-                    className="font-semibold text-sm"
-                    variant="label"
-                  >
+                  <FieldLegend className="font-medium text-sm" variant="label">
                     Specialties (Select up to 5)
                   </FieldLegend>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                     {doctorSpecialtyValues.map((value) => (
                       <Field
-                        className="rounded-lg border p-3 transition-colors hover:bg-muted/10"
+                        className="rounded-lg border transition-colors hover:bg-muted/10"
                         key={value}
                         orientation="horizontal"
                       >
@@ -659,16 +656,13 @@ export function DoctorProfileCard() {
                 </FieldSet>
 
                 <FieldSet>
-                  <FieldLegend
-                    className="font-semibold text-sm"
-                    variant="label"
-                  >
+                  <FieldLegend className="font-medium text-sm" variant="label">
                     Languages (Select up to 8)
                   </FieldLegend>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                     {doctorLanguageValues.map((value) => (
                       <Field
-                        className="rounded-lg border p-3 transition-colors hover:bg-muted/10"
+                        className="rounded-lg border transition-colors hover:bg-muted/10"
                         key={value}
                         orientation="horizontal"
                       >
@@ -696,17 +690,14 @@ export function DoctorProfileCard() {
                 </FieldSet>
 
                 <FieldSet>
-                  <FieldLegend
-                    className="font-semibold text-sm"
-                    variant="label"
-                  >
+                  <FieldLegend className="font-medium text-sm" variant="label">
                     Consultation modes (Select up to 3)
                   </FieldLegend>
                   <div className="flex flex-wrap gap-3">
                     {doctorConsultationModeValues.map((value) => (
                       <Button
                         className={cn(
-                          "rounded-xl border px-4 py-2 font-medium text-sm transition-all",
+                          "rounded-xl border font-medium text-sm transition-all",
                           (form.watch("consultationModes") ?? []).includes(
                             value
                           )
@@ -727,16 +718,13 @@ export function DoctorProfileCard() {
                 </FieldSet>
 
                 <FieldSet>
-                  <FieldLegend
-                    className="font-semibold text-sm"
-                    variant="label"
-                  >
+                  <FieldLegend className="font-medium text-sm" variant="label">
                     Focus areas (Select up to 10)
                   </FieldLegend>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                     {doctorFocusAreaValues.map((value) => (
                       <Field
-                        className="rounded-lg border p-3 transition-colors hover:bg-muted/10"
+                        className="rounded-lg border transition-colors hover:bg-muted/10"
                         key={value}
                         orientation="horizontal"
                       >
@@ -765,7 +753,7 @@ export function DoctorProfileCard() {
               </TabsContent>
 
               <TabsContent
-                className="space-y-6 outline-none focus:outline-none"
+                className="flex flex-col gap-6 outline-none focus:outline-none"
                 value="experience"
               >
                 <StructuredListEditor
@@ -795,7 +783,7 @@ export function DoctorProfileCard() {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-2 flex justify-end gap-3 border-t pt-4">
+            <div className="flex justify-end gap-3 border-t">
               <Button
                 onClick={() => setOpen(false)}
                 type="button"
@@ -857,7 +845,7 @@ function StructuredListEditor({
         {items.map((item, index) => (
           <div
             className={cn(
-              "flex items-start gap-3 rounded-lg border bg-muted/10 p-3",
+              "flex items-start gap-3 rounded-lg border bg-muted/10",
               draggedIndex === index && "border-primary bg-primary/5"
             )}
             draggable
@@ -870,9 +858,9 @@ function StructuredListEditor({
               }
             }}
           >
-            <GripVertical className="mt-3 size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing" />
+            <GripVertical className="size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing" />
             <div className="flex-1">
-              <p className="mb-2 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">
                 Step {index + 1}
               </p>
               <Textarea
@@ -927,7 +915,7 @@ function StructuredListEditor({
           type="button"
           variant="outline"
         >
-          <Plus className="mr-2 size-4" />
+          <Plus className="size-4" />
           Add step
         </Button>
       </div>
@@ -956,15 +944,15 @@ function EducationTableEditor({
         easily verify your background.
       </FieldDescription>
       <div className="overflow-hidden rounded-xl border border-border/70 bg-card/30">
-        <div className="grid grid-cols-[1.3fr_1.1fr_0.6fr_auto] gap-2 border-b bg-muted/40 px-3 py-2.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+        <div className="grid grid-cols-[1.3fr_1.1fr_0.6fr_auto] gap-2 border-b bg-muted/40 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
           <span>Institution</span>
           <span>Degree</span>
           <span>Year</span>
           <span />
         </div>
-        <div className="flex flex-col gap-3 p-3">
+        <div className="flex flex-col gap-3">
           {rows.length === 0 ? (
-            <p className="py-4 text-center text-muted-foreground text-sm">
+            <p className="text-center text-muted-foreground text-sm">
               No education history added yet.
             </p>
           ) : null}
@@ -1028,12 +1016,12 @@ function EducationTableEditor({
         </div>
       </div>
       <Button
-        className="mt-2 w-full sm:w-auto"
+        className="w-full sm:w-auto"
         onClick={addRow}
         type="button"
         variant="outline"
       >
-        <Plus className="mr-2 size-4" />
+        <Plus className="size-4" />
         Add Education Row
       </Button>
     </FieldSet>

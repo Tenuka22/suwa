@@ -19,13 +19,9 @@ import {
 } from "@zen-doc/ui/components/select";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
 import { Textarea } from "@zen-doc/ui/components/textarea";
-import { toast } from "sonner";
+import { CheckIcon, SendIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import {
-  CheckIcon,
-  SendIcon,
-  XIcon,
-} from "lucide-react";
+import { toast } from "sonner";
 
 import {
   useInviteDoctor,
@@ -75,9 +71,9 @@ function TenantInvitePage() {
       : invitations.filter((i) => i.status === filterStatus);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-bold text-2xl tracking-tight">Invite Doctor</h1>
+        <h1 className="font-semibold text-lg tracking-tight">Invite Doctor</h1>
         <p className="text-muted-foreground">
           Send invitations to doctors to join this hospital.
         </p>
@@ -91,28 +87,28 @@ function TenantInvitePage() {
             Enter the doctor's user ID to send them an invitation.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="doctorId">Doctor ID *</Label>
             <Input
               id="doctorId"
-              value={doctorId}
               onChange={(e) => setDoctorId(e.target.value)}
               placeholder="Enter doctor's user ID..."
+              value={doctorId}
             />
           </div>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="message">Message (optional)</Label>
             <Textarea
               id="message"
-              value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Add a personal message to the invitation..."
               rows={3}
+              value={message}
             />
           </div>
-          <Button onClick={handleInvite} disabled={inviteDoctor.isPending}>
-            <SendIcon className="mr-2 size-4" />
+          <Button disabled={inviteDoctor.isPending} onClick={handleInvite}>
+            <SendIcon className="size-4" />
             {inviteDoctor.isPending ? "Sending..." : "Send Invitation"}
           </Button>
         </CardContent>
@@ -127,7 +123,10 @@ function TenantInvitePage() {
               Track all invitations sent for this hospital.
             </CardDescription>
           </div>
-          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v ?? "ALL")}>
+          <Select
+            onValueChange={(v) => setFilterStatus(v ?? "ALL")}
+            value={filterStatus}
+          >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
@@ -141,27 +140,26 @@ function TenantInvitePage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
           ) : filteredInvitations.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground text-sm">
+            <p className="text-center text-muted-foreground text-sm">
               No invitations found.
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               {filteredInvitations.map((inv) => (
                 <div
+                  className="flex items-center justify-between rounded-lg border"
                   key={inv.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">
-                        {inv.doctorName}
-                      </p>
+                      <p className="font-medium text-sm">{inv.doctorName}</p>
                       <Badge
+                        className="text-[10px]"
                         variant={
                           inv.status === "ACCEPTED"
                             ? "default"
@@ -169,12 +167,11 @@ function TenantInvitePage() {
                               ? "destructive"
                               : "outline"
                         }
-                        className="text-[10px]"
                       >
                         {inv.status === "ACCEPTED" ? (
-                          <CheckIcon className="mr-1 size-3" />
+                          <CheckIcon className="size-3" />
                         ) : inv.status === "DECLINED" ? (
-                          <XIcon className="mr-1 size-3" />
+                          <XIcon className="size-3" />
                         ) : null}
                         {inv.status}
                       </Badge>

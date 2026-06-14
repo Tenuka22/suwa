@@ -48,11 +48,11 @@ function AdminGuardiansRoute() {
               <Badge variant="outline">Admin console</Badge>
               <Badge variant="secondary">Guardians</Badge>
             </div>
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">
                 Guardians
               </h1>
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 View all guardian accounts registered on the platform.
               </p>
             </div>
@@ -63,10 +63,8 @@ function AdminGuardiansRoute() {
       <Card className="rounded-3xl border-border/60">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Registered guardians
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">Registered guardians</h2>
               <p className="text-muted-foreground text-sm">
                 All guardians ordered by registration date.
               </p>
@@ -105,14 +103,14 @@ function AdminGuardiansRoute() {
                       <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
                         <UserRoundIcon className="size-4" />
                       </div>
-                      <div className="space-y-1">
+                      <div className="flex flex-col gap-1">
                         <p className="font-medium text-sm">{guardian.email}</p>
                         {guardian.phone ? (
                           <p className="text-muted-foreground text-xs">
                             {guardian.phone}
                           </p>
                         ) : null}
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           Registered{" "}
                           {format(new Date(guardian.createdAt), "MMM d, yyyy")}
                         </p>
@@ -125,7 +123,7 @@ function AdminGuardiansRoute() {
           )}
 
           {rows.length > 0 ? (
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 Page {data?.page ?? search.page}
               </p>

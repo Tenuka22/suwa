@@ -94,10 +94,10 @@ function TenantLayoutRoute() {
             <div className="rounded-2xl border bg-muted/40 p-4">
               <BuildingIcon className="size-6" />
             </div>
-            <div className="space-y-2">
-              <CardTitle>Sign in required</CardTitle>
+            <div className="flex flex-col gap-2">
+              <CardTitle>Unauthorized</CardTitle>
               <CardDescription>
-                Access the hospital portal after signing in.
+                You do not have tenant admin access or are not signed in.
               </CardDescription>
             </div>
           </CardHeader>
@@ -114,12 +114,12 @@ function TenantLayoutRoute() {
       <TenantSidebar />
       <SidebarInset>
         <div className="flex min-h-svh flex-col">
-          <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 px-4 py-2 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+          <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60">
             <SidebarTrigger />
             <Separator className="h-6" orientation="vertical" />
             <Breadcrumbs />
           </header>
-          <div className="flex-1 p-6">
+          <div className="flex-1">
             <Outlet />
           </div>
         </div>

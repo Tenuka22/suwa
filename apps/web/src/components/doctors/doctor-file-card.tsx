@@ -145,7 +145,7 @@ export function DoctorFileCard({
 
   return (
     <Card className="group overflow-hidden border-border/60 bg-card transition-all duration-200 hover:border-border hover:shadow-sm">
-      <div className="flex flex-col gap-4 p-4 sm:flex-row">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div
           className={cn(
             "relative overflow-hidden rounded-2xl border border-border/50 bg-muted/30",
@@ -176,10 +176,10 @@ export function DoctorFileCard({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 space-y-1">
-                <h3 className="truncate font-semibold text-sm sm:text-base">
+              <div className="flex min-w-0 flex-col gap-1">
+                <h3 className="truncate font-medium text-sm">
                   {file.fileName}
                 </h3>
 
@@ -203,7 +203,7 @@ export function DoctorFileCard({
 
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={handleDownload}>
-                    <Download className="mr-2 size-4" />
+                    <Download className="size-4" />
                     Download
                   </DropdownMenuItem>
 
@@ -212,7 +212,7 @@ export function DoctorFileCard({
                     disabled={isDeleting}
                     onClick={() => onDelete(file.id)}
                   >
-                    <Trash2 className="mr-2 size-4" />
+                    <Trash2 className="size-4" />
                     {isDeleting ? "Deleting..." : "Delete"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -232,7 +232,7 @@ export function DoctorFileCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between border-border/50 border-t pt-3">
+          <div className="flex items-center justify-between border-border/50 border-t">
             <p className="truncate text-muted-foreground text-xs">
               ID: {file.id}
             </p>

@@ -63,7 +63,9 @@ export function CreateChannelDialog({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Create a new channel</DialogTitle>
+          <DialogTitle className="font-medium text-sm">
+            Create a new channel
+          </DialogTitle>
           <DialogDescription>
             Create a channel to organize and share your content. Like a YouTube
             channel, this is your public-facing identity for sharing sessions
@@ -71,7 +73,7 @@ export function CreateChannelDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="channel-name">Channel name</Label>
             <Input
@@ -139,7 +141,7 @@ export function CreateChannelDialog({
             type="button"
           >
             {createChannel.isPending ? (
-              <Loader2Icon className="mr-2 size-4 animate-spin" />
+              <Loader2Icon className="size-4 animate-spin" />
             ) : null}
             Create channel
           </Button>

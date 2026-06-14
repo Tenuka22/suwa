@@ -39,6 +39,27 @@ export const createConnectAccountLinkRoute = protectedProcedure
         const msg = err instanceof Error ? err.message : String(err);
         throw new Error(`Failed to create Stripe Connected Account: ${msg}`);
       }
+    } else {
+      // Account already exists — sync its status from Stripe
+      try {
+        const account = await stripe.accounts.retrieve(stripeAccountId);
+        const enabled = account.details_submitted && account.charges_enabled;
+
+        const now = new Date().toISOString();
+        await context.db
+          .update(doctorProfiles)
+          .set({
+            stripeAccountEnabled: enabled,
+            updatedAt: now,
+          })
+          .where(eq(doctorProfiles.userId, doctorId));
+
+        if (enabled) {
+          return { url: null as string | null, connected: true };
+        }
+      } catch {
+        // If retrieving fails, proceed to create a new onboarding link
+      }
     }
 
     const accountLink = await stripe.accountLinks.create({
@@ -48,5 +69,5 @@ export const createConnectAccountLinkRoute = protectedProcedure
       type: "account_onboarding",
     });
 
-    return { url: accountLink.url };
+    return { url: accountLink.url, connected: false };
   });

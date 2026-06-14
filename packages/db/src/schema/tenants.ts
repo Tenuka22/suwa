@@ -12,11 +12,7 @@ export const tenantTypeValues = [
   "PUBLIC_HOSPITAL",
 ] as const;
 
-export const tenantStatusValues = [
-  "ACTIVE",
-  "INACTIVE",
-  "SUSPENDED",
-] as const;
+export const tenantStatusValues = ["ACTIVE", "INACTIVE", "SUSPENDED"] as const;
 
 export const hospitalServiceValues = [
   "EMERGENCY",
@@ -124,7 +120,9 @@ export const hospitalAttendanceEvents = sqliteTable(
     tenantId: text("tenant_id").notNull(),
     clinicId: text("clinic_id"), // null = hospital-level event
     timestamp: text("timestamp").notNull(),
-    eventType: text("event_type", { enum: attendanceEventTypeValues }).notNull(),
+    eventType: text("event_type", {
+      enum: attendanceEventTypeValues,
+    }).notNull(),
     note: text("note"),
     recordedBy: text("recorded_by").notNull(), // userId who logged this
     createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),

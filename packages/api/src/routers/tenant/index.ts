@@ -1,35 +1,35 @@
 import {
+  inviteDoctorRoute,
   listDoctorAffiliationsRoute,
   listDoctorInvitationsRoute,
   listTenantAffiliationsRoute,
   listTenantInvitationsRoute,
-  inviteDoctorRoute,
   respondInvitationRoute,
   updateAffiliationWindowsRoute,
 } from "./routes/affiliations";
 import {
-  createAvailabilityOverrideRoute,
-  deleteAvailabilityOverrideRoute,
-  listAvailabilityOverridesRoute,
-  getDoctorHospitalBlocksRoute,
-  checkAffilationConflictsRoute,
-} from "./routes/availability";
-import {
-  logAttendanceEventRoute,
-  updateAttendanceEventRoute,
+  createClinicRoute,
   deleteAttendanceEventRoute,
   getAttendanceRoute,
-  getDoctorHospitalStatusRoute,
-  createClinicRoute,
-  updateClinicRoute,
-  listClinicsRoute,
-  markClinicAttendanceRoute,
   getClinicAttendanceRoute,
+  getDoctorHospitalStatusRoute,
+  listClinicsRoute,
+  logAttendanceEventRoute,
+  markClinicAttendanceRoute,
+  updateAttendanceEventRoute,
+  updateClinicRoute,
 } from "./routes/attendance";
 import {
+  checkAffilationConflictsRoute,
+  createAvailabilityOverrideRoute,
+  deleteAvailabilityOverrideRoute,
+  getDoctorHospitalBlocksRoute,
+  listAvailabilityOverridesRoute,
+} from "./routes/availability";
+import {
   listNotificationsRoute,
-  markNotificationReadRoute,
   markAllNotificationsReadRoute,
+  markNotificationReadRoute,
 } from "./routes/notifications";
 import {
   addTenantAdminRoute,

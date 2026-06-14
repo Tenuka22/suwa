@@ -95,7 +95,7 @@ function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
                   <CalendarClockIcon className="size-4" />
                 </div>
 
-                <div className="space-y-1">
+                <div className="flex flex-col gap-1">
                   <p className="font-medium text-sm">
                     {session.patientId.slice(0, 12)}...
                   </p>
@@ -177,18 +177,18 @@ function DoctorDashboardRoute() {
                 </AvatarFallback>
               </Avatar>
 
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">Doctor dashboard</Badge>
                   <Badge variant="secondary">Live overview</Badge>
                 </div>
 
-                <div className="space-y-2">
-                  <h1 className="font-semibold text-4xl tracking-tight">
+                <div className="flex flex-col gap-2">
+                  <h1 className="font-semibold text-lg tracking-tight">
                     Welcome back, {name}
                   </h1>
 
-                  <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+                  <p className="max-w-2xl text-muted-foreground text-sm">
                     Monitor patient requests, manage upcoming appointments,
                     track earnings, and stay on top of your schedule from one
                     unified dashboard.
@@ -398,7 +398,7 @@ function DoctorDashboardRoute() {
                             <Clock3Icon className="size-4" />
                           </div>
 
-                          <div className="space-y-1">
+                          <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2">
                               <p className="font-medium text-sm">
                                 {session.patientId.slice(0, 12)}...

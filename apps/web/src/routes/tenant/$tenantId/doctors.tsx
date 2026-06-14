@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { buttonVariants } from "@zen-doc/ui/components/button";
 import {
@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@zen-doc/ui/components/table";
-import { Link } from "@tanstack/react-router";
 import { UserPlusIcon } from "lucide-react";
 
 import { useListTenantAffiliations } from "@/hooks/queries/tenant";
@@ -32,48 +31,35 @@ function TenantDoctorsPage() {
   const { data, isLoading } = useListTenantAffiliations(tenantId);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl tracking-tight">Doctor Roster</h1>
+          <h1 className="font-semibold text-lg tracking-tight">
+            Doctor Roster
+          </h1>
           <p className="text-muted-foreground">
             All doctors affiliated with this hospital.
           </p>
         </div>
         <Link
+          className={buttonVariants({ size: "sm" })}
           params={{ tenantId }}
           to="/tenant/$tenantId/invite"
-          className={buttonVariants({ size: "sm" })}
         >
-          <UserPlusIcon className="mr-2 size-4" />
+          <UserPlusIcon className="size-4" />
           Invite Doctor
         </Link>
       </div>
 
       {isLoading ? (
         <Card>
-          <CardContent className="py-6">
+          <CardContent>
             <Skeleton className="h-8 w-full" />
-            <Skeleton className="mt-2 h-8 w-full" />
-            <Skeleton className="mt-2 h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
           </CardContent>
         </Card>
-      ) : !data?.affiliations?.length ? (
-        <Card className="flex flex-col items-center justify-center py-16">
-          <CardTitle className="mb-1">No doctors yet</CardTitle>
-          <CardDescription className="mb-4">
-            Invite doctors to join this hospital.
-          </CardDescription>
-          <Link
-            params={{ tenantId }}
-            to="/tenant/$tenantId/invite"
-            className={buttonVariants({})}
-          >
-            <UserPlusIcon className="mr-2 size-4" />
-            Invite Doctor
-          </Link>
-        </Card>
-      ) : (
+      ) : data?.affiliations?.length ? (
         <Card>
           <Table>
             <TableHeader>
@@ -111,7 +97,11 @@ function TenantDoctorsPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {aff.doctorSpecialties?.map((s) => (
-                        <Badge key={s} variant="outline" className="text-[10px]">
+                        <Badge
+                          className="text-[10px]"
+                          key={s}
+                          variant="outline"
+                        >
                           {s}
                         </Badge>
                       ))}
@@ -120,7 +110,7 @@ function TenantDoctorsPage() {
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
                       {aff.availabilityWindows?.map((w, i) => (
-                        <span key={i} className="text-xs">
+                        <span className="text-xs" key={i}>
                           {DAYS[w.dayOfWeek]} {w.startTime}–{w.endTime}
                         </span>
                       ))}
@@ -136,6 +126,21 @@ function TenantDoctorsPage() {
               ))}
             </TableBody>
           </Table>
+        </Card>
+      ) : (
+        <Card className="flex flex-col items-center justify-center">
+          <CardTitle>No doctors yet</CardTitle>
+          <CardDescription>
+            Invite doctors to join this hospital.
+          </CardDescription>
+          <Link
+            className={buttonVariants({})}
+            params={{ tenantId }}
+            to="/tenant/$tenantId/invite"
+          >
+            <UserPlusIcon className="size-4" />
+            Invite Doctor
+          </Link>
         </Card>
       )}
     </div>

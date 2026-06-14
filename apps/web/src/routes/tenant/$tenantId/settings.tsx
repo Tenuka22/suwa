@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@zen-doc/ui/components/select";
 import { Skeleton } from "@zen-doc/ui/components/skeleton";
-import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { useGetTenant, useUpdateTenant } from "@/hooks/queries/tenant";
 
@@ -98,7 +98,7 @@ function TenantSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -106,9 +106,9 @@ function TenantSettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div>
-        <h1 className="font-bold text-2xl tracking-tight">Settings</h1>
+        <h1 className="font-semibold text-lg tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
           Manage your hospital tenant profile and branding.
         </p>
@@ -119,15 +119,18 @@ function TenantSettingsPage() {
           <CardTitle className="text-base">Hospital Profile</CardTitle>
           <CardDescription>Edit tenant details and services.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label>Hospital Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <Input onChange={(e) => setName(e.target.value)} value={name} />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v ?? "ACTIVE")}>
+              <Select
+                onValueChange={(v) => setStatus(v ?? "ACTIVE")}
+                value={status}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -140,33 +143,33 @@ function TenantSettingsPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label>Address</Label>
             <Input
-              value={address}
               onChange={(e) => setAddress(e.target.value)}
+              value={address}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input onChange={(e) => setPhone(e.target.value)} value={phone} />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label>Website</Label>
               <Input
-                value={website}
                 onChange={(e) => setWebsite(e.target.value)}
+                value={website}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label>Additional Contact Info</Label>
             <Input
-              value={contactInfo}
               onChange={(e) => setContactInfo(e.target.value)}
+              value={contactInfo}
             />
           </div>
         </CardContent>
@@ -183,12 +186,12 @@ function TenantSettingsPage() {
           <div className="flex flex-wrap gap-2">
             {HOSPITAL_SERVICES.map((service) => (
               <Badge
+                className="cursor-pointer text-xs transition-colors"
                 key={service}
+                onClick={() => toggleService(service)}
                 variant={
                   selectedServices.includes(service) ? "default" : "outline"
                 }
-                className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
-                onClick={() => toggleService(service)}
               >
                 {service}
               </Badge>
@@ -207,11 +210,11 @@ function TenantSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               {data.admins.map((admin) => (
                 <div
+                  className="flex items-center justify-between rounded-lg border"
                   key={admin.id}
-                  className="flex items-center justify-between rounded-lg border p-2"
                 >
                   <span className="text-sm">{admin.userId}</span>
                   <span className="text-muted-foreground text-xs">
@@ -225,10 +228,13 @@ function TenantSettingsPage() {
       )}
 
       <div className="flex justify-between">
-        <Button variant="outline" onClick={() => navigate({ to: `/tenant/${tenantId}` })}>
+        <Button
+          onClick={() => navigate({ to: `/tenant/${tenantId}` })}
+          variant="outline"
+        >
           Back to Dashboard
         </Button>
-        <Button onClick={handleSave} disabled={updateTenant.isPending}>
+        <Button disabled={updateTenant.isPending} onClick={handleSave}>
           {updateTenant.isPending ? "Saving..." : "Save Changes"}
         </Button>
       </div>

@@ -42,10 +42,8 @@ function AdminSessionPage() {
             <div className="rounded-2xl border bg-muted/40 p-4">
               <ShieldIcon className="size-6" />
             </div>
-            <div className="space-y-2">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Unauthorized
-              </h2>
+            <div className="flex flex-col gap-2">
+              <h2 className="font-medium text-sm">Unauthorized</h2>
               <p className="text-muted-foreground text-sm">
                 You do not have admin access.
               </p>
@@ -113,12 +111,12 @@ function AdminSessionPage() {
               <Badge variant="secondary">Test session</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">
                 Test session
               </h1>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 Generate a test session ID and share it with the mobile app. The
                 desktop browser acts as the doctor in the video call.
               </p>
@@ -130,10 +128,8 @@ function AdminSessionPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="rounded-3xl border-border/60">
           <CardHeader>
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Step 1: Generate session
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">Step 1: Generate session</h2>
               <p className="text-muted-foreground text-sm">
                 Create a new session ID to share with the mobile app.
               </p>
@@ -165,10 +161,8 @@ function AdminSessionPage() {
 
         <Card className="rounded-3xl border-border/60">
           <CardHeader>
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Step 2: Join session
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">Step 2: Join session</h2>
               <p className="text-muted-foreground text-sm">
                 Enter a session ID and join the video call as a patient, doctor,
                 or admin.

@@ -14,21 +14,29 @@ function HomeRoute() {
   const name = user.user?.fullName ?? user.user?.username;
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col gap-8 p-6">
-      <header className="flex items-center justify-between rounded-2xl border bg-card/50 px-5 py-3 shadow-sm backdrop-blur-md">
+    <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col gap-8">
+      <header className="flex items-center justify-between rounded-b-2xl border bg-card/50 shadow-sm backdrop-blur-md h-14 px-6 py-1">
         <div className="flex items-center gap-4">
-          <span className="font-bold tracking-tight">ZenDoc</span>
-          <nav className="hidden items-center gap-1 sm:flex">
+          <span className="font-semibold text-lg tracking-tight">ZenDoc</span>
+          <nav className="hidden items-center sm:flex gap-2">
             <Link
-              className="cursor-pointer rounded-lg px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
+              className="cursor-pointer rounded-lg text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
               search={{ page: 1 }}
               to="/doctor"
             >
               Doctor
             </Link>
+            {user.isLoaded && user.user && (
+              <Link
+                className="cursor-pointer rounded-lg text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
+                to="/tenant"
+              >
+                Tenant
+              </Link>
+            )}
             {user.isLoaded && user.user?.publicMetadata?.role === "admin" && (
               <Link
-                className="cursor-pointer rounded-lg px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
+                className="cursor-pointer rounded-lg text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
                 search={{ page: 1, query: "" }}
                 to="/admin"
               >
@@ -65,14 +73,12 @@ function HomeRoute() {
       </header>
 
       <section className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
-        <div className="space-y-4">
-          <Badge className="mb-4" variant="secondary">
-            Doctor Onboarding & Admin Platform
-          </Badge>
-          <h1 className="font-bold text-4xl tracking-tight sm:text-5xl">
+        <div className="flex flex-col gap-4 items-center">
+          <Badge variant="secondary">Doctor Onboarding & Admin Platform</Badge>
+          <h1 className="font-semibold text-lg tracking-tight">
             Welcome to ZenDoc
           </h1>
-          <p className="mx-auto max-w-xl text-base text-muted-foreground sm:text-lg">
+          <p className="mx-auto max-w-xl text-muted-foreground text-sm">
             Streamlined doctor onboarding, credential management, and
             administrative oversight for modern telehealth practices.
           </p>
@@ -110,13 +116,13 @@ function HomeRoute() {
         </div>
       </section>
 
-      <footer className="grid gap-4 pb-8 md:grid-cols-2">
+      <footer className="grid gap-4 md:grid-cols-2 pb-8">
         <Card className="cursor-pointer rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary">
-          <CardContent className="flex items-start gap-4 p-5">
+          <CardContent className="flex items-start gap-4">
             <div className="rounded-xl border bg-muted/40 p-2.5 text-muted-foreground">
               <StethoscopeIcon className="size-5" />
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <p className="font-medium text-sm">Doctor Portal</p>
               <p className="text-muted-foreground text-xs">
                 Manage your profile, availability, sessions, and earnings.
@@ -125,11 +131,11 @@ function HomeRoute() {
           </CardContent>
         </Card>
         <Card className="cursor-pointer rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary">
-          <CardContent className="flex items-start gap-4 p-5">
+          <CardContent className="flex items-start gap-4">
             <div className="rounded-xl border bg-muted/40 p-2.5 text-muted-foreground">
               <ShieldIcon className="size-5" />
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <p className="font-medium text-sm">Admin Console</p>
               <p className="text-muted-foreground text-xs">
                 Oversee doctors, sessions, plans, and platform activity.

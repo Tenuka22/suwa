@@ -42,7 +42,7 @@ function AdminLayoutRoute() {
             <div className="rounded-2xl border bg-muted/40 p-4">
               <ShieldIcon className="size-6" />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <CardTitle>Unauthorized</CardTitle>
               <CardDescription>
                 You do not have admin access or are not signed in.
@@ -62,16 +62,16 @@ function AdminLayoutRoute() {
       <AdminSidebar />
       <SidebarInset>
         <div className="flex min-h-svh flex-col">
-          <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 px-6 py-4 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+          <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60">
             <SidebarTrigger />
             <div className="min-w-0">
-              <p className="font-medium">Admin Console</p>
+              <p className="font-medium text-sm">Admin Console</p>
               <p className="truncate text-muted-foreground text-sm">
                 Signed in as {session.name ?? session.email ?? "Admin"}
               </p>
             </div>
           </header>
-          <div className="flex-1 p-6">
+          <div className="flex-1">
             <Outlet />
           </div>
         </div>

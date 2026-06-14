@@ -39,7 +39,7 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MetricCard } from "@/components/dashboard-metrics";
 import { notify } from "@/lib/notify";
@@ -89,8 +89,16 @@ function DoctorCreditsRoute() {
 
   const createConnectLinkMutation = useMutation(
     orpc.createConnectAccountLink.mutationOptions({
-      onSuccess: (data) => {
-        window.open(data.url, "_blank");
+      onSuccess: async (data) => {
+        if (data.connected) {
+          await queryClient.invalidateQueries({
+            queryKey: orpc.getConnectAccountStatus.queryKey(),
+          });
+          return;
+        }
+        if (data.url) {
+          window.open(data.url, "_blank");
+        }
       },
       onError: (error: Error) => {
         notify.error(
@@ -101,6 +109,24 @@ function DoctorCreditsRoute() {
       },
     })
   );
+
+  // Auto-sync with Stripe on mount if account exists but not yet enabled
+  useEffect(() => {
+    if (connectStatus?.stripeAccountId && !stripeConnected) {
+      (async () => {
+        try {
+          await queryClient.fetchQuery(
+            orpc.syncConnectAccountStatus.queryOptions()
+          );
+          await queryClient.invalidateQueries({
+            queryKey: orpc.getConnectAccountStatus.queryKey(),
+          });
+        } catch {
+          // Silently fail — user can manually click "Connect now"
+        }
+      })();
+    }
+  }, [connectStatus?.stripeAccountId, stripeConnected, queryClient]);
 
   const creditsData = credits?.credits;
   const cashoutRequests = (credits?.cashoutRequests ?? []) as Array<{
@@ -164,12 +190,12 @@ function DoctorCreditsRoute() {
               <Badge variant="secondary">Live overview</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">
                 Earnings & payouts
               </h1>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 Monitor balances, review payout activity, and request cashouts
                 from your Stripe connected account.
               </p>
@@ -179,13 +205,13 @@ function DoctorCreditsRoute() {
       </Card>
 
       <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1" />
+        <div className="flex flex-col gap-1" />
 
         <Dialog onOpenChange={setShowCashout} open={showCashout}>
           <DialogTrigger
             render={
-              <Button className="mt-2 shadow-sm md:mt-0" size="lg">
-                <ArrowUpCircle className="mr-2 h-4 w-4" />
+              <Button className="shadow-sm" size="lg">
+                <ArrowUpCircle className="h-4 w-4" />
                 Request Payout
               </Button>
             }
@@ -198,11 +224,11 @@ function DoctorCreditsRoute() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
-              <div className="flex flex-col gap-2 rounded-lg border border-border/50 bg-muted/50 p-4">
+              <div className="flex flex-col gap-2 rounded-lg border border-border/50 bg-muted/50">
                 <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
                   Available Balance
                 </span>
-                <span className="font-bold text-2xl text-foreground">
+                <span className="font-semibold text-2xl text-foreground">
                   {formatCents(balanceCents)}
                 </span>
               </div>
@@ -233,7 +259,7 @@ function DoctorCreditsRoute() {
                 </p>
               )}
               <div className="grid gap-2">
-                <Label className="font-semibold text-sm" htmlFor="amount">
+                <Label className="text-sm" htmlFor="amount">
                   Amount to Withdraw (USD)
                 </Label>
                 <InputGroup className="h-9">
@@ -250,7 +276,7 @@ function DoctorCreditsRoute() {
                     <span className="text-muted-foreground text-sm">$</span>
                   </InputGroupAddon>
                 </InputGroup>
-                <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                <p className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Info className="h-3 w-3" />
                   Payouts are typically processed instantly to your connected
                   account.
@@ -270,9 +296,9 @@ function DoctorCreditsRoute() {
                 onClick={handleCashout}
               >
                 {cashoutMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4" />
                 )}
                 Confirm Payout
               </Button>
@@ -282,7 +308,7 @@ function DoctorCreditsRoute() {
       </div>
 
       {/* Balance widgets */}
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <MetricCard
             description="Available for your next payout request"
@@ -310,10 +336,8 @@ function DoctorCreditsRoute() {
         <Card className="rounded-3xl border-border/60">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
-              <div className="space-y-1">
-                <h2 className="font-semibold text-xl tracking-tight">
-                  Transaction history
-                </h2>
+              <div className="flex flex-col gap-1">
+                <h2 className="font-medium text-sm">Transaction history</h2>
                 <p className="text-muted-foreground text-sm">
                   Recent payout requests and their statuses
                 </p>
@@ -356,7 +380,7 @@ function DoctorCreditsRoute() {
                           {statusStyle(req.status).icon}
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           <p className="font-medium text-sm">Payout request</p>
                           <p className="text-muted-foreground text-sm">
                             {format(

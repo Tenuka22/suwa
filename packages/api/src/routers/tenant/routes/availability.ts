@@ -61,8 +61,12 @@ export const deleteAvailabilityOverrideRoute = protectedProcedure
       .where(eq(hospitalAvailabilityOverrides.id, input.overrideId))
       .limit(1);
 
-    if (!override) throw new Error("Override not found");
-    if (override.doctorId !== userId) throw new Error("Not authorized");
+    if (!override) {
+      throw new Error("Override not found");
+    }
+    if (override.doctorId !== userId) {
+      throw new Error("Not authorized");
+    }
 
     await context.db
       .delete(hospitalAvailabilityOverrides)
@@ -122,7 +126,9 @@ export const getDoctorHospitalBlocksRoute = protectedProcedure
       );
 
     const recurringWindows = affiliations.flatMap((aff) => {
-      if (!aff.availabilityWindows) return [];
+      if (!aff.availabilityWindows) {
+        return [];
+      }
       const windows = JSON.parse(aff.availabilityWindows) as Array<{
         dayOfWeek: number;
         startTime: string;
@@ -186,12 +192,18 @@ export const checkAffilationConflictsRoute = protectedProcedure
 
     const conflicts: Array<{
       window: (typeof input.windows)[number];
-      conflictingSlot: { dayOfWeek: number; startTime: string; endTime: string };
+      conflictingSlot: {
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+      };
     }> = [];
 
     for (const window of input.windows) {
       for (const slot of weeklySlots) {
-        if (slot.dayOfWeek !== window.dayOfWeek) continue;
+        if (slot.dayOfWeek !== window.dayOfWeek) {
+          continue;
+        }
         // Check time overlap
         const wStart = window.startTime;
         const wEnd = window.endTime;

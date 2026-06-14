@@ -1,6 +1,8 @@
 import { cn } from "@zen-doc/ui/lib/utils";
 import type { ReactNode } from "react";
 
+import { SectionLabel } from "@/components/typography";
+
 export function SummaryItem({
   label,
   value,
@@ -12,12 +14,10 @@ export function SummaryItem({
 }) {
   return (
     <div className="flex items-start gap-2.5">
-      {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
-      <div className="space-y-0.5">
-        <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-          {label}
-        </p>
-        <p className="font-semibold text-foreground/80 text-sm">{value}</p>
+      {icon && <div className="shrink-0">{icon}</div>}
+      <div className="flex flex-col gap-0.5">
+        <SectionLabel>{label}</SectionLabel>
+        <p className="font-medium text-foreground/80 text-sm">{value}</p>
       </div>
     </div>
   );
@@ -44,10 +44,8 @@ export function SummaryBlock<T extends string>({
   colorTheme?: SummaryTheme;
 }) {
   return (
-    <div className="space-y-2">
-      <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-        {label}
-      </p>
+    <div className="flex flex-col gap-2">
+      <SectionLabel>{label}</SectionLabel>
       <div className="flex flex-wrap gap-1.5">
         {values.length > 0 ? (
           values.map((value) => (

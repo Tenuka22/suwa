@@ -59,7 +59,7 @@ function HubMaterialDetailPage() {
     <div className="mx-auto max-w-[1400px] px-6 py-6">
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         {/* Main Content */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           {/* Back button */}
           <Link
             className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
@@ -96,10 +96,10 @@ function HubMaterialDetailPage() {
           <div>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h1 className="font-bold text-xl leading-tight">
+                <h1 className="font-semibold text-lg tracking-tight">
                   {material.title}
                 </h1>
-                <div className="mt-2 flex items-center gap-3 text-muted-foreground text-sm">
+                <div className="flex items-center gap-3 text-muted-foreground text-sm">
                   <Badge
                     className="gap-1"
                     variant={
@@ -190,7 +190,7 @@ function HubMaterialDetailPage() {
           {/* Description */}
           {material.description && (
             <Card className="rounded-xl">
-              <CardContent className="p-4">
+              <CardContent>
                 <p className="whitespace-pre-wrap text-sm">
                   {material.description}
                 </p>
@@ -213,12 +213,12 @@ function HubMaterialDetailPage() {
         </div>
 
         {/* Sidebar - Related/Playlists */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <Card className="rounded-xl">
             <CardHeader className="pb-3">
-              <h3 className="font-semibold text-sm">Details</h3>
+              <h3 className="font-medium text-sm">Details</h3>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Type</span>
                 <span className="font-medium capitalize">
@@ -266,7 +266,7 @@ function HubMaterialDetailPage() {
 
           <Card className="rounded-xl">
             <CardHeader className="pb-3">
-              <h3 className="font-semibold text-sm">Content Notes</h3>
+              <h3 className="font-medium text-sm">Content Notes</h3>
             </CardHeader>
             <CardContent>
               {material.content ? (

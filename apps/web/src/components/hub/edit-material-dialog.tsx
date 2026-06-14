@@ -155,7 +155,9 @@ export function EditMaterialDialog({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Edit details</DialogTitle>
+          <DialogTitle className="font-medium text-sm">
+            Edit details
+          </DialogTitle>
           <DialogDescription>
             Update the title, description, tags, and visibility for this
             content.
@@ -163,7 +165,7 @@ export function EditMaterialDialog({
         </DialogHeader>
 
         {/* Tab Switcher */}
-        <div className="flex gap-1 border-b pb-2">
+        <div className="flex gap-1 border-b">
           {(["details", "transcription", "tags"] as EditTab[]).map((tab) => (
             <button
               className={`rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
@@ -184,7 +186,7 @@ export function EditMaterialDialog({
 
         {/* Details Tab */}
         {activeTab === "details" && (
-          <div className="grid gap-4 py-2">
+          <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-title">Title</Label>
               <Input
@@ -235,7 +237,7 @@ export function EditMaterialDialog({
               <div className="grid gap-2">
                 {VISIBILITY_OPTIONS.map((opt) => (
                   <button
-                    className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
+                    className={`flex items-center gap-3 rounded-lg border text-left transition-colors ${
                       visibility === opt.value
                         ? "border-primary bg-primary/5"
                         : "border-border/60 hover:border-border"
@@ -260,7 +262,7 @@ export function EditMaterialDialog({
 
         {/* Transcription / Notes Tab */}
         {activeTab === "transcription" && (
-          <div className="grid gap-4 py-2">
+          <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-content">
                 Transcription / Session Notes
@@ -283,7 +285,7 @@ export function EditMaterialDialog({
 
         {/* Tags Tab */}
         {activeTab === "tags" && (
-          <div className="grid gap-4 py-2">
+          <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-tag-input">
                 Add tags{" "}
@@ -318,20 +320,16 @@ export function EditMaterialDialog({
             </div>
 
             {tags.length > 0 ? (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <p className="font-medium text-sm">
                   {tags.length} tag{tags.length === 1 ? "" : "s"} added
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag) => (
-                    <Badge
-                      className="gap-1 pr-1.5"
-                      key={tag}
-                      variant="secondary"
-                    >
+                    <Badge className="gap-1" key={tag} variant="secondary">
                       {tag}
                       <button
-                        className="ml-1 rounded-full p-0.5 transition-colors hover:bg-muted-foreground/20"
+                        className="rounded-full transition-colors hover:bg-muted-foreground/20"
                         onClick={() => handleRemoveTag(tag)}
                         type="button"
                       >
@@ -342,11 +340,11 @@ export function EditMaterialDialog({
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center rounded-lg border border-border/60 border-dashed p-8 text-center">
+              <div className="flex flex-col items-center rounded-lg border border-border/60 border-dashed text-center">
                 <p className="text-muted-foreground text-sm">
                   No tags added yet.
                 </p>
-                <p className="mt-1 text-muted-foreground text-xs">
+                <p className="text-muted-foreground text-xs">
                   Tags help others discover your content.
                 </p>
               </div>

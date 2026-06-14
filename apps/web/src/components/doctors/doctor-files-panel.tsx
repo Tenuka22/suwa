@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@zen-doc/ui/components/alert";
 import { Badge } from "@zen-doc/ui/components/badge";
 import { Button } from "@zen-doc/ui/components/button";
 import {
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@zen-doc/ui/components/select";
+import { Skeleton } from "@zen-doc/ui/components/skeleton";
 import { Textarea } from "@zen-doc/ui/components/textarea";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -123,8 +125,8 @@ export function DoctorFilesPanel({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div className="space-y-1">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-1">
           <CardTitle>Doctor materials</CardTitle>
           <p className="text-muted-foreground text-sm">
             Public images, qualifications, and intro video content.
@@ -132,13 +134,12 @@ export function DoctorFilesPanel({
         </div>
         <Badge variant="outline">{files.length} files</Badge>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="flex flex-col gap-6">
         {canManage ? (
           <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
             <Dropzone
               {...dropzone}
               accept={accept}
-              className="p-4"
               setStatus={dropzone.setStatus}
             >
               <DropzoneDescription>
@@ -147,10 +148,10 @@ export function DoctorFilesPanel({
               </DropzoneDescription>
               <DropzoneMessage />
               <DropZoneArea>
-                <div className="space-y-4">
+                <div className="flex flex-col gap-4">
                   <div>
                     <label
-                      className="mb-2 block font-medium text-sm"
+                      className="block font-medium text-sm"
                       htmlFor="doctor-material-file-kind"
                     >
                       File type
@@ -177,7 +178,7 @@ export function DoctorFilesPanel({
                     </Select>
                   </div>
 
-                  <div className="rounded-xl border bg-muted/20 p-3">
+                  <div className="rounded-xl border bg-muted/20">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline">
                         {selectedKind?.label ?? fileKind}
@@ -186,14 +187,14 @@ export function DoctorFilesPanel({
                         {selectedKind?.description}
                       </span>
                     </div>
-                    <p className="mt-2 text-muted-foreground text-xs">
+                    <p className="text-muted-foreground text-xs">
                       Accepts: {accept}
                     </p>
                   </div>
 
                   <div>
                     <label
-                      className="mb-2 block font-medium text-sm"
+                      className="block font-medium text-sm"
                       htmlFor="doctor-material-caption"
                     >
                       Caption
@@ -268,22 +269,36 @@ export function DoctorFilesPanel({
           </p>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          {files.length === 0 ? (
+        {filesQuery.isFetching ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Skeleton className="h-32 rounded-xl" />
+            <Skeleton className="h-32 rounded-xl" />
+          </div>
+        ) : filesQuery.isError ? (
+          <Alert variant="destructive">
+            <AlertDescription>
+              Failed to load doctor materials. Please try again.
+            </AlertDescription>
+          </Alert>
+        ) : files.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-1">
+            <p className="font-medium text-sm">No files uploaded yet</p>
             <p className="text-muted-foreground text-sm">
-              No doctor materials yet.
+              Upload documents, images, or videos to showcase your credentials.
             </p>
-          ) : (
-            files.map((file) => (
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {files.map((file) => (
               <DoctorFilePreviewCard
                 file={file}
                 isDeleting={deleteFile.isPending}
                 key={file.id}
                 onDelete={handleDelete}
               />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

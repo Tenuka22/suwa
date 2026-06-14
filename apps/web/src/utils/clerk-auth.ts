@@ -29,7 +29,13 @@ export interface UserAccount {
   image_url?: string;
   name?: string;
   phone?: string;
-  role: "admin" | "user" | "doctor" | "pending-doctor" | "guardian" | "tenant-admin";
+  role:
+    | "admin"
+    | "user"
+    | "doctor"
+    | "pending-doctor"
+    | "guardian"
+    | "tenant-admin";
 }
 
 export const getServerSession = createServerFn({ method: "GET" }).handler(
@@ -47,7 +53,14 @@ export const getServerSession = createServerFn({ method: "GET" }).handler(
         name: sessionClaims.name as string | undefined,
         phone: sessionClaims.phone as string | undefined,
         image_url: sessionClaims.image_url as string | undefined,
-        role: (sessionClaims?.metadata?.role as "admin" | "user" | "doctor" | "pending-doctor" | "guardian" | "tenant-admin") || "user",
+        role:
+          (sessionClaims?.metadata?.role as
+            | "admin"
+            | "user"
+            | "doctor"
+            | "pending-doctor"
+            | "guardian"
+            | "tenant-admin") || "user",
       } satisfies UserAccount;
 
       return session;

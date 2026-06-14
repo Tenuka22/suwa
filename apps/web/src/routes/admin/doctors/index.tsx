@@ -60,10 +60,10 @@ function AdminDoctorsRoute() {
               <Badge variant="secondary">Doctors</Badge>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="font-semibold text-4xl tracking-tight">Doctors</h1>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-semibold text-lg tracking-tight">Doctors</h1>
 
-              <p className="max-w-2xl text-muted-foreground text-sm md:text-base">
+              <p className="max-w-2xl text-muted-foreground text-sm">
                 View and manage all approved doctor accounts on the platform.
                 Review their profiles, credentials, and activity.
               </p>
@@ -75,10 +75,8 @@ function AdminDoctorsRoute() {
       <Card className="rounded-3xl border-border/60">
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-              <h2 className="font-semibold text-xl tracking-tight">
-                Approved doctors
-              </h2>
+            <div className="flex flex-col gap-1">
+              <h2 className="font-medium text-sm">Approved doctors</h2>
               <p className="text-muted-foreground text-sm">
                 Browse approved doctors and view their details.
               </p>
@@ -159,7 +157,7 @@ function AdminDoctorsRoute() {
                           <StethoscopeIcon className="size-4" />
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           <p className="font-medium text-sm">{doctor.name}</p>
                           <div className="flex flex-wrap gap-3">
                             {doctor.email ? (
@@ -196,7 +194,7 @@ function AdminDoctorsRoute() {
           )}
 
           {rows.length > 0 ? (
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 Page {data?.page ?? search.page}
               </p>

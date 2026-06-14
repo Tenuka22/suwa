@@ -9,7 +9,6 @@ import {
   useSidebar,
 } from "@zen-doc/ui/components/sidebar";
 import {
-  BuildingIcon,
   CalendarCheckIcon,
   ClockIcon,
   DollarSignIcon,
@@ -30,23 +29,21 @@ export function DoctorSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         {state === "collapsed" ? (
-          <div className="flex items-center justify-center py-1">
-            <span className="select-none font-bold text-lg text-primary">
+          <div className="flex items-center justify-center">
+            <span className="select-none font-semibold text-lg text-primary">
               Z
             </span>
           </div>
         ) : (
-          <div className="flex flex-col gap-1 px-2 py-1">
-            <span className="font-semibold text-sm">Doctor Portal</span>
+          <div className="flex flex-col gap-1">
+            <span className="font-medium text-sm">Doctor Portal</span>
             <span className="text-muted-foreground text-xs">ZenDoc</span>
           </div>
         )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarNavSection
-          items={[
-            { icon: HouseIcon, label: "Home", to: "/" },
-          ]}
+          items={[{ icon: HouseIcon, label: "Home", to: "/" }]}
           label="Main"
         />
         <SidebarNavSection
@@ -72,16 +69,6 @@ export function DoctorSidebar() {
             { icon: UserIcon, label: "Profile", to: "/doctor/profile" },
           ]}
           label="Secondary"
-        />
-        <SidebarNavSection
-          items={[
-            {
-              icon: BuildingIcon,
-              label: "Hospitals",
-              to: "/tenant",
-            },
-          ]}
-          label="Tenant"
         />
       </SidebarContent>
       <SidebarFooter>

@@ -35,7 +35,6 @@ export function SidebarNavSection({
         {items.map((item) => (
           <SidebarMenuItem key={item.to}>
             <SidebarMenuButton
-              className="pl-4"
               render={<Link search={item.search} to={item.to} />}
               size={buttonSize}
               tooltip={item.label}

@@ -114,10 +114,10 @@ function DoctorLayoutRoute() {
             <div className="rounded-2xl border bg-muted/40 p-4">
               <StethoscopeIcon className="size-6" />
             </div>
-            <div className="space-y-2">
-              <CardTitle>Sign in required</CardTitle>
+            <div className="flex flex-col gap-2">
+              <CardTitle>Unauthorized</CardTitle>
               <CardDescription>
-                Access your doctor dashboard after signing in.
+                You are not authorized to access this page.
               </CardDescription>
             </div>
           </CardHeader>
@@ -134,12 +134,12 @@ function DoctorLayoutRoute() {
       <DoctorSidebar />
       <SidebarInset>
         <div className="flex min-h-svh flex-col">
-          <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 px-4 py-2 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+          <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60 h-12 px-3">
             <SidebarTrigger />
-            <Separator className="h-6" orientation="vertical" />
+            <Separator className="h-12" orientation="vertical" />
             <Breadcrumbs />
           </header>
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4">
             <Outlet />
           </div>
         </div>

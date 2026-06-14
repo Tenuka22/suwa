@@ -11,6 +11,7 @@ import { TrendingUpIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { gridMetricCards, metricCard, metricIconBox } from "@/lib/styles";
+import { BodyText, StatValue, Subtitle } from "./typography";
 
 export function DashboardSkeleton() {
   return (
@@ -45,17 +46,19 @@ export function MetricCard({
     <Card className={metricCard}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-4xl tracking-tight">{value}</CardTitle>
+            <CardTitle>
+              <StatValue>{value}</StatValue>
+            </CardTitle>
           </div>
 
           <div className={metricIconBox}>{icon}</div>
         </div>
       </CardHeader>
 
-      <CardFooter className="mt-auto flex items-center justify-between text-muted-foreground text-sm">
-        <span>{description}</span>
+      <CardFooter className="flex items-center justify-between">
+        <BodyText>{description}</BodyText>
 
         {trend ? (
           <Badge className="gap-1" variant="secondary">
@@ -79,9 +82,9 @@ export function SectionHeader({
 }) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="space-y-1">
-        <h2 className="font-semibold text-xl tracking-tight">{title}</h2>
-        <p className="text-muted-foreground text-sm">{description}</p>
+      <div className="flex flex-col gap-1">
+        <Subtitle>{title}</Subtitle>
+        <BodyText>{description}</BodyText>
       </div>
 
       {action}

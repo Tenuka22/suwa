@@ -89,9 +89,15 @@ export const updateAttendanceEventRoute = protectedProcedure
     await requireTenantAdmin(context, existing.tenantId);
 
     const updateData: Record<string, unknown> = { updatedAt: now };
-    if (input.timestamp !== undefined) updateData.timestamp = input.timestamp;
-    if (input.eventType !== undefined) updateData.eventType = input.eventType;
-    if (input.note !== undefined) updateData.note = input.note;
+    if (input.timestamp !== undefined) {
+      updateData.timestamp = input.timestamp;
+    }
+    if (input.eventType !== undefined) {
+      updateData.eventType = input.eventType;
+    }
+    if (input.note !== undefined) {
+      updateData.note = input.note;
+    }
 
     await context.db
       .update(hospitalAttendanceEvents)
@@ -200,9 +206,7 @@ export const getDoctorHospitalStatusRoute = protectedProcedure
         )
       );
 
-    const todayEvents = allEvents.filter((e) =>
-      e.timestamp.startsWith(today)
-    );
+    const todayEvents = allEvents.filter((e) => e.timestamp.startsWith(today));
 
     todayEvents.sort(
       (a, b) =>
@@ -267,16 +271,23 @@ export const updateClinicRoute = protectedProcedure
       .where(eq(clinics.id, input.clinicId))
       .limit(1);
 
-    if (!clinic) throw new Error("Clinic not found");
+    if (!clinic) {
+      throw new Error("Clinic not found");
+    }
 
     await requireTenantAdmin(context, clinic.tenantId);
     const now = new Date().toISOString();
 
     const updateData: Record<string, unknown> = { updatedAt: now };
-    if (input.name !== undefined) updateData.name = input.name;
-    if (input.specialization !== undefined)
+    if (input.name !== undefined) {
+      updateData.name = input.name;
+    }
+    if (input.specialization !== undefined) {
       updateData.specialization = input.specialization;
-    if (input.schedule !== undefined) updateData.schedule = input.schedule;
+    }
+    if (input.schedule !== undefined) {
+      updateData.schedule = input.schedule;
+    }
 
     await context.db
       .update(clinics)
@@ -312,7 +323,9 @@ export const markClinicAttendanceRoute = protectedProcedure
       .where(eq(clinics.id, input.clinicId))
       .limit(1);
 
-    if (!clinic) throw new Error("Clinic not found");
+    if (!clinic) {
+      throw new Error("Clinic not found");
+    }
 
     await requireTenantAdmin(context, clinic.tenantId);
 
@@ -331,8 +344,12 @@ export const markClinicAttendanceRoute = protectedProcedure
 
     if (existing) {
       const updateData: Record<string, unknown> = { updatedAt: now };
-      if (input.arrivedAt !== undefined) updateData.arrivedAt = input.arrivedAt;
-      if (input.leftAt !== undefined) updateData.leftAt = input.leftAt;
+      if (input.arrivedAt !== undefined) {
+        updateData.arrivedAt = input.arrivedAt;
+      }
+      if (input.leftAt !== undefined) {
+        updateData.leftAt = input.leftAt;
+      }
 
       await context.db
         .update(clinicAttendance)
@@ -421,7 +438,10 @@ export const getClinicAttendanceRoute = protectedProcedure
   .input(
     z.object({
       clinicId: z.string().min(1),
-      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
     })
   )
   .handler(async ({ context, input }) => {
@@ -433,7 +453,9 @@ export const getClinicAttendanceRoute = protectedProcedure
       .where(eq(clinics.id, input.clinicId))
       .limit(1);
 
-    if (!clinic) throw new Error("Clinic not found");
+    if (!clinic) {
+      throw new Error("Clinic not found");
+    }
 
     const records = await context.db
       .select()

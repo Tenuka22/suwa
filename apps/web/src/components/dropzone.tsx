@@ -67,7 +67,7 @@ export function Dropzone({
     >
       <div
         className={cn(
-          "rounded-xl border border-dashed p-4 transition-colors",
+          "rounded-xl border border-dashed transition-colors",
           status === "dragging" && "border-primary bg-primary/5",
           className
         )}
@@ -114,7 +114,7 @@ function useDropzoneContext() {
 }
 
 export function DropZoneArea({ children }: React.PropsWithChildren) {
-  return <div className="space-y-4">{children}</div>;
+  return <div className="flex flex-col gap-4">{children}</div>;
 }
 
 export function DropzoneDescription({ children }: React.PropsWithChildren) {
@@ -136,7 +136,7 @@ export function DropzoneTrigger({ children }: React.PropsWithChildren) {
 }
 
 export function DropzoneFileList({ children }: React.PropsWithChildren) {
-  return <div className="flex flex-col gap-2">{children}</div>;
+  return <div className="flex flex-col">{children}</div>;
 }
 
 export function DropzoneFileListItem({
