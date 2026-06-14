@@ -46,6 +46,12 @@ export const server = await Worker("server", {
   cwd: "../../apps/server",
   entrypoint: "src/index.ts",
   compatibility: "node",
+  observability: {
+    enabled: true,
+    traces: {
+      enabled: true,
+    },
+  },
   compatibilityFlags: ["no_handle_cross_request_promise_resolution"],
   bindings: {
     DB: db,

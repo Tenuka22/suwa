@@ -148,7 +148,7 @@ function HeroSection({
                 <Image
                   className="size-14"
                   source={require("@/assets/images/Logo.png")}
-                  style={{ resizeMode: "contain" }}
+                  style={{ height: "100%", width: "100%", resizeMode: "contain" }}
                 />
               </View>
               <View className="gap-1">
