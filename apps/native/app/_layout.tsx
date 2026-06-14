@@ -1,3 +1,5 @@
+'use client';
+
 import "../global.css";
 
 import { ClerkProvider, useAuth } from "@clerk/expo";

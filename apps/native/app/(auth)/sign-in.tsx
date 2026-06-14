@@ -1,3 +1,5 @@
+'use client';
+
 import { useAuth, useSignIn } from "@clerk/expo";
 import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";

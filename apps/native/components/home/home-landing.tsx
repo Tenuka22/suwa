@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { type Href, useRouter } from "expo-router";

@@ -1,4 +1,6 @@
-﻿import { useQuery } from "@tanstack/react-query";
+'use client';
+
+import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
   ArrowLeft,

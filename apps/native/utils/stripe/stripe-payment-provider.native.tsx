@@ -1,3 +1,5 @@
+'use client';
+
 import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import { env } from "@zen-doc/env/native";
 import {

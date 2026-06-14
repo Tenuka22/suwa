@@ -1,3 +1,5 @@
+'use client';
+
 import { useUser } from "@clerk/expo";
 import { consumeEventIterator } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";

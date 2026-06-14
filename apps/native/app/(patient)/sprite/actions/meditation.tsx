@@ -1,3 +1,5 @@
+'use client';
+
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Heart } from "lucide-react-native";

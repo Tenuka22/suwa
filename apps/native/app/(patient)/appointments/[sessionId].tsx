@@ -1,3 +1,5 @@
+'use client';
+
 import { useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -5,7 +7,7 @@ import { ArrowLeft } from "lucide-react-native";
 import { ActivityIndicator, Text, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
-import { VideoRoom } from "@/components/ui/video-room.native";
+import { VideoRoom } from "@/components/ui/video-room";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";

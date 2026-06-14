@@ -1,3 +1,5 @@
+'use client';
+
 import { Tag } from "@/components/ui/tag";
 
 const statusLabelMap: Record<string, string> = {

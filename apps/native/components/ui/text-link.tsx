@@ -1,3 +1,5 @@
+'use client';
+
 import { type Href, Link } from "expo-router";
 import type { ReactNode } from "react";
 import { Text } from "react-native";

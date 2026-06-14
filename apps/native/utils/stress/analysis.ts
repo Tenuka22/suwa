@@ -1,3 +1,5 @@
+'use client';
+
 import { AlertTriangle, Brain, TrendingDown } from "lucide-react-native";
 
 export interface StoredPrediction {

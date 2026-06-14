@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, ChevronRight, HeartPulse, Moon } from "lucide-react-native";

@@ -1,3 +1,5 @@
+'use client';
+
 import { useColorScheme } from "react-native";
 
 const themeColors = {

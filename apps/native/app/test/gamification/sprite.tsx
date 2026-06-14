@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 

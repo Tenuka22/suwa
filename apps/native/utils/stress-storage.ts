@@ -1,3 +1,5 @@
+'use client';
+
 import { createMMKV } from "react-native-mmkv";
 
 const storage = createMMKV({ id: "stress-cache" });

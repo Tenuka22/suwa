@@ -1,3 +1,5 @@
+'use client';
+
 import { consumeEventIterator } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";

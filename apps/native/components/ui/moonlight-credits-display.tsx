@@ -1,3 +1,5 @@
+'use client';
+
 import { Text, View } from "react-native";
 
 interface MoonlightCreditsDisplayProps {

@@ -1,3 +1,5 @@
+'use client';
+
 import { useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";

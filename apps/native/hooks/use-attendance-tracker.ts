@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from "react";
 import type { SessionTimingRole } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";

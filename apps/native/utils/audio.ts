@@ -1,3 +1,5 @@
+'use client';
+
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") {
     return null;

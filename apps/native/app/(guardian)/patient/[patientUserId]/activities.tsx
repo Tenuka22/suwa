@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Activity, ArrowLeft, Calendar } from "lucide-react-native";

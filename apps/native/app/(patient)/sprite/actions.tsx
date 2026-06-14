@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery } from "@tanstack/react-query";
 import type { Href } from "expo-router";
 import { Stack, useRouter } from "expo-router";

@@ -1,3 +1,5 @@
+'use client';
+
 import { Stack } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text, View } from "react-native";

@@ -1,3 +1,5 @@
+'use client';
+
 import * as Haptics from "expo-haptics";
 import { type Href, Link } from "expo-router";
 import type { ReactNode } from "react";

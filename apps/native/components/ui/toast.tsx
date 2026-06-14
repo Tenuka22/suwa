@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Text, View } from "react-native";

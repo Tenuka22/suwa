@@ -1,3 +1,5 @@
+'use client';
+
 import { Stack } from "expo-router";
 
 import { HomeLanding } from "@/components/home/home-landing";

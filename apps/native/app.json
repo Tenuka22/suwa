@@ -8,7 +8,8 @@
     "scheme": "zen-doc",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "newArchEnabled": true
     },
     "android": {
       "adaptiveIcon": {
@@ -18,10 +19,11 @@
         "monochromeImage": "./assets/images/Logo.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.mybettertapp"
+      "package": "com.anonymous.mybettertapp",
+      "newArchEnabled": true
     },
     "web": {
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/Logo.png"
     },
     "plugins": [
@@ -45,7 +47,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "rsc": true
     },
     "extra": {
       "router": {},

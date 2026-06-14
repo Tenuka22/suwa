@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useState } from "react";
 import type { TextInputProps } from "react-native";
 import { Text, TextInput, View } from "react-native";

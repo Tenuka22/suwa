@@ -1,3 +1,5 @@
+'use client';
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { useClerk, useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";

@@ -1,3 +1,5 @@
+'use client';
+
 import { Stack } from "expo-router";
 import { Video } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
@@ -7,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
-import { VideoRoom } from "@/components/ui/video-room.native";
+import { VideoRoom } from "@/components/ui/video-room";
 import { orpc } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
 
