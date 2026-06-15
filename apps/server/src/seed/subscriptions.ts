@@ -1,7 +1,6 @@
 import type { createDb } from "@doca/db";
-import { doctorPlans, userCredits, userSubscriptions } from "@doca/db";
+import { doctorPlans, userSubscriptions } from "@doca/db";
 import { faker } from "@faker-js/faker";
-import { inArray } from "drizzle-orm";
 
 const SUBSCRIPTION_STATUSES = [
   "active",
@@ -31,18 +30,13 @@ export async function seedSubscriptions(
       id: doctorPlans.id,
       doctorId: doctorPlans.doctorId,
       name: doctorPlans.name,
-      creditCost: doctorPlans.creditCost,
+      priceCents: doctorPlans.priceCents,
     })
     .from(doctorPlans);
 
   if (plans.length === 0) {
     return { subscriptions: 0 };
   }
-
-  const userCreditsList = await db
-    .select({ userId: userCredits.userId })
-    .from(userCredits)
-    .where(inArray(userCredits.userId, userIds));
 
   const subscriptions: Array<{
     id: string;
@@ -55,7 +49,7 @@ export async function seedSubscriptions(
     cancelAtPeriodEnd: boolean;
   }> = [];
 
-  for (const uc of userCreditsList) {
+  for (const userId of userIds) {
     if (faker.datatype.boolean(0.5)) {
       const plan = faker.helpers.arrayElement(plans);
       const startDate = faker.date.recent({ days: 60 });
@@ -70,7 +64,7 @@ export async function seedSubscriptions(
 
       subscriptions.push({
         id: crypto.randomUUID(),
-        userId: uc.userId,
+        userId,
         planId: plan.id,
         stripeSubscriptionId:
           status === "trialing" ? null : `sub_${faker.string.alphanumeric(24)}`,

@@ -1,8 +1,9 @@
-﻿import { creditTransactions, doctorSessions, userCredits } from "@doca/db";
+﻿import { doctorSessions } from "@doca/db";
 import { cancelSessionSchema } from "@doca/db/schemas-types";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+import { cancelPaymentIntent } from "../stripe-utils";
 
 export const cancelSessionRoute = protectedProcedure
   .input(cancelSessionSchema)
@@ -49,6 +50,11 @@ export const cancelSessionRoute = protectedProcedure
       );
     }
 
+    // Cancel the held payment to release the hold on the patient's card
+    if (session.paymentIntentId && session.paymentIntentId.startsWith("pi_")) {
+      await cancelPaymentIntent(session.paymentIntentId);
+    }
+
     await context.db
       .update(doctorSessions)
       .set({
@@ -56,31 +62,6 @@ export const cancelSessionRoute = protectedProcedure
         updatedAt: now,
       })
       .where(eq(doctorSessions.id, input.sessionId));
-
-    const [userCredit] = await context.db
-      .select()
-      .from(userCredits)
-      .where(eq(userCredits.userId, session.patientId))
-      .limit(1);
-
-    if (userCredit) {
-      await context.db
-        .update(userCredits)
-        .set({
-          balance: userCredit.balance + session.creditCost,
-          updatedAt: now,
-        })
-        .where(eq(userCredits.userId, session.patientId));
-
-      await context.db.insert(creditTransactions).values({
-        id: crypto.randomUUID(),
-        userId: session.patientId,
-        amount: session.creditCost,
-        type: "refund",
-        sessionId: session.id,
-        createdAt: now,
-      });
-    }
 
     return { ok: true };
   });

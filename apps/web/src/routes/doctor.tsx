@@ -26,6 +26,7 @@ import {
   Outlet,
   redirect,
   useMatches,
+  useLoaderData,
 } from "@tanstack/react-router";
 import { StethoscopeIcon } from "lucide-react";
 
@@ -104,7 +105,7 @@ function Breadcrumbs() {
 }
 
 function DoctorLayoutRoute() {
-  const { session } = Route.useLoaderData();
+  const { session } = useLoaderData({ from: "/doctor" });
 
   if (!session) {
     return (

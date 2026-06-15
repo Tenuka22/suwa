@@ -11,7 +11,6 @@ import {
 } from "@doca/ui/components/sidebar";
 import {
   CalendarDaysIcon,
-  DollarSignIcon,
   FileTextIcon,
   HouseIcon,
   LayoutDashboardIcon,
@@ -79,12 +78,6 @@ export function AdminSidebar() {
               icon: FileTextIcon,
               label: "Plans",
               to: "/admin/plans",
-              search: { page: 1 },
-            },
-            {
-              icon: DollarSignIcon,
-              label: "Credits",
-              to: "/admin/credits",
               search: { page: 1 },
             },
 

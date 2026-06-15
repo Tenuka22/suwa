@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_DISPLAY_NAME_SPACE } from "@doca/app-info";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -7,6 +8,7 @@ import {
   Calendar,
   Check,
   Clock,
+  DollarSign,
   MapPin,
   Play,
   Sparkles,
@@ -29,6 +31,7 @@ import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { orpc } from "@/utils/orpc";
+import { usePaymentSheet } from "@/utils/stripe";
 import { useThemeColor } from "@/utils/theme";
 import { useErrorHandler } from "@/utils/use-error-handler";
 
@@ -108,6 +111,10 @@ function AvailabilityInfo({
   );
 }
 
+function formatPrice(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
 function PlanSelection({
   plans,
   selectedPlanId,
@@ -118,6 +125,7 @@ function PlanSelection({
     durationMinutes: number;
     id: string;
     name: string;
+    priceCents: number;
   }[];
   selectedPlanId: string | null;
 }) {
@@ -153,11 +161,19 @@ function PlanSelection({
                 <Text className="font-black font-sans text-foreground text-sm">
                   {plan.name}
                 </Text>
-                <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5">
-                  <Clock color="#a22a2a" size={10} strokeWidth={2.5} />
-                  <Text className="font-bold font-sans text-primary text-xs">
-                    {plan.durationMinutes} min
-                  </Text>
+                <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5">
+                    <DollarSign color="#16a34a" size={10} strokeWidth={2.5} />
+                    <Text className="font-bold font-sans text-emerald-600 text-xs">
+                      {formatPrice(plan.priceCents)}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5">
+                    <Clock color="#a22a2a" size={10} strokeWidth={2.5} />
+                    <Text className="font-bold font-sans text-primary text-xs">
+                      {plan.durationMinutes} min
+                    </Text>
+                  </View>
                 </View>
               </View>
             </Pressable>
@@ -363,9 +379,42 @@ export default function BookingScreen() {
   const introVideoFile = files.find((f) => f.fileKind === "intro_video");
   const portraitId = doctorQuery.data?.portrait?.id ?? null;
 
+  const paymentSheet = usePaymentSheet();
+
+  const cancelSessionMutation = useMutation(
+    orpc.cancelSession.mutationOptions()
+  );
+
   const bookMutation = useMutation(
     orpc.bookSession.mutationOptions({
-      onSuccess: async () => {
+      onSuccess: async (result) => {
+        const clientSecret = result.clientSecret;
+        if (!clientSecret) {
+          throw new Error("No payment client secret returned");
+        }
+
+        const initResult = await paymentSheet.initPaymentSheet({
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: APP_DISPLAY_NAME_SPACE,
+        });
+
+        if (initResult.error) {
+          // Clean up the session since payment couldn't be initialized
+          cancelSessionMutation.mutate({ sessionId: result.sessionId });
+          throw new Error(
+            initResult.error.message ?? "Unable to open payment sheet"
+          );
+        }
+
+        const presentResult = await paymentSheet.presentPaymentSheet();
+        if (presentResult.error) {
+          // Clean up the session since payment was cancelled/failed
+          cancelSessionMutation.mutate({ sessionId: result.sessionId });
+          throw new Error(
+            presentResult.error.message ?? "Payment authorization failed"
+          );
+        }
+
         setBookingStep("done");
         setTimeout(() => {
           router.replace("/appointments?bookingSuccess=true");
@@ -549,6 +598,7 @@ export default function BookingScreen() {
                   durationMinutes: p.durationMinutes,
                   id: p.id,
                   name: p.name,
+                  priceCents: p.priceCents,
                 }))}
                 selectedPlanId={selectedPlanId}
               />
@@ -666,13 +716,20 @@ export default function BookingScreen() {
       <ScreenBottomBar>
         <View className="flex-1 items-center justify-center px-2">
           {selectedPlanId && selectedSlot ? (
-            <Text
-              className="text-center font-bold font-sans text-foreground text-xs uppercase tracking-wider"
-              numberOfLines={1}
-            >
-              {formatTime(new Date(selectedSlot.startAt))} -{" "}
-              {formatTime(new Date(selectedSlot.endAt))}
-            </Text>
+            <View className="items-center gap-0.5">
+              <Text
+                className="text-center font-bold font-sans text-foreground text-xs uppercase tracking-wider"
+                numberOfLines={1}
+              >
+                {formatTime(new Date(selectedSlot.startAt))} -{" "}
+                {formatTime(new Date(selectedSlot.endAt))}
+              </Text>
+              {selectedPlan && (
+                <Text className="font-bold font-sans text-emerald-600 text-[10px] uppercase tracking-wider">
+                  Hold: {formatPrice(selectedPlan.priceCents)}
+                </Text>
+              )}
+            </View>
           ) : selectedPlanId ? (
             <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-wider">
               Select a date & time

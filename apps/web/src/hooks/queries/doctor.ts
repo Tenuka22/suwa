@@ -26,16 +26,8 @@ export function useSaveAvailability() {
   return useMutation(orpc.saveWeeklyAvailability.mutationOptions());
 }
 
-export function useDoctorCredits() {
-  return useQuery(orpc.getDoctorCredits.queryOptions());
-}
-
 export function useConnectAccountStatus() {
   return useQuery(orpc.getConnectAccountStatus.queryOptions());
-}
-
-export function useRequestCashout() {
-  return useMutation(orpc.requestCashout.mutationOptions());
 }
 
 export function useCreateConnectAccountLink() {

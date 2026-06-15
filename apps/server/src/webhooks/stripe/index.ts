@@ -1,10 +1,4 @@
-import {
-  createDb,
-  creditTransactions,
-  doctorProfiles,
-  userCredits,
-  userSubscriptions,
-} from "@doca/db";
+import { createDb, doctorProfiles, userSubscriptions } from "@doca/db";
 import { env } from "@doca/env/server";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -41,96 +35,21 @@ stripeApp.post("/", async (c) => {
     const sessionType = session.metadata?.type;
     const userId = session.metadata?.userId;
 
-    if (sessionType === "credit_topup" && userId) {
-      const creditsToAdd = Number.parseInt(
-        session.metadata?.credits ?? "0",
-        10
+    if (sessionType === "subscription" && session.subscription && userId) {
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription.toString()
       );
-      if (creditsToAdd > 0) {
-        const [existing] = await db
-          .select()
-          .from(userCredits)
-          .where(eq(userCredits.userId, userId))
-          .limit(1);
+      const now = new Date().toISOString();
 
-        const now = new Date().toISOString();
-        const newBalance = existing
-          ? existing.balance + creditsToAdd
-          : creditsToAdd;
-
-        if (existing) {
-          await db
-            .update(userCredits)
-            .set({
-              balance: newBalance,
-              updatedAt: now,
-            })
-            .where(eq(userCredits.userId, userId));
-        } else {
-          await db.insert(userCredits).values({
-            userId,
-            balance: creditsToAdd,
-          });
-        }
-
-        await db.insert(creditTransactions).values({
-          id: crypto.randomUUID(),
-          userId,
-          amount: creditsToAdd,
-          type: "purchase",
-          createdAt: now,
-        });
-      }
-    }
-
-    if (sessionType === "subscription" && session.subscription) {
-      const planType = session.metadata?.planType;
-
-      if (userId && planType === "monthly_5_credits") {
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription.toString()
-        );
-        const now = new Date().toISOString();
-
-        await db.insert(userSubscriptions).values({
-          id: crypto.randomUUID(),
-          userId,
-          planId: "monthly_5_credits",
-          stripeSubscriptionId: subscription.id,
-          status: "active",
-          createdAt: now,
-          updatedAt: now,
-        });
-
-        const [existingCredits] = await db
-          .select()
-          .from(userCredits)
-          .where(eq(userCredits.userId, userId))
-          .limit(1);
-
-        if (existingCredits) {
-          await db
-            .update(userCredits)
-            .set({
-              balance: existingCredits.balance + 5,
-              updatedAt: now,
-            })
-            .where(eq(userCredits.userId, userId));
-        } else {
-          await db.insert(userCredits).values({
-            userId,
-            balance: 5,
-          });
-        }
-
-        await db.insert(creditTransactions).values({
-          id: crypto.randomUUID(),
-          userId,
-          amount: 5,
-          type: "subscription_renewal",
-          createdAt: now,
-        });
-      }
+      await db.insert(userSubscriptions).values({
+        id: crypto.randomUUID(),
+        userId,
+        planId: "monthly",
+        stripeSubscriptionId: subscription.id,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      });
     }
   }
 
@@ -139,7 +58,6 @@ stripeApp.post("/", async (c) => {
 
     if ("subscription" in invoiceObject && invoiceObject.subscription) {
       const subscriptionId = invoiceObject.subscription.toString();
-      await stripe.subscriptions.retrieve(subscriptionId);
       const [userSubscription] = await db
         .select()
         .from(userSubscriptions)
@@ -147,37 +65,7 @@ stripeApp.post("/", async (c) => {
         .limit(1);
 
       if (userSubscription) {
-        const userId = userSubscription.userId;
         const now = new Date().toISOString();
-
-        const [existingCredits] = await db
-          .select()
-          .from(userCredits)
-          .where(eq(userCredits.userId, userId))
-          .limit(1);
-
-        if (existingCredits) {
-          await db
-            .update(userCredits)
-            .set({
-              balance: existingCredits.balance + 5,
-              updatedAt: now,
-            })
-            .where(eq(userCredits.userId, userId));
-        } else {
-          await db.insert(userCredits).values({
-            userId,
-            balance: 5,
-          });
-        }
-
-        await db.insert(creditTransactions).values({
-          id: crypto.randomUUID(),
-          userId,
-          amount: 5,
-          type: "subscription_renewal",
-          createdAt: now,
-        });
 
         await db
           .update(userSubscriptions)
@@ -206,52 +94,6 @@ stripeApp.post("/", async (c) => {
           updatedAt: new Date().toISOString(),
         })
         .where(eq(userSubscriptions.id, userSubscription.id));
-    }
-  }
-
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    const userId = paymentIntent.metadata?.userId;
-    const creditsToAdd = Number.parseInt(
-      paymentIntent.metadata?.credits ?? "0",
-      10
-    );
-
-    if (userId && creditsToAdd > 0) {
-      const [existing] = await db
-        .select()
-        .from(userCredits)
-        .where(eq(userCredits.userId, userId))
-        .limit(1);
-
-      const newBalance = existing
-        ? existing.balance + creditsToAdd
-        : creditsToAdd;
-
-      const now = new Date().toISOString();
-
-      if (existing) {
-        await db
-          .update(userCredits)
-          .set({
-            balance: newBalance,
-            updatedAt: now,
-          })
-          .where(eq(userCredits.userId, userId));
-      } else {
-        await db.insert(userCredits).values({
-          userId,
-          balance: creditsToAdd,
-        });
-      }
-
-      await db.insert(creditTransactions).values({
-        id: crypto.randomUUID(),
-        userId,
-        amount: creditsToAdd,
-        type: "purchase",
-        createdAt: now,
-      });
     }
   }
 

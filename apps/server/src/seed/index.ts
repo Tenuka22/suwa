@@ -22,17 +22,15 @@ export interface SeedSummary {
   doctorRelations: {
     education: number;
     plans: number;
-    credits: number;
     availability: number;
     schedule: number;
     files: number;
   };
   doctors: { created: number; existing: number };
-  gamification: { sprites: number; wellness: number; credits: number };
+  gamification: { sprites: number; wellness: number; moonlight: number };
   hub: { channels: number; materials: number; playlists: number };
   hubUploads: number;
   patientRelations: {
-    credits: number;
     moonlight: number;
     stress: number;
     acknowledgments: number;

@@ -41,7 +41,7 @@ export const listPatientSessionsRoute = protectedProcedure.handler(
           plan: plan
             ? {
                 name: plan.name,
-                price: plan.creditCost,
+                priceCents: plan.priceCents,
                 durationMinutes: plan.durationMinutes,
               }
             : null,

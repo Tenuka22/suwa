@@ -1,10 +1,6 @@
 import { adminApproveDoctorRoute } from "./routes/approve-doctor";
 import { adminApprovedDoctorsRoute } from "./routes/approved-doctors";
 import { adminCreateTestSessionRoute } from "./routes/create-test-session";
-import {
-  adminCreditTransactionsRoute,
-  adminUserCreditsRoute,
-} from "./routes/credits";
 import { adminDoctorEducationEntriesRoute } from "./routes/doctor-education-entries";
 import { adminDoctorScheduleEntriesRoute } from "./routes/doctor-schedule-entries";
 
@@ -25,7 +21,4 @@ export const adminRouter = {
   sessions: adminSessionsRoute,
   patients: adminPatientsRoute,
   plans: adminPlansRoute,
-  creditTransactions: adminCreditTransactionsRoute,
-  userCredits: adminUserCreditsRoute,
-
 };

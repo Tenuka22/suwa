@@ -63,3 +63,42 @@ export function refundPaymentIntent(
     payment_intent: paymentIntentId,
   });
 }
+
+export function createHoldPaymentIntent(params: {
+  amount: number;
+  patientId: string;
+  doctorId: string;
+  sessionId: string;
+  description: string;
+}): Promise<Stripe.PaymentIntent> {
+  const stripe = getStripe();
+  return stripe.paymentIntents.create({
+    amount: params.amount,
+    currency: "usd",
+    capture_method: "manual",
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    description: params.description,
+    metadata: {
+      sessionId: params.sessionId,
+      doctorId: params.doctorId,
+      patientId: params.patientId,
+      type: "session_hold",
+    },
+  });
+}
+
+export function capturePaymentIntent(
+  paymentIntentId: string
+): Promise<Stripe.PaymentIntent> {
+  const stripe = getStripe();
+  return stripe.paymentIntents.capture(paymentIntentId);
+}
+
+export function cancelPaymentIntent(
+  paymentIntentId: string
+): Promise<Stripe.PaymentIntent> {
+  const stripe = getStripe();
+  return stripe.paymentIntents.cancel(paymentIntentId);
+}

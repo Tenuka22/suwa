@@ -22,12 +22,12 @@ export async function seedGamification(
   userIds: string[]
 ) {
   if (userIds.length === 0) {
-    return { sprites: 0, wellness: 0, credits: 0 };
+    return { sprites: 0, wellness: 0, moonlight: 0 };
   }
 
   let spriteCount = 0;
   let wellnessCount = 0;
-  let creditTxnCount = 0;
+  let moonlightTxnCount = 0;
 
   for (const userId of userIds) {
     const existingSprite = await db
@@ -74,13 +74,13 @@ export async function seedGamification(
           "Sleep tracking milestone",
         ]),
       });
-      creditTxnCount++;
+      moonlightTxnCount++;
     }
   }
 
   return {
     sprites: spriteCount,
     wellness: wellnessCount,
-    credits: creditTxnCount,
+    moonlight: moonlightTxnCount,
   };
 }

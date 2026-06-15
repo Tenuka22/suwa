@@ -60,7 +60,7 @@ import { notify } from "@/lib/notify";
 import { orpc } from "@/utils/orpc";
 
 interface DoctorPlan {
-  creditCost: number;
+  priceCents: number;
   description: string | null;
   durationMinutes: number;
   features: string | null;
@@ -75,7 +75,7 @@ function CreatePlanDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [creditCost, setCreditCost] = useState("1");
+  const [priceCents, setPriceCents] = useState("1500");
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [features, setFeatures] = useState("");
 
@@ -86,7 +86,7 @@ function CreatePlanDialog() {
         setOpen(false);
         setName("");
         setDescription("");
-        setCreditCost("1");
+        setPriceCents("1500");
         setDurationMinutes("60");
         setFeatures("");
       },
@@ -105,7 +105,7 @@ function CreatePlanDialog() {
     createMutation.mutate({
       name,
       description: description.trim() ? description : undefined,
-      creditCost: Number(creditCost),
+      priceCents: Number(priceCents),
       durationMinutes: Number(durationMinutes),
       features: parsedFeatures.length > 0 ? parsedFeatures : undefined,
     });
@@ -148,13 +148,13 @@ function CreatePlanDialog() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="credit-cost">Credits</Label>
+              <Label htmlFor="price-cents">Price (cents)</Label>
               <Input
-                id="credit-cost"
-                min="1"
-                onChange={(e) => setCreditCost(e.target.value)}
+                id="price-cents"
+                min="100"
+                onChange={(e) => setPriceCents(e.target.value)}
                 type="number"
-                value={creditCost}
+                value={priceCents}
               />
             </div>
             <div className="grid gap-2">
@@ -210,11 +210,11 @@ function DoctorPlansRoute() {
   const plans = (plansData?.plans as DoctorPlan[]) ?? [];
 
   const totalPlans = stats?.totalPlans ?? 0;
-  const averageCreditCost = stats?.averageCreditCost ?? 0;
+  const averagePriceCents = stats?.averagePriceCents ?? 0;
   const averageDurationMinutes = stats?.averageDurationMinutes ?? 0;
   const defaultPlanName = stats?.defaultPlanName ?? null;
-  const minCreditCost = stats?.minCreditCost ?? 0;
-  const maxCreditCost = stats?.maxCreditCost ?? 0;
+  const minPriceCents = stats?.minPriceCents ?? 0;
+  const maxPriceCents = stats?.maxPriceCents ?? 0;
 
   const chartData = plans
     .map((plan) => {
@@ -228,13 +228,13 @@ function DoctorPlansRoute() {
       }
       return {
         name: plan.name,
-        credits: plan.creditCost,
+        priceCents: plan.priceCents,
         minutes: plan.durationMinutes,
         features: parsedFeatures,
         isDefault: plan.isDefault,
       };
     })
-    .sort((a, b) => b.credits - a.credits);
+    .sort((a, b) => b.priceCents - a.priceCents);
 
   return (
     <div className="flex flex-col gap-6">
@@ -251,7 +251,7 @@ function DoctorPlansRoute() {
 
               <BodyText className="max-w-2xl">
                 Manage your session offerings and pricing at a glance. Review
-                plan details, compare credit costs, and see which plan is the
+                plan details, compare pricing, and see which plan is the
                 default for new patients.
               </BodyText>
             </div>
@@ -269,11 +269,11 @@ function DoctorPlansRoute() {
         />
 
         <MetricCard
-          description="Average credit cost per plan"
+          description="Average price per plan"
           icon={<CoinsIcon className="size-5" />}
-          title="Avg credits"
-          trend={`${minCreditCost}–${maxCreditCost}`}
-          value={averageCreditCost.toString()}
+          title="Avg price"
+          trend={`$${(minPriceCents / 100).toFixed(0)}–$${(maxPriceCents / 100).toFixed(0)}`}
+          value={`$${(averagePriceCents / 100).toFixed(2)}`}
         />
 
         <MetricCard
@@ -323,7 +323,7 @@ function DoctorPlansRoute() {
 
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-muted-foreground text-sm">
               Keep your pricing simple and consistent. Use the chart to compare
-              credit cost against session duration.
+              price against session duration.
             </div>
           </CardContent>
         </Card>
@@ -334,10 +334,10 @@ function DoctorPlansRoute() {
               action={
                 <Badge className="gap-1" variant="secondary">
                   <CreditCardIcon className="size-3" />
-                  Credit cost comparison
+                  Price comparison
                 </Badge>
               }
-              description="A compact comparison of credits and minutes"
+              description="A compact comparison of pricing and minutes"
               title="Plan comparison"
             />
           </CardHeader>
@@ -349,8 +349,8 @@ function DoctorPlansRoute() {
               <ChartContainer
                 className="h-[280px] w-full"
                 config={{
-                  credits: {
-                    label: "Credits",
+                  priceCents: {
+                    label: "Price",
                     color: "var(--primary)",
                   },
                 }}
@@ -382,7 +382,7 @@ function DoctorPlansRoute() {
                           const item = payload as {
                             payload?: { minutes?: number };
                           };
-                          return `${Number(value)} credits · ${item.payload?.minutes ?? 0} min`;
+                          return `$${(Number(value) / 100).toFixed(2)} · ${item.payload?.minutes ?? 0} min`;
                         }}
                         indicator="dot"
                       />
@@ -391,7 +391,7 @@ function DoctorPlansRoute() {
                   />
 
                   <Bar
-                    dataKey="credits"
+                    dataKey="priceCents"
                     fill="var(--primary)"
                     fillOpacity={0.3}
                     radius={[8, 8, 0, 0]}
@@ -399,9 +399,10 @@ function DoctorPlansRoute() {
                     strokeWidth={2}
                   >
                     <LabelList
-                      dataKey="credits"
+                      dataKey="priceCents"
                       fill="var(--primary)"
                       position="top"
+                      formatter={(v: unknown) => `$${(Number(v) / 100).toFixed(0)}`}
                     />
                   </Bar>
                 </BarChart>
@@ -470,10 +471,7 @@ function DoctorPlansRoute() {
                     <div className="flex items-center gap-1.5">
                       <CoinsIcon className="size-4 text-muted-foreground" />
                       <span className="font-semibold text-lg">
-                        {plan.creditCost}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        credits
+                        ${(plan.priceCents / 100).toFixed(2)}
                       </span>
                     </div>
 

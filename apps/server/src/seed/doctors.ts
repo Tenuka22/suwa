@@ -1,6 +1,5 @@
 import type { createDb } from "@doca/db";
 import {
-  doctorCredits,
   doctorEducationEntries,
   doctorFiles,
   doctorPlans,
@@ -150,7 +149,6 @@ export async function seedDoctorRelations(
     return {
       education: 0,
       plans: 0,
-      credits: 0,
       availability: 0,
       schedule: 0,
       files: 0,
@@ -165,10 +163,6 @@ export async function seedDoctorRelations(
     .select({ doctorId: doctorPlans.doctorId })
     .from(doctorPlans)
     .where(inArray(doctorPlans.doctorId, doctorIds));
-  const existingCreditDoctors = await db
-    .select({ doctorId: doctorCredits.doctorId })
-    .from(doctorCredits)
-    .where(inArray(doctorCredits.doctorId, doctorIds));
   const existingAvailDoctors = await db
     .select({ doctorId: doctorWeeklyAvailability.doctorId })
     .from(doctorWeeklyAvailability)
@@ -186,9 +180,6 @@ export async function seedDoctorRelations(
     existingEducation.map((r) => r.doctorId)
   );
   const existingPlanSet = new Set(existingPlanDoctors.map((r) => r.doctorId));
-  const existingCreditSet = new Set(
-    existingCreditDoctors.map((r) => r.doctorId)
-  );
   const existingAvailSet = new Set(existingAvailDoctors.map((r) => r.doctorId));
   const existingScheduleSet = new Set(
     existingScheduleDoctors.map((r) => r.doctorId)
@@ -197,7 +188,6 @@ export async function seedDoctorRelations(
 
   let educationCount = 0;
   let planCount = 0;
-  let creditCount = 0;
   let availCount = 0;
   let scheduleCount = 0;
   let fileCount = 0;
@@ -240,7 +230,7 @@ export async function seedDoctorRelations(
           name: "Initial Consultation",
           description:
             "Comprehensive initial assessment and treatment planning",
-          creditCost: 1,
+          priceCents: 1500,
           durationMinutes: 30,
           features: JSON.stringify(["assessment", "treatment plan"]),
           isActive: true,
@@ -251,7 +241,7 @@ export async function seedDoctorRelations(
           doctorId,
           name: "Standard Session",
           description: "Regular therapy session",
-          creditCost: 2,
+          priceCents: 3000,
           durationMinutes: 50,
           features: JSON.stringify(["therapy", "progress review"]),
           isActive: true,
@@ -262,7 +252,7 @@ export async function seedDoctorRelations(
           doctorId,
           name: "Extended Session",
           description: "Extended therapy session for deeper work",
-          creditCost: 3,
+          priceCents: 5000,
           durationMinutes: 80,
           features: JSON.stringify(["deep therapy", "crisis support"]),
           isActive: true,
@@ -277,7 +267,8 @@ export async function seedDoctorRelations(
           doctorId: p.doctorId,
           name: p.name,
           description: p.description,
-          creditCost: p.creditCost,
+          creditCost: 0,
+          priceCents: p.priceCents,
           durationMinutes: p.durationMinutes,
           features: p.features,
           isActive: p.isActive,
@@ -286,17 +277,6 @@ export async function seedDoctorRelations(
         }))
       );
       planCount += plans.length;
-    }
-
-    // Credits
-    if (!existingCreditSet.has(doctorId)) {
-      await db.insert(doctorCredits).values({
-        doctorId,
-        balanceCents: faker.number.int({ min: 0, max: 50_000 }),
-        totalEarnedCents: faker.number.int({ min: 10_000, max: 200_000 }),
-        totalCashedOutCents: faker.number.int({ min: 0, max: 100_000 }),
-      });
-      creditCount++;
     }
 
     // Weekly availability
@@ -377,7 +357,6 @@ export async function seedDoctorRelations(
   return {
     education: educationCount,
     plans: planCount,
-    credits: creditCount,
     availability: availCount,
     schedule: scheduleCount,
     files: fileCount,

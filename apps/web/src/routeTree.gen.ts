@@ -22,7 +22,6 @@ import { Route as TenantCreateRouteImport } from './routes/tenant/create'
 import { Route as DoctorProfileRouteImport } from './routes/doctor/profile'
 import { Route as DoctorPlansRouteImport } from './routes/doctor/plans'
 import { Route as DoctorHubRouteImport } from './routes/doctor/hub'
-import { Route as DoctorCreditsRouteImport } from './routes/doctor/credits'
 import { Route as DoctorAvailabilityRouteImport } from './routes/doctor/availability'
 import { Route as AdminSessionRouteImport } from './routes/admin/session'
 import { Route as AdminChatSettingsRouteImport } from './routes/admin/chat-settings'
@@ -33,7 +32,6 @@ import { Route as AdminPlansIndexRouteImport } from './routes/admin/plans/index'
 import { Route as AdminPatientsIndexRouteImport } from './routes/admin/patients/index'
 import { Route as AdminDoctorsIndexRouteImport } from './routes/admin/doctors/index'
 import { Route as AdminDocRequestsIndexRouteImport } from './routes/admin/doc-requests/index'
-import { Route as AdminCreditsIndexRouteImport } from './routes/admin/credits/index'
 import { Route as TenantTenantIdSettingsRouteImport } from './routes/tenant/$tenantId/settings'
 import { Route as TenantTenantIdInviteRouteImport } from './routes/tenant/$tenantId/invite'
 import { Route as TenantTenantIdDoctorsRouteImport } from './routes/tenant/$tenantId/doctors'
@@ -109,11 +107,6 @@ const DoctorHubRoute = DoctorHubRouteImport.update({
   path: '/hub',
   getParentRoute: () => DoctorRoute,
 } as any)
-const DoctorCreditsRoute = DoctorCreditsRouteImport.update({
-  id: '/credits',
-  path: '/credits',
-  getParentRoute: () => DoctorRoute,
-} as any)
 const DoctorAvailabilityRoute = DoctorAvailabilityRouteImport.update({
   id: '/availability',
   path: '/availability',
@@ -162,11 +155,6 @@ const AdminDoctorsIndexRoute = AdminDoctorsIndexRouteImport.update({
 const AdminDocRequestsIndexRoute = AdminDocRequestsIndexRouteImport.update({
   id: '/doc-requests/',
   path: '/doc-requests/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCreditsIndexRoute = AdminCreditsIndexRouteImport.update({
-  id: '/credits/',
-  path: '/credits/',
   getParentRoute: () => AdminRoute,
 } as any)
 const TenantTenantIdSettingsRoute = TenantTenantIdSettingsRouteImport.update({
@@ -228,7 +216,6 @@ export interface FileRoutesByFullPath {
   '/admin/chat-settings': typeof AdminChatSettingsRoute
   '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
-  '/doctor/credits': typeof DoctorCreditsRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/plans': typeof DoctorPlansRoute
   '/doctor/profile': typeof DoctorProfileRoute
@@ -243,7 +230,6 @@ export interface FileRoutesByFullPath {
   '/tenant/$tenantId/doctors': typeof TenantTenantIdDoctorsRoute
   '/tenant/$tenantId/invite': typeof TenantTenantIdInviteRoute
   '/tenant/$tenantId/settings': typeof TenantTenantIdSettingsRoute
-  '/admin/credits/': typeof AdminCreditsIndexRoute
   '/admin/doc-requests/': typeof AdminDocRequestsIndexRoute
   '/admin/doctors/': typeof AdminDoctorsIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
@@ -261,7 +247,6 @@ export interface FileRoutesByTo {
   '/admin/chat-settings': typeof AdminChatSettingsRoute
   '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
-  '/doctor/credits': typeof DoctorCreditsRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/plans': typeof DoctorPlansRoute
   '/doctor/profile': typeof DoctorProfileRoute
@@ -276,7 +261,6 @@ export interface FileRoutesByTo {
   '/tenant/$tenantId/doctors': typeof TenantTenantIdDoctorsRoute
   '/tenant/$tenantId/invite': typeof TenantTenantIdInviteRoute
   '/tenant/$tenantId/settings': typeof TenantTenantIdSettingsRoute
-  '/admin/credits': typeof AdminCreditsIndexRoute
   '/admin/doc-requests': typeof AdminDocRequestsIndexRoute
   '/admin/doctors': typeof AdminDoctorsIndexRoute
   '/admin/patients': typeof AdminPatientsIndexRoute
@@ -298,7 +282,6 @@ export interface FileRoutesById {
   '/admin/chat-settings': typeof AdminChatSettingsRoute
   '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
-  '/doctor/credits': typeof DoctorCreditsRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/plans': typeof DoctorPlansRoute
   '/doctor/profile': typeof DoctorProfileRoute
@@ -313,7 +296,6 @@ export interface FileRoutesById {
   '/tenant/$tenantId/doctors': typeof TenantTenantIdDoctorsRoute
   '/tenant/$tenantId/invite': typeof TenantTenantIdInviteRoute
   '/tenant/$tenantId/settings': typeof TenantTenantIdSettingsRoute
-  '/admin/credits/': typeof AdminCreditsIndexRoute
   '/admin/doc-requests/': typeof AdminDocRequestsIndexRoute
   '/admin/doctors/': typeof AdminDoctorsIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
@@ -336,7 +318,6 @@ export interface FileRouteTypes {
     | '/admin/chat-settings'
     | '/admin/session'
     | '/doctor/availability'
-    | '/doctor/credits'
     | '/doctor/hub'
     | '/doctor/plans'
     | '/doctor/profile'
@@ -351,7 +332,6 @@ export interface FileRouteTypes {
     | '/tenant/$tenantId/doctors'
     | '/tenant/$tenantId/invite'
     | '/tenant/$tenantId/settings'
-    | '/admin/credits/'
     | '/admin/doc-requests/'
     | '/admin/doctors/'
     | '/admin/patients/'
@@ -369,7 +349,6 @@ export interface FileRouteTypes {
     | '/admin/chat-settings'
     | '/admin/session'
     | '/doctor/availability'
-    | '/doctor/credits'
     | '/doctor/hub'
     | '/doctor/plans'
     | '/doctor/profile'
@@ -384,7 +363,6 @@ export interface FileRouteTypes {
     | '/tenant/$tenantId/doctors'
     | '/tenant/$tenantId/invite'
     | '/tenant/$tenantId/settings'
-    | '/admin/credits'
     | '/admin/doc-requests'
     | '/admin/doctors'
     | '/admin/patients'
@@ -405,7 +383,6 @@ export interface FileRouteTypes {
     | '/admin/chat-settings'
     | '/admin/session'
     | '/doctor/availability'
-    | '/doctor/credits'
     | '/doctor/hub'
     | '/doctor/plans'
     | '/doctor/profile'
@@ -420,7 +397,6 @@ export interface FileRouteTypes {
     | '/tenant/$tenantId/doctors'
     | '/tenant/$tenantId/invite'
     | '/tenant/$tenantId/settings'
-    | '/admin/credits/'
     | '/admin/doc-requests/'
     | '/admin/doctors/'
     | '/admin/patients/'
@@ -534,13 +510,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorHubRouteImport
       parentRoute: typeof DoctorRoute
     }
-    '/doctor/credits': {
-      id: '/doctor/credits'
-      path: '/credits'
-      fullPath: '/doctor/credits'
-      preLoaderRoute: typeof DoctorCreditsRouteImport
-      parentRoute: typeof DoctorRoute
-    }
     '/doctor/availability': {
       id: '/doctor/availability'
       path: '/availability'
@@ -609,13 +578,6 @@ declare module '@tanstack/react-router' {
       path: '/doc-requests'
       fullPath: '/admin/doc-requests/'
       preLoaderRoute: typeof AdminDocRequestsIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/credits/': {
-      id: '/admin/credits/'
-      path: '/credits'
-      fullPath: '/admin/credits/'
-      preLoaderRoute: typeof AdminCreditsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/tenant/$tenantId/settings': {
@@ -689,7 +651,6 @@ interface AdminRouteChildren {
   AdminSessionRoute: typeof AdminSessionRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminDoctorsDoctorIdRoute: typeof AdminDoctorsDoctorIdRoute
-  AdminCreditsIndexRoute: typeof AdminCreditsIndexRoute
   AdminDocRequestsIndexRoute: typeof AdminDocRequestsIndexRoute
   AdminDoctorsIndexRoute: typeof AdminDoctorsIndexRoute
   AdminPatientsIndexRoute: typeof AdminPatientsIndexRoute
@@ -702,7 +663,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSessionRoute: AdminSessionRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminDoctorsDoctorIdRoute: AdminDoctorsDoctorIdRoute,
-  AdminCreditsIndexRoute: AdminCreditsIndexRoute,
   AdminDocRequestsIndexRoute: AdminDocRequestsIndexRoute,
   AdminDoctorsIndexRoute: AdminDoctorsIndexRoute,
   AdminPatientsIndexRoute: AdminPatientsIndexRoute,
@@ -726,7 +686,6 @@ const DoctorHubRouteWithChildren = DoctorHubRoute._addFileChildren(
 
 interface DoctorRouteChildren {
   DoctorAvailabilityRoute: typeof DoctorAvailabilityRoute
-  DoctorCreditsRoute: typeof DoctorCreditsRoute
   DoctorHubRoute: typeof DoctorHubRouteWithChildren
   DoctorPlansRoute: typeof DoctorPlansRoute
   DoctorProfileRoute: typeof DoctorProfileRoute
@@ -737,7 +696,6 @@ interface DoctorRouteChildren {
 
 const DoctorRouteChildren: DoctorRouteChildren = {
   DoctorAvailabilityRoute: DoctorAvailabilityRoute,
-  DoctorCreditsRoute: DoctorCreditsRoute,
   DoctorHubRoute: DoctorHubRouteWithChildren,
   DoctorPlansRoute: DoctorPlansRoute,
   DoctorProfileRoute: DoctorProfileRoute,

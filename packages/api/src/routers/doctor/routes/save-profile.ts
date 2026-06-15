@@ -10,7 +10,6 @@ import {
 } from "@doca/db";
 import { doctorProfileInputSchema } from "@doca/db/schemas-types";
 import {
-  BASIC_PLAN_CREDITS,
   BASIC_PLAN_DURATION_MINUTES,
   BASIC_PLAN_FEATURES,
   BASIC_PLAN_NAME,
@@ -137,7 +136,8 @@ export const saveDoctorProfileRoute = protectedProcedure
         doctorId: userId,
         name: BASIC_PLAN_NAME,
         description: "Standard consultation session",
-        creditCost: BASIC_PLAN_CREDITS,
+        creditCost: 0,
+        priceCents: 1500,
         durationMinutes: BASIC_PLAN_DURATION_MINUTES,
         features: JSON.stringify(BASIC_PLAN_FEATURES),
         isActive: true,

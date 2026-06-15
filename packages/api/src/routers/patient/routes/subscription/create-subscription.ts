@@ -8,7 +8,7 @@ import { getStripe } from "../../../booking/stripe-utils";
 export const createSubscriptionRoute = protectedProcedure
   .input(
     z.object({
-      planType: z.enum(["monthly_5_credits"]),
+      planType: z.enum(["monthly"]),
       returnUrl: z.string().url().optional(),
     })
   )
@@ -42,7 +42,6 @@ export const createSubscriptionRoute = protectedProcedure
         type: "subscription",
         userId,
         planType: input.planType,
-        creditsPerMonth: "5",
       },
     });
 

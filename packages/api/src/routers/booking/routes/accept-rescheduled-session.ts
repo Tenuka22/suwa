@@ -1,9 +1,9 @@
-﻿import { doctorCredits, doctorSessions } from "@doca/db";
-import { CREDIT_PRICE_CENTS } from "@doca/pricing";
+﻿import { doctorSessions } from "@doca/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+import { capturePaymentIntent } from "../stripe-utils";
 
 export const acceptRescheduledSessionRoute = protectedProcedure
   .input(z.object({ sessionId: z.string().min(1) }))
@@ -29,42 +29,20 @@ export const acceptRescheduledSessionRoute = protectedProcedure
     }
 
     const now = new Date().toISOString();
-    const earnedCents = session.creditCost * CREDIT_PRICE_CENTS;
+
+    // Capture the held payment when patient accepts the rescheduled time
+    if (session.paymentIntentId && session.paymentIntentId.startsWith("pi_")) {
+      await capturePaymentIntent(session.paymentIntentId);
+    }
 
     await context.db
       .update(doctorSessions)
       .set({
         status: "approved",
-        doctorEarnedCents: earnedCents,
+        doctorEarnedCents: session.amountCents ?? 0,
         updatedAt: now,
       })
       .where(eq(doctorSessions.id, input.sessionId));
-
-    const [existingCredits] = await context.db
-      .select()
-      .from(doctorCredits)
-      .where(eq(doctorCredits.doctorId, session.doctorId))
-      .limit(1);
-
-    if (existingCredits) {
-      await context.db
-        .update(doctorCredits)
-        .set({
-          balanceCents: existingCredits.balanceCents + earnedCents,
-          totalEarnedCents: existingCredits.totalEarnedCents + earnedCents,
-          updatedAt: now,
-        })
-        .where(eq(doctorCredits.doctorId, session.doctorId));
-    } else {
-      await context.db.insert(doctorCredits).values({
-        doctorId: session.doctorId,
-        balanceCents: earnedCents,
-        totalEarnedCents: earnedCents,
-        totalCashedOutCents: 0,
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
 
     return { ok: true };
   });

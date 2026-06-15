@@ -1,7 +1,7 @@
 import type { createDb } from "@doca/db";
-import { doctorCashoutRequests, doctorCredits } from "@doca/db";
+import { doctorCashoutRequests, doctorSessions } from "@doca/db";
 import { faker } from "@faker-js/faker";
-import { inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 
 const CASHOUT_STATUSES = ["pending", "completed", "failed"] as const;
 
@@ -21,14 +21,17 @@ export async function seedCashouts(
     return { cashouts: 0 };
   }
 
-  const doctorCreditsList = await db
+  // Calculate earnings from attended sessions per doctor
+  const earnings = await db
     .select({
-      doctorId: doctorCredits.doctorId,
-      balanceCents: doctorCredits.balanceCents,
-      totalEarnedCents: doctorCredits.totalEarnedCents,
+      doctorId: doctorSessions.doctorId,
+      totalCents: sql<number>`coalesce(sum(${doctorSessions.amountCents}), 0)`,
     })
-    .from(doctorCredits)
-    .where(inArray(doctorCredits.doctorId, doctorIds));
+    .from(doctorSessions)
+    .where(
+      sql`${doctorSessions.doctorId} IN ${doctorIds} AND ${doctorSessions.status} = 'attended'`
+    )
+    .groupBy(doctorSessions.doctorId);
 
   const cashouts: Array<{
     id: string;
@@ -39,7 +42,10 @@ export async function seedCashouts(
     failureReason: string | null;
   }> = [];
 
-  for (const credit of doctorCreditsList) {
+  for (const earning of earnings) {
+    const totalCents = Number(earning.totalCents);
+    if (totalCents <= 0) continue;
+
     const requestCount = faker.number.int({ min: 0, max: 3 });
     for (let i = 0; i < requestCount; i++) {
       const status = faker.helpers.arrayElement([
@@ -49,13 +55,13 @@ export async function seedCashouts(
         "completed",
       ]);
       const amountCents = faker.number.int({
-        min: Math.min(1000, credit.balanceCents),
-        max: Math.max(1000, credit.balanceCents),
+        min: Math.min(1000, totalCents),
+        max: Math.max(1000, totalCents),
       });
 
       cashouts.push({
         id: crypto.randomUUID(),
-        doctorId: credit.doctorId,
+        doctorId: earning.doctorId,
         amountCents,
         status,
         stripeTransferId:

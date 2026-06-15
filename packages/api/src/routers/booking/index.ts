@@ -4,11 +4,6 @@ import { bookSessionRoute } from "./routes/book-session";
 import { cancelSessionRoute } from "./routes/cancel-session";
 import { counterProposeSessionRoute } from "./routes/counter-propose-session";
 import { createConnectAccountLinkRoute } from "./routes/create-connect-account-link";
-import { creditStatsRoute } from "./routes/credit-stats";
-import {
-  getDoctorCreditsRoute,
-  requestCashoutRoute,
-} from "./routes/doctor-credits";
 import {
   createDoctorPlanRoute,
   deleteDoctorPlanRoute,
@@ -39,7 +34,6 @@ export const bookingRouter = {
   markSessionAttended: markSessionAttendedRoute,
   sessionStats: sessionStatsRoute,
   planStats: planStatsRoute,
-  creditStats: creditStatsRoute,
   availabilityStats: availabilityStatsRoute,
   getConnectAccountStatus: getConnectAccountStatusRoute,
   createConnectAccountLink: createConnectAccountLinkRoute,
@@ -54,6 +48,4 @@ export const bookingRouter = {
   getWeeklyAvailability: getWeeklyAvailabilityRoute,
   saveWeeklyAvailability: saveWeeklyAvailabilityRoute,
   getDoctorWeeklyAvailability: getDoctorWeeklyAvailabilityRoute,
-  getDoctorCredits: getDoctorCreditsRoute,
-  requestCashout: requestCashoutRoute,
 };

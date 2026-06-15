@@ -21,30 +21,30 @@ export const planStatsRoute = protectedProcedure
     if (totalPlans === 0) {
       return {
         totalPlans: 0,
-        averageCreditCost: 0,
+        averagePriceCents: 0,
         averageDurationMinutes: 0,
-        minCreditCost: 0,
-        maxCreditCost: 0,
+        minPriceCents: 0,
+        maxPriceCents: 0,
         minDurationMinutes: 0,
         maxDurationMinutes: 0,
         defaultPlanName: null,
       };
     }
 
-    const creditCosts = plans.map((p) => p.creditCost);
+    const prices = plans.map((p) => p.priceCents);
     const durations = plans.map((p) => p.durationMinutes);
     const defaultPlan = plans.find((p) => p.isDefault);
 
     return {
       totalPlans,
-      averageCreditCost: Math.round(
-        creditCosts.reduce((a, b) => a + b, 0) / totalPlans
+      averagePriceCents: Math.round(
+        prices.reduce((a, b) => a + b, 0) / totalPlans
       ),
       averageDurationMinutes: Math.round(
         durations.reduce((a, b) => a + b, 0) / totalPlans
       ),
-      minCreditCost: Math.min(...creditCosts),
-      maxCreditCost: Math.max(...creditCosts),
+      minPriceCents: Math.min(...prices),
+      maxPriceCents: Math.max(...prices),
       minDurationMinutes: Math.min(...durations),
       maxDurationMinutes: Math.max(...durations),
       defaultPlanName: defaultPlan?.name ?? null,

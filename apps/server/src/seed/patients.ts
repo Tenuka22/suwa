@@ -4,7 +4,6 @@ import {
   patientProfiles,
   stressDownloadAcknowledgments,
   stressPredictions,
-  userCredits,
 } from "@doca/db";
 import { faker } from "@faker-js/faker";
 import { inArray } from "drizzle-orm";
@@ -64,13 +63,9 @@ export async function seedPatientRelations(
   patientIds: string[]
 ) {
   if (patientIds.length === 0) {
-    return { credits: 0, moonlight: 0, stress: 0, acknowledgments: 0 };
+    return { moonlight: 0, stress: 0, acknowledgments: 0 };
   }
 
-  const existingCreditUsers = await db
-    .select({ userId: userCredits.userId })
-    .from(userCredits)
-    .where(inArray(userCredits.userId, patientIds));
   const existingMoonlightUsers = await db
     .select({ userId: moonlightCredits.userId })
     .from(moonlightCredits)
@@ -80,7 +75,6 @@ export async function seedPatientRelations(
     .from(stressPredictions)
     .where(inArray(stressPredictions.userId, patientIds));
 
-  const existingCreditSet = new Set(existingCreditUsers.map((r) => r.userId));
   const existingMoonlightSet = new Set(
     existingMoonlightUsers.map((r) => r.userId)
   );
@@ -88,21 +82,11 @@ export async function seedPatientRelations(
     existingStressPatients.map((r) => r.userId)
   );
 
-  let creditCount = 0;
   let moonlightCount = 0;
   let stressCount = 0;
   let ackCount = 0;
 
   for (const userId of patientIds) {
-    // User credits
-    if (!existingCreditSet.has(userId)) {
-      await db.insert(userCredits).values({
-        userId,
-        balance: faker.number.int({ min: 0, max: 50 }),
-      });
-      creditCount++;
-    }
-
     // Moonlight credits
     if (!existingMoonlightSet.has(userId)) {
       await db.insert(moonlightCredits).values({
@@ -148,7 +132,6 @@ export async function seedPatientRelations(
   }
 
   return {
-    credits: creditCount,
     moonlight: moonlightCount,
     stress: stressCount,
     acknowledgments: ackCount,

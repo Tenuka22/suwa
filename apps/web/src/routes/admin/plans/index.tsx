@@ -125,8 +125,7 @@ function AdminPlansRoute() {
 
                     <div className="flex flex-wrap gap-3 text-xs">
                       <span className="text-muted-foreground">
-                        {plan.creditCost} credit
-                        {plan.creditCost === 1 ? "" : "s"}
+                        ${((plan.priceCents ?? 1500) / 100).toFixed(2)}
                       </span>
                       <span className="text-muted-foreground">
                         {plan.durationMinutes} min

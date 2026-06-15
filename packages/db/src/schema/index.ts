@@ -65,7 +65,9 @@ export const doctorSessions = sqliteTable("doctor_sessions", {
   status: text("status", { enum: sessionStatusValues })
     .notNull()
     .default("requested"),
-  creditCost: integer("credit_cost").notNull(),
+  creditCost: integer("credit_cost").notNull().default(0),
+  amountCents: integer("amount_cents"),
+  paymentIntentId: text("payment_intent_id"),
   doctorEarnedCents: integer("doctor_earned_cents"),
   payoutStatus: text("payout_status").notNull().default("none"),
   payoutTransferId: text("payout_transfer_id"),
@@ -239,6 +241,7 @@ export const doctorPlans = sqliteTable("doctor_plans", {
   name: text("name").notNull(),
   description: text("description"),
   creditCost: integer("credit_cost").notNull().default(1),
+  priceCents: integer("price_cents").notNull().default(1500),
   durationMinutes: integer("duration_minutes").notNull(),
   features: text("features"),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),

@@ -3,6 +3,7 @@ import { and, eq, gt, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+import { createHoldPaymentIntent } from "../stripe-utils";
 
 export const bookSessionRoute = protectedProcedure
   .input(
@@ -77,6 +78,20 @@ export const bookSessionRoute = protectedProcedure
 
     const now = new Date().toISOString();
     const sessionId = crypto.randomUUID();
+    const amountCents = plan.priceCents;
+
+    // Create Stripe PaymentIntent with manual capture (hold, don't charge yet)
+    const paymentIntent = await createHoldPaymentIntent({
+      amount: amountCents,
+      patientId,
+      doctorId: input.doctorId,
+      sessionId,
+      description: `Session hold for ${plan.name}`,
+    });
+
+    if (!paymentIntent.client_secret) {
+      throw new Error("Failed to create payment hold");
+    }
 
     await context.db.insert(doctorSessions).values({
       id: sessionId,
@@ -86,7 +101,9 @@ export const bookSessionRoute = protectedProcedure
       startAt: input.startAt,
       endAt: input.endAt,
       status: "requested",
-      creditCost: 1,
+      creditCost: 0,
+      amountCents,
+      paymentIntentId: paymentIntent.id,
       createdAt: now,
       updatedAt: now,
     });
@@ -94,5 +111,7 @@ export const bookSessionRoute = protectedProcedure
     return {
       ok: true,
       sessionId,
+      clientSecret: paymentIntent.client_secret,
+      amountCents,
     };
   });

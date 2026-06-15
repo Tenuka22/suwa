@@ -1,14 +1,12 @@
-﻿import {
-  creditTransactions,
-  doctorCredits,
-  doctorSessions,
-  userCredits,
-} from "@doca/db";
-import { CREDIT_PRICE_CENTS } from "@doca/pricing";
+﻿import { doctorSessions } from "@doca/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+import {
+  cancelPaymentIntent,
+  capturePaymentIntent,
+} from "../stripe-utils";
 
 export const respondSessionRoute = protectedProcedure
   .input(
@@ -48,69 +46,19 @@ export const respondSessionRoute = protectedProcedure
     const now = new Date().toISOString();
 
     if (input.action === "approve") {
-      const earnedCents = session.creditCost * CREDIT_PRICE_CENTS;
-
-      const [patientCredit] = await context.db
-        .select()
-        .from(userCredits)
-        .where(eq(userCredits.userId, session.patientId))
-        .limit(1);
-
-      if (!patientCredit || patientCredit.balance < session.creditCost) {
-        throw new Error("Patient has insufficient credits");
+      // Capture the held payment now that the doctor has approved
+      if (session.paymentIntentId && session.paymentIntentId.startsWith("pi_")) {
+        await capturePaymentIntent(session.paymentIntentId);
       }
-
-      await context.db
-        .update(userCredits)
-        .set({
-          balance: patientCredit.balance - session.creditCost,
-          updatedAt: now,
-        })
-        .where(eq(userCredits.userId, session.patientId));
-
-      await context.db.insert(creditTransactions).values({
-        id: crypto.randomUUID(),
-        userId: session.patientId,
-        amount: -session.creditCost,
-        type: "booking",
-        sessionId: session.id,
-        createdAt: now,
-      });
 
       await context.db
         .update(doctorSessions)
         .set({
           status: "approved",
-          doctorEarnedCents: earnedCents,
+          doctorEarnedCents: session.amountCents ?? 0,
           updatedAt: now,
         })
         .where(eq(doctorSessions.id, input.sessionId));
-
-      const [existingCredits] = await context.db
-        .select()
-        .from(doctorCredits)
-        .where(eq(doctorCredits.doctorId, userId))
-        .limit(1);
-
-      if (existingCredits) {
-        await context.db
-          .update(doctorCredits)
-          .set({
-            balanceCents: existingCredits.balanceCents + earnedCents,
-            totalEarnedCents: existingCredits.totalEarnedCents + earnedCents,
-            updatedAt: now,
-          })
-          .where(eq(doctorCredits.doctorId, userId));
-      } else {
-        await context.db.insert(doctorCredits).values({
-          doctorId: userId,
-          balanceCents: earnedCents,
-          totalEarnedCents: earnedCents,
-          totalCashedOutCents: 0,
-          createdAt: now,
-          updatedAt: now,
-        });
-      }
     } else if (input.action === "propose") {
       if (!(input.proposedStartAt && input.proposedEndAt)) {
         throw new Error(
@@ -128,6 +76,11 @@ export const respondSessionRoute = protectedProcedure
         })
         .where(eq(doctorSessions.id, input.sessionId));
     } else {
+      // Cancel the held payment on rejection
+      if (session.paymentIntentId && session.paymentIntentId.startsWith("pi_")) {
+        await cancelPaymentIntent(session.paymentIntentId);
+      }
+
       await context.db
         .update(doctorSessions)
         .set({

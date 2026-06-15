@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { CreditPurchase } from "@/components/ui/credit-purchase";
 import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
@@ -338,17 +337,6 @@ export default function ProfileScreen() {
                 Failed to update profile. Please try again.
               </Text>
             )}
-          </View>
-        </View>
-
-        <View className="overflow-hidden rounded-card border-2 border-border bg-card">
-          <View className="border-border border-b-2 px-card py-4">
-            <Text className="font-black font-sans text-foreground text-lg tracking-tight">
-              Credits
-            </Text>
-          </View>
-          <View className="px-card py-card">
-            <CreditPurchase />
           </View>
         </View>
 

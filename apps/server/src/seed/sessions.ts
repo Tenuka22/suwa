@@ -1,14 +1,11 @@
 import type { createDb } from "@doca/db";
 import {
-  creditTransactions,
   doctorSessions,
   sessionAttendanceEvents,
   sessionSnapshots,
   sessionTaskAssignments,
-  userCredits,
 } from "@doca/db";
 import { faker } from "@faker-js/faker";
-import { eq, sql } from "drizzle-orm";
 
 const SESSION_STATUSES = [
   "requested",
@@ -51,10 +48,8 @@ export async function seedSessions(
     startAt: string;
     endAt: string;
     status: (typeof SESSION_STATUSES)[number];
-    creditCost: number;
-    doctorEarnedCents: number | null;
-    payoutStatus: "none" | "pending" | "completed";
-    payoutAmount: number | null;
+    amountCents: number;
+    paymentIntentId: string | null;
   }> = [];
   const count = faker.number.int({ min: 8, max: 15 });
   const now = new Date();
@@ -89,8 +84,7 @@ export async function seedSessions(
       ]);
     }
 
-    const creditCost = faker.helpers.arrayElement([1, 2, 3]);
-    const isAttended = status === "attended";
+    const amountCents = faker.helpers.arrayElement([1500, 3000, 5000]);
 
     sessions.push({
       id: crypto.randomUUID(),
@@ -99,16 +93,9 @@ export async function seedSessions(
       startAt: formatDate(startAt),
       endAt: formatDate(endAt),
       status,
-      creditCost,
-      doctorEarnedCents: isAttended
-        ? faker.number.int({ min: 2000, max: 10_000 })
-        : null,
-      payoutStatus: isAttended
-        ? faker.helpers.arrayElement(["none", "pending", "completed"] as const)
-        : "none",
-      payoutAmount: isAttended
-        ? faker.number.int({ min: 2000, max: 10_000 })
-        : null,
+      creditCost: 0,
+      amountCents,
+      paymentIntentId: status === "attended" ? `pi_${faker.string.alphanumeric(24)}` : null,
     });
   }
 
@@ -119,23 +106,6 @@ export async function seedSessions(
   }
 
   for (const session of sessions) {
-    if (session.status === "attended") {
-      await db.insert(creditTransactions).values({
-        id: crypto.randomUUID(),
-        userId: session.patientId,
-        amount: -session.creditCost,
-        type: "session",
-        sessionId: session.id,
-      });
-
-      await db
-        .update(userCredits)
-        .set({
-          balance: sql`${userCredits.balance} - ${session.creditCost}`,
-        })
-        .where(eq(userCredits.userId, session.patientId));
-    }
-
     // Session task assignments
     const taskCount = faker.number.int({ min: 0, max: 3 });
     for (let t = 0; t < taskCount; t++) {

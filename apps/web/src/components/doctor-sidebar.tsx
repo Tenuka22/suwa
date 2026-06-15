@@ -12,7 +12,6 @@ import {
 import {
   CalendarCheckIcon,
   ClockIcon,
-  DollarSignIcon,
   HouseIcon,
   LayoutDashboardIcon,
   PlayCircleIcon,
@@ -67,7 +66,6 @@ export function DoctorSidebar() {
               label: "Availability",
               to: "/doctor/availability",
             },
-            { icon: DollarSignIcon, label: "Credits", to: "/doctor/credits" },
             { icon: TagsIcon, label: "Plans", to: "/doctor/plans" },
             { icon: UserIcon, label: "Profile", to: "/doctor/profile" },
           ]}
