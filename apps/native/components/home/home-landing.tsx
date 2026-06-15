@@ -34,10 +34,10 @@ function HeroSection({
   signedIn,
 }: HeroSectionProps) {
   const { height: screenHeight } = useWindowDimensions();
-  const primaryHref = "/doctors";
-  const secondaryHref = signedIn ? "/appointments" : "/(auth)/sign-in";
-  const primaryLabel = "Find a Therapist";
-  const secondaryLabel = signedIn ? "My Appointments" : "Sign In";
+  const primaryHref = signedIn ? "/sprite" : "/(auth)/sign-in";
+  const secondaryHref = "/doctors";
+  const primaryLabel = signedIn ? "Sprite" : "Sign In";
+  const secondaryLabel = "Doctors";
 
   return (
     <Animated.View className="px-1" entering={FadeIn.duration(800)}>

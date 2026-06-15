@@ -313,7 +313,7 @@ export default function AppointmentsScreen() {
               <Pressable
                 accessibilityLabel={label}
                 accessibilityState={{ selected: isActive }}
-                className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 ${isActive ? "border-orange-500 bg-orange-500" : "border-border bg-background"}`}
+                className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 ${isActive ? "border-primary bg-primary" : "border-border bg-background"}`}
                 key={value}
                 onPress={() => toggleFilter(value)}
                 style={({ pressed }) => [
@@ -324,12 +324,11 @@ export default function AppointmentsScreen() {
                   },
                 ]}
               >
-                <Icon color={isActive ? "#ffffff" : "#f97316"} size={16} />
+                <Icon color={isActive ? "#ffffff" : colors.mutedForeground} size={16} />
                 {!isSmall && (
                   <Text
-                    className="text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em]"
+                    className={`text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`}
                     numberOfLines={1}
-                    style={{ color: isActive ? "#ffffff" : "#f97316" }}
                   >
                     {label}
                   </Text>
