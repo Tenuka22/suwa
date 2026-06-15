@@ -1,8 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight } from "lucide-react-native";
-import { Image, Text, useWindowDimensions, View } from "react-native";
+import type { Href } from "expo-router";
+import { useRouter } from "expo-router";
+import {
+  Activity,
+  ArrowRight,
+  Calendar,
+  Heart,
+  MapPin,
+  Stethoscope,
+} from "lucide-react-native";
+import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Button } from "@/components/ui/button";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
@@ -93,8 +102,44 @@ function HeroSection({
   );
 }
 
+interface FeatureCardProps {
+  icon: typeof Stethoscope;
+  title: string;
+  description: string;
+  href: Href;
+  color: string;
+}
+
+function FeatureCard({ icon: Icon, title, description, href, color }: FeatureCardProps) {
+  const router = useRouter();
+
+  return (
+    <Pressable
+      className="flex-1 flex-row items-center gap-4 rounded-xl border-2 border-border bg-card p-4 active:opacity-70"
+      onPress={() => router.push(href)}
+      accessibilityLabel={`${title}: ${description}`}
+    >
+      <View
+        className="items-center justify-center rounded-xl p-3"
+        style={{ backgroundColor: `${color}18` }}
+      >
+        <Icon color={color} size={22} strokeWidth={2} />
+      </View>
+      <View className="flex-1 gap-0.5">
+        <Text className="font-black font-sans text-sm text-foreground uppercase tracking-tight">
+          {title}
+        </Text>
+        <Text className="font-medium font-sans text-xs text-muted-foreground leading-relaxed">
+          {description}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export function HomeLanding({ signedIn }: HomeLandingProps) {
   const colors = useThemeColor();
+  const router = useRouter();
 
   const spriteQuery = useQuery({
     ...orpc.getSpriteState.queryOptions(),
@@ -115,6 +160,44 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
     }
   }
 
+  const features: FeatureCardProps[] = [
+    {
+      icon: Stethoscope,
+      title: "Find Doctors",
+      description: "Browse qualified therapists and mental health professionals",
+      href: "/doctors",
+      color: colors.primary,
+    },
+    {
+      icon: MapPin,
+      title: "Hospital Map",
+      description: "Find nearby hospitals and healthcare facilities",
+      href: "/map",
+      color: colors.primary,
+    },
+    {
+      icon: Calendar,
+      title: "Appointments",
+      description: "Manage your therapy sessions and bookings",
+      href: "/appointments",
+      color: colors.primary,
+    },
+    {
+      icon: Activity,
+      title: "Stress Hub",
+      description: "Monitor your stress levels with real-time tracking",
+      href: "/stress-hub",
+      color: colors.primary,
+    },
+    {
+      icon: Heart,
+      title: "Sprite",
+      description: "Your virtual wellness companion with daily exercises",
+      href: "/sprite",
+      color: colors.primary,
+    },
+  ];
+
   return (
     <View className="gap-14 pb-12">
       <HeroSection
@@ -122,6 +205,23 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
         signedIn={signedIn}
         spriteAction={spriteAction}
       />
+
+      <View className="gap-6 px-card">
+        <View className="gap-1.5">
+          <Text className="font-black font-sans text-lg text-foreground uppercase tracking-tight">
+            Explore Features
+          </Text>
+          <Text className="font-medium font-sans text-sm text-muted-foreground">
+            Everything you need for your wellness journey
+          </Text>
+        </View>
+
+        <View className="gap-3">
+          {features.map((feature) => (
+            <FeatureCard key={feature.title} {...feature} />
+          ))}
+        </View>
+      </View>
     </View>
   );
 }
