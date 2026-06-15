@@ -39,6 +39,27 @@ export function playSoftChime() {
   playTone(523.25, 0.4, 0.06);
 }
 
+export function playSuccessSound() {
+  playTone(659.25, 0.15, 0.08);
+  setTimeout(() => playTone(880, 0.3, 0.08), 120);
+}
+
+export function playCollectSound() {
+  playTone(880, 0.1, 0.06);
+  setTimeout(() => playTone(1174.66, 0.1, 0.06), 80);
+  setTimeout(() => playTone(1567.98, 0.2, 0.06), 160);
+}
+
+export function playBuySound() {
+  playTone(392, 0.1, 0.1);
+  setTimeout(() => playTone(523.25, 0.2, 0.1), 100);
+}
+
+export function playErrorSound() {
+  playTone(220, 0.1, 0.12);
+  setTimeout(() => playTone(196, 0.3, 0.12), 100);
+}
+
 export function playToneSequence() {
   const context = getAudioContext();
   if (!context) {

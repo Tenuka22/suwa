@@ -2,11 +2,16 @@ import type { createDb } from "@doca/db";
 import { doctorHubMaterials, hubUploadSessions } from "@doca/db";
 import { faker } from "@faker-js/faker";
 
-const UPLOAD_STATUSES = ["completed", "in_progress", "pending", "failed"] as const;
+const UPLOAD_STATUSES = [
+  "completed",
+  "in_progress",
+  "pending",
+  "failed",
+] as const;
 
 export async function seedHubUploads(
   db: ReturnType<typeof createDb>,
-  doctorIds: string[],
+  doctorIds: string[]
 ) {
   if (doctorIds.length === 0) {
     return { uploadSessions: 0 };
@@ -51,7 +56,8 @@ export async function seedHubUploads(
   for (const material of materials) {
     if (faker.datatype.boolean(0.7)) {
       const chunkSize = 1_048_576; // 1MB
-      const totalSize = material.size ?? faker.number.int({ min: 1_000_000, max: 50_000_000 });
+      const totalSize =
+        material.size ?? faker.number.int({ min: 1_000_000, max: 50_000_000 });
       const totalChunks = Math.ceil(totalSize / chunkSize);
       const status = faker.helpers.arrayElement([
         "completed",
@@ -65,7 +71,12 @@ export async function seedHubUploads(
           ? JSON.stringify(Array.from({ length: totalChunks }, (_, i) => i))
           : status === "in_progress"
             ? JSON.stringify(
-                Array.from({ length: faker.number.int({ min: 1, max: totalChunks - 1 }) }, (_, i) => i),
+                Array.from(
+                  {
+                    length: faker.number.int({ min: 1, max: totalChunks - 1 }),
+                  },
+                  (_, i) => i
+                )
               )
             : "[]";
 

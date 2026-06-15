@@ -87,12 +87,7 @@ export function AdminSidebar() {
               to: "/admin/credits",
               search: { page: 1 },
             },
-            {
-              icon: UserRoundIcon,
-              label: "Guardians",
-              to: "/admin/guardians",
-              search: { page: 1 },
-            },
+
           ]}
           label="Secondary"
         />

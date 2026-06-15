@@ -6,15 +6,23 @@ import { Stack, useRouter } from "expo-router";
 import {
   ArrowLeft,
   Check,
+  ChevronRight,
   CloudSun,
   Moon,
   Sun,
-  TreePine,
+  Trophy,
+  Zap,
+  Wind,
+  Droplet,
+  Footprints,
+  Sparkles,
+  Heart,
 } from "lucide-react-native";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { IconButton } from "@/components/ui/icon-button";
+import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { playSoftChime } from "@/utils/audio";
@@ -33,11 +41,49 @@ const ACTION_ROUTES: Record<string, string> = {
     "/sprite/actions/meditation?type=morning&action=meditation_morning",
   meditation_evening:
     "/sprite/actions/meditation?type=evening&action=meditation_evening",
+  gratitude_morning:
+    "/sprite/actions/gratitude?type=morning&action=gratitude_morning",
+  gratitude_evening:
+    "/sprite/actions/gratitude?type=evening&action=gratitude_evening",
+  hydration: "/sprite/actions/hydration",
+  walking: "/sprite/actions/walking",
+  sleep_prep: "/sprite/actions/sleep-prep",
+  journaling: "/sprite/actions/journaling",
+  nutrition: "/sprite/actions/nutrition",
+  social_checkin: "/sprite/actions/social-checkin",
+  stretching: "/sprite/actions/stretching",
+};
+
+const ACTION_ICONS: Record<string, any> = {
+  breathing: Wind,
+  meditation: Sparkles,
+  gratitude: Heart,
+  hydration: Droplet,
+  walking: Footprints,
+  sleep_prep: Moon,
+  journaling: Sparkles,
+  nutrition: Zap,
+  social_checkin: Heart,
+  stretching: Wind,
 };
 
 export default function SpriteActionsScreen() {
   const colors = useThemeColor();
   const router = useRouter();
+
+  const ACTION_COLORS = useMemo<Record<string, string>>(() => ({
+    breathing: colors.primary,
+    meditation: colors.accent,
+    gratitude: colors.destructive,
+    hydration: colors.primary,
+    walking: colors.success,
+    sleep_prep: colors.accent,
+    journaling: colors.primary,
+    nutrition: colors.warning,
+    social_checkin: colors.destructive,
+    stretching: colors.success,
+  }), [colors]);
+
   const tasksQuery = useQuery(
     orpc.getTodayTasks.queryOptions({ queryKey: ["getTodayTasks"] })
   );
@@ -52,147 +98,161 @@ export default function SpriteActionsScreen() {
     }
   }, [tasksQuery.isFetched]);
 
+  const progress = tasks.length > 0 ? (completedCount / tasks.length) : 0;
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <Screen
-        contentClassName="gap-section bg-background px-page py-page"
+        contentClassName="bg-background"
         scrollClassName="flex-1 bg-background"
       >
         <ScrollView
           className="flex-1"
-          contentContainerClassName="gap-section py-page pb-24"
+          contentContainerClassName="gap-6 px-page py-page pb-32"
         >
-          <View className="items-center gap-2">
-            <TreePine color={colors.foreground} size={40} />
+          {/* Header */}
+          <View className="gap-2">
             <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.25em]">
-              {timeOfDay === "morning"
-                ? "Morning"
-                : timeOfDay === "afternoon"
-                  ? "Afternoon"
-                  : "Night"}{" "}
-              Wellness
+              Daily Quests
             </Text>
             <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
-              Wellness Tree
-            </Text>
-            <Text className="text-center font-normal font-sans text-base text-muted-foreground leading-6">
-              Complete your daily wellness tasks to grow your tree and keep your
-              Sprite healthy.
+              Mission Hub
             </Text>
           </View>
 
-          {tasks.length > 0 ? (
-            <View className="gap-3">
+          {/* Progress Summary Card */}
+          <View className="rounded-card border-2 border-border bg-card p-5 shadow-sm">
+            <View className="flex-row items-center justify-between mb-4">
+               <View className="gap-1">
+                 <Text className="font-black font-sans text-foreground text-xl">Today's Goal</Text>
+                 <Text className="font-bold font-sans text-muted-foreground text-xs uppercase">
+                   {completedCount}/{tasks.length} Missions Complete
+                 </Text>
+               </View>
+               <View className="h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border-2 border-primary/20">
+                 <Trophy color={colors.primary} size={28} />
+               </View>
+            </View>
+            
+            <View className="gap-2">
+               <View className="h-3 overflow-hidden rounded-full bg-muted border border-border/50">
+                 <View
+                   className="h-full rounded-full bg-primary shadow-sm"
+                   style={{ width: `${progress * 100}%` }}
+                 />
+               </View>
+               <Text className="text-right font-bold font-sans text-primary text-[10px] uppercase tracking-widest">
+                 {Math.round(progress * 100)}% to Daily Reward
+               </Text>
+            </View>
+          </View>
+
+          {/* Missions Grid */}
+          <View className="gap-4">
+            <View className="flex-row items-center justify-between px-1">
+               <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-wider">
+                 Available Missions
+               </Text>
+               <View className="flex-row items-center gap-1 rounded-full bg-muted px-3 py-1">
+                  {timeOfDay === "morning" && <Sun color={colors.warning} size={12} />}
+                  {timeOfDay === "afternoon" && <CloudSun color={colors.warning} size={12} />}
+                  {timeOfDay === "night" && <Moon color={colors.primary} size={12} />}
+                  <Text className="font-bold font-sans text-muted-foreground text-[10px] uppercase">
+                    {timeOfDay}
+                  </Text>
+               </View>
+            </View>
+
+            <View className="flex-row flex-wrap gap-4">
               {tasks.map((task) => {
                 const completed = task.completed;
                 const route = ACTION_ROUTES[task.actionType];
+                const baseType = task.actionType.split('_')[0] ?? 'breathing';
+                const Icon = ACTION_ICONS[baseType] ?? Wind;
+                const color = ACTION_COLORS[baseType] ?? colors.primary;
 
                 return (
                   <Pressable
-                    className={`flex-row items-center gap-4 rounded-card border-2 bg-card px-4 py-4 ${
-                      completed
-                        ? "border-green-300 opacity-60"
-                        : "border-border"
-                    }`}
                     key={task.actionType}
+                    style={{ width: '47%' }}
+                    className={`rounded-card border-2 p-4 gap-3 bg-card shadow-sm ${
+                      completed ? "border-success opacity-60" : "border-border"
+                    }`}
                     onPress={() => {
                       vibrate(20);
                       router.push(route as Href);
                     }}
                   >
-                    <View
-                      className={`rounded-full p-3 ${
-                        task.timeSlot === "morning"
-                          ? "bg-amber-100"
-                          : task.timeSlot === "afternoon"
-                            ? "bg-orange-100"
-                            : "bg-indigo-100"
-                      }`}
-                    >
-                      {task.timeSlot === "morning" && (
-                        <Sun color="#92400e" size={20} />
-                      )}
-                      {task.timeSlot === "afternoon" && (
-                        <CloudSun color="#9a3412" size={20} />
-                      )}
-                      {task.timeSlot === "night" && (
-                        <Moon color="#3730a3" size={20} />
-                      )}
+                    <View className="flex-row items-center justify-between">
+                       <View 
+                         className="h-10 w-10 items-center justify-center rounded-xl"
+                         style={{ backgroundColor: `${color}15` }}
+                       >
+                         <Icon color={color} size={20} />
+                       </View>
+                       <View className="flex-row items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5">
+                          <Moon color={colors.warning} size={10} />
+                          <Text className="font-black font-sans text-warning text-[10px]">
+                            +10
+                          </Text>
+                       </View>
                     </View>
 
-                    <View className="flex-1 gap-1">
-                      <View className="flex-row items-center gap-2">
-                        <Text
-                          className={`font-bold text-[10px] uppercase tracking-wider ${
-                            task.timeSlot === "morning"
-                              ? "text-amber-800"
-                              : task.timeSlot === "afternoon"
-                                ? "text-orange-800"
-                                : "text-indigo-800"
-                          }`}
-                        >
-                          {task.timeSlot}
-                        </Text>
-                        {completed && (
-                          <View className="flex-row items-center gap-1 rounded-full bg-green-200 px-2 py-0.5">
-                            <Check color="#166534" size={10} />
-                            <Text className="font-bold text-[10px] text-green-800 uppercase tracking-wider">
-                              Done
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text className="font-extrabold font-sans text-foreground text-lg tracking-tight">
+                    <View className="gap-1">
+                      <Text className="font-black font-sans text-foreground text-sm leading-tight" numberOfLines={1}>
                         {task.title}
                       </Text>
-                      <Text className="font-normal font-sans text-muted-foreground text-sm leading-5">
+                      <Text className="font-medium font-sans text-muted-foreground text-[10px]" numberOfLines={2}>
                         {task.description}
                       </Text>
                     </View>
 
-                    <View className="h-10 w-10 items-center justify-center">
-                      {completed ? (
-                        <Check color="#166534" size={18} />
-                      ) : (
-                        <Text className="font-bold font-sans text-lg text-primary">
-                          ›
-                        </Text>
-                      )}
+                    <View className="mt-2 h-8 items-center justify-center rounded-xl bg-muted/50 border border-border/50">
+                       {completed ? (
+                         <View className="flex-row items-center gap-1">
+                            <Check color={colors.success} size={14} />
+                            <Text className="font-bold font-sans text-success text-[10px] uppercase">Done</Text>
+                         </View>
+                       ) : (
+                         <Text className="font-bold font-sans text-primary text-[10px] uppercase tracking-widest">
+                           Start Quest
+                         </Text>
+                       )}
                     </View>
                   </Pressable>
                 );
               })}
             </View>
-          ) : (
-            <View className="items-center gap-2 rounded-card border-2 border-border bg-card px-card py-card">
-              <Text className="font-black font-sans text-2xl text-primary">
-                Loading...
-              </Text>
-            </View>
-          )}
+          </View>
 
+          {/* Fully Grown / All Done */}
           {completedCount === tasks.length && tasks.length > 0 && (
-            <View className="items-center gap-2 rounded-card border-2 border-green-300 bg-green-50 px-card py-card">
-              <TreePine color="#166534" size={32} />
-              <Text className="text-center font-black font-sans text-green-800 text-lg">
-                Your tree is fully grown today!
-              </Text>
-              <Text className="text-center font-normal font-sans text-green-700 text-sm">
-                All wellness tasks complete. Come back tomorrow to keep your
-                tree thriving.
-              </Text>
+            <View className="items-center gap-3 rounded-card border-2 border-success bg-success/5 p-6 shadow-sm">
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-success/10 border-4 border-white shadow-sm">
+                <Trophy color={colors.success} size={32} />
+              </View>
+              <View className="items-center gap-1">
+                <Text className="text-center font-black font-sans text-success text-xl">
+                  Daily Streak Maintained!
+                </Text>
+                <Text className="text-center font-bold font-sans text-success text-xs">
+                  All wellness tasks complete. You've earned a bonus +50 Credits!
+                </Text>
+              </View>
+              <Button className="w-full mt-2" href="/sprite" variant="primary">
+                Back to Dashboard
+              </Button>
             </View>
           )}
         </ScrollView>
       </Screen>
+
       <ScreenBottomBar>
         <View className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-control border-2 border-border bg-background px-3 py-2">
-          <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.18em]">
-            Today's Progress
-          </Text>
-          <Text className="font-black font-sans text-foreground text-lg">
-            {completedCount}/{tasks.length}
+          <Zap color={colors.primary} size={16} />
+          <Text className="font-black font-sans text-foreground text-lg tracking-tight">
+            {completedCount}/{tasks.length} Done
           </Text>
         </View>
         <IconButton

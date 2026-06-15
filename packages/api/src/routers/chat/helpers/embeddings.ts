@@ -1,3 +1,4 @@
+import { doctorProfiles } from "@doca/db";
 import type { ClerkRequestContext } from "../../../context";
 
 export interface DoctorEmbedding {

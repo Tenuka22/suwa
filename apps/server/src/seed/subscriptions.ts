@@ -3,11 +3,16 @@ import { doctorPlans, userCredits, userSubscriptions } from "@doca/db";
 import { faker } from "@faker-js/faker";
 import { inArray } from "drizzle-orm";
 
-const SUBSCRIPTION_STATUSES = ["active", "canceled", "past_due", "trialing"] as const;
+const SUBSCRIPTION_STATUSES = [
+  "active",
+  "canceled",
+  "past_due",
+  "trialing",
+] as const;
 
 export async function seedSubscriptions(
   db: ReturnType<typeof createDb>,
-  userIds: string[],
+  userIds: string[]
 ) {
   if (userIds.length === 0) {
     return { subscriptions: 0 };
@@ -68,9 +73,7 @@ export async function seedSubscriptions(
         userId: uc.userId,
         planId: plan.id,
         stripeSubscriptionId:
-          status !== "trialing"
-            ? `sub_${faker.string.alphanumeric(24)}`
-            : null,
+          status === "trialing" ? null : `sub_${faker.string.alphanumeric(24)}`,
         status,
         currentPeriodStart: startDate.toISOString(),
         currentPeriodEnd: endDate.toISOString(),

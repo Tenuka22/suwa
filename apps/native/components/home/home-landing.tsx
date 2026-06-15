@@ -11,7 +11,13 @@ import {
   MapPin,
   Stethoscope,
 } from "lucide-react-native";
-import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Button } from "@/components/ui/button";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
@@ -103,21 +109,27 @@ function HeroSection({
 }
 
 interface FeatureCardProps {
-  icon: typeof Stethoscope;
-  title: string;
+  color: string;
   description: string;
   href: Href;
-  color: string;
+  icon: typeof Stethoscope;
+  title: string;
 }
 
-function FeatureCard({ icon: Icon, title, description, href, color }: FeatureCardProps) {
+function FeatureCard({
+  icon: Icon,
+  title,
+  description,
+  href,
+  color,
+}: FeatureCardProps) {
   const router = useRouter();
 
   return (
     <Pressable
+      accessibilityLabel={`${title}: ${description}`}
       className="flex-1 flex-row items-center gap-4 rounded-xl border-2 border-border bg-card p-4 active:opacity-70"
       onPress={() => router.push(href)}
-      accessibilityLabel={`${title}: ${description}`}
     >
       <View
         className="items-center justify-center rounded-xl p-3"
@@ -126,10 +138,10 @@ function FeatureCard({ icon: Icon, title, description, href, color }: FeatureCar
         <Icon color={color} size={22} strokeWidth={2} />
       </View>
       <View className="flex-1 gap-0.5">
-        <Text className="font-black font-sans text-sm text-foreground uppercase tracking-tight">
+        <Text className="font-black font-sans text-foreground text-sm uppercase tracking-tight">
           {title}
         </Text>
-        <Text className="font-medium font-sans text-xs text-muted-foreground leading-relaxed">
+        <Text className="font-medium font-sans text-muted-foreground text-xs leading-relaxed">
           {description}
         </Text>
       </View>
@@ -164,7 +176,8 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
     {
       icon: Stethoscope,
       title: "Find Doctors",
-      description: "Browse qualified therapists and mental health professionals",
+      description:
+        "Browse qualified therapists and mental health professionals",
       href: "/doctors",
       color: colors.primary,
     },
@@ -208,10 +221,10 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
 
       <View className="gap-6 px-card">
         <View className="gap-1.5">
-          <Text className="font-black font-sans text-lg text-foreground uppercase tracking-tight">
+          <Text className="font-black font-sans text-foreground text-lg uppercase tracking-tight">
             Explore Features
           </Text>
-          <Text className="font-medium font-sans text-sm text-muted-foreground">
+          <Text className="font-medium font-sans text-muted-foreground text-sm">
             Everything you need for your wellness journey
           </Text>
         </View>

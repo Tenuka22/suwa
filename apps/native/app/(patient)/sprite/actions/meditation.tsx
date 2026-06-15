@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Heart } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Sparkles, Zap, Timer, CheckCircle2 } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -13,17 +13,11 @@ import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { playToneSequence } from "@/utils/audio";
 import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
-
-const PEBBLE_COUNT = 36;
-
-interface Pebble {
-  size: number;
-  x: number;
-  y: number;
-}
+import { useThemeColor } from "@/utils/theme";
 
 export default function MeditationActionScreen() {
   const router = useRouter();
+  const colors = useThemeColor();
   const { type, action: actionType } = useLocalSearchParams<{
     type: string;
     action: string;
@@ -34,36 +28,17 @@ export default function MeditationActionScreen() {
   const [done, setDone] = useState(false);
   const [rewarded, setRewarded] = useState(false);
 
-  const statusText = done
-    ? "Meditation complete"
-    : running
-      ? "In progress"
-      : "Ready to begin";
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progress = useRef(new Animated.Value(0)).current;
-
-  const pebbles = useMemo<Pebble[]>(
-    () =>
-      Array.from({ length: PEBBLE_COUNT }, () => ({
-        x: Math.random() * 80 + 10,
-        y: Math.random() * 80 + 10,
-        size: Math.random() * 6 + 4,
-      })),
-    []
-  );
+  const pulseScale = useRef(new Animated.Value(1)).current;
 
   const completeMutation = useMutation(
     orpc.completeWellnessAction.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: orpc.getSpriteState.key(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: orpc.getMoonlightCredits.key(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: orpc.getWellnessHistory.key(),
-        });
+        queryClient.invalidateQueries({ queryKey: orpc.getSpriteState.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.getMoonlightCredits.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.getWellnessHistory.key() });
+        playToneSequence();
       },
     })
   );
@@ -75,48 +50,45 @@ export default function MeditationActionScreen() {
     }
 
     if (!running) {
-      Animated.timing(progress, {
-        toValue: 0,
-        duration: 200,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }).start();
+      Animated.timing(progress, { toValue: 0, duration: 200, useNativeDriver: false }).start();
+      pulseScale.stopAnimation();
       return;
     }
 
     setDone(false);
+
+    // Pulse animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseScale, { toValue: 1.2, duration: 4000, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulseScale, { toValue: 1, duration: 4000, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Progress animation
     Animated.timing(progress, {
       toValue: 1,
       duration: minutes * 60 * 1000,
       easing: Easing.linear,
       useNativeDriver: false,
     }).start();
-    vibrate([40, 40, 40]);
 
-    timerRef.current = setTimeout(
-      () => {
-        setRunning(false);
-        setDone(true);
-        vibrate([80, 60, 80, 60, 120]);
-        playToneSequence();
+    timerRef.current = setTimeout(() => {
+      setRunning(false);
+      setDone(true);
+      vibrate([80, 60, 80, 60, 120]);
 
-        if (actionType && !rewarded) {
-          setRewarded(true);
-          completeMutation.mutate({
-            actionType: actionType as
-              | "meditation_morning"
-              | "meditation_evening",
-            durationSeconds: minutes * 60,
-          });
-        }
-      },
-      minutes * 60 * 1000
-    );
+      if (actionType && !rewarded) {
+        setRewarded(true);
+        completeMutation.mutate({
+          actionType: actionType as any,
+          durationSeconds: minutes * 60,
+        });
+      }
+    }, minutes * 60 * 1000);
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [minutes, progress, running, rewarded]);
 
@@ -134,159 +106,162 @@ export default function MeditationActionScreen() {
 
   const handleBack = useCallback(() => {
     vibrate(15);
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/");
-    }
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
   }, [router]);
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <Screen contentClassName="gap-section bg-background px-page py-page pb-24">
-        <View className="overflow-hidden rounded-card border-2 border-border bg-card">
-          <View className="border-border border-b-2 px-card py-card">
-            <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.3em]">
-              {type === "morning" ? "Morning" : "Evening"} Meditation
+      <Screen contentClassName="bg-background">
+        <View className="flex-1 items-center justify-between py-12 px-page">
+          {/* Header */}
+          <View className="items-center gap-2">
+            <View className="flex-row items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5">
+               <Sparkles color={colors.accent} size={14} />
+               <Text className="font-bold font-sans text-accent text-[10px] uppercase tracking-widest">
+                 Mindfulness Session
+               </Text>
+            </View>
+            <Text className="font-black font-sans text-4xl text-foreground text-center">
+              {type === "morning" ? "Dawn" : "Evening"} Calm
             </Text>
-            <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
-              Meditation
-            </Text>
-            <Text className="mt-2 font-normal font-sans text-base text-muted-foreground leading-6">
-              Set a timer for mindfulness.
+            <Text className="text-center font-medium font-sans text-muted-foreground text-sm max-w-[250px]">
+              Find your center in the stillness.
             </Text>
           </View>
 
-          <View className="gap-4 px-card py-card">
-            <View className="items-center gap-4 rounded-card border-2 border-border bg-background px-card py-card">
-              <View className="h-44 w-full items-center justify-center overflow-hidden rounded-[34px] border-2 border-border bg-muted/30">
-                <Heart color="#f97316" size={24} />
-                {pebbles.map((pebble, i) => {
-                  const threshold = (i + 1) / PEBBLE_COUNT;
-                  return (
-                    <View
-                      className="absolute"
-                      key={i}
-                      style={{
-                        left: `${pebble.x}%`,
-                        top: `${pebble.y}%`,
-                        width: pebble.size,
-                        height: pebble.size,
-                      }}
-                    >
-                      <Animated.View
-                        className="h-full w-full rounded-full bg-primary"
-                        style={{
-                          opacity: progress.interpolate({
-                            inputRange: [threshold - 0.05, threshold],
-                            outputRange: [0, 0.85],
-                            extrapolate: "clamp",
-                          }),
-                        }}
-                      />
-                    </View>
-                  );
-                })}
-              </View>
+          {/* Visualizer Area */}
+          <View className="flex-1 items-center justify-center relative w-full">
+            {/* Ambient Aura Rings */}
+            <Animated.View
+              style={{
+                transform: [{ scale: pulseScale.interpolate({ inputRange: [1, 1.2], outputRange: [1, 1.5] }) }],
+                opacity: pulseScale.interpolate({ inputRange: [1, 1.2], outputRange: [0.3, 0.1] }),
+                borderColor: colors.accent
+              }}
+              className="absolute h-64 w-64 rounded-full border-[1px]"
+            />
+            <Animated.View
+              style={{
+                transform: [{ scale: pulseScale.interpolate({ inputRange: [1, 1.2], outputRange: [1, 1.3] }) }],
+                opacity: pulseScale.interpolate({ inputRange: [1, 1.2], outputRange: [0.5, 0.2] }),
+                borderColor: colors.accent
+              }}
+              className="absolute h-72 w-72 rounded-full border-2"
+            />
 
-              {running && (
-                <Text className="font-black font-sans text-3xl text-foreground tracking-tight">
-                  {minutes} min
-                </Text>
-              )}
-              <Text className="font-normal font-sans text-muted-foreground text-sm">
-                {statusText}
+            {/* The Main Energy Ball with interactive properties */}
+            <Animated.View
+              style={{
+                transform: [{ scale: pulseScale }],
+                backgroundColor: pulseScale.interpolate({
+                  inputRange: [1, 1.2],
+                  outputRange: [colors.accent, colors.primary]
+                }),
+                shadowRadius: pulseScale.interpolate({
+                  inputRange: [1, 1.2],
+                  outputRange: [20, 50]
+                }),
+                shadowOpacity: pulseScale.interpolate({
+                  inputRange: [1, 1.2],
+                  outputRange: [0.4, 0.8]
+                })
+              }}
+              className="h-32 w-32 rounded-full items-center justify-center shadow-accent"
+            >
+              <Sparkles color="white" size={32} />
+            </Animated.View>
+
+            {/* Sub-text Guidance */}
+            <View className="absolute bottom-[-80] items-center gap-1">
+              <Animated.Text
+                style={{
+                  opacity: running ? 1 : done ? 0.8 : 0.5,
+                  transform: [{ scale: pulseScale.interpolate({ inputRange: [1, 1.2], outputRange: [1, 1.05] }) }]
+                }}
+                className="font-black font-sans text-accent text-3xl uppercase tracking-widest"
+              >
+                {running ? "Breathe" : done ? "Restored" : "Peace"}
+              </Animated.Text>
+              <Text className="font-bold font-sans text-muted-foreground text-xs uppercase">
+                {running ? "Deep Mindfulness" : `${minutes} minute timer`}
               </Text>
             </View>
+          </View>
 
-            {running && (
-              <View className="h-3 overflow-hidden rounded-full border-2 border-border bg-muted">
-                <Animated.View
-                  className="h-full rounded-full bg-primary"
-                  style={{
-                    width: progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ["0%", "100%"],
-                    }),
-                  }}
-                />
-              </View>
-            )}
-
+          {/* Completion Card */}
+          <View className="w-full gap-4 mt-8">
             {done && (
-              <View className="items-center gap-3 rounded-card border-2 border-border bg-background px-card py-card">
-                <Text className="font-black font-sans text-2xl text-primary">
-                  ✓ Complete
-                </Text>
-                <Text className="text-center font-normal font-sans text-muted-foreground text-sm">
-                  {rewarded
-                    ? `You completed a ${minutes}-minute meditation and earned Moonlight Credits!`
-                    : `You completed a ${minutes}-minute meditation.`}
-                </Text>
-                <Button className="w-full" href="/sprite" variant="secondary">
-                  Back to Dashboard
-                </Button>
+              <View className="items-center gap-4 bg-success/10 border-2 border-success/30 rounded-card p-6">
+                 <View className="h-12 w-12 items-center justify-center rounded-full bg-success/20">
+                    <Zap color={colors.success} size={24} />
+                 </View>
+                 <View className="items-center">
+                    <Text className="font-black font-sans text-success text-xl">Mindfulness Achieved!</Text>
+                    <Text className="font-bold font-sans text-success/80 text-xs text-center">
+                      Your Sprite feels centered. You earned +10 Moonlight Credits.
+                    </Text>
+                 </View>
+                 <Button className="w-full mt-2" href="/sprite" variant="secondary">
+                   Back to Mission Hub
+                 </Button>
               </View>
-            )}
-
-            {completeMutation.isPending && (
-              <Text className="text-center font-bold font-sans text-primary text-sm">
-                Saving to your wellness record...
-              </Text>
             )}
           </View>
         </View>
       </Screen>
+
       <ScreenBottomBar>
-        {running || done ? (
-          running ? (
-            <View className="flex-1 items-center justify-center rounded-control border-2 border-border bg-background px-3 py-2">
-              <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-[0.18em]">
-                Duration
-              </Text>
-              <Text className="font-black font-sans text-foreground text-sm">
-                {minutes} min
-              </Text>
+        {running ? (
+          <>
+            <View className="h-12 flex-[1.2] flex-row items-center justify-center gap-3 rounded-control border-2 border-border bg-background px-3 py-2 mr-2">
+              <Timer color={colors.accent} size={14} />
+              <View className="flex-1 gap-1">
+                 <View className="flex-row items-center justify-between">
+                    <Text className="font-bold font-sans text-muted-foreground text-[8px] uppercase">Mindfulness</Text>
+                    <Text className="font-black font-sans text-accent text-[10px]">{minutes}m</Text>
+                 </View>
+                 <View className="h-1 overflow-hidden rounded-full bg-muted">
+                    <Animated.View
+                      className="h-full rounded-full bg-accent"
+                      style={{
+                        width: progress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ["0%", "100%"],
+                        }),
+                      }}
+                    />
+                 </View>
+              </View>
             </View>
-          ) : (
-            <View className="flex-1" />
-          )
-        ) : (
-          <View className="flex-1 flex-row gap-1">
-            {[5, 10, 15, 20].map((m) => (
-              <Pressable
-                className={`flex-1 items-center justify-center rounded-control border-2 ${
-                  minutes === m
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background"
-                }`}
-                key={m}
-                onPress={() => setMinutes(m)}
-              >
-                <Text
-                  className={`font-bold font-sans text-xs ${
-                    minutes === m ? "text-white" : "text-foreground"
+            <Button className="h-12 flex-1" onPress={handleStop} variant="secondary">
+              End Early
+            </Button>
+          </>
+        ) : !done ? (
+          <>
+            <View className="flex-[1.2] flex-row gap-1 mr-2">
+              {[5, 10, 15, 20].map((m) => (
+                <Pressable
+                  key={m}
+                  onPress={() => { vibrate(10); setMinutes(m); }}
+                  className={`flex-1 h-12 items-center justify-center rounded-xl border-2 ${
+                    minutes === m ? "border-accent bg-accent/5" : "border-border bg-muted/50"
                   }`}
                 >
-                  {m}m
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
-        {done ? (
-          <Button className="h-12" onPress={handleStart} variant="primary">
-            Start
-          </Button>
+                  <Text className={`font-black font-sans text-[10px] ${minutes === m ? "text-accent" : "text-muted-foreground"}`}>
+                    {m}m
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Button className="h-12 flex-1 shadow-lg shadow-accent/20" onPress={handleStart} variant="primary">
+              Begin
+            </Button>
+          </>
         ) : (
-          <Button
-            className="h-12"
-            onPress={running ? handleStop : handleStart}
-            variant={running ? "secondary" : "primary"}
-          >
-            {running ? "Stop" : "Start"}
-          </Button>
+          <View className="flex-1" />
         )}
         <IconButton icon={ArrowLeft} iconSize={16} onPress={handleBack} />
       </ScreenBottomBar>

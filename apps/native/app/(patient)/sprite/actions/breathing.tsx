@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, Wind, Zap, CheckCircle2 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text, View } from "react-native";
 
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
-import { playTone } from "@/utils/audio";
+import { playTone, playToneSequence } from "@/utils/audio";
 import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
 import { useThemeColor } from "@/utils/theme";
@@ -43,44 +43,32 @@ export default function BreathingActionScreen() {
   const [completed, setCompleted] = useState(false);
   const [rewarded, setRewarded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fill = useRef(new Animated.Value(0)).current;
+  const circleScale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(0.3)).current;
 
   const currentPhase = PHASES[phaseIndex] ?? "inhale";
   const duration = DEFAULT_PHASES[currentPhase] * 1000;
-  const phaseLabel = currentPhase.toUpperCase();
   const progress = Math.min(cycles / requiredCycles, 1);
 
   const completeMutation = useMutation(
     orpc.completeWellnessAction.mutationOptions({
-      onSuccess: (result) => {
-        queryClient.invalidateQueries({
-          queryKey: orpc.getSpriteState.key(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: orpc.getMoonlightCredits.key(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: orpc.getWellnessHistory.key(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: orpc.getTodayTasks.key(),
-        });
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: orpc.getSpriteState.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.getMoonlightCredits.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.getWellnessHistory.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.getTodayTasks.key() });
         setCompleted(true);
         setRunning(false);
+        playToneSequence();
       },
     })
   );
 
   const handleComplete = useCallback(() => {
-    if (!actionType) {
-      return;
-    }
+    if (!actionType) return;
     setRewarded(true);
     completeMutation.mutate({
-      actionType: actionType as
-        | "breathing_morning"
-        | "breathing_evening"
-        | "breathing_night",
+      actionType: actionType as any,
       durationSeconds: cycles * 16,
     });
   }, [actionType, completeMutation, cycles]);
@@ -92,97 +80,66 @@ export default function BreathingActionScreen() {
     }
 
     if (!running) {
-      Animated.timing(fill, {
-        toValue: 0,
-        duration: 180,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }).start();
+      Animated.parallel([
+        Animated.spring(circleScale, { toValue: 1, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 500, useNativeDriver: true })
+      ]).start();
       return;
     }
 
-    const startValue =
-      currentPhase === "inhale"
-        ? 0
-        : currentPhase === "hold"
-          ? 1
-          : currentPhase === "exhale"
-            ? 1
-            : 0.15;
-    const endValue =
-      currentPhase === "inhale"
-        ? 1
-        : currentPhase === "hold"
-          ? 1
-          : currentPhase === "exhale"
-            ? 0
-            : 0;
-
-    fill.setValue(startValue);
+    let toValue = 1;
+    let animOpacity = 0.3;
 
     if (currentPhase === "inhale") {
-      Animated.timing(fill, {
-        toValue: endValue,
-        duration,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }).start();
+      toValue = 1.6;
+      animOpacity = 0.8;
       vibrate(25);
       playTone(220, 0.1);
     } else if (currentPhase === "hold") {
-      Animated.timing(fill, {
-        toValue: endValue,
-        duration,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      }).start();
+      toValue = 1.6;
+      animOpacity = 1;
       vibrate([20, 30, 20]);
-      playTone(330, 0.08);
     } else if (currentPhase === "exhale") {
-      Animated.timing(fill, {
-        toValue: endValue,
-        duration,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: false,
-      }).start();
+      toValue = 1;
+      animOpacity = 0.5;
       vibrate(25);
       playTone(180, 0.15);
     } else {
-      Animated.timing(fill, {
-        toValue: endValue,
-        duration,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: false,
-      }).start();
+      toValue = 1;
+      animOpacity = 0.3;
     }
+
+    Animated.parallel([
+      Animated.timing(circleScale, {
+        toValue,
+        duration,
+        easing: Easing.inOut(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: animOpacity,
+        duration,
+        useNativeDriver: true,
+      })
+    ]).start();
 
     timerRef.current = setTimeout(() => {
       setPhaseIndex((current) => {
         const next = (current + 1) % PHASES.length;
-        if (next === 0) {
-          setCycles((value) => value + 1);
-        }
+        if (next === 0) setCycles((v) => v + 1);
         return next;
       });
     }, duration);
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [currentPhase, duration, fill, running]);
-
-  useEffect(() => {
-    if (!running) {
-      return;
-    }
-    vibrate([20, 30, 20]);
-  }, [currentPhase, running]);
+  }, [currentPhase, duration, running]);
 
   useEffect(() => {
     if (cycles >= requiredCycles && running) {
       setRunning(false);
+      vibrate([100, 50, 100]);
     }
   }, [cycles, requiredCycles, running]);
 
@@ -194,187 +151,158 @@ export default function BreathingActionScreen() {
     vibrate([30, 20, 30]);
   };
 
-  const handleStop = () => {
-    setRunning(false);
-    setPhaseIndex(0);
-    vibrate(20);
-  };
-
-  const isComplete = cycles >= requiredCycles;
-
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <Screen contentClassName="gap-section bg-background px-page py-page pb-24">
-        <View className="overflow-hidden rounded-card border-2 border-border bg-card">
-          <View className="gap-4 border-border border-b-2 px-card py-card">
-            <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.3em]">
-              {type === "morning"
-                ? "Morning"
-                : type === "afternoon"
-                  ? "Afternoon"
-                  : "Night"}{" "}
-              Breathing
-            </Text>
-            <Text className="font-black font-sans text-4xl text-foreground tracking-tight">
+      <Screen contentClassName="bg-background">
+        <View className="flex-1 items-center justify-between py-12 px-page">
+          {/* Header */}
+          <View className="items-center gap-2">
+            <View className="flex-row items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5">
+               <Wind color={colors.primary} size={14} />
+               <Text className="font-bold font-sans text-primary text-[10px] uppercase tracking-widest">
+                 {type} Breathing
+               </Text>
+            </View>
+            <Text className="font-black font-sans text-4xl text-foreground text-center">
               {currentTask?.title ?? "Breath Rhythm"}
             </Text>
-            <Text className="max-w-[28rem] font-normal font-sans text-base text-muted-foreground leading-6">
-              {currentTask?.description ??
-                "Complete a breathing session to earn Moonlight Credits."}
+            <Text className="text-center font-medium font-sans text-muted-foreground text-sm max-w-[250px]">
+              {currentTask?.description ?? "Center yourself with guided breathing."}
             </Text>
           </View>
 
-          <View className="gap-4 px-card py-card">
-            <View className="rounded-card border-2 border-border bg-background px-card py-card">
-              <View className="mb-2 flex-row items-center justify-between">
-                <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.18em]">
-                  Progress
+          {/* Visualizer Area */}
+          <View className="flex-1 items-center justify-center relative w-full">
+            {/* Interactive Ambient Waves */}
+            <Animated.View
+              style={{
+                transform: [{ scale: circleScale.interpolate({ inputRange: [1, 1.6], outputRange: [1, 2.2] }) }],
+                opacity: opacity.interpolate({ inputRange: [0.3, 1], outputRange: [0, 0.15] }),
+                borderColor: colors.primary
+              }}
+              className="absolute h-64 w-64 rounded-full border-[1px]"
+            />
+            <Animated.View
+              style={{
+                transform: [{ scale: circleScale.interpolate({ inputRange: [1, 1.6], outputRange: [1, 1.8] }) }],
+                opacity: opacity.interpolate({ inputRange: [0.3, 1], outputRange: [0, 0.2] }),
+                borderColor: colors.primary
+              }}
+              className="absolute h-72 w-72 rounded-full border-2"
+            />
+
+            {/* Static Guide Rings */}
+            <View className="absolute h-80 w-80 rounded-full border-2 border-border/10" />
+
+            {/* The Main Breathing Circle with dynamic shadow */}
+            <Animated.View
+              style={{
+                transform: [{ scale: circleScale }],
+                opacity,
+                backgroundColor: circleScale.interpolate({
+                  inputRange: [1, 1.6],
+                  outputRange: [colors.primary, colors.accent]
+                }),
+                shadowRadius: circleScale.interpolate({
+                  inputRange: [1, 1.6],
+                  outputRange: [10, 40]
+                }),
+                shadowOpacity: circleScale.interpolate({
+                  inputRange: [1, 1.6],
+                  outputRange: [0.2, 0.6]
+                })
+              }}
+              className="h-40 w-40 rounded-full items-center justify-center shadow-primary"
+            >
+              <Wind color="white" size={40} />
+            </Animated.View>
+
+            {/* Instruction Text */}
+            <View className="absolute bottom-[-80] items-center gap-1">
+              <Animated.Text
+                style={{
+                  opacity: running ? 1 : 0.5,
+                  transform: [{ translateY: running ? 0 : 5 }]
+                }}
+                className="font-black font-sans text-primary text-4xl uppercase tracking-widest"
+              >
+                {running ? currentPhase : "Ready"}
+              </Animated.Text>
+              {running && (
+                <Text className="font-bold font-sans text-muted-foreground text-xs uppercase">
+                  {DEFAULT_PHASES[currentPhase]} seconds remaining
                 </Text>
-                <Text className="font-black font-sans text-foreground text-lg">
-                  {Math.min(cycles, requiredCycles)}/{requiredCycles} cycles
-                </Text>
-              </View>
-              <View className="h-3 overflow-hidden rounded-full border-2 border-border bg-muted">
-                <View
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${progress * 100}%` }}
-                />
-              </View>
-              <Text className="mt-1 text-right font-normal font-sans text-muted-foreground text-xs">
-                {isComplete
-                  ? "All cycles complete!"
-                  : `${requiredCycles - cycles} cycle${requiredCycles - cycles > 1 ? "s" : ""} to go`}
-              </Text>
+              )}
             </View>
+          </View>
 
-            <View className="items-center gap-4 rounded-card border-2 border-border bg-background px-card py-card">
-              <View className="items-center gap-1">
-                <Text className="text-center font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.2em]">
-                  {running ? "Current Phase" : "Ready"}
-                </Text>
-                <Text className="text-center font-black font-sans text-4xl text-foreground tracking-tight">
-                  {running ? phaseLabel : "Breathe"}
-                </Text>
-                <Text className="text-center font-normal font-sans text-muted-foreground text-sm">
-                  {running
-                    ? `${DEFAULT_PHASES[currentPhase]} seconds`
-                    : "Press Start to begin"}
-                </Text>
+          {/* Completion Reward Card */}
+          <View className="w-full gap-4 mt-8">
+            {(completed || cycles >= requiredCycles) && (
+              <View className="items-center gap-4 bg-success/10 border-2 border-success/30 rounded-card p-6">
+                 <View className="h-12 w-12 items-center justify-center rounded-full bg-success/20">
+                    <Zap color={colors.success} size={24} />
+                 </View>
+                 <View className="items-center">
+                    <Text className="font-black font-sans text-success text-xl">Session Complete!</Text>
+                    <Text className="font-bold font-sans text-success/80 text-xs text-center">
+                      You've maintained your streak and earned +10 Moonlight Credits.
+                    </Text>
+                 </View>
+                 {!completed ? (
+                   <Button className="w-full" disabled={completeMutation.isPending} onPress={handleComplete} variant="primary">
+                     Claim Reward
+                   </Button>
+                 ) : (
+                   <Button className="w-full" href="/sprite" variant="secondary">
+                     Back to Mission Hub
+                   </Button>
+                 )}
               </View>
-
-              <View className="w-full items-center justify-center py-4">
-                <View className="h-56 w-56 items-center justify-center overflow-hidden rounded-[16px] border-2 border-border bg-muted/30 shadow-lg">
-                  <Animated.View
-                    className="rounded-[24px] border-2 border-border"
-                    style={{
-                      width: fill.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [48, 224],
-                      }),
-                      height: fill.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [48, 224],
-                      }),
-                      backgroundColor:
-                        currentPhase === "hold"
-                          ? colors.secondary
-                          : colors.primary,
-                    }}
-                  />
-                </View>
-              </View>
-
-              <View className="w-full flex-row items-center justify-between">
-                <View>
-                  <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.18em]">
-                    Cycles
-                  </Text>
-                  <Text className="mt-1 font-black font-sans text-2xl text-foreground">
-                    {cycles}
-                  </Text>
-                </View>
-                <View className="items-end">
-                  <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.18em]">
-                    Status
-                  </Text>
-                  <Text className="mt-1 font-black font-sans text-2xl text-foreground">
-                    {completed
-                      ? "Done ✓"
-                      : isComplete
-                        ? "Ready ✓"
-                        : running
-                          ? "Running"
-                          : "Ready"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {completed || isComplete ? (
-              <View className="items-center gap-3 rounded-card border-2 border-green-300 bg-green-50 px-card py-card">
-                <Text className="font-black font-sans text-2xl text-green-800">
-                  ✓ {completed ? "Session Complete" : "All Cycles Done"}
-                </Text>
-                <Text className="text-center font-normal font-sans text-green-700 text-sm">
-                  {completed
-                    ? rewarded
-                      ? `You earned Moonlight Credits for completing ${cycles} breathing cycles!`
-                      : `You completed ${cycles} breathing cycles.`
-                    : "Great work! Complete the session to earn credits."}
-                </Text>
-                {!completed && (
-                  <Button
-                    className="w-full"
-                    disabled={completeMutation.isPending}
-                    onPress={handleComplete}
-                    variant="primary"
-                  >
-                    Complete & Earn Credits
-                  </Button>
-                )}
-                {completed && rewarded ? (
-                  <Button className="w-full" href="/sprite" variant="primary">
-                    Back to Dashboard
-                  </Button>
-                ) : completed ? (
-                  <Button className="w-full" href="/sprite" variant="primary">
-                    Back to Dashboard
-                  </Button>
-                ) : null}
-              </View>
-            ) : null}
+            )}
           </View>
         </View>
       </Screen>
+
       <ScreenBottomBar>
-        <View className="flex-1 items-center justify-center rounded-control border-2 border-border bg-background px-3 py-2">
-          <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-[0.18em]">
-            Progress
-          </Text>
-          <Text className="font-black font-sans text-foreground text-sm">
-            {Math.min(cycles, requiredCycles)}/{requiredCycles} cycles
-          </Text>
-        </View>
-        {running ? (
-          <Button className="h-12" onPress={handleStop} variant="secondary">
-            Stop
-          </Button>
+        {!completed ? (
+          <>
+            <View className="h-12 flex-[1.2] flex-row items-center justify-center gap-3 rounded-control border-2 border-border bg-background px-3 py-2 mr-2">
+              <CheckCircle2 color={colors.success} size={14} />
+              <View className="flex-1 gap-1">
+                 <View className="flex-row items-center justify-between">
+                    <Text className="font-bold font-sans text-muted-foreground text-[8px] uppercase">Breath Progress</Text>
+                    <Text className="font-black font-sans text-foreground text-[10px]">{Math.min(cycles, requiredCycles)}/{requiredCycles}</Text>
+                 </View>
+                 <View className="h-1 overflow-hidden rounded-full bg-muted">
+                    <View
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${progress * 100}%` }}
+                    />
+                 </View>
+              </View>
+            </View>
+            {running ? (
+              <Button className="h-12 flex-1" onPress={() => setRunning(false)} variant="secondary">
+                Pause
+              </Button>
+            ) : cycles < requiredCycles ? (
+              <Button className="h-12 flex-1 shadow-lg shadow-primary/20" onPress={handleStart} variant="primary">
+                {cycles > 0 ? "Resume" : "Start"}
+              </Button>
+            ) : null}
+          </>
         ) : (
-          <Button className="h-12" onPress={handleStart} variant="primary">
-            Start
-          </Button>
+          <View className="flex-1" />
         )}
         <IconButton
           icon={ArrowLeft}
           iconSize={16}
           onPress={() => {
             vibrate(15);
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
+            if (router.canGoBack()) router.back();
+            else router.replace("/");
           }}
         />
       </ScreenBottomBar>

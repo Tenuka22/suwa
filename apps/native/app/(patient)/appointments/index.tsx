@@ -324,7 +324,10 @@ export default function AppointmentsScreen() {
                   },
                 ]}
               >
-                <Icon color={isActive ? "#ffffff" : colors.mutedForeground} size={16} />
+                <Icon
+                  color={isActive ? "#ffffff" : colors.mutedForeground}
+                  size={16}
+                />
                 {!isSmall && (
                   <Text
                     className={`text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`}

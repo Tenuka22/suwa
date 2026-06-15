@@ -56,39 +56,48 @@ export const listDoctorsRoute = publicProcedure
     const pageItems = filteredProfiles.slice(offset, offset + input.pageSize);
 
     const doctorIds = pageItems.map((p) => p.userId);
-    const affiliations = doctorIds.length > 0
-      ? await context.db
-          .select({
-            doctorId: doctorHospitalAffiliations.doctorId,
-            tenantId: doctorHospitalAffiliations.tenantId,
-            tenantName: tenants.name,
-            tenantType: tenants.type,
-          })
-          .from(doctorHospitalAffiliations)
-          .innerJoin(tenants, eq(doctorHospitalAffiliations.tenantId, tenants.id))
-          .where(
-            and(
-              inArray(doctorHospitalAffiliations.doctorId, doctorIds),
-              eq(doctorHospitalAffiliations.status, "ACTIVE"),
-            ),
-          )
-      : [];
+    const affiliations =
+      doctorIds.length > 0
+        ? await context.db
+            .select({
+              doctorId: doctorHospitalAffiliations.doctorId,
+              tenantId: doctorHospitalAffiliations.tenantId,
+              tenantName: tenants.name,
+              tenantType: tenants.type,
+            })
+            .from(doctorHospitalAffiliations)
+            .innerJoin(
+              tenants,
+              eq(doctorHospitalAffiliations.tenantId, tenants.id)
+            )
+            .where(
+              and(
+                inArray(doctorHospitalAffiliations.doctorId, doctorIds),
+                eq(doctorHospitalAffiliations.status, "ACTIVE")
+              )
+            )
+        : [];
 
-    const affiliationsByDoctor: Record<string, { tenantId: string; tenantName: string; tenantType: string }[]> = {};
+    const affiliationsByDoctor: Record<
+      string,
+      { tenantId: string; tenantName: string; tenantType: string }[]
+    > = {};
     for (const aff of affiliations) {
-      const group = affiliationsByDoctor[aff.doctorId]
+      const group = affiliationsByDoctor[aff.doctorId];
       if (group) {
         group.push({
           tenantId: aff.tenantId,
           tenantName: aff.tenantName,
           tenantType: aff.tenantType,
-        })
+        });
       } else {
-        affiliationsByDoctor[aff.doctorId] = [{
-          tenantId: aff.tenantId,
-          tenantName: aff.tenantName,
-          tenantType: aff.tenantType,
-        }];
+        affiliationsByDoctor[aff.doctorId] = [
+          {
+            tenantId: aff.tenantId,
+            tenantName: aff.tenantName,
+            tenantType: aff.tenantType,
+          },
+        ];
       }
     }
 

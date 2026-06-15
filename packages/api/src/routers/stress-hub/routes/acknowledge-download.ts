@@ -25,12 +25,6 @@ export const acknowledgeDownloadRoute = protectedProcedure.handler(
         set: { patientAcknowledgedAt: now, updatedAt: now },
       });
 
-    const [patient] = await context.db
-      .select()
-      .from(patientProfiles)
-      .where(eq(patientProfiles.userId, userId))
-      .limit(1);
-
     const ackRecord = await context.db
       .select()
       .from(stressDownloadAcknowledgments)
@@ -41,13 +35,9 @@ export const acknowledgeDownloadRoute = protectedProcedure.handler(
 
     const bundleKey = `${BUNDLE_LIST_KEY}${userId}`;
 
-    const hasGuardian = Boolean(patient?.guardianUserId);
     const patientAcked = Boolean(record?.patientAcknowledgedAt);
-    const guardianAcked = Boolean(record?.guardianAcknowledgedAt);
 
-    const shouldExpireSoon = patientAcked && (!hasGuardian || guardianAcked);
-
-    if (shouldExpireSoon) {
+    if (patientAcked) {
       await redis.expire(bundleKey, ONE_DAY);
     } else {
       await redis.expire(bundleKey, BUNDLE_TTL_SECONDS);
@@ -55,10 +45,8 @@ export const acknowledgeDownloadRoute = protectedProcedure.handler(
 
     return {
       acknowledged: true,
-      ttlAdjusted: shouldExpireSoon ? ONE_DAY : BUNDLE_TTL_SECONDS,
-      hasGuardian,
+      ttlAdjusted: patientAcked ? ONE_DAY : BUNDLE_TTL_SECONDS,
       patientAcked,
-      guardianAcked,
     };
   }
 );

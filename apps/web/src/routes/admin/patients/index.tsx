@@ -107,14 +107,7 @@ function AdminPatientsRoute() {
 
                       <div className="flex flex-col gap-1">
                         <p className="font-medium text-sm">{patient.alias}</p>
-                        <div className="flex flex-wrap gap-3 text-muted-foreground text-xs">
-                          {patient.guardianEmail ? (
-                            <span>{patient.guardianEmail}</span>
-                          ) : null}
-                          {patient.guardianPhone ? (
-                            <span>{patient.guardianPhone}</span>
-                          ) : null}
-                        </div>
+
                       </div>
                     </div>
 

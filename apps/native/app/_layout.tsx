@@ -54,41 +54,24 @@ function OnboardingCheck() {
     })
   );
 
-  const guardianProfileQuery = useQuery(
-    orpc.getGuardianProfile.queryOptions({
-      enabled: isLoaded && isSignedIn,
-      retry: false,
-      meta: { ignoreError: true },
-    })
-  );
-
-  const isProfileLoaded =
-    patientProfileQuery.isFetched && guardianProfileQuery.isFetched;
+  const isProfileLoaded = patientProfileQuery.isFetched;
 
   // Prefetch HomeLanding data once profile is confirmed to eliminate loading states
   useEffect(() => {
     if (isLoaded && isSignedIn && isProfileLoaded) {
       const patientData = patientProfileQuery.data;
-      const guardianData = guardianProfileQuery.data;
 
       const needsRepair =
         patientData && !(patientData.secured && patientData._securedData);
 
-      // If profile is fully set up, prefetch the dashboard data
-      if ((patientData && !needsRepair) || guardianData) {
+      if (patientData && !needsRepair) {
         queryClient.prefetchQuery(orpc.getSpriteState.queryOptions());
         queryClient.prefetchQuery(orpc.getMoonlightCredits.queryOptions());
         queryClient.prefetchQuery(orpc.getTodayTasks.queryOptions());
         queryClient.prefetchQuery(orpc.listPatientSessions.queryOptions());
       }
     }
-  }, [
-    isLoaded,
-    isSignedIn,
-    isProfileLoaded,
-    patientProfileQuery.data,
-    guardianProfileQuery.data,
-  ]);
+  }, [isLoaded, isSignedIn, isProfileLoaded, patientProfileQuery.data]);
 
   if (!isLoaded) {
     return (
@@ -118,9 +101,8 @@ function OnboardingCheck() {
 
   if (isLoaded && isSignedIn && isProfileLoaded) {
     const patientData = patientProfileQuery.data;
-    const guardianData = guardianProfileQuery.data;
 
-    if (!(patientData || guardianData)) {
+    if (!patientData) {
       console.log("[OnboardingCheck] no profile, redirecting to /onboarding");
       if (
         pathname !== "/onboarding" &&
@@ -128,13 +110,6 @@ function OnboardingCheck() {
         pathname !== "/profile"
       ) {
         return <Redirect href="/onboarding" />;
-      }
-      return null;
-    }
-
-    if (guardianData && !patientData) {
-      if (pathname === "/" || pathname.startsWith("/onboarding")) {
-        return <Redirect href="/(guardian)" />;
       }
       return null;
     }
@@ -262,10 +237,6 @@ function LayoutContent() {
                 />
                 <Stack.Screen
                   name="(patient)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="(guardian)"
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen name="test" options={{ headerShown: false }} />

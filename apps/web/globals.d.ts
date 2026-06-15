@@ -3,7 +3,6 @@ export type Roles =
   | "doctor"
   | "user"
   | "pending-doctor"
-  | "guardian"
   | "tenant-admin";
 
 interface CustomJwtSessionClaimsMetadata {

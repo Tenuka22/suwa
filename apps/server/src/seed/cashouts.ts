@@ -7,7 +7,7 @@ const CASHOUT_STATUSES = ["pending", "completed", "failed"] as const;
 
 export async function seedCashouts(
   db: ReturnType<typeof createDb>,
-  doctorIds: string[],
+  doctorIds: string[]
 ) {
   if (doctorIds.length === 0) {
     return { cashouts: 0 };
@@ -61,12 +61,14 @@ export async function seedCashouts(
         stripeTransferId:
           status === "completed" ? `tr_${faker.string.alphanumeric(24)}` : null,
         failureReason:
-          status === "failed" ? faker.helpers.arrayElement([
-            "Insufficient funds",
-            "Bank account verification failed",
-            "Transfer limit exceeded",
-            "Account not found",
-          ]) : null,
+          status === "failed"
+            ? faker.helpers.arrayElement([
+                "Insufficient funds",
+                "Bank account verification failed",
+                "Transfer limit exceeded",
+                "Account not found",
+              ])
+            : null,
       });
     }
   }

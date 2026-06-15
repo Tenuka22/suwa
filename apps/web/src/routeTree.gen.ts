@@ -31,7 +31,6 @@ import { Route as DoctorSessionsIndexRouteImport } from './routes/doctor/session
 import { Route as AdminSessionsIndexRouteImport } from './routes/admin/sessions/index'
 import { Route as AdminPlansIndexRouteImport } from './routes/admin/plans/index'
 import { Route as AdminPatientsIndexRouteImport } from './routes/admin/patients/index'
-import { Route as AdminGuardiansIndexRouteImport } from './routes/admin/guardians/index'
 import { Route as AdminDoctorsIndexRouteImport } from './routes/admin/doctors/index'
 import { Route as AdminDocRequestsIndexRouteImport } from './routes/admin/doc-requests/index'
 import { Route as AdminCreditsIndexRouteImport } from './routes/admin/credits/index'
@@ -155,11 +154,6 @@ const AdminPatientsIndexRoute = AdminPatientsIndexRouteImport.update({
   path: '/patients/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminGuardiansIndexRoute = AdminGuardiansIndexRouteImport.update({
-  id: '/guardians/',
-  path: '/guardians/',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminDoctorsIndexRoute = AdminDoctorsIndexRouteImport.update({
   id: '/doctors/',
   path: '/doctors/',
@@ -252,7 +246,6 @@ export interface FileRoutesByFullPath {
   '/admin/credits/': typeof AdminCreditsIndexRoute
   '/admin/doc-requests/': typeof AdminDocRequestsIndexRoute
   '/admin/doctors/': typeof AdminDoctorsIndexRoute
-  '/admin/guardians/': typeof AdminGuardiansIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
   '/admin/plans/': typeof AdminPlansIndexRoute
   '/admin/sessions/': typeof AdminSessionsIndexRoute
@@ -286,7 +279,6 @@ export interface FileRoutesByTo {
   '/admin/credits': typeof AdminCreditsIndexRoute
   '/admin/doc-requests': typeof AdminDocRequestsIndexRoute
   '/admin/doctors': typeof AdminDoctorsIndexRoute
-  '/admin/guardians': typeof AdminGuardiansIndexRoute
   '/admin/patients': typeof AdminPatientsIndexRoute
   '/admin/plans': typeof AdminPlansIndexRoute
   '/admin/sessions': typeof AdminSessionsIndexRoute
@@ -324,7 +316,6 @@ export interface FileRoutesById {
   '/admin/credits/': typeof AdminCreditsIndexRoute
   '/admin/doc-requests/': typeof AdminDocRequestsIndexRoute
   '/admin/doctors/': typeof AdminDoctorsIndexRoute
-  '/admin/guardians/': typeof AdminGuardiansIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
   '/admin/plans/': typeof AdminPlansIndexRoute
   '/admin/sessions/': typeof AdminSessionsIndexRoute
@@ -363,7 +354,6 @@ export interface FileRouteTypes {
     | '/admin/credits/'
     | '/admin/doc-requests/'
     | '/admin/doctors/'
-    | '/admin/guardians/'
     | '/admin/patients/'
     | '/admin/plans/'
     | '/admin/sessions/'
@@ -397,7 +387,6 @@ export interface FileRouteTypes {
     | '/admin/credits'
     | '/admin/doc-requests'
     | '/admin/doctors'
-    | '/admin/guardians'
     | '/admin/patients'
     | '/admin/plans'
     | '/admin/sessions'
@@ -434,7 +423,6 @@ export interface FileRouteTypes {
     | '/admin/credits/'
     | '/admin/doc-requests/'
     | '/admin/doctors/'
-    | '/admin/guardians/'
     | '/admin/patients/'
     | '/admin/plans/'
     | '/admin/sessions/'
@@ -609,13 +597,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPatientsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/guardians/': {
-      id: '/admin/guardians/'
-      path: '/guardians'
-      fullPath: '/admin/guardians/'
-      preLoaderRoute: typeof AdminGuardiansIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/doctors/': {
       id: '/admin/doctors/'
       path: '/doctors'
@@ -711,7 +692,6 @@ interface AdminRouteChildren {
   AdminCreditsIndexRoute: typeof AdminCreditsIndexRoute
   AdminDocRequestsIndexRoute: typeof AdminDocRequestsIndexRoute
   AdminDoctorsIndexRoute: typeof AdminDoctorsIndexRoute
-  AdminGuardiansIndexRoute: typeof AdminGuardiansIndexRoute
   AdminPatientsIndexRoute: typeof AdminPatientsIndexRoute
   AdminPlansIndexRoute: typeof AdminPlansIndexRoute
   AdminSessionsIndexRoute: typeof AdminSessionsIndexRoute
@@ -725,7 +705,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCreditsIndexRoute: AdminCreditsIndexRoute,
   AdminDocRequestsIndexRoute: AdminDocRequestsIndexRoute,
   AdminDoctorsIndexRoute: AdminDoctorsIndexRoute,
-  AdminGuardiansIndexRoute: AdminGuardiansIndexRoute,
   AdminPatientsIndexRoute: AdminPatientsIndexRoute,
   AdminPlansIndexRoute: AdminPlansIndexRoute,
   AdminSessionsIndexRoute: AdminSessionsIndexRoute,

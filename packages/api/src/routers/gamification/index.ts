@@ -1,7 +1,12 @@
 import {
+  buyItemRoute,
   completeWellnessActionRoute,
+  feedSpriteRoute,
+  getInventoryRoute,
+  getLeaderboardRoute,
   getMoonlightCreditsRoute,
   getRecentTransactionsRoute,
+  getSpriteCollectionRoute,
   getSpriteStateRoute,
   getTodayTasksRoute,
   getWellnessHistoryRoute,
@@ -14,4 +19,9 @@ export const gamificationRouter = {
   getWellnessHistory: getWellnessHistoryRoute,
   getRecentTransactions: getRecentTransactionsRoute,
   getTodayTasks: getTodayTasksRoute,
+  getLeaderboard: getLeaderboardRoute,
+  buyItem: buyItemRoute,
+  feedSprite: feedSpriteRoute,
+  getInventory: getInventoryRoute,
+  getSpriteCollection: getSpriteCollectionRoute,
 };

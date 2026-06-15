@@ -1,6 +1,5 @@
 import type { createDb } from "@doca/db";
 import {
-  guardianProfiles,
   moonlightCredits,
   patientProfiles,
   stressDownloadAcknowledgments,
@@ -51,14 +50,7 @@ export async function seedPatients(db: ReturnType<typeof createDb>) {
 
   await db.insert(patientProfiles).values(patients);
 
-  // Guardian profiles
-  for (let i = 0; i < 3; i++) {
-    await db.insert(guardianProfiles).values({
-      clerkUserId: crypto.randomUUID(),
-      email: faker.internet.email(),
-      phone: faker.phone.number(),
-    });
-  }
+
 
   return {
     created: patients.length,
@@ -69,7 +61,7 @@ export async function seedPatients(db: ReturnType<typeof createDb>) {
 
 export async function seedPatientRelations(
   db: ReturnType<typeof createDb>,
-  patientIds: string[],
+  patientIds: string[]
 ) {
   if (patientIds.length === 0) {
     return { credits: 0, moonlight: 0, stress: 0, acknowledgments: 0 };
@@ -89,8 +81,12 @@ export async function seedPatientRelations(
     .where(inArray(stressPredictions.userId, patientIds));
 
   const existingCreditSet = new Set(existingCreditUsers.map((r) => r.userId));
-  const existingMoonlightSet = new Set(existingMoonlightUsers.map((r) => r.userId));
-  const existingStressSet = new Set(existingStressPatients.map((r) => r.userId));
+  const existingMoonlightSet = new Set(
+    existingMoonlightUsers.map((r) => r.userId)
+  );
+  const existingStressSet = new Set(
+    existingStressPatients.map((r) => r.userId)
+  );
 
   let creditCount = 0;
   let moonlightCount = 0;
@@ -145,15 +141,18 @@ export async function seedPatientRelations(
       await db.insert(stressDownloadAcknowledgments).values({
         userId,
         patientAcknowledgedAt: faker.date.recent({ days: 14 }).toISOString(),
-        guardianAcknowledgedAt: faker.datatype.boolean(0.3)
-          ? faker.date.recent({ days: 7 }).toISOString()
-          : null,
+
       });
       ackCount++;
     }
   }
 
-  return { credits: creditCount, moonlight: moonlightCount, stress: stressCount, acknowledgments: ackCount };
+  return {
+    credits: creditCount,
+    moonlight: moonlightCount,
+    stress: stressCount,
+    acknowledgments: ackCount,
+  };
 }
 
 export async function getPatientIds(db: ReturnType<typeof createDb>) {

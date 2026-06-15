@@ -22,8 +22,6 @@ const ERROR_CATEGORIES: Record<string, { title: string; isSoft: boolean }> = {
 };
 
 const USER_FRIENDLY_MESSAGES: Record<string, string> = {
-  "Guardian profile not found":
-    "No guardian account found with that email or phone. Ask your guardian to create an account first.",
   "Patient profile not found":
     "Your profile could not be found. Please try signing in again.",
   "Insufficient credits":

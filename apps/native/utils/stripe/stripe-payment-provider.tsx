@@ -1,4 +1,4 @@
 export {
   StripePaymentProvider,
   usePaymentSheet,
-} from "./stripe-payment-provider.native"
+} from "./stripe-payment-provider.native";

@@ -144,10 +144,17 @@ export async function seedDoctors(db: ReturnType<typeof createDb>) {
 
 export async function seedDoctorRelations(
   db: ReturnType<typeof createDb>,
-  doctorIds: string[],
+  doctorIds: string[]
 ) {
   if (doctorIds.length === 0) {
-    return { education: 0, plans: 0, credits: 0, availability: 0, schedule: 0, files: 0 };
+    return {
+      education: 0,
+      plans: 0,
+      credits: 0,
+      availability: 0,
+      schedule: 0,
+      files: 0,
+    };
   }
 
   const existingEducation = await db
@@ -175,11 +182,17 @@ export async function seedDoctorRelations(
     .from(doctorFiles)
     .where(inArray(doctorFiles.doctorId, doctorIds));
 
-  const existingEducationSet = new Set(existingEducation.map((r) => r.doctorId));
+  const existingEducationSet = new Set(
+    existingEducation.map((r) => r.doctorId)
+  );
   const existingPlanSet = new Set(existingPlanDoctors.map((r) => r.doctorId));
-  const existingCreditSet = new Set(existingCreditDoctors.map((r) => r.doctorId));
+  const existingCreditSet = new Set(
+    existingCreditDoctors.map((r) => r.doctorId)
+  );
   const existingAvailSet = new Set(existingAvailDoctors.map((r) => r.doctorId));
-  const existingScheduleSet = new Set(existingScheduleDoctors.map((r) => r.doctorId));
+  const existingScheduleSet = new Set(
+    existingScheduleDoctors.map((r) => r.doctorId)
+  );
   const existingFileSet = new Set(existingFileDoctors.map((r) => r.doctorId));
 
   let educationCount = 0;
@@ -225,7 +238,8 @@ export async function seedDoctorRelations(
         {
           doctorId,
           name: "Initial Consultation",
-          description: "Comprehensive initial assessment and treatment planning",
+          description:
+            "Comprehensive initial assessment and treatment planning",
           creditCost: 1,
           durationMinutes: 30,
           features: JSON.stringify(["assessment", "treatment plan"]),
@@ -360,7 +374,14 @@ export async function seedDoctorRelations(
     }
   }
 
-  return { education: educationCount, plans: planCount, credits: creditCount, availability: availCount, schedule: scheduleCount, files: fileCount };
+  return {
+    education: educationCount,
+    plans: planCount,
+    credits: creditCount,
+    availability: availCount,
+    schedule: scheduleCount,
+    files: fileCount,
+  };
 }
 
 export async function getDoctorIds(db: ReturnType<typeof createDb>) {

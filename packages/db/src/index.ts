@@ -36,8 +36,7 @@ import {
   doctorScheduleEntries as doctorScheduleEntriesTable,
   doctorSessions as doctorSessionsTable,
   doctorWeeklyAvailability as doctorWeeklyAvailabilityTable,
-  type GuardianProfile as GuardianProfileSchema,
-  guardianProfiles as guardianProfilesTable,
+
   type HospitalAttendanceEvent as HospitalAttendanceEventSchema,
   type HospitalAvailabilityOverride as HospitalAvailabilityOverrideSchema,
   type HubUploadSession as HubUploadSessionSchema,
@@ -55,12 +54,16 @@ import {
   type SessionSnapshot as SessionSnapshotSchema,
   type SessionTaskAssignment as SessionTaskAssignmentSchema,
   type SpriteState as SpriteStateSchema,
+  type SpriteCollection as SpriteCollectionSchema,
+  type SpriteInventory as SpriteInventorySchema,
   type StressDownloadAcknowledgment as StressDownloadAcknowledgmentSchema,
   type StressPrediction as StressPredictionSchema,
   sessionAttendanceEvents as sessionAttendanceEventsTable,
   sessionSnapshots as sessionSnapshotsTable,
   sessionTaskAssignments as sessionTaskAssignmentsTable,
   spriteStates as spriteStatesTable,
+  spriteCollections as spriteCollectionsTable,
+  spriteInventory as spriteInventoryTable,
   stressDownloadAcknowledgments as stressDownloadAcknowledgmentsTable,
   stressPredictions as stressPredictionsTable,
   type TenantAdmin as TenantAdminSchema,
@@ -99,7 +102,7 @@ export const doctorHubChannels = doctorHubChannelsTable;
 export const hubUploadSessions = hubUploadSessionsTable;
 export const doctorScheduleEntries = doctorScheduleEntriesTable;
 export const patientProfiles = patientProfilesTable;
-export const guardianProfiles = guardianProfilesTable;
+
 export const doctorPlans = doctorPlansTable;
 export const userCredits = userCreditsTable;
 export const userSubscriptions = userSubscriptionsTable;
@@ -111,6 +114,8 @@ export const sessionAttendanceEvents = sessionAttendanceEventsTable;
 export const sessionSnapshots = sessionSnapshotsTable;
 export const sessionTaskAssignments = sessionTaskAssignmentsTable;
 export const spriteStates = spriteStatesTable;
+export const spriteCollections = spriteCollectionsTable;
+export const spriteInventory = spriteInventoryTable;
 export const wellnessActions = wellnessActionsTable;
 export const moonlightCredits = moonlightCreditsTable;
 export const moonlightCreditTransactions = moonlightCreditTransactionsTable;
@@ -135,7 +140,7 @@ export type DoctorSession = DoctorSessionSchema;
 export type DoctorScheduleEntry = DoctorScheduleEntrySchema;
 export type DoctorEducationEntry = DoctorEducationEntrySchema;
 export type PatientProfile = PatientProfileSchema;
-export type GuardianProfile = GuardianProfileSchema;
+
 export type DoctorHubChannel = DoctorHubChannelSchema;
 export type DoctorMaterial = DoctorMaterialSchema;
 export type HubUploadSession = HubUploadSessionSchema;
@@ -149,6 +154,8 @@ export type SessionAttendanceEvent = SessionAttendanceEventSchema;
 export type SessionSnapshot = SessionSnapshotSchema;
 export type SessionTaskAssignment = SessionTaskAssignmentSchema;
 export type SpriteState = SpriteStateSchema;
+export type SpriteCollection = SpriteCollectionSchema;
+export type SpriteInventory = SpriteInventorySchema;
 export type WellnessAction = WellnessActionSchema;
 export type MoonlightCredit = MoonlightCreditSchema;
 export type MoonlightCreditTransaction = MoonlightCreditTransactionSchema;
@@ -173,7 +180,7 @@ export function createDb() {
       doctorSessions,
       doctorScheduleEntries,
       patientProfiles,
-      guardianProfiles,
+
       doctorPlans,
       userCredits,
       userSubscriptions,
@@ -185,6 +192,8 @@ export function createDb() {
       sessionSnapshots,
       sessionTaskAssignments,
       spriteStates,
+      spriteCollections,
+      spriteInventory,
       wellnessActions,
       moonlightCredits,
       moonlightCreditTransactions,

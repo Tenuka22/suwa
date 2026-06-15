@@ -135,10 +135,6 @@ export const doctorScheduleEntries = sqliteTable(
 export const patientProfiles = sqliteTable("patient_profiles", {
   userId: text("user_id").primaryKey(),
   alias: text("alias").notNull(),
-  guardianUserId: text("guardian_user_id"),
-  guardianEmail: text("guardian_email"),
-  guardianPhone: text("guardian_phone"),
-  guardianRequestStatus: text("guardian_request_status"),
   isOnboardingComplete: integer("is_onboarding_complete", {
     mode: "boolean",
   })
@@ -160,20 +156,7 @@ export const doctorEducationEntries = sqliteTable("doctor_education_entries", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const guardianProfiles = sqliteTable(
-  "guardian_profiles",
-  {
-    clerkUserId: text("clerk_user_id").primaryKey(),
-    email: text("email"),
-    phone: text("phone"),
-    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-    updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-  },
-  (table) => ({
-    emailUnique: uniqueIndex("guardian_email_unique").on(table.email),
-    phoneUnique: uniqueIndex("guardian_phone_unique").on(table.phone),
-  })
-);
+
 
 export const userCredits = sqliteTable("user_credits", {
   userId: text("user_id").primaryKey(),
@@ -304,10 +287,20 @@ export const wellnessActions = sqliteTable("wellness_actions", {
       "breathing_night",
       "meditation_morning",
       "meditation_evening",
+      "gratitude_morning",
+      "gratitude_evening",
+      "hydration",
+      "walking",
+      "sleep_prep",
+      "journaling",
+      "nutrition",
+      "social_checkin",
+      "stretching",
     ],
   }).notNull(),
   completedAt: text("completed_at").notNull(),
   durationSeconds: integer("duration_seconds"),
+  metadata: text("metadata"),
   creditsEarned: integer("credits_earned").notNull().default(0),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
@@ -431,7 +424,7 @@ export type DoctorFile = typeof doctorFiles.$inferSelect;
 export type DoctorScheduleEntry = typeof doctorScheduleEntries.$inferSelect;
 export type DoctorEducationEntry = typeof doctorEducationEntries.$inferSelect;
 export type PatientProfile = typeof patientProfiles.$inferSelect;
-export type GuardianProfile = typeof guardianProfiles.$inferSelect;
+
 export type UserCredit = typeof userCredits.$inferSelect;
 export type CreditTransaction = typeof creditTransactions.$inferSelect;
 export type DoctorPlan = typeof doctorPlans.$inferSelect;
@@ -449,6 +442,29 @@ export type WellnessAction = typeof wellnessActions.$inferSelect;
 export type MoonlightCredit = typeof moonlightCredits.$inferSelect;
 export type MoonlightCreditTransaction =
   typeof moonlightCreditTransactions.$inferSelect;
+export const spriteCollections = sqliteTable("sprite_collections", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  iconName: text("icon_name").notNull(),
+  rarity: text("rarity", { enum: ["common", "uncommon", "rare", "legendary"] })
+    .notNull()
+    .default("common"),
+  count: integer("count").notNull().default(1),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export const spriteInventory = sqliteTable("sprite_inventory", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  itemId: text("item_id").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export type SpriteCollection = typeof spriteCollections.$inferSelect;
+export type SpriteInventory = typeof spriteInventory.$inferSelect;
 
 export type {
   Conversation,

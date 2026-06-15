@@ -34,7 +34,6 @@ export interface UserAccount {
     | "user"
     | "doctor"
     | "pending-doctor"
-    | "guardian"
     | "tenant-admin";
 }
 
@@ -59,7 +58,6 @@ export const getServerSession = createServerFn({ method: "GET" }).handler(
             | "user"
             | "doctor"
             | "pending-doctor"
-            | "guardian"
             | "tenant-admin") || "user",
       } satisfies UserAccount;
 

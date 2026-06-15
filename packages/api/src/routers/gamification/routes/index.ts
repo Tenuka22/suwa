@@ -1,6 +1,9 @@
 ﻿import {
   moonlightCredits,
   moonlightCreditTransactions,
+  patientProfiles,
+  spriteCollections,
+  spriteInventory,
   spriteStates,
   wellnessActions,
 } from "@doca/db";
@@ -15,6 +18,15 @@ const ACTION_TYPES = [
   "breathing_night",
   "meditation_morning",
   "meditation_evening",
+  "gratitude_morning",
+  "gratitude_evening",
+  "hydration",
+  "walking",
+  "sleep_prep",
+  "journaling",
+  "nutrition",
+  "social_checkin",
+  "stretching",
 ] as const;
 
 type ActionType = (typeof ACTION_TYPES)[number];
@@ -128,6 +140,133 @@ const TASK_POOL: TaskTemplate[] = [
       "Quiet reflection as the day comes to a close.",
       "Find peace in the quiet of the evening.",
       "Let the moonlight guide your meditation.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "gratitude_morning",
+    timeSlot: "morning",
+    titles: [
+      "Morning Gratitude",
+      "Dawn Appreciation",
+      "Sunrise Thanks",
+      "Grateful Start",
+    ],
+    descriptions: [
+      "Start your day by noting three things you're grateful for.",
+      "Begin with a grateful heart and set a positive tone.",
+      "Appreciate the small blessings of a new day.",
+      "Write your morning gratitudes to boost your mood.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "gratitude_evening",
+    timeSlot: "night",
+    titles: [
+      "Evening Gratitude",
+      "Dusk Reflection",
+      "Night Thanks",
+      "Grateful Close",
+    ],
+    descriptions: [
+      "Reflect on your day and note what brought you joy.",
+      "End your day with a grateful heart.",
+      "Write three good things that happened today.",
+      "Close your day with appreciation and peace.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "hydration",
+    timeSlot: "afternoon",
+    titles: ["Hydration Check", "Water Break", "Drink Up", "Stay Hydrated"],
+    descriptions: [
+      "Track your water intake - aim for 8 glasses today.",
+      "Stay hydrated to keep your energy levels up.",
+      "A healthy habit that your body will thank you for.",
+      "Keep track of your water glasses for better health.",
+    ],
+    minCycles: 8,
+    maxCycles: 8,
+  },
+  {
+    actionType: "walking",
+    timeSlot: "afternoon",
+    titles: ["Step Counter", "Walking Break", "Move Your Body", "Daily Steps"],
+    descriptions: [
+      "Track your steps - aim for at least 5,000 steps today.",
+      "Take a walking break to refresh your mind.",
+      "Movement is medicine for your body and spirit.",
+      "Every step counts toward your daily goal.",
+    ],
+    minCycles: 5000,
+    maxCycles: 10_000,
+  },
+  {
+    actionType: "sleep_prep",
+    timeSlot: "night",
+    titles: ["Sleep Routine", "Wind Down", "Bedtime Prep", "Night Ritual"],
+    descriptions: [
+      "Prepare for restful sleep with a calming bedtime routine.",
+      "Follow a wind-down checklist for better sleep quality.",
+      "Set yourself up for a peaceful night's rest.",
+      "Complete your sleep preparation checklist.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "journaling",
+    timeSlot: "night",
+    titles: ["Daily Reflection", "Journal Entry", "Mindful Writing", "Day's End"],
+    descriptions: [
+      "Write down your thoughts and experiences from today.",
+      "A moment to reflect on your journey and growth.",
+      "Journaling helps clear the mind and improve sleep.",
+      "Capture the moments that mattered most to you.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "nutrition",
+    timeSlot: "afternoon",
+    titles: ["Balanced Meal", "Healthy Fuel", "Nutrition Log", "Mindful Eating"],
+    descriptions: [
+      "Fuel your body with wholesome, balanced food.",
+      "Log your nutritious meals for the day.",
+      "Track your nutrition to maintain energy levels.",
+      "A healthy body supports a healthy mind.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "social_checkin",
+    timeSlot: "afternoon",
+    titles: ["Social Connection", "Reach Out", "Kindness Act", "Friendship"],
+    descriptions: [
+      "Connect with a friend or loved one today.",
+      "Send a kind message or make a quick call.",
+      "Social bonds are essential for mental wellbeing.",
+      "A small act of connection can brighten someone's day.",
+    ],
+    minCycles: 1,
+    maxCycles: 1,
+  },
+  {
+    actionType: "stretching",
+    timeSlot: "morning",
+    titles: ["Morning Stretch", "Flexibility", "Body Wake-Up", "Gentle Flow"],
+    descriptions: [
+      "Awaken your body with a gentle stretching routine.",
+      "Improve your flexibility and release morning tension.",
+      "A quick flow to start your day feeling energized.",
+      "Stretch your muscles and prepare for the day ahead.",
     ],
     minCycles: 1,
     maxCycles: 1,
@@ -294,11 +433,12 @@ export const completeWellnessActionRoute = protectedProcedure
     z.object({
       actionType: z.enum(ACTION_TYPES),
       durationSeconds: z.number().optional(),
+      metadata: z.string().optional(),
     })
   )
   .handler(async ({ context, input }) => {
     const { userId } = requireAuth(context);
-    const { actionType, durationSeconds } = input;
+    const { actionType, durationSeconds, metadata } = input;
 
     const now = new Date().toISOString();
     const today = now.split("T")[0];
@@ -338,6 +478,7 @@ export const completeWellnessActionRoute = protectedProcedure
       actionType,
       completedAt: now,
       durationSeconds,
+      metadata,
       creditsEarned: totalCredits,
     });
 
@@ -471,5 +612,142 @@ export const getRecentTransactionsRoute = protectedProcedure.handler(
       .limit(20);
 
     return transactions;
+  }
+);
+
+export const getLeaderboardRoute = protectedProcedure.handler(
+  async ({ context }) => {
+    const { userId } = requireAuth(context);
+
+    const topCredits = await context.db
+      .select({
+        userId: moonlightCredits.userId,
+        totalEarned: moonlightCredits.totalEarned,
+        balance: moonlightCredits.balance,
+        alias: patientProfiles.alias,
+      })
+      .from(moonlightCredits)
+      .innerJoin(
+        patientProfiles,
+        eq(moonlightCredits.userId, patientProfiles.userId)
+      )
+      .orderBy(desc(moonlightCredits.totalEarned))
+      .limit(10);
+
+    const currentUserRank = topCredits.findIndex(c => c.userId === userId) + 1;
+
+    return {
+      leaderboard: topCredits,
+      currentUserRank: currentUserRank > 0 ? currentUserRank : null,
+    };
+  }
+);
+
+export const buyItemRoute = protectedProcedure
+  .input(z.object({ itemId: z.string().min(1), cost: z.number().int().positive() }))
+  .handler(async ({ context, input }) => {
+    const { userId } = requireAuth(context);
+
+    const [credits] = await context.db
+      .select()
+      .from(moonlightCredits)
+      .where(eq(moonlightCredits.userId, userId))
+      .limit(1);
+
+    if (!credits || credits.balance < input.cost) {
+      throw new Error("Insufficient Moonlight Credits!");
+    }
+
+    await context.db
+      .update(moonlightCredits)
+      .set({ balance: credits.balance - input.cost, updatedAt: new Date().toISOString() })
+      .where(eq(moonlightCredits.userId, userId));
+
+    const [existing] = await context.db
+      .select()
+      .from(spriteInventory)
+      .where(and(eq(spriteInventory.userId, userId), eq(spriteInventory.itemId, input.itemId)))
+      .limit(1);
+
+    if (existing) {
+      await context.db.update(spriteInventory).set({ quantity: existing.quantity + 1 }).where(eq(spriteInventory.id, existing.id));
+    } else {
+      await context.db.insert(spriteInventory).values({ id: crypto.randomUUID(), userId, itemId: input.itemId, quantity: 1 });
+    }
+
+    return { success: true };
+  });
+
+export const feedSpriteRoute = protectedProcedure
+  .input(z.object({ itemId: z.string().min(1) }))
+  .handler(async ({ context, input }) => {
+    const { userId } = requireAuth(context);
+
+    const [item] = await context.db
+      .select()
+      .from(spriteInventory)
+      .where(and(eq(spriteInventory.userId, userId), eq(spriteInventory.itemId, input.itemId)))
+      .limit(1);
+
+    if (!item || item.quantity < 1) {
+      throw new Error("Item not in inventory!");
+    }
+
+    await context.db.update(spriteInventory).set({ quantity: item.quantity - 1 }).where(eq(spriteInventory.id, item.id));
+
+    // Roll for rarity logic
+    const roll = Math.random() * 100;
+    let rarity: "common" | "uncommon" | "rare" | "legendary" = "common";
+    if (roll < 2) rarity = "legendary";
+    else if (roll < 10) rarity = "rare";
+    else if (roll < 30) rarity = "uncommon";
+
+    const items = ITEM_POOL[rarity];
+    const iconName = items[Math.floor(Math.random() * items.length)]!;
+
+    // Add to collection
+    const [existing] = await context.db
+      .select()
+      .from(spriteCollections)
+      .where(and(eq(spriteCollections.userId, userId), eq(spriteCollections.iconName, iconName)))
+      .limit(1);
+
+    if (existing) {
+      await context.db.update(spriteCollections).set({ count: existing.count + 1 }).where(eq(spriteCollections.id, existing.id));
+    } else {
+      await context.db.insert(spriteCollections).values({ id: crypto.randomUUID(), userId, iconName, rarity, count: 1 });
+    }
+
+    return { success: true, drop: { iconName, rarity } };
+  });
+
+export const getInventoryRoute = protectedProcedure.handler(
+  async ({ context }) => {
+    const { userId } = requireAuth(context);
+    return await context.db.select().from(spriteInventory).where(eq(spriteInventory.userId, userId));
+  }
+);
+
+const ITEM_POOL = {
+  common: ["Apple", "Cookie", "Coffee", "Droplet", "Milk", "Pizza", "Cherry", "Banana"],
+  uncommon: ["GlassWater", "IceCream", "Sandwich", "Cake", "Egg", "Soup", "Fish", "Carrot"],
+  rare: ["Crown", "Diamond", "Gift", "Sparkles", "Star", "Gem", "Trophy", "Rocket"],
+  legendary: ["Alien", "Ghost", "Orbit", "Palette", "Lightbulb", "HeartPulse", "Medal", "Flame"],
+};
+
+export const getSpriteCollectionRoute = protectedProcedure.handler(
+  async ({ context }) => {
+    const { userId } = requireAuth(context);
+
+    const collection = await context.db
+      .select()
+      .from(spriteCollections)
+      .where(eq(spriteCollections.userId, userId))
+      .orderBy(desc(spriteCollections.updatedAt));
+
+    return {
+      collection,
+      catalog: ITEM_POOL
+    };
   }
 );

@@ -3,7 +3,7 @@
 import { useClerk } from "@clerk/expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
-import { ArrowLeft, Calendar, Key, Shield, User } from "lucide-react-native";
+import { ArrowLeft, Calendar, Key, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
@@ -42,10 +42,6 @@ export default function ProfileScreen() {
   const [initialPhone, setInitialPhone] = useState("");
   const [initialFullName, setInitialFullName] = useState("");
   const [initialAddress, setInitialAddress] = useState("");
-  const [guardianEmail, setGuardianEmail] = useState("");
-  const [guardianPhone, setGuardianPhone] = useState("");
-  const [initialGuardianEmail, setInitialGuardianEmail] = useState("");
-  const [initialGuardianPhone, setInitialGuardianPhone] = useState("");
   const [hasKey, setHasKey] = useState<boolean | null>(null);
 
   const { signOut } = useClerk();
@@ -69,10 +65,6 @@ export default function ProfileScreen() {
 
     setAlias(data.alias ?? "");
     setInitialAlias(data.alias ?? "");
-    setGuardianEmail(data.guardianEmail ?? "");
-    setGuardianPhone(data.guardianPhone ?? "");
-    setInitialGuardianEmail(data.guardianEmail ?? "");
-    setInitialGuardianPhone(data.guardianPhone ?? "");
 
     if (data._securedData) {
       getStoredSecret().then(async (secret) => {
@@ -153,39 +145,13 @@ export default function ProfileScreen() {
         secret
       );
 
-      const guardianChanged =
-        guardianEmail !== initialGuardianEmail ||
-        guardianPhone !== initialGuardianPhone;
-
       updateMutation.mutate({
         alias: alias || undefined,
         _securedData,
-        ...(guardianChanged
-          ? {
-              guardianEmail: guardianEmail || null,
-              guardianPhone: guardianPhone || null,
-            }
-          : {}),
       });
     } catch (err) {
       handleError(err);
     }
-  };
-
-  const handleFindGuardian = () => {
-    updateMutation.mutate({
-      guardianEmail: guardianEmail || undefined,
-      guardianPhone: guardianPhone || undefined,
-    });
-  };
-
-  const handleRemoveGuardian = () => {
-    toast({
-      type: "info",
-      title: "Cannot remove here",
-      message:
-        "To remove your guardian, please ask them to unlink you from their Guardian dashboard.",
-    });
   };
 
   const handleRecreateSecret = async () => {
@@ -223,9 +189,7 @@ export default function ProfileScreen() {
     email !== initialEmail ||
     phone !== initialPhone ||
     fullName !== initialFullName ||
-    address !== initialAddress ||
-    guardianEmail !== initialGuardianEmail ||
-    guardianPhone !== initialGuardianPhone;
+    address !== initialAddress;
 
   const showPersonalFields = hasKey === true || hasNoEncryptedData || noProfile;
 
@@ -373,66 +337,6 @@ export default function ProfileScreen() {
               <Text className="font-bold font-sans text-destructive text-sm">
                 Failed to update profile. Please try again.
               </Text>
-            )}
-          </View>
-        </View>
-
-        <View className="overflow-hidden rounded-card border-2 border-border bg-card">
-          <View className="items-center gap-2 border-border border-b-2 px-card py-4">
-            <Shield color={colors.primary} size={22} />
-            <Text className="font-black font-sans text-foreground text-lg tracking-tight">
-              Guardian
-            </Text>
-          </View>
-
-          <View className="gap-4 px-card py-card">
-            {profileQuery.data?.guardianUserId ? (
-              <View className="gap-2 rounded-lg bg-muted p-4">
-                <Text className="font-bold font-sans text-foreground text-sm">
-                  Guardian assigned
-                </Text>
-                <Text className="font-normal font-sans text-muted-foreground text-xs">
-                  {profileQuery.data.guardianEmail}
-                </Text>
-                <Button
-                  className="mt-2"
-                  disabled={updateMutation.isPending}
-                  onPress={handleRemoveGuardian}
-                  variant="secondary"
-                >
-                  Remove guardian
-                </Button>
-              </View>
-            ) : (
-              <>
-                <Input
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  label="Guardian Email"
-                  onChangeText={setGuardianEmail}
-                  placeholder="guardian@example.com"
-                  placeholderTextColor={colors.mutedForeground}
-                  value={guardianEmail}
-                />
-                <Input
-                  keyboardType="phone-pad"
-                  label="Guardian Phone"
-                  onChangeText={setGuardianPhone}
-                  placeholder="+1 (555) 000-0000"
-                  placeholderTextColor={colors.mutedForeground}
-                  value={guardianPhone}
-                />
-                <Button
-                  disabled={
-                    updateMutation.isPending ||
-                    !(guardianEmail || guardianPhone)
-                  }
-                  onPress={handleFindGuardian}
-                  variant="secondary"
-                >
-                  Find guardian
-                </Button>
-              </>
             )}
           </View>
         </View>

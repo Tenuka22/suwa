@@ -7,7 +7,7 @@ import {
 } from "./routes/credits";
 import { adminDoctorEducationEntriesRoute } from "./routes/doctor-education-entries";
 import { adminDoctorScheduleEntriesRoute } from "./routes/doctor-schedule-entries";
-import { adminGuardiansRoute } from "./routes/guardians";
+
 import { adminPatientsRoute } from "./routes/patients";
 import { adminPendingDoctorsRoute } from "./routes/pending-doctors";
 import { adminPlansRoute } from "./routes/plans";
@@ -27,5 +27,5 @@ export const adminRouter = {
   plans: adminPlansRoute,
   creditTransactions: adminCreditTransactionsRoute,
   userCredits: adminUserCreditsRoute,
-  guardians: adminGuardiansRoute,
+
 };

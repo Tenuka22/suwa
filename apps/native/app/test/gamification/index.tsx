@@ -70,6 +70,52 @@ export default function GamificationTestScreen() {
           Back to Test Home ›
         </Button>
       </Card>
+
+      <Card className="gap-4">
+        <View className="gap-1">
+          <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.18em]">
+            New Actions
+          </Text>
+          <Text className="font-extrabold font-sans text-2xl text-foreground tracking-tight">
+            Trackable Wellness
+          </Text>
+          <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-6">
+            Time-based, trackable actions for a healthier lifestyle.
+          </Text>
+        </View>
+
+        <Button
+          className="w-full"
+          href="/sprite/actions/gratitude?type=morning&action=gratitude_morning"
+          variant="secondary"
+        >
+          Gratitude Journal ›
+        </Button>
+
+        <Button
+          className="w-full"
+          href="/sprite/actions/hydration"
+          variant="secondary"
+        >
+          Hydration Tracker ›
+        </Button>
+
+        <Button
+          className="w-full"
+          href="/sprite/actions/walking"
+          variant="secondary"
+        >
+          Walking Tracker ›
+        </Button>
+
+        <Button
+          className="w-full"
+          href="/sprite/actions/sleep-prep"
+          variant="secondary"
+        >
+          Sleep Preparation ›
+        </Button>
+      </Card>
     </Screen>
   );
 }
