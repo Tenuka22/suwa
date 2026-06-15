@@ -155,9 +155,9 @@ export default function DoctorsScreen() {
 
           {!doctorsQuery.isPending &&
             doctors.length > 0 &&
-            doctors.map(({ profile, portrait, availableSlotCount }) => (
+            doctors.map(({ profile, portrait, hasAvailability }) => (
               <DoctorCard
-                availableSlotCount={availableSlotCount}
+                hasAvailability={hasAvailability}
                 key={profile.userId}
                 onPress={() => router.push(`/doctors/${profile.userId}`)}
                 portrait={portrait}

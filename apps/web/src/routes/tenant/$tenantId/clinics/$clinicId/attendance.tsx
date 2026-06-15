@@ -1,4 +1,5 @@
 import { Button } from "@doca/ui/components/button";
+import { Calendar } from "@doca/ui/components/calendar";
 import {
   Card,
   CardContent,
@@ -18,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@doca/ui/components/select";
-import { Calendar } from "@doca/ui/components/calendar";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
@@ -106,8 +106,8 @@ function ClinicAttendancePage() {
         <div className="flex items-center gap-3">
           <Link
             className="flex items-center gap-1 text-muted-foreground text-sm hover:text-foreground"
-            to="/tenant/$tenantId/clinics"
             params={{ tenantId }}
+            to="/tenant/$tenantId/clinics"
           >
             <ArrowLeftIcon className="size-4" />
             Back to Clinics
@@ -155,9 +155,7 @@ function ClinicAttendancePage() {
                           }
                         }}
                         selected={
-                          attendanceDate
-                            ? new Date(attendanceDate)
-                            : undefined
+                          attendanceDate ? new Date(attendanceDate) : undefined
                         }
                       />
                     </PopoverContent>
@@ -234,9 +232,7 @@ function ClinicAttendancePage() {
                 </div>
 
                 <Button
-                  disabled={
-                    markAttendance.isPending || !attendanceDoctorId
-                  }
+                  disabled={markAttendance.isPending || !attendanceDoctorId}
                   onClick={handleMarkAttendance}
                 >
                   {markAttendance.isPending ? "Saving..." : "Save Attendance"}
@@ -266,42 +262,34 @@ function ClinicAttendancePage() {
             ) : (
               <div className="flex flex-col gap-1.5">
                 {attendanceRecords.map((r) => {
-                  const doctor = doctors.find(
-                    (d) => d.doctorId === r.doctorId
-                  );
+                  const doctor = doctors.find((d) => d.doctorId === r.doctorId);
                   return (
                     <div
                       className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-2"
                       key={r.id}
                     >
                       <UserIcon className="size-3 shrink-0 text-muted-foreground" />
-                      <span className="flex-1 text-xs font-medium">
+                      <span className="flex-1 font-medium text-xs">
                         {doctor?.doctorName ?? r.doctorId}
                       </span>
                       {r.arrivedAt && (
                         <span className="flex items-center gap-1 text-[10px] text-green-600">
                           <LogInIcon className="size-3" />
-                          {new Date(r.arrivedAt).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            }
-                          )}
+                          {new Date(r.arrivedAt).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
                         </span>
                       )}
                       {r.leftAt && (
                         <span className="flex items-center gap-1 text-[10px] text-amber-600">
                           <LogOutIcon className="size-3" />
-                          {new Date(r.leftAt).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            }
-                          )}
+                          {new Date(r.leftAt).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
                         </span>
                       )}
                     </div>

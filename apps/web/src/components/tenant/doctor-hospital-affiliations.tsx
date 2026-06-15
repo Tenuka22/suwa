@@ -17,12 +17,7 @@ import {
   EmptyTitle,
 } from "@doca/ui/components/empty";
 import { Separator } from "@doca/ui/components/separator";
-import {
-  BuildingIcon,
-  CheckIcon,
-  ClockIcon,
-  XIcon,
-} from "lucide-react";
+import { BuildingIcon, CheckIcon, ClockIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import {

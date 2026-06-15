@@ -60,8 +60,8 @@ export function getBundleCount(userId: string): number {
 }
 
 export function clearCachedStressData(userId: string): void {
-  storage.delete(`${BUNDLE_PREFIX}${userId}`);
-  storage.delete(`${BUNDLE_PREFIX}${userId}${TOTAL_KEY_SUFFIX}`);
+  storage.remove(`${BUNDLE_PREFIX}${userId}`);
+  storage.remove(`${BUNDLE_PREFIX}${userId}${TOTAL_KEY_SUFFIX}`);
 }
 
 export function clearAll(): void {

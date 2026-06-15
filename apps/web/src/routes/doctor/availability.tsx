@@ -111,7 +111,9 @@ function DoctorAvailabilityRoute() {
   const affiliations = affiliationsData?.affiliations ?? [];
 
   const currentAffiliation = useMemo(() => {
-    if (!selectedTenantId) return null;
+    if (!selectedTenantId) {
+      return null;
+    }
     return affiliations.find((a) => a.tenantId === selectedTenantId) ?? null;
   }, [selectedTenantId, affiliations]);
 
@@ -134,12 +136,10 @@ function DoctorAvailabilityRoute() {
       }
     }
 
-    if (availability?.slots) {
-      if (availability.slots.length > 0) {
-        setSlots(availability.slots as AvailabilitySlot[]);
-        setHasChanges(false);
-        return;
-      }
+    if (availability?.slots && availability.slots.length > 0) {
+      setSlots(availability.slots as AvailabilitySlot[]);
+      setHasChanges(false);
+      return;
     }
 
     setSlots([
@@ -201,7 +201,9 @@ function DoctorAvailabilityRoute() {
       const discard = window.confirm(
         "You have unsaved changes. Switch anyway?"
       );
-      if (!discard) return;
+      if (!discard) {
+        return;
+      }
     }
     setSelectedTenantId(value ?? "");
     setHasChanges(false);
@@ -325,7 +327,9 @@ function DoctorAvailabilityRoute() {
   };
 
   const tenantWindowsByDay = useMemo(() => {
-    if (isTenantMode || !affiliations.length) return [];
+    if (isTenantMode || !affiliations.length) {
+      return [];
+    }
     const result: Array<{
       dayOfWeek: number;
       tenantName: string;
@@ -401,14 +405,9 @@ function DoctorAvailabilityRoute() {
                     <SelectValue placeholder="My general availability" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
-                      My general availability
-                    </SelectItem>
+                    <SelectItem value="">My general availability</SelectItem>
                     {affiliations.map((aff) => (
-                      <SelectItem
-                        key={aff.id}
-                        value={aff.tenantId}
-                      >
+                      <SelectItem key={aff.id} value={aff.tenantId}>
                         {aff.tenantName}
                       </SelectItem>
                     ))}
@@ -747,8 +746,8 @@ function DoctorAvailabilityRoute() {
                       tenantWindowsByDay.filter(
                         (w) => w.dayOfWeek === dayOfWeek
                       ).length > 0 && (
-                        <div className="flex flex-col gap-2 border-t border-border/40 pt-2">
-                          <p className="text-muted-foreground text-xs font-medium">
+                        <div className="flex flex-col gap-2 border-border/40 border-t pt-2">
+                          <p className="font-medium text-muted-foreground text-xs">
                             Tenant reservations
                           </p>
                           {tenantWindowsByDay
@@ -764,7 +763,7 @@ function DoctorAvailabilityRoute() {
                                 >
                                   {w.tenantName}
                                 </Badge>
-                                <span className="font-mono text-xs text-muted-foreground">
+                                <span className="font-mono text-muted-foreground text-xs">
                                   {w.startTime}–{w.endTime}
                                 </span>
                               </div>

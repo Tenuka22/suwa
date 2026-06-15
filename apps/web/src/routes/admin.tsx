@@ -62,7 +62,7 @@ function AdminLayoutRoute() {
       <AdminSidebar />
       <SidebarInset>
         <div className="flex min-h-svh flex-col">
-          <header className="pl-3 sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60 h-14">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 pl-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
             <SidebarTrigger />
             <div className="min-w-0">
               <p className="font-medium text-sm">Admin Console</p>

@@ -5,7 +5,6 @@ import { Button } from "@doca/ui/components/button";
 import { Card, CardContent, CardHeader } from "@doca/ui/components/card";
 import { Separator } from "@doca/ui/components/separator";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import {
   BadgeCheckIcon,
   BookOpenIcon,
@@ -17,6 +16,7 @@ import {
   UserCircleIcon,
   VideoIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { DoctorFilesPanel, DoctorProfileCard } from "@/components/doctors";
 import { orpc } from "@/utils/orpc";
@@ -102,7 +102,7 @@ function DoctorProfileRoute() {
                   </p>
 
                   <div className="flex items-center gap-2">
-                    <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                    <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs">
                       ID: {doctorId}
                     </code>
                     <Button

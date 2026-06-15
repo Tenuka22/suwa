@@ -41,6 +41,8 @@
         }
       ],
       ["@stripe/stripe-react-native", {}],
+      "react-native-maps",
+      ["expo-location", {}],
       "expo-web-browser",
       "./plugins/with-ios-audio-speaker"
     ],

@@ -36,7 +36,7 @@ export const appRouter = {
   chat: chatHttpRouter,
 };
 
-export const wsAppRouter = {}
+export const wsAppRouter = {};
 
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

@@ -48,8 +48,8 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 
 interface ScheduleSlot {
   dayOfWeek: number;
-  startTime: string;
   endTime: string;
+  startTime: string;
 }
 
 const timeToMinutes = (time: string) => {
@@ -58,10 +58,14 @@ const timeToMinutes = (time: string) => {
 };
 
 function parseSchedule(schedule: string | null): string {
-  if (!schedule) return "";
+  if (!schedule) {
+    return "";
+  }
   try {
     const parsed = JSON.parse(schedule) as ScheduleSlot[];
-    if (!Array.isArray(parsed)) return schedule;
+    if (!Array.isArray(parsed)) {
+      return schedule;
+    }
     return parsed
       .map((s) => `${DAYS[s.dayOfWeek] ?? "?"} ${s.startTime}-${s.endTime}`)
       .join(", ");
@@ -139,9 +143,7 @@ function TenantClinicsPage() {
         name: clinicName,
         specialization: specialization || undefined,
         schedule:
-          scheduleSlots.length > 0
-            ? JSON.stringify(scheduleSlots)
-            : undefined,
+          scheduleSlots.length > 0 ? JSON.stringify(scheduleSlots) : undefined,
       });
       toast.success("Clinic created successfully");
       setDialogOpen(false);
@@ -207,7 +209,7 @@ function TenantClinicsPage() {
                             <Badge className="text-[10px]" variant="secondary">
                               {DAYS[slot.dayOfWeek]}
                             </Badge>
-                            <span className="font-mono text-xs text-muted-foreground">
+                            <span className="font-mono text-muted-foreground text-xs">
                               {slot.startTime}-{slot.endTime}
                             </span>
                           </div>
@@ -226,7 +228,10 @@ function TenantClinicsPage() {
                   <div className="flex flex-wrap items-end gap-2">
                     <div className="flex flex-col gap-1">
                       <Label className="text-[10px]">Day</Label>
-                      <Select onValueChange={(v) => setNewDay(v ?? "1")} value={newDay}>
+                      <Select
+                        onValueChange={(v) => setNewDay(v ?? "1")}
+                        value={newDay}
+                      >
                         <SelectTrigger className="w-20">
                           <SelectValue />
                         </SelectTrigger>
@@ -241,7 +246,10 @@ function TenantClinicsPage() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-[10px]">Start</Label>
-                      <Select onValueChange={(v) => setNewStart(v ?? "09:00")} value={newStart}>
+                      <Select
+                        onValueChange={(v) => setNewStart(v ?? "09:00")}
+                        value={newStart}
+                      >
                         <SelectTrigger className="w-20">
                           <SelectValue />
                         </SelectTrigger>
@@ -256,7 +264,10 @@ function TenantClinicsPage() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-[10px]">End</Label>
-                      <Select onValueChange={(v) => setNewEnd(v ?? "10:00")} value={newEnd}>
+                      <Select
+                        onValueChange={(v) => setNewEnd(v ?? "10:00")}
+                        value={newEnd}
+                      >
                         <SelectTrigger className="w-20">
                           <SelectValue />
                         </SelectTrigger>
@@ -269,7 +280,12 @@ function TenantClinicsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button className="h-8" onClick={addSlot} size="sm" variant="outline">
+                    <Button
+                      className="h-8"
+                      onClick={addSlot}
+                      size="sm"
+                      variant="outline"
+                    >
                       Add
                     </Button>
                   </div>
@@ -328,9 +344,9 @@ function TenantClinicsPage() {
                 </p>
                 <div className="mt-auto pt-3">
                   <Link
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground hover:bg-muted"
-                    to="/tenant/$tenantId/clinics/$clinicId/attendance"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 font-medium text-foreground text-xs hover:bg-muted"
                     params={{ tenantId, clinicId: clinic.id }}
+                    to="/tenant/$tenantId/clinics/$clinicId/attendance"
                   >
                     <CalendarCheckIcon className="size-3" />
                     Attendance

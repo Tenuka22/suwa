@@ -1,14 +1,8 @@
 "use client";
 
-import { NATIVE_APP_DISPLAY_NAME } from "@doca/app-info";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react-native";
-import {
-  Image,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Image, Text, useWindowDimensions, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Button } from "@/components/ui/button";
 import { SpriteAnimation } from "@/components/ui/sprite-animation";
@@ -21,8 +15,8 @@ interface HomeLandingProps {
 
 interface HeroSectionProps {
   primaryColor: string;
-  spriteAction: "idle" | "happy" | "thinking" | "alert";
   signedIn: boolean;
+  spriteAction: "idle" | "happy" | "thinking" | "alert";
 }
 
 function HeroSection({
@@ -39,7 +33,7 @@ function HeroSection({
   return (
     <Animated.View className="px-1" entering={FadeIn.duration(800)}>
       <View
-        className="relative flex overflow-hidden rounded-card border-2 py-6 border-border bg-card"
+        className="relative flex overflow-hidden rounded-card border-2 border-border bg-card py-6"
         style={{ height: screenHeight - 48 }}
       >
         <View className="absolute -top-10 -right-10 h-40 w-40 rotate-12 border-[6px] border-primary/20" />
@@ -49,7 +43,6 @@ function HeroSection({
         <View className="h-full flex-1 px-card pb-card">
           {/* Center content */}
           <View className="flex-1 items-center justify-center gap-3">
-
             <View className="size-16 items-center justify-center overflow-hidden rounded-card">
               <Image
                 className="size-14"
@@ -62,21 +55,20 @@ function HeroSection({
               />
             </View>
             <Text className="text-center font-black font-sans text-4xl text-foreground leading-[1.05] tracking-tighter">
-              Healthcare{" "}
-              <Text className="text-primary">Reimagined</Text>
+              Healthcare <Text className="text-primary">Reimagined</Text>
             </Text>
 
             <Text className="max-w-xl text-center font-medium font-sans text-base text-muted-foreground leading-relaxed">
-              Giving you the power that you never had in medical sector by empoveering you with tooling.
+              Giving you the power that you never had in medical sector by
+              empoveering you with tooling.
             </Text>
 
             <SpriteAnimation action={spriteAction} size="lg" />
-
           </View>
 
           {/* Bottom buttons */}
           <View className="gap-4">
-            <View className="grid-cols-1 grid sm:grid-cols-2 gap-3">
+            <View className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Button
                 className="h-14 w-full"
                 href={primaryHref}
@@ -84,7 +76,11 @@ function HeroSection({
               >
                 {primaryLabel}
               </Button>
-              <Button className="h-14 w-full" href={secondaryHref} variant="outline">
+              <Button
+                className="h-14 w-full"
+                href={secondaryHref}
+                variant="outline"
+              >
                 {secondaryLabel}
               </Button>
             </View>
@@ -123,8 +119,8 @@ export function HomeLanding({ signedIn }: HomeLandingProps) {
     <View className="gap-14 pb-12">
       <HeroSection
         primaryColor={colors.primary}
-        spriteAction={spriteAction}
         signedIn={signedIn}
+        spriteAction={spriteAction}
       />
     </View>
   );

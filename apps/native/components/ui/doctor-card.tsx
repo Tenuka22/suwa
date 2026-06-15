@@ -18,7 +18,7 @@ import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { useThemeColor } from "@/utils/theme";
 
 interface DoctorCardProps {
-  availableSlotCount: number;
+  hasAvailability: boolean;
   onPress: () => void;
   portrait: { id: string | null } | null;
   profile: {
@@ -38,7 +38,7 @@ interface DoctorCardProps {
 export const DoctorCard = ({
   profile,
   portrait,
-  availableSlotCount,
+  hasAvailability,
   onPress,
 }: DoctorCardProps) => {
   const colors = useThemeColor();
@@ -163,11 +163,11 @@ export const DoctorCard = ({
 
       <View className="flex-row items-center justify-between border-border/10 border-t pt-3">
         <View className="flex-row items-center gap-1.5">
-          {availableSlotCount > 0 ? (
+          {hasAvailability ? (
             <>
               <View className="h-2 w-2 rounded-full bg-success" />
               <Text className="font-black font-sans text-[10px] text-success uppercase tracking-widest">
-                {availableSlotCount} slots open
+                Available
               </Text>
             </>
           ) : (

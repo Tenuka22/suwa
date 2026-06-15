@@ -1,12 +1,14 @@
 ﻿import {
   doctorFiles,
+  doctorHospitalAffiliations,
   doctorProfiles,
   doctorWeeklyAvailability,
   parseJsonApproachSteps,
   parseJsonStringArray,
+  tenants,
 } from "@doca/db";
 import { listDoctorsInputSchema } from "@doca/db/schemas-types";
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { publicProcedure } from "../../../index";
 
 function mapDoctorProfile(profile: typeof doctorProfiles.$inferSelect) {
@@ -53,6 +55,43 @@ export const listDoctorsRoute = publicProcedure
     const offset = (input.page - 1) * input.pageSize;
     const pageItems = filteredProfiles.slice(offset, offset + input.pageSize);
 
+    const doctorIds = pageItems.map((p) => p.userId);
+    const affiliations = doctorIds.length > 0
+      ? await context.db
+          .select({
+            doctorId: doctorHospitalAffiliations.doctorId,
+            tenantId: doctorHospitalAffiliations.tenantId,
+            tenantName: tenants.name,
+            tenantType: tenants.type,
+          })
+          .from(doctorHospitalAffiliations)
+          .innerJoin(tenants, eq(doctorHospitalAffiliations.tenantId, tenants.id))
+          .where(
+            and(
+              inArray(doctorHospitalAffiliations.doctorId, doctorIds),
+              eq(doctorHospitalAffiliations.status, "ACTIVE"),
+            ),
+          )
+      : [];
+
+    const affiliationsByDoctor: Record<string, { tenantId: string; tenantName: string; tenantType: string }[]> = {};
+    for (const aff of affiliations) {
+      const group = affiliationsByDoctor[aff.doctorId]
+      if (group) {
+        group.push({
+          tenantId: aff.tenantId,
+          tenantName: aff.tenantName,
+          tenantType: aff.tenantType,
+        })
+      } else {
+        affiliationsByDoctor[aff.doctorId] = [{
+          tenantId: aff.tenantId,
+          tenantName: aff.tenantName,
+          tenantType: aff.tenantType,
+        }];
+      }
+    }
+
     const doctors = await Promise.all(
       pageItems.map(async (profile) => {
         const [portrait] = await context.db
@@ -70,6 +109,7 @@ export const listDoctorsRoute = publicProcedure
           profile: mapDoctorProfile(profile),
           portrait: portrait ?? null,
           hasAvailability: (availabilityCount?.value ?? 0) > 0,
+          affiliations: affiliationsByDoctor[profile.userId] ?? [],
         };
       })
     );

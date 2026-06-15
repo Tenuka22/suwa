@@ -164,8 +164,8 @@ function PaymentSheetModal({
       </Text>
 
       <PaymentElement
-        onLoadError={(error) =>
-          setElementError(error.message ?? "Failed to load payment form")
+        onLoadError={(event) =>
+          setElementError(event.error.message ?? "Failed to load payment form")
         }
       />
 
