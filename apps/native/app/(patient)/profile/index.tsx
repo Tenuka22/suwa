@@ -3,7 +3,7 @@
 import { useClerk } from "@clerk/expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
-import { ArrowLeft, Key, Shield, User } from "lucide-react-native";
+import { ArrowLeft, Calendar, Key, Shield, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
@@ -445,6 +445,29 @@ export default function ProfileScreen() {
           </View>
           <View className="px-card py-card">
             <CreditPurchase />
+          </View>
+        </View>
+
+        <View className="overflow-hidden rounded-card border-2 border-border bg-card">
+          <View className="flex-row items-center gap-3 border-border border-b-2 px-card py-4">
+            <Calendar color={colors.primary} size={20} />
+            <Text className="font-black font-sans text-foreground text-lg tracking-tight">
+              Appointments
+            </Text>
+          </View>
+          <View className="px-card py-card">
+            <Text className="font-medium font-sans text-muted-foreground text-sm leading-relaxed">
+              View and manage your booked therapy sessions.
+            </Text>
+            <View className="mt-4">
+              <Button
+                className="w-full"
+                href="/appointments"
+                icon={<Calendar color="#ffffff" size={16} />}
+              >
+                My Appointments
+              </Button>
+            </View>
           </View>
         </View>
 

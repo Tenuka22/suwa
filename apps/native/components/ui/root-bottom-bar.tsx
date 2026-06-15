@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   BarChart3,
-  Calendar,
   Sparkles,
   Stethoscope,
   User,
@@ -20,7 +19,6 @@ const SMALL_BREAKPOINT = 680;
 
 const patientTabs = [
   { href: "/doctors", icon: Stethoscope, label: "Doctors" },
-  { href: "/appointments", icon: Calendar, label: "Appointments" },
   { href: "/sprite", icon: Sparkles, label: "Sprite" },
   { href: "/stress-hub", icon: Activity, label: "Stress Hub" },
   { href: "/profile", icon: User, label: "Profile" },
