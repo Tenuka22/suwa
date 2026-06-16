@@ -24,6 +24,7 @@ function AdminSessionPage() {
     endAt: string;
   } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isMock, setIsMock] = useState(false);
   const [selectedRole, setSelectedRole] = useState<
     "patient" | "doctor" | "admin"
   >("patient");
@@ -56,16 +57,20 @@ function AdminSessionPage() {
 
   if (activeSession) {
     return (
-      <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col gap-6 p-6">
+      <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col p-6">
         <VideoRoomWeb
           endAt={activeSession.endAt}
-          onClose={() => setActiveSession(null)}
+          onClose={() => {
+            setActiveSession(null);
+            setIsMock(false);
+          }}
           onFetchToken={(sid) =>
             orpc.getTestLiveKitToken.call({ sessionId: sid })
           }
           role={selectedRole}
           sessionId={activeSession.id}
           startAt={activeSession.startAt}
+          isMock={isMock}
         />
       </div>
     );
@@ -195,6 +200,20 @@ function AdminSessionPage() {
               <Video className="mr-2 size-4" />
               Join as{" "}
               {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
+            </Button>
+
+            <Button
+              onClick={() => {
+                setIsMock(true);
+                setActiveSession({
+                  id: "mock-session",
+                  startAt: new Date().toISOString(),
+                  endAt: new Date(Date.now() + 3600000).toISOString(),
+                });
+              }}
+              variant="secondary"
+            >
+              🚀 Mock Simulation (Save Credits)
             </Button>
           </CardContent>
         </Card>

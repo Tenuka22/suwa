@@ -48,6 +48,7 @@ interface VideoRoomProps {
   role: SessionTimingRole;
   sessionId: string;
   startAt: string;
+  isMock?: boolean;
 }
 
 export function VideoRoom({
@@ -58,6 +59,7 @@ export function VideoRoom({
   endAt,
   role,
   onFetchToken,
+  isMock,
 }: VideoRoomProps) {
   const colors = useThemeColor();
   const timing = useSessionTiming(startAt, endAt, role);
@@ -79,6 +81,7 @@ export function VideoRoom({
   const remoteParticipant = liveKit.remoteParticipants[0];
   const hasRemoteVideo = !!remoteParticipant?.streamURL;
   const hasRemoteConnected = liveKit.remoteParticipants.length > 0;
+  // const isSpeaking = remoteParticipant?.isSpeaking;
 
   const _displayName = isAnonymous && alias ? alias : formatRoleLabel(role);
 
@@ -87,6 +90,7 @@ export function VideoRoom({
     sessionId,
     endAt,
     role,
+    disabled: isMock,
   });
 
   const handlePrivacyChoice = useCallback(
@@ -101,8 +105,16 @@ export function VideoRoom({
     [liveKit]
   );
 
+  const handleCameraToggle = useCallback(async () => {
+    if (isAnonymous && !liveKit.isCameraEnabled) {
+      setShowConfirmToggle(true);
+      return;
+    }
+    await liveKit.toggleCamera();
+  }, [isAnonymous, liveKit]);
+
   const handleTogglePrivacy = useCallback(async () => {
-    if (isAnonymous) {
+    if (isAnonymous && !liveKit.isCameraEnabled) {
       await liveKit.toggleCamera();
     }
     setIsAnonymous((prev) => !prev);
@@ -110,7 +122,7 @@ export function VideoRoom({
   }, [isAnonymous, liveKit]);
 
   const fetchToken = useCallback(async () => {
-    if (tokenData || isFetchingToken) {
+    if (isMock || tokenData || isFetchingToken) {
       return;
     }
     setIsFetchingToken(true);
@@ -135,7 +147,8 @@ export function VideoRoom({
       timing.canJoin &&
       !tokenData &&
       !isFetchingToken &&
-      !showPrivacyPrompt
+      !showPrivacyPrompt &&
+      !isMock
     ) {
       fetchToken();
     }
@@ -145,15 +158,16 @@ export function VideoRoom({
     isFetchingToken,
     fetchToken,
     showPrivacyPrompt,
+    isMock,
   ]);
 
   useEffect(() => {
-    if (tokenData && !liveKit.isConnected && !liveKit.isConnecting) {
+    if (tokenData && !liveKit.isConnected && !liveKit.isConnecting && !isMock) {
       liveKit
         .connect(tokenData.serverUrl, tokenData.token)
         .catch(() => undefined);
     }
-  }, [tokenData, liveKit]);
+  }, [tokenData, liveKit, isMock]);
 
   const handleEndSession = useCallback(async () => {
     await orpc.recordAttendanceEvent
@@ -300,15 +314,32 @@ export function VideoRoom({
   const remoteLabel = formatParticipantLabel(remoteParticipant?.identity ?? "");
 
   let remoteContent: React.ReactNode;
-  if (liveKit.isConnected && hasRemoteVideo) {
+  if (isMock) {
     remoteContent = (
-      <RTCView
-        mirror={false}
-        objectFit="cover"
-        streamURL={remoteParticipant.streamURL}
-        style={{ height: "100%", width: "100%" }}
-        zOrder={0}
-      />
+      <View className="flex-1 items-center justify-center bg-gray-900">
+        <User color="white" size={64} />
+        <Text className="mt-2 font-bold font-sans text-lg text-white">
+          Doctor (Mock)
+        </Text>
+        <Text className="font-medium font-sans text-white/60 text-sm">
+          Simulation Active
+        </Text>
+      </View>
+    );
+  } else if (liveKit.isConnected && hasRemoteVideo) {
+    remoteContent = (
+      <View className="flex-1 overflow-hidden rounded-2xl">
+        <RTCView
+          mirror={false}
+          objectFit="cover"
+          streamURL={remoteParticipant.streamURL}
+          style={{ height: "100%", width: "100%" }}
+          zOrder={0}
+        />
+        {/* {isSpeaking && (
+          <View className="absolute inset-0 border-4 border-emerald-500 rounded-2xl" />
+        )} */}
+      </View>
     );
   } else if (liveKit.isConnected && hasRemoteConnected) {
     remoteContent = (
@@ -343,9 +374,15 @@ export function VideoRoom({
   }
 
   let localPreview: React.ReactNode = null;
-  if (liveKit.isConnected && !isAnonymous) {
+  if (isMock || (liveKit.isConnected && !isAnonymous)) {
     let pipContent: React.ReactNode;
-    if (liveKit.localStreamURL) {
+    if (isMock) {
+      pipContent = (
+        <View className="flex-1 items-center justify-center bg-emerald-950">
+          <User color="#10b981" size={24} />
+        </View>
+      );
+    } else if (liveKit.localStreamURL) {
       pipContent = (
         <RTCView
           mirror
@@ -401,34 +438,34 @@ export function VideoRoom({
   }
 
   return (
-    <View className="flex-1 gap-3">
-      <View className="relative aspect-video w-full overflow-hidden rounded-card bg-black">
+    <View className="flex-1">
+      <View className="absolute inset-0 bg-black">
         {remoteContent}
 
         {remoteParticipant && (
-          <View className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5">
-            <Text className="font-bold font-sans text-[10px] text-white drop-shadow-sm">
+          <View className="absolute top-12 left-4 rounded-xl bg-black/40 px-3 py-1.5 backdrop-blur-md">
+            <Text className="font-bold font-sans text-sm text-white">
               {remoteParticipant.isAnonymous
                 ? remoteParticipant.displayName
                 : remoteLabel}
             </Text>
             {remoteParticipant.isAnonymous && (
-              <Text className="font-bold font-sans text-[7px] text-purple-300 uppercase tracking-wider">
+              <Text className="font-bold font-sans text-[10px] text-purple-300 uppercase tracking-wider">
                 Anonymous
               </Text>
             )}
           </View>
         )}
 
-        <View className="absolute top-2 left-2">
+        <View className="absolute top-12 right-4">
           <View
-            className={`flex-row items-center gap-1 rounded-full px-2 py-0.5 ${
+            className={`flex-row items-center gap-1.5 rounded-full px-3 py-1 ${
               liveKit.isConnected ? "bg-emerald-500/80" : "bg-amber-500/80"
             }`}
           >
-            <View className="h-1.5 w-1.5 rounded-full bg-white" />
-            <Text className="font-bold font-sans text-[9px] text-white uppercase tracking-wider">
-              {liveKit.isConnected ? "Connected" : "Connecting"}
+            <View className="h-2 w-2 rounded-full bg-white" />
+            <Text className="font-bold font-sans text-[10px] text-white uppercase tracking-widest">
+              {liveKit.isConnected ? "Live" : "Connecting"}
             </Text>
           </View>
         </View>
@@ -437,128 +474,69 @@ export function VideoRoom({
         {anonymousPlaceholder}
       </View>
 
-      <View className="flex-row items-center justify-center gap-4 py-2">
-        <Button
-          className="h-12 w-12 rounded-full"
-          icon={
-            liveKit.isMicEnabled ? (
-              <Mic color="white" size={20} />
-            ) : (
-              <MicOff color="white" size={20} />
-            )
-          }
-          onPress={liveKit.toggleMic}
-          size="sm"
-          variant={liveKit.isMicEnabled ? "primary" : "destructive"}
-        />
-        <Button
-          className="h-12 w-12 rounded-full"
-          icon={
-            liveKit.isCameraEnabled ? (
-              <Camera color="white" size={20} />
-            ) : (
-              <CameraOff color="white" size={20} />
-            )
-          }
-          onPress={liveKit.toggleCamera}
-          size="sm"
-          variant={liveKit.isCameraEnabled ? "primary" : "destructive"}
-        />
-        <Button
-          className="h-12 w-12 rounded-full"
-          icon={<PhoneOff color="white" size={20} />}
-          onPress={handleEndSession}
-          size="sm"
-          variant="destructive"
-        />
-        {role === "patient" && (
+      <View className="absolute right-0 bottom-0 left-0 gap-4 p-6 pb-12">
+        <View className="flex-row items-center justify-center gap-6">
           <Button
-            className="h-12 w-12 rounded-full"
+            className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 backdrop-blur-xl"
             icon={
-              isAnonymous ? (
-                <EyeOff color="white" size={20} />
+              liveKit.isMicEnabled ? (
+                <Mic color="white" size={24} />
               ) : (
-                <Eye color="white" size={20} />
+                <MicOff color="white" size={24} />
               )
             }
-            onPress={() => setShowConfirmToggle(true)}
-            size="sm"
-            variant={isAnonymous ? "secondary" : "destructive"}
+            onPress={liveKit.toggleMic}
+            size="lg"
+            variant="ghost"
           />
+          <Button
+            className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 backdrop-blur-xl"
+            icon={
+              liveKit.isCameraEnabled ? (
+                <Camera color="white" size={24} />
+              ) : (
+                <CameraOff color="white" size={24} />
+              )
+            }
+            onPress={handleCameraToggle}
+            size="lg"
+            variant="ghost"
+          />
+          <Button
+            className="h-16 w-16 rounded-full bg-red-600 shadow-lg shadow-red-500/40"
+            icon={<PhoneOff color="white" size={24} />}
+            onPress={handleEndSession}
+            size="lg"
+          />
+          {role === "patient" && (
+            <Button
+              className={`h-16 w-16 rounded-full border-2 backdrop-blur-xl ${
+                isAnonymous
+                  ? "border-purple-500/50 bg-purple-500/20"
+                  : "border-white/20 bg-black/40"
+              }`}
+              icon={
+                isAnonymous ? (
+                  <EyeOff color="white" size={24} />
+                ) : (
+                  <Eye color="white" size={24} />
+                )
+              }
+              onPress={() => setShowConfirmToggle(true)}
+              size="lg"
+              variant="ghost"
+            />
+          )}
+        </View>
+
+        {timing.timeStatus === "grace" && (
+          <View className="items-center rounded-2xl border border-warning/30 bg-warning/10 p-3 backdrop-blur-md">
+            <Text className="font-bold font-sans text-warning text-xs uppercase tracking-widest">
+              Grace period: {Math.ceil(timing.remainingMs / 60_000)}m remaining
+            </Text>
+          </View>
         )}
       </View>
-
-      {liveKit.isConnected && (
-        <Card className="gap-2">
-          <View className="flex-row items-center gap-2">
-            <Video color={colors.foreground} size={14} />
-            <Text className="font-bold font-sans text-foreground text-xs uppercase tracking-wider">
-              Session Participants
-            </Text>
-          </View>
-          <View className="gap-1">
-            <View className="flex-row items-center gap-2 rounded-lg bg-muted/10 px-3 py-2">
-              <View className={`h-2 w-2 rounded-full ${statusDotColor}`} />
-              <View className="flex-1 flex-row items-center gap-1.5">
-                <Text className="font-bold font-sans text-foreground text-xs">
-                  {isAnonymous && alias
-                    ? alias
-                    : `You (${formatRoleLabel(role)})`}
-                </Text>
-                {isAnonymous && <EyeOff color="#a78bfa" size={10} />}
-              </View>
-              <Text className="font-medium font-sans text-[10px] text-success uppercase">
-                {(() => {
-                  if (isAnonymous) {
-                    return "Anonymous";
-                  }
-                  if (liveKit.isCameraEnabled && liveKit.isMicEnabled) {
-                    return "Connected";
-                  }
-                  if (liveKit.isCameraEnabled) {
-                    return "Mic Off";
-                  }
-                  return "Camera Off";
-                })()}
-              </Text>
-            </View>
-            {remoteParticipant && (
-              <View className="flex-row items-center gap-2 rounded-lg bg-muted/10 px-3 py-2">
-                <View className="h-2 w-2 rounded-full bg-emerald-500" />
-                <Text className="flex-1 font-bold font-sans text-foreground text-xs">
-                  {remoteLabel}
-                </Text>
-                <Text className="font-medium font-sans text-[10px] text-success uppercase">
-                  {hasRemoteVideo ? "Video" : "Audio Only"}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Card>
-      )}
-
-      {timing.mustLeave && (
-        <Card className="border-2 border-destructive bg-destructive/10">
-          <View className="px-3 py-2">
-            <Text className="font-bold font-sans text-destructive text-xs uppercase tracking-wider">
-              Session time has ended. Please disconnect.
-            </Text>
-          </View>
-        </Card>
-      )}
-
-      {timing.timeStatus === "grace" && (
-        <Card className="border-2 border-warning bg-warning/10">
-          <View className="px-3 py-2">
-            <Text className="font-bold font-sans text-warning text-xs uppercase tracking-wider">
-              Grace period:{" "}
-              {timing.remainingMs > 0
-                ? `${Math.ceil(timing.remainingMs / 60_000)} minutes remaining`
-                : "ending soon"}
-            </Text>
-          </View>
-        </Card>
-      )}
     </View>
   );
 }

@@ -16,7 +16,10 @@ import { useThemeColor } from "@/utils/theme";
 export default function TestSessionScreen() {
   const colors = useThemeColor();
   const [sessionId, setSessionId] = useState("");
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [activeSession, setActiveSession] = useState<{
+    id: string;
+    isMock: boolean;
+  } | null>(null);
   const [alias, setAlias] = useState<string | undefined>(undefined);
   const [selectedRole, setSelectedRole] = useState<
     "patient" | "doctor" | "admin"
@@ -37,24 +40,25 @@ export default function TestSessionScreen() {
     if (!sessionId.trim()) {
       return;
     }
-    setActiveSessionId(sessionId.trim());
+    setActiveSession({ id: sessionId.trim(), isMock: false });
   }, [sessionId]);
 
-  if (activeSessionId) {
+  if (activeSession) {
     return (
       <>
-        <Stack.Screen options={{ headerShown: true, title: "Test Session" }} />
-        <Screen contentClassName="gap-section px-page py-page bg-background">
+        <Stack.Screen options={{ headerShown: false, title: "Test Session" }} />
+        <Screen contentClassName="flex-1 bg-black">
           <VideoRoom
             alias={alias}
             endAt={new Date(Date.now() + 3_600_000).toISOString()}
-            onClose={() => setActiveSessionId(null)}
+            onClose={() => setActiveSession(null)}
             onFetchToken={(sid: string) =>
               orpc.getTestLiveKitToken.call({ sessionId: sid })
             }
             role={selectedRole}
-            sessionId={activeSessionId}
+            sessionId={activeSession.id}
             startAt={new Date().toISOString()}
+            isMock={activeSession.isMock}
           />
         </Screen>
       </>
@@ -121,6 +125,16 @@ export default function TestSessionScreen() {
             >
               Join as{" "}
               {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
+            </Button>
+
+            <Button
+              className="w-full"
+              onPress={() => {
+                setActiveSession({ id: "mock-session", isMock: true });
+              }}
+              variant="secondary"
+            >
+              🚀 Mock Simulation (Save Credits)
             </Button>
           </View>
         </Card>

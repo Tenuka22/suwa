@@ -9,16 +9,21 @@ export function useAttendanceTracker({
   sessionId,
   endAt,
   role,
+  disabled,
 }: {
   isConnected: boolean;
   sessionId: string;
   endAt: string;
   role: SessionTimingRole;
+  disabled?: boolean;
 }) {
   const hasRecordedJoin = useRef(false);
   const snapshotTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
+    if (disabled) {
+      return;
+    }
     if (isConnected && !hasRecordedJoin.current) {
       hasRecordedJoin.current = true;
       orpc.recordAttendanceEvent
@@ -28,6 +33,9 @@ export function useAttendanceTracker({
   }, [isConnected, sessionId]);
 
   useEffect(() => {
+    if (disabled) {
+      return;
+    }
     if (!isConnected && hasRecordedJoin.current) {
       hasRecordedJoin.current = false;
       orpc.recordAttendanceEvent
@@ -37,7 +45,7 @@ export function useAttendanceTracker({
   }, [isConnected, sessionId]);
 
   useEffect(() => {
-    if (!isConnected || role !== "doctor") {
+    if (disabled || !isConnected || role !== "doctor") {
       return;
     }
 
