@@ -84,19 +84,24 @@ export async function deleteSession(
 export async function listSessions(
   kv: KVNamespace,
   limit = 20,
-  cursor?: number
+  cursor?: number,
+  userId?: string
 ): Promise<{ sessions: ChatSession[]; nextCursor?: number }> {
   const index = await getIndex(kv);
   if (index.length === 0) {
     return { sessions: [] };
   }
-  const start = cursor ?? 0;
-  const batch = index.slice(start, start + limit);
-  const sessions = (
-    await Promise.all(batch.map((id) => getSession(kv, id)))
+  const allSessions = (
+    await Promise.all(index.map((id) => getSession(kv, id)))
   ).filter((s): s is ChatSession => s !== null);
-  const nextCursor = start + limit < index.length ? start + limit : undefined;
-  return { sessions, nextCursor };
+  const filtered = userId
+    ? allSessions.filter((s) => s.userId === userId)
+    : allSessions;
+  const start = cursor ?? 0;
+  const batch = filtered.slice(start, start + limit);
+  const nextCursor =
+    start + limit < filtered.length ? start + limit : undefined;
+  return { sessions: batch, nextCursor };
 }
 
 export async function getMessages(

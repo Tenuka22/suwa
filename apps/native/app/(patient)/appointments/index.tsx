@@ -238,7 +238,7 @@ export default function AppointmentsScreen() {
                         >
                           <User color={colors.foreground} size={16} />
                           <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-wide underline decoration-dotted underline-offset-2">
-                            {session.doctor?.displayName ?? "Session"}
+                            Doctor
                           </Text>
                         </Pressable>
                         <StatusBadge status={session.status} />

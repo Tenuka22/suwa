@@ -241,17 +241,6 @@ function AdminDashboardRoute() {
               }
               variant="outline"
             />
-
-            <Button
-              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
-              render={
-                <a href="/admin/chat">
-                  Test WebSocket chat
-                  <ArrowRightIcon className="size-4" />
-                </a>
-              }
-              variant="outline"
-            />
           </CardContent>
         </Card>
       </div>

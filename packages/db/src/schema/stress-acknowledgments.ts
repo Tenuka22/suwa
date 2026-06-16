@@ -12,5 +12,5 @@ export const stressDownloadAcknowledgments = sqliteTable(
 
 export type StressDownloadAcknowledgment =
   typeof stressDownloadAcknowledgments.$inferSelect;
-export type NewStressDownloadAcknowledgement =
+export type NewStressDownloadAcknowledgment =
   typeof stressDownloadAcknowledgments.$inferInsert;

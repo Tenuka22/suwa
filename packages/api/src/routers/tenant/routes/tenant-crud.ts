@@ -101,8 +101,7 @@ export const getTenantRoute = protectedProcedure
 export const updateTenantRoute = protectedProcedure
   .input(updateTenantSchema)
   .handler(async ({ context, input }) => {
-    await requireTenantAdmin(context, input.id);
-    const { userId } = requireAuth(context);
+    const { userId } = await requireTenantAdmin(context, input.id);
     const now = new Date().toISOString();
 
     const updateData: Record<string, unknown> = { updatedAt: now };

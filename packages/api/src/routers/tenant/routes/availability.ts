@@ -164,7 +164,7 @@ export const getDoctorHospitalBlocksRoute = protectedProcedure
   });
 
 // Check for conflicts between proposed hospital windows and existing bookings
-export const checkAffilationConflictsRoute = protectedProcedure
+export const checkAffiliationConflictsRoute = protectedProcedure
   .input(
     z.object({
       windows: z.array(

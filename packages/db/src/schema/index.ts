@@ -5,28 +5,12 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
-const sessionStatusValues = [
-  "requested",
-  "rescheduled",
-  "approved",
-  "attended",
-  "timing_balance_failure",
-] as const;
-
-const scheduleKindValues = ["open", "block", "session"] as const;
-const scheduleNoteValues = [
-  "home",
-  "work",
-  "pharmacy",
-  "after_gym",
-  "other",
-] as const;
-const doctorFileKindValues = [
-  "portrait",
-  "qualification",
-  "intro_video",
-  "other",
-] as const;
+import {
+  doctorFileKindValues,
+  scheduleKindValues,
+  scheduleNoteValues,
+  sessionStatusValues,
+} from "../schemas-types/values";
 
 export const doctorProfiles = sqliteTable("doctor_profiles", {
   userId: text("user_id").primaryKey(),
@@ -156,22 +140,6 @@ export const doctorEducationEntries = sqliteTable("doctor_education_entries", {
   year: integer("year"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
-
-export const userCredits = sqliteTable("user_credits", {
-  userId: text("user_id").primaryKey(),
-  balance: integer("balance").notNull().default(0),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
-
-export const creditTransactions = sqliteTable("credit_transactions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  amount: integer("amount").notNull(),
-  type: text("type").notNull(),
-  sessionId: text("session_id"),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
 export const doctorWeeklyAvailability = sqliteTable(
@@ -426,8 +394,6 @@ export type DoctorScheduleEntry = typeof doctorScheduleEntries.$inferSelect;
 export type DoctorEducationEntry = typeof doctorEducationEntries.$inferSelect;
 export type PatientProfile = typeof patientProfiles.$inferSelect;
 
-export type UserCredit = typeof userCredits.$inferSelect;
-export type CreditTransaction = typeof creditTransactions.$inferSelect;
 export type DoctorPlan = typeof doctorPlans.$inferSelect;
 export type DoctorWeeklyAvailability =
   typeof doctorWeeklyAvailability.$inferSelect;
@@ -468,14 +434,7 @@ export type SpriteCollection = typeof spriteCollections.$inferSelect;
 export type SpriteInventory = typeof spriteInventory.$inferSelect;
 
 export type {
-  Conversation,
-  Message,
-  NewConversation,
-  NewMessage,
-} from "./chats";
-export { conversations, messages } from "./chats";
-export type {
-  NewStressDownloadAcknowledgement,
+  NewStressDownloadAcknowledgment,
   StressDownloadAcknowledgment,
 } from "./stress-acknowledgments";
 export { stressDownloadAcknowledgments } from "./stress-acknowledgments";

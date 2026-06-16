@@ -29,14 +29,12 @@ export const adminStatsRoute = protectedProcedure
 
     const sessionsByDay = await context.db
       .select({
-        day: sql<string>`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch'))`,
+        day: sql<string>`substr(created_at, 1, 10)`,
         count: count(),
       })
       .from(doctorSessions)
-      .groupBy(sql`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch'))`)
-      .orderBy(
-        sql`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch')) DESC`
-      )
+      .groupBy(sql`substr(created_at, 1, 10)`)
+      .orderBy(sql`substr(created_at, 1, 10) DESC`)
       .limit(7);
 
     return {

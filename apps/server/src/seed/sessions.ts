@@ -48,6 +48,7 @@ export async function seedSessions(
     startAt: string;
     endAt: string;
     status: (typeof SESSION_STATUSES)[number];
+    creditCost: number;
     amountCents: number;
     paymentIntentId: string | null;
   }> = [];

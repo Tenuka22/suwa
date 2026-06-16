@@ -124,15 +124,12 @@ export const aiRouter = {
         if (!uid) {
           throw new ORPCError("UNAUTHORIZED");
         }
-        const { sessions, nextCursor } = await listSessions(
+        return listSessions(
           context.chatMessagesKv,
           input.limit,
-          input.cursor
+          input.cursor,
+          uid
         );
-        return {
-          sessions: sessions.filter((s) => s.userId === uid),
-          nextCursor,
-        };
       }),
 
     create: protectedProcedure

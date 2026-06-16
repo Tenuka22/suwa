@@ -4,11 +4,8 @@ import { drizzle } from "drizzle-orm/d1";
 import {
   type ClinicAttendanceRecord as ClinicAttendanceSchema,
   type Clinic as ClinicSchema,
-  type CreditTransaction as CreditTransactionSchema,
   clinicAttendance as clinicAttendanceTable,
   clinics as clinicsTable,
-  conversations as conversationsTable,
-  creditTransactions as creditTransactionsTable,
   type DoctorCashoutRequest as DoctorCashoutRequestSchema,
   type DoctorCredit as DoctorCreditSchema,
   type DoctorEducationEntry as DoctorEducationEntrySchema,
@@ -44,7 +41,6 @@ import {
   hubUploadSessions as hubUploadSessionsTable,
   type MoonlightCredit as MoonlightCreditSchema,
   type MoonlightCreditTransaction as MoonlightCreditTransactionSchema,
-  messages as messagesTable,
   moonlightCredits as moonlightCreditsTable,
   moonlightCreditTransactions as moonlightCreditTransactionsTable,
   type PatientProfile as PatientProfileSchema,
@@ -73,8 +69,6 @@ import {
   tenantAuditLogs as tenantAuditLogsTable,
   tenantNotifications as tenantNotificationsTable,
   tenants as tenantsTable,
-  type UserCredit as UserCreditSchema,
-  userCredits as userCreditsTable,
   userSubscriptions as userSubscriptionsTable,
   type WellnessAction as WellnessActionSchema,
   wellnessActions as wellnessActionsTable,
@@ -103,9 +97,7 @@ export const doctorScheduleEntries = doctorScheduleEntriesTable;
 export const patientProfiles = patientProfilesTable;
 
 export const doctorPlans = doctorPlansTable;
-export const userCredits = userCreditsTable;
 export const userSubscriptions = userSubscriptionsTable;
-export const creditTransactions = creditTransactionsTable;
 export const doctorWeeklyAvailability = doctorWeeklyAvailabilityTable;
 export const doctorCredits = doctorCreditsTable;
 export const doctorCashoutRequests = doctorCashoutRequestsTable;
@@ -120,8 +112,7 @@ export const moonlightCredits = moonlightCreditsTable;
 export const moonlightCreditTransactions = moonlightCreditTransactionsTable;
 export const stressPredictions = stressPredictionsTable;
 export const stressDownloadAcknowledgments = stressDownloadAcknowledgmentsTable;
-export const conversations = conversationsTable;
-export const messages = messagesTable;
+
 export const tenants = tenantsTable;
 export const tenantAdmins = tenantAdminsTable;
 export const doctorHospitalAffiliations = doctorHospitalAffiliationsTable;
@@ -144,8 +135,7 @@ export type DoctorHubChannel = DoctorHubChannelSchema;
 export type DoctorMaterial = DoctorMaterialSchema;
 export type HubUploadSession = HubUploadSessionSchema;
 export type DoctorPlan = DoctorPlanSchema;
-export type UserCredit = UserCreditSchema;
-export type CreditTransaction = CreditTransactionSchema;
+
 export type DoctorWeeklyAvailability = DoctorWeeklyAvailabilitySchema;
 export type DoctorCredit = DoctorCreditSchema;
 export type DoctorCashoutRequest = DoctorCashoutRequestSchema;
@@ -181,9 +171,7 @@ export function createDb() {
       patientProfiles,
 
       doctorPlans,
-      userCredits,
       userSubscriptions,
-      creditTransactions,
       doctorWeeklyAvailability,
       doctorCredits,
       doctorCashoutRequests,
@@ -198,8 +186,6 @@ export function createDb() {
       moonlightCreditTransactions,
       stressPredictions,
       stressDownloadAcknowledgments,
-      conversations,
-      messages,
       doctorHubMaterials,
       doctorPlaylists,
       doctorHubChannels,

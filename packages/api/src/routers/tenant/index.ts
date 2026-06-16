@@ -20,7 +20,7 @@ import {
   updateClinicRoute,
 } from "./routes/attendance";
 import {
-  checkAffilationConflictsRoute,
+  checkAffiliationConflictsRoute,
   createAvailabilityOverrideRoute,
   deleteAvailabilityOverrideRoute,
   getDoctorHospitalBlocksRoute,
@@ -81,7 +81,7 @@ export const tenantRouter = {
   deleteAvailabilityOverride: deleteAvailabilityOverrideRoute,
   listAvailabilityOverrides: listAvailabilityOverridesRoute,
   getDoctorHospitalBlocks: getDoctorHospitalBlocksRoute,
-  checkAffiliationConflicts: checkAffilationConflictsRoute,
+  checkAffiliationConflicts: checkAffiliationConflictsRoute,
 
   // Notifications
   listNotifications: listNotificationsRoute,

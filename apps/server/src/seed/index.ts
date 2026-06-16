@@ -1,6 +1,5 @@
 import { createDb } from "@doca/db";
 import { seedCashouts } from "./cashouts";
-import { seedChats } from "./chats";
 import { getDoctorIds, seedDoctorRelations, seedDoctors } from "./doctors";
 import { seedGamification } from "./gamification";
 import { seedHub } from "./hub";
@@ -18,7 +17,6 @@ export interface SeedEnv {
 
 export interface SeedSummary {
   cashouts: number;
-  chats: { conversations: number; messages: number };
   doctorRelations: {
     education: number;
     plans: number;
@@ -64,7 +62,6 @@ export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
   const sessionsResult = await seedSessions(db, doctorIds, patientIds);
   const tenantsResult = await seedTenants(db, doctorIds);
   const gamificationResult = await seedGamification(db, allIds);
-  const chatsResult = await seedChats(db, allIds);
   const hubResult = await seedHub(db, doctorIds, env?.doctorMaterialsKv);
   const hubUploadsResult = await seedHubUploads(db, doctorIds);
   const cashoutsResult = await seedCashouts(db, doctorIds);
@@ -72,7 +69,6 @@ export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
 
   return {
     cashouts: cashoutsResult.cashouts,
-    chats: chatsResult,
     doctorRelations: doctorRelationsResult,
     doctors: {
       created: doctorsResult.created,
