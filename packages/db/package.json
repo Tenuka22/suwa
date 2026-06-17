@@ -1,5 +1,5 @@
 {
-  "name": "@doca/db",
+  "name": "@suwa/db",
   "type": "module",
   "exports": {
     ".": {
@@ -24,14 +24,14 @@
   },
   "dependencies": {
     "@libsql/client": "0.15.15",
-    "@doca/env": "workspace:*",
+    "@suwa/env": "workspace:*",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "libsql": "0.5.22",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@doca/config": "workspace:*",
+    "@suwa/config": "workspace:*",
     "drizzle-kit": "^0.31.8",
     "typescript": "^6"
   }

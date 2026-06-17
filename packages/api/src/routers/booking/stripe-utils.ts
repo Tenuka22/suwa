@@ -1,5 +1,5 @@
-﻿import { env } from "@doca/env/server";
-import { TAX_RATE } from "@doca/pricing";
+import { env } from "@suwa/env/server";
+import { TAX_RATE } from "@suwa/pricing";
 import Stripe from "stripe";
 
 let stripeInstance: Stripe | null = null;

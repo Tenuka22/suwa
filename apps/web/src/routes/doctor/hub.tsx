@@ -3,19 +3,19 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@doca/ui/components/avatar";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
-import { Input } from "@doca/ui/components/input";
+} from "@suwa/ui/components/avatar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Input } from "@suwa/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Skeleton } from "@doca/ui/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@doca/ui/components/tabs";
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@suwa/ui/components/tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   FilmIcon,

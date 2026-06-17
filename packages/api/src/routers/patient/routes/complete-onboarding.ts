@@ -1,4 +1,4 @@
-﻿import { patientProfiles } from "@doca/db";
+import { patientProfiles } from "@suwa/db";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

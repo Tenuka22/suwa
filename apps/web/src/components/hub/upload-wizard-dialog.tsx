@@ -1,5 +1,5 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -7,18 +7,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@doca/ui/components/dialog";
-import { Input } from "@doca/ui/components/input";
-import { Label } from "@doca/ui/components/label";
-import { Progress } from "@doca/ui/components/progress";
+} from "@suwa/ui/components/dialog";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
+import { Progress } from "@suwa/ui/components/progress";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Textarea } from "@doca/ui/components/textarea";
+} from "@suwa/ui/components/select";
+import { Textarea } from "@suwa/ui/components/textarea";
 import {
   EyeIcon,
   EyeOffIcon,

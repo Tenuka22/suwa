@@ -16,8 +16,8 @@
   "menuAccent": "subtle",
   "aliases": {
     "components": "@/components",
-    "utils": "@doca/ui/lib/utils",
-    "ui": "@doca/ui/components",
+    "utils": "@suwa/ui/lib/utils",
+    "ui": "@suwa/ui/components",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },

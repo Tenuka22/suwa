@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Dialog,
@@ -6,10 +6,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@doca/ui/components/dialog";
-import { InputGroup, InputGroupAddon } from "@doca/ui/components/input-group";
+} from "@suwa/ui/components/dialog";
+import { InputGroup, InputGroupAddon } from "@suwa/ui/components/input-group";
 
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { CheckIcon, SearchIcon } from "lucide-react";
 import type * as React from "react";

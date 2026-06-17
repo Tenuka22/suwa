@@ -1,4 +1,4 @@
-﻿import {
+import {
   doctorFiles,
   doctorHospitalAffiliations,
   doctorProfiles,
@@ -6,8 +6,8 @@
   parseJsonApproachSteps,
   parseJsonStringArray,
   tenants,
-} from "@doca/db";
-import { listDoctorsInputSchema } from "@doca/db/schemas-types";
+} from "@suwa/db";
+import { listDoctorsInputSchema } from "@suwa/db/schemas-types";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { publicProcedure } from "../../../index";
 

@@ -1,6 +1,6 @@
-﻿import { hubUploadSessions } from "@doca/db";
-import { uploadHubChunkSchema } from "@doca/db/schemas-types";
-import { env } from "@doca/env/server";
+import { hubUploadSessions } from "@suwa/db";
+import { uploadHubChunkSchema } from "@suwa/db/schemas-types";
+import { env } from "@suwa/env/server";
 import { and, eq } from "drizzle-orm";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

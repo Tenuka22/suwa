@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
-import { Button } from "@doca/ui/components/button";
-import { cn } from "@doca/ui/lib/utils";
+import { Button } from "@suwa/ui/components/button";
+import { cn } from "@suwa/ui/lib/utils";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";

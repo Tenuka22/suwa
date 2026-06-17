@@ -7,7 +7,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@doca/ui/components/sidebar";
+} from "@suwa/ui/components/sidebar";
 import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 

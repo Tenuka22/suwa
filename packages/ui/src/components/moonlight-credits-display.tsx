@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import type * as React from "react";
 
 interface MoonlightCreditsDisplayProps extends React.ComponentProps<"div"> {
@@ -26,7 +26,7 @@ function MoonlightCreditsDisplay({
       {...props}
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-amber-400 font-black text-black text-lg">
-        â˜½
+        ☽
       </div>
       <div className="flex-1">
         <div className="font-bold text-muted-foreground text-xs uppercase tracking-wider">

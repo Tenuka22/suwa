@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === "production") {
   config({ path: "../../apps/web/.env" });
 }
 
-const app = await alchemy("doca");
+const app = await alchemy("suwa");
 
 const db = await D1Database("primary-database", {
   migrationsDir: "../../packages/db/src/migrations",
@@ -32,10 +32,10 @@ const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
 
 // const redis = await UpstashRedis(
-//   process.env.NODE_ENV === "production" ? "prod-doca" : "doca-dev",
-//   {
-//     name:
-//       process.env.NODE_ENV === "production" ? "prod-doca" : "doca-dev",
+//   process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
+  //   {
+  //     name:
+  //       process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
 //     primaryRegion: "us-east-1",
 //   }
 // );

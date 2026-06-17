@@ -1,25 +1,25 @@
-﻿# ZenDoc Codebase Guidelines
+# ZenDoc Codebase Guidelines
 
 ## Monorepo Structure
 
 ```
 zen-doc/
-â”œâ”€â”€ apps/
-â”‚   â”œâ”€â”€ native/        # Expo React Native app (patients/users only)
-â”‚   â”œâ”€â”€ server/        # Hono + oRPC backend API (Cloudflare Workers)
-â”‚   â””â”€â”€ web/           # TanStack Start web app (doctors + admin)
-â”œâ”€â”€ packages/
-â”‚   â”œâ”€â”€ api/           # oRPC router definitions (@doca/api)
-â”‚   â”œâ”€â”€ config/        # Shared TypeScript and tooling config (@doca/config)
-â”‚   â”œâ”€â”€ db/            # Drizzle ORM schema and queries (@doca/db)
-â”‚   â”œâ”€â”€ env/           # Environment variable schemas (@doca/env)
-â”‚   â”œâ”€â”€ infra/         # Alchemy Cloudflare deployment (@doca/infra)
-â”‚   â””â”€â”€ ui/            # Shared shadcn/ui primitives (@doca/ui)
-â”œâ”€â”€ knowledge-base/    # Obsidian product documentation
-â”œâ”€â”€ turbo.json
-â”œâ”€â”€ tsconfig.json
-â”œâ”€â”€ biome.jsonc
-â””â”€â”€ package.json
+├── apps/
+│   ├── native/        # Expo React Native app (patients/users only)
+│   ├── server/        # Hono + oRPC backend API (Cloudflare Workers)
+│   └── web/           # TanStack Start web app (doctors + admin)
+├── packages/
+│   ├── api/           # oRPC router definitions (@suwa/api)
+│   ├── config/        # Shared TypeScript and tooling config (@suwa/config)
+│   ├── db/            # Drizzle ORM schema and queries (@suwa/db)
+│   ├── env/           # Environment variable schemas (@suwa/env)
+│   ├── infra/         # Alchemy Cloudflare deployment (@suwa/infra)
+│   └── ui/            # Shared shadcn/ui primitives (@suwa/ui)
+├── knowledge-base/    # Obsidian product documentation
+├── turbo.json
+├── tsconfig.json
+├── biome.jsonc
+└── package.json
 ```
 
 ## Tech Stack
@@ -88,11 +88,11 @@ bun run deploy           # Deploy to Cloudflare via Alchemy
 
 ### Import Conventions
 
-- **Workspace packages**: Use package name (`@doca/api`, `@doca/db`, `@doca/ui`, `@doca/env`)
+- **Workspace packages**: Use package name (`@suwa/api`, `@suwa/db`, `@suwa/ui`, `@suwa/env`)
 - **App-local code**: Use `@/` path alias
-- **UI components**: `@doca/ui/components/button`
-- **Environment**: `@doca/env/web`, `@doca/env/native`, `@doca/env/server`
-- **Database**: `@doca/db`, `@doca/db/schemas-types`
+- **UI components**: `@suwa/ui/components/button`
+- **Environment**: `@suwa/env/web`, `@suwa/env/native`, `@suwa/env/server`
+- **Database**: `@suwa/db`, `@suwa/db/schemas-types`
 - **Cross-package**: Packages export source directly via `"./src/*.ts"` (no build step)
 
 ### Type Safety Rules
@@ -102,7 +102,7 @@ bun run deploy           # Deploy to Cloudflare via Alchemy
 - Use const assertions (`as const`) for immutable values and literal types
 - Leverage TypeScript's type narrowing instead of type assertions
 - Use `z.infer` for deriving types from Zod schemas
-- Never use barrel files (index files that re-export everything) â€” prefer specific imports
+- Never use barrel files (index files that re-export everything) — prefer specific imports
 
 ## Database Patterns (Drizzle)
 
@@ -138,14 +138,14 @@ bun run deploy           # Deploy to Cloudflare via Alchemy
 
 Centralized in `packages/db/src/schemas-types/`:
 
-- `values.ts` â€” `as const` arrays for enum values (schedule kinds, file kinds, doctor specialties, etc.)
-- `index.ts` â€” Shared Zod schemas for input validation
-- `types.ts` â€” TypeScript types derived via `z.infer`
+- `values.ts` — `as const` arrays for enum values (schedule kinds, file kinds, doctor specialties, etc.)
+- `index.ts` — Shared Zod schemas for input validation
+- `types.ts` — TypeScript types derived via `z.infer`
 
 Usage:
 ```ts
-import { doctorFileKindSchema, createScheduleEntrySchema } from "@doca/db/schemas-types";
-import type { DoctorProfileInput, CreateScheduleEntryInput } from "@doca/db/schemas-types";
+import { doctorFileKindSchema, createScheduleEntrySchema } from "@suwa/db/schemas-types";
+import type { DoctorProfileInput, CreateScheduleEntryInput } from "@suwa/db/schemas-types";
 ```
 
 ## API Patterns (oRPC)
@@ -169,7 +169,7 @@ import type { DoctorProfileInput, CreateScheduleEntryInput } from "@doca/db/sche
 
 ### Input Validation
 
-All router inputs use Zod schemas from `@doca/db/schemas-types`:
+All router inputs use Zod schemas from `@suwa/db/schemas-types`:
 - `z.iso.datetime()` for datetime fields
 - `z.coerce.number()` for numeric inputs
 - `.superRefine()` for cross-field validation
@@ -211,13 +211,13 @@ All router inputs use Zod schemas from `@doca/db/schemas-types`:
 - Style: `base-lyra` (shared) / `base-nova` (web app-specific)
 - CSS variables for theming (light/dark)
 - Font: Figtree Variable (web)
-- Export paths: `@doca/ui/components/*`, `@doca/ui/hooks/*`, `@doca/ui/lib/*`
+- Export paths: `@suwa/ui/components/*`, `@suwa/ui/hooks/*`, `@suwa/ui/lib/*`
 
 ### Component Pattern
 
 ```tsx
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva("...", {
@@ -244,20 +244,20 @@ function Button({ className, variant, size, ...props }: ButtonProps) {
 
 ### Styling
 
-- **Web**: Tailwind CSS v4 with `@import "@doca/ui/globals.css"`
+- **Web**: Tailwind CSS v4 with `@import "@suwa/ui/globals.css"`
 - **Native**: NativeWind with custom theme in `global.css`
 - **Shared**: `cn()` utility = `twMerge(clsx(inputs))`
 - **Design Tokens**: CSS variables (--background, --foreground, --primary, etc.)
 
 ## Environment Variable Management
 
-### Package: `@doca/env`
+### Package: `@suwa/env`
 
 | Export | File | Prefix | Variables |
 |--------|------|--------|-----------|
-| `@doca/env/server` | `src/server.ts` | N/A | Cloudflare Workers bindings (type-inferred) |
-| `@doca/env/web` | `src/web.ts` | `VITE_` | `VITE_SERVER_URL`, `VITE_WEB_URL`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_STRIPE_PUBLISHABLE_KEY` |
-| `@doca/env/native` | `src/native.ts` | `EXPO_PUBLIC_` | `EXPO_PUBLIC_SERVER_URL`, `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` |
+| `@suwa/env/server` | `src/server.ts` | N/A | Cloudflare Workers bindings (type-inferred) |
+| `@suwa/env/web` | `src/web.ts` | `VITE_` | `VITE_SERVER_URL`, `VITE_WEB_URL`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_STRIPE_PUBLISHABLE_KEY` |
+| `@suwa/env/native` | `src/native.ts` | `EXPO_PUBLIC_` | `EXPO_PUBLIC_SERVER_URL`, `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` |
 
 ### Pattern
 
@@ -279,16 +279,16 @@ export const env = createEnv({
 
 ### Per-App .env Files
 
-- `apps/server/.env` â€” Server secrets (CLERK_SECRET_KEY, STRIPE_SECRET_KEY, CORS_ORIGIN)
-- `apps/web/.env` â€” Web client vars
-- `apps/native/.env` â€” Native client vars
-- `packages/infra/.env` â€” Deployment vars
+- `apps/server/.env` — Server secrets (CLERK_SECRET_KEY, STRIPE_SECRET_KEY, CORS_ORIGIN)
+- `apps/web/.env` — Web client vars
+- `apps/native/.env` — Native client vars
+- `packages/infra/.env` — Deployment vars
 
 ## Authentication
 
 - **Provider**: Clerk for all auth (web and native)
 - **Bridge**: `ClerkApiAuthBridge` component bridges Clerk token to ORPC client headers
-- **Roles**: via Clerk `publicMetadata.role` â€” `user`, `doctor`, `admin`, `pending-doctor`
+- **Roles**: via Clerk `publicMetadata.role` — `user`, `doctor`, `admin`, `pending-doctor`
 - **Protected procedures**: check `context.auth?.userId`
 - **Role updates**: done via `context.clerk.users.updateUserMetadata()`
 
@@ -308,15 +308,15 @@ export const orpc = createTanstackQueryUtils(client);
 ## Dependency Flow
 
 ```
-apps/web â”€â”€> @doca/api, @doca/env, @doca/ui
-apps/native â”€â”€> @doca/api, @doca/env
-apps/server â”€â”€> @doca/api, @doca/db, @doca/env
-packages/api â”€â”€> @doca/db, @doca/env
-packages/db â”€â”€> @doca/env
-packages/ui â”€â”€> (standalone, no internal deps)
-packages/env â”€â”€> (standalone, uses @t3-oss/env-core)
-packages/infra â”€â”€> (standalone, deployment only)
-packages/config â”€â”€> (standalone, config only)
+apps/web ──> @suwa/api, @suwa/env, @suwa/ui
+apps/native ──> @suwa/api, @suwa/env
+apps/server ──> @suwa/api, @suwa/db, @suwa/env
+packages/api ──> @suwa/db, @suwa/env
+packages/db ──> @suwa/env
+packages/ui ──> (standalone, no internal deps)
+packages/env ──> (standalone, uses @t3-oss/env-core)
+packages/infra ──> (standalone, deployment only)
+packages/config ──> (standalone, config only)
 ```
 
 ## Build and Deployment
@@ -331,7 +331,7 @@ packages/config â”€â”€> (standalone, config only)
 
 - Bundler: tsdown
 - Format: ESM
-- Bundles all `@doca/*` packages inline (`noExternal`)
+- Bundles all `@suwa/*` packages inline (`noExternal`)
 - Alternative: `bun build --compile` for native binary
 
 ### Web Build
@@ -391,8 +391,8 @@ packages/config â”€â”€> (standalone, config only)
 ### JSON Storage Pattern
 
 SQLite stores arrays/objects as JSON text. Helper functions in `packages/db/src/doctor-profile.ts`:
-- `parseJsonStringArray()` / `stringifyJsonStringArray()` â€” for string arrays
-- `parseJsonApproachSteps()` / `stringifyJsonApproachSteps()` â€” for approach step objects
+- `parseJsonStringArray()` / `stringifyJsonStringArray()` — for string arrays
+- `parseJsonApproachSteps()` / `stringifyJsonApproachSteps()` — for approach step objects
 
 ### Schedule Management
 

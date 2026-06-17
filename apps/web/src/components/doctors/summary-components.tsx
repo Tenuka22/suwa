@@ -1,4 +1,4 @@
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { SectionLabel } from "@/components/typography";

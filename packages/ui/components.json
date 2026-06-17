@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@doca/ui/components",
-    "utils": "@doca/ui/lib/utils",
-    "hooks": "@doca/ui/hooks",
-    "lib": "@doca/ui/lib",
-    "ui": "@doca/ui/components"
+    "components": "@suwa/ui/components",
+    "utils": "@suwa/ui/lib/utils",
+    "hooks": "@suwa/ui/hooks",
+    "lib": "@suwa/ui/lib",
+    "ui": "@suwa/ui/components"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

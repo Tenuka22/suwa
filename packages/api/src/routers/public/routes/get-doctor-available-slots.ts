@@ -1,9 +1,9 @@
-﻿import {
+import {
   doctorHospitalAffiliations,
   doctorSessions,
   doctorWeeklyAvailability,
   hospitalAvailabilityOverrides,
-} from "@doca/db";
+} from "@suwa/db";
 import { and, eq, gte, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure } from "../../../index";

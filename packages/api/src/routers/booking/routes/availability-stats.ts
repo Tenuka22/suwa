@@ -1,4 +1,4 @@
-﻿import { doctorWeeklyAvailability } from "@doca/db";
+import { doctorWeeklyAvailability } from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";

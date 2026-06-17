@@ -1,4 +1,4 @@
-﻿import {
+import {
   moonlightCredits,
   moonlightCreditTransactions,
   patientProfiles,
@@ -6,7 +6,7 @@
   spriteInventory,
   spriteStates,
   wellnessActions,
-} from "@doca/db";
+} from "@suwa/db";
 import { and, count, desc, eq, gte } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";

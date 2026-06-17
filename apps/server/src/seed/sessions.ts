@@ -1,10 +1,10 @@
-import type { createDb } from "@doca/db";
+import type { createDb } from "@suwa/db";
 import {
   doctorSessions,
   sessionAttendanceEvents,
   sessionSnapshots,
   sessionTaskAssignments,
-} from "@doca/db";
+} from "@suwa/db";
 import { faker } from "@faker-js/faker";
 
 const SESSION_STATUSES = [

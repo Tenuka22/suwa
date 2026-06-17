@@ -1,4 +1,4 @@
-import { clinics, doctorHospitalAffiliations, tenants } from "@doca/db";
+import { clinics, doctorHospitalAffiliations, tenants } from "@suwa/db";
 import { inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure } from "../../../index";

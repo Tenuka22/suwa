@@ -1,9 +1,9 @@
 import { useUser } from "@clerk/tanstack-react-start";
-import { Avatar, AvatarFallback } from "@doca/ui/components/avatar";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
-import { Card, CardContent, CardHeader } from "@doca/ui/components/card";
-import { Separator } from "@doca/ui/components/separator";
+import { Avatar, AvatarFallback } from "@suwa/ui/components/avatar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
+import { Separator } from "@suwa/ui/components/separator";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BadgeCheckIcon,

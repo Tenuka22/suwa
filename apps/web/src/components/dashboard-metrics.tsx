@@ -1,12 +1,12 @@
-import { Badge } from "@doca/ui/components/badge";
+import { Badge } from "@suwa/ui/components/badge";
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Skeleton } from "@doca/ui/components/skeleton";
+} from "@suwa/ui/components/card";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import { TrendingUpIcon } from "lucide-react";
 import type { ReactNode } from "react";
 

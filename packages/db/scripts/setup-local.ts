@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = join(__dirname, "..", "doca.db");
+const DB_PATH = join(__dirname, "..", "suwa.db");
 const MIGRATIONS_DIR = join(__dirname, "..", "src", "migrations");
 const JOURNAL_PATH = join(MIGRATIONS_DIR, "meta", "_journal.json");
 const STATE_PATH = join(__dirname, "..", ".migration-state.json");

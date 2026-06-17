@@ -1,5 +1,5 @@
 import { SignIn } from "@clerk/tanstack-react-start";
-import { APP_DISPLAY_NAME } from "@doca/app-info";
+import { APP_DISPLAY_NAME } from "@suwa/app-info";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/sign-in")({

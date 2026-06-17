@@ -1,8 +1,8 @@
 import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
-import { APP_DISPLAY_NAME, LOGO_PATH } from "@doca/app-info";
-import { env } from "@doca/env/web";
-import { Toaster } from "@doca/ui/components/sonner";
-import { TooltipProvider } from "@doca/ui/components/tooltip";
+import { APP_DISPLAY_NAME, LOGO_PATH } from "@suwa/app-info";
+import { env } from "@suwa/env/web";
+import { Toaster } from "@suwa/ui/components/sonner";
+import { TooltipProvider } from "@suwa/ui/components/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {

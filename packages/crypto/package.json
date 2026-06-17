@@ -1,5 +1,5 @@
 {
-  "name": "@doca/crypto",
+  "name": "@suwa/crypto",
   "type": "module",
   "exports": {
     ".": {
@@ -8,7 +8,7 @@
   },
   "main": "./src/index.ts",
   "devDependencies": {
-    "@doca/config": "workspace:*",
+    "@suwa/config": "workspace:*",
     "typescript": "^6"
   }
 }

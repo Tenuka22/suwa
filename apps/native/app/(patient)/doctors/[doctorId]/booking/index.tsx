@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DISPLAY_NAME_SPACE } from "@doca/app-info";
+import { APP_DISPLAY_NAME_SPACE } from "@suwa/app-info";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {

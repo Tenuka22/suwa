@@ -278,7 +278,7 @@ export function Chat({
                     handleSend();
                   }
                 }}
-                placeholder="Ask Doca anything..."
+                placeholder="Ask Suwa anything..."
                 value={input}
               />
               <Button

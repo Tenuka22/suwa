@@ -1,5 +1,5 @@
-﻿import { Button, buttonVariants } from "@doca/ui/components/button";
-import { cn } from "@doca/ui/lib/utils";
+import { Button, buttonVariants } from "@suwa/ui/components/button";
+import { cn } from "@suwa/ui/lib/utils";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,

@@ -1,4 +1,4 @@
-﻿import { patientProfiles } from "@doca/db";
+import { patientProfiles } from "@suwa/db";
 import { desc } from "drizzle-orm";
 import { z } from "zod";
 import { paginateItems, requireAdmin } from "../../../hooks";

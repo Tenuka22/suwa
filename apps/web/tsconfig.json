@@ -19,10 +19,10 @@
     "noUncheckedSideEffectImports": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@doca/db": ["../../packages/db/src/index.ts"],
-      "@doca/db/*": ["../../packages/db/src/*"],
-      "@doca/pricing": ["../../packages/pricing/src/index.ts"],
-      "@doca/ui/*": ["../../packages/ui/src/*"]
+      "@suwa/db": ["../../packages/db/src/index.ts"],
+      "@suwa/db/*": ["../../packages/db/src/*"],
+      "@suwa/pricing": ["../../packages/pricing/src/index.ts"],
+      "@suwa/ui/*": ["../../packages/ui/src/*"]
     }
   }
 }

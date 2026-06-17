@@ -1,26 +1,26 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
+} from "@suwa/ui/components/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@doca/ui/components/chart";
-import { Label } from "@doca/ui/components/label";
+} from "@suwa/ui/components/chart";
+import { Label } from "@suwa/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Separator } from "@doca/ui/components/separator";
-import { Switch } from "@doca/ui/components/switch";
+} from "@suwa/ui/components/select";
+import { Separator } from "@suwa/ui/components/separator";
+import { Switch } from "@suwa/ui/components/switch";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {

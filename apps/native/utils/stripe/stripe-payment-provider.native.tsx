@@ -1,7 +1,7 @@
 "use client";
 
-import { APP_DISPLAY_NAME_SPACE } from "@doca/app-info";
-import { env } from "@doca/env/native";
+import { APP_DISPLAY_NAME_SPACE } from "@suwa/app-info";
+import { env } from "@suwa/env/native";
 import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import {
   createContext,

@@ -1,10 +1,10 @@
 {
-  "extends": "@doca/config/tsconfig.base.json",
+  "extends": "@suwa/config/tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
-      "@doca/ui/*": ["./src/*"]
+      "@suwa/ui/*": ["./src/*"]
     },
     "strictNullChecks": true
   },

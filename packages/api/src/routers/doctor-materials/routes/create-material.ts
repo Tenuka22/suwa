@@ -1,5 +1,5 @@
-﻿import { doctorHubMaterials } from "@doca/db";
-import { createMaterialSchema } from "@doca/db/schemas-types";
+import { doctorHubMaterials } from "@suwa/db";
+import { createMaterialSchema } from "@suwa/db/schemas-types";
 import { eq } from "drizzle-orm";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

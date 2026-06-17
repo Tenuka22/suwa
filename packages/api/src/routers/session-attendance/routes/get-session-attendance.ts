@@ -1,4 +1,4 @@
-﻿import { sessionAttendanceEvents } from "@doca/db";
+import { sessionAttendanceEvents } from "@suwa/db";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";

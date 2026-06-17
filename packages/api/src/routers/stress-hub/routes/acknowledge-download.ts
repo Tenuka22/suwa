@@ -1,4 +1,4 @@
-﻿import { stressDownloadAcknowledgments } from "@doca/db";
+import { stressDownloadAcknowledgments } from "@suwa/db";
 import { eq } from "drizzle-orm";
 
 import { requireAuth } from "../../../hooks";

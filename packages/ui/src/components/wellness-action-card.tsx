@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import type * as React from "react";
 
 interface WellnessActionCardProps extends React.ComponentProps<"div"> {

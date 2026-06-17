@@ -1,4 +1,4 @@
-﻿# Doca
+# Suwa
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Hono, ORPC, and more.
 
@@ -79,7 +79,7 @@ npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
 Import shared components like this:
 
 ```tsx
-import { Button } from "@doca/ui/components/button";
+import { Button } from "@suwa/ui/components/button";
 ```
 
 ### Add app-specific blocks
@@ -98,15 +98,15 @@ For more details, see the guide on [Deploying to Cloudflare with Alchemy](https:
 ## Project Structure
 
 ```
-doca/
-├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   ├── native/      # Mobile application (React Native, Expo)
-│   └── server/      # Backend API (Hono, ORPC)
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   └── db/          # Database schema & queries
+suwa/
++-- apps/
+�   +-- web/         # Frontend application (React + TanStack Start)
+�   +-- native/      # Mobile application (React Native, Expo)
+�   +-- server/      # Backend API (Hono, ORPC)
++-- packages/
+�   +-- ui/          # Shared shadcn/ui components and styles
+�   +-- api/         # API layer / business logic
+�   +-- db/          # Database schema & queries
 ```
 
 ## Available Scripts

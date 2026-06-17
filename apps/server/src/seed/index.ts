@@ -1,4 +1,4 @@
-import { createDb } from "@doca/db";
+import { createDb } from "@suwa/db";
 import { seedCashouts } from "./cashouts";
 import { getDoctorIds, seedDoctorRelations, seedDoctors } from "./doctors";
 import { seedGamification } from "./gamification";

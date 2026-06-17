@@ -1,7 +1,7 @@
 import {
   scheduleKindValues,
   scheduleNoteValues,
-} from "@doca/db/schemas-types/values";
+} from "@suwa/db/schemas-types/values";
 import { z } from "zod";
 
 export const scheduleEntrySchema = z.object({

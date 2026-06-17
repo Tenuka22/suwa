@@ -1,4 +1,4 @@
-import { doctorFileKindSchema } from "@doca/db/schemas-types";
+import { doctorFileKindSchema } from "@suwa/db/schemas-types";
 import { z } from "zod";
 
 export type DoctorFileKind = z.infer<typeof doctorFileKindSchema>;

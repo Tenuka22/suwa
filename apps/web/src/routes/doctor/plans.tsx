@@ -1,16 +1,16 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
+} from "@suwa/ui/components/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@doca/ui/components/chart";
+} from "@suwa/ui/components/chart";
 import {
   Dialog,
   DialogContent,
@@ -19,18 +19,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@doca/ui/components/dialog";
+} from "@suwa/ui/components/dialog";
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@doca/ui/components/empty";
-import { Input } from "@doca/ui/components/input";
-import { Label } from "@doca/ui/components/label";
-import { Separator } from "@doca/ui/components/separator";
-import { Textarea } from "@doca/ui/components/textarea";
+} from "@suwa/ui/components/empty";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
+import { Separator } from "@suwa/ui/components/separator";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {

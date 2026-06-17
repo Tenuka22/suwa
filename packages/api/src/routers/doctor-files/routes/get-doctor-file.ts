@@ -1,5 +1,5 @@
-﻿import { doctorFiles } from "@doca/db";
-import { fileKeySchema } from "@doca/db/schemas-types";
+import { doctorFiles } from "@suwa/db";
+import { fileKeySchema } from "@suwa/db/schemas-types";
 import { eq } from "drizzle-orm";
 import { readDoctorMaterialFile } from "../../../doctor-materials";
 import { publicProcedure } from "../../../index";

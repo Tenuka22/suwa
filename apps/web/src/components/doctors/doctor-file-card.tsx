@@ -1,13 +1,13 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
-import { Card } from "@doca/ui/components/card";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card } from "@suwa/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@doca/ui/components/dropdown-menu";
-import { cn } from "@doca/ui/lib/utils";
+} from "@suwa/ui/components/dropdown-menu";
+import { cn } from "@suwa/ui/lib/utils";
 import {
   Download,
   FileImage,

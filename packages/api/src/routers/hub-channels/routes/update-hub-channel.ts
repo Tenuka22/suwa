@@ -1,5 +1,5 @@
-﻿import { doctorHubChannels } from "@doca/db";
-import { updateHubChannelSchema } from "@doca/db/schemas-types";
+import { doctorHubChannels } from "@suwa/db";
+import { updateHubChannelSchema } from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

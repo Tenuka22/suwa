@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import type * as React from "react";
 
 interface ConsistencyStreakProps extends React.ComponentProps<"div"> {
@@ -27,12 +27,12 @@ function ConsistencyStreak({
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-primary font-black text-lg text-primary-foreground">
         {mood === "happy"
-          ? "ðŸ˜Š"
+          ? "😊"
           : mood === "sad"
-            ? "ðŸ˜¢"
+            ? "😢"
             : mood === "sleep"
-              ? "ðŸ˜´"
-              : "ðŸ¤–"}
+              ? "😴"
+              : "🤖"}
       </div>
       <div className="flex-1">
         <div className="font-bold text-muted-foreground text-xs uppercase tracking-wider">

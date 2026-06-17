@@ -1,23 +1,23 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Input } from "@doca/ui/components/input";
-import { Label } from "@doca/ui/components/label";
+} from "@suwa/ui/components/card";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Skeleton } from "@doca/ui/components/skeleton";
-import { Textarea } from "@doca/ui/components/textarea";
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckIcon, SendIcon, XIcon } from "lucide-react";
 import { useState } from "react";

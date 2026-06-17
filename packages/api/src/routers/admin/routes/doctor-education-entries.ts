@@ -1,5 +1,5 @@
-﻿import type { DoctorEducationEntry } from "@doca/db";
-import { doctorEducationEntries } from "@doca/db";
+import type { DoctorEducationEntry } from "@suwa/db";
+import { doctorEducationEntries } from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../../../hooks";

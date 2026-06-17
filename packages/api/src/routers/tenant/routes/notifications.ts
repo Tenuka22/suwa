@@ -1,5 +1,5 @@
-﻿import { tenantNotifications } from "@doca/db";
-import { markNotificationReadSchema } from "@doca/db/schemas-types";
+import { tenantNotifications } from "@suwa/db";
+import { markNotificationReadSchema } from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 
 import { requireAuth } from "../../../hooks";

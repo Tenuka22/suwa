@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DISPLAY_NAME } from "@doca/app-info";
+import { APP_DISPLAY_NAME } from "@suwa/app-info";
 import {
   Sidebar,
   SidebarContent,
@@ -8,7 +8,7 @@ import {
   SidebarHeader,
   SidebarRail,
   useSidebar,
-} from "@doca/ui/components/sidebar";
+} from "@suwa/ui/components/sidebar";
 import { useParams } from "@tanstack/react-router";
 import {
   BuildingIcon,

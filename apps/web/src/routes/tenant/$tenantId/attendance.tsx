@@ -1,12 +1,12 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
-import { Calendar } from "@doca/ui/components/calendar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Calendar } from "@suwa/ui/components/calendar";
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from "@doca/ui/components/card";
+} from "@suwa/ui/components/card";
 import {
   Dialog,
   DialogContent,
@@ -15,22 +15,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@doca/ui/components/dialog";
-import { Label } from "@doca/ui/components/label";
+} from "@suwa/ui/components/dialog";
+import { Label } from "@suwa/ui/components/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@doca/ui/components/popover";
+} from "@suwa/ui/components/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Skeleton } from "@doca/ui/components/skeleton";
-import { Textarea } from "@doca/ui/components/textarea";
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {

@@ -1,5 +1,5 @@
-import { createDb, doctorProfiles, userSubscriptions } from "@doca/db";
-import { env } from "@doca/env/server";
+import { createDb, doctorProfiles, userSubscriptions } from "@suwa/db";
+import { env } from "@suwa/env/server";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import Stripe from "stripe";

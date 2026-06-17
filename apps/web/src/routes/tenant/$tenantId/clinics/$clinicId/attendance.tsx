@@ -1,24 +1,24 @@
-import { Button } from "@doca/ui/components/button";
-import { Calendar } from "@doca/ui/components/calendar";
+import { Button } from "@suwa/ui/components/button";
+import { Calendar } from "@suwa/ui/components/calendar";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Label } from "@doca/ui/components/label";
+} from "@suwa/ui/components/card";
+import { Label } from "@suwa/ui/components/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@doca/ui/components/popover";
+} from "@suwa/ui/components/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
+} from "@suwa/ui/components/select";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {

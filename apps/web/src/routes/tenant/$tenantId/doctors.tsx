@@ -1,12 +1,12 @@
-import { Badge } from "@doca/ui/components/badge";
-import { buttonVariants } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { buttonVariants } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Skeleton } from "@doca/ui/components/skeleton";
+} from "@suwa/ui/components/card";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@doca/ui/components/table";
+} from "@suwa/ui/components/table";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { UserPlusIcon } from "lucide-react";
 

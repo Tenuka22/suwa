@@ -1,5 +1,5 @@
-import type { AppRouter } from "@doca/api/routers/index";
-import { env } from "@doca/env/web";
+import type { AppRouter } from "@suwa/api/routers/index";
+import { env } from "@suwa/env/web";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { RouterClient } from "@orpc/server";

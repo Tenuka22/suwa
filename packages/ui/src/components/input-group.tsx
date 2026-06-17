@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
-import { Button } from "@doca/ui/components/button";
-import { Input } from "@doca/ui/components/input";
-import { Textarea } from "@doca/ui/components/textarea";
-import { cn } from "@doca/ui/lib/utils";
+import { Button } from "@suwa/ui/components/button";
+import { Input } from "@suwa/ui/components/input";
+import { Textarea } from "@suwa/ui/components/textarea";
+import { cn } from "@suwa/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 

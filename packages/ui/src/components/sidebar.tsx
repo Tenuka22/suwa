@@ -1,25 +1,25 @@
-﻿"use client";
+"use client";
 
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { Button } from "@doca/ui/components/button";
-import { Input } from "@doca/ui/components/input";
-import { Separator } from "@doca/ui/components/separator";
+import { Button } from "@suwa/ui/components/button";
+import { Input } from "@suwa/ui/components/input";
+import { Separator } from "@suwa/ui/components/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@doca/ui/components/sheet";
-import { Skeleton } from "@doca/ui/components/skeleton";
+} from "@suwa/ui/components/sheet";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@doca/ui/components/tooltip";
-import { useIsMobile } from "@doca/ui/hooks/use-mobile";
-import { cn } from "@doca/ui/lib/utils";
+} from "@suwa/ui/components/tooltip";
+import { useIsMobile } from "@suwa/ui/hooks/use-mobile";
+import { cn } from "@suwa/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";

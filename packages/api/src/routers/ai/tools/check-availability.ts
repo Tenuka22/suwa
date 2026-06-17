@@ -5,7 +5,7 @@ import type { ClerkRequestContext } from "../../../context";
 export function createCheckAvailabilityTool(context: ClerkRequestContext) {
   return tool(
     async ({ doctorId, date }: { doctorId: string; date: string }) => {
-      const { doctorSessions } = await import("@doca/db");
+      const { doctorSessions } = await import("@suwa/db");
       const { and, gte, lt, eq } = await import("drizzle-orm");
       const dayStart = new Date(date);
       const dayEnd = new Date(dayStart);

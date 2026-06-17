@@ -1,13 +1,13 @@
-import { Badge } from "@doca/ui/components/badge";
-import { buttonVariants } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { buttonVariants } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Skeleton } from "@doca/ui/components/skeleton";
+} from "@suwa/ui/components/card";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CalendarCheckIcon,

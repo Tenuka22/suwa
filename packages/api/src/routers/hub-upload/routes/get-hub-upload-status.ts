@@ -1,5 +1,5 @@
-﻿import { hubUploadSessions } from "@doca/db";
-import { getHubUploadStatusSchema } from "@doca/db/schemas-types";
+import { hubUploadSessions } from "@suwa/db";
+import { getHubUploadStatusSchema } from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

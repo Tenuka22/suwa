@@ -1,4 +1,4 @@
-﻿import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 import type * as React from "react";
 

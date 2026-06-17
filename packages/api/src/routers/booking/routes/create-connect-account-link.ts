@@ -1,4 +1,4 @@
-﻿import { doctorProfiles } from "@doca/db";
+import { doctorProfiles } from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDoctorProfile, requireAuth } from "../../../hooks";
@@ -21,7 +21,7 @@ export const createConnectAccountLinkRoute = protectedProcedure
     let stripeAccountId = profile.stripeAccountId;
 
     if (stripeAccountId?.startsWith("acct_")) {
-      // Account already exists â€” sync its status from Stripe
+      // Account already exists — sync its status from Stripe
       try {
         const account = await stripe.accounts.retrieve(stripeAccountId);
         const enabled = account.details_submitted && account.charges_enabled;

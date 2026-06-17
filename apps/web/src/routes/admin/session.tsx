@@ -1,8 +1,8 @@
 import { useUser } from "@clerk/tanstack-react-start";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
-import { Card, CardContent, CardHeader } from "@doca/ui/components/card";
-import { Input } from "@doca/ui/components/input";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
+import { Input } from "@suwa/ui/components/input";
 import { createFileRoute } from "@tanstack/react-router";
 import { Copy, ShieldIcon, Video } from "lucide-react";
 import { useState } from "react";

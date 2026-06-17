@@ -1,5 +1,5 @@
 {
-  "name": "@doca/env",
+  "name": "@suwa/env",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@doca/config": "workspace:*",
+    "@suwa/config": "workspace:*",
     "typescript": "^6"
   }
 }

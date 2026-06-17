@@ -1,4 +1,4 @@
-import { Badge } from "@doca/ui/components/badge";
+import { Badge } from "@suwa/ui/components/badge";
 import { CheckCircle2Icon, Clock3Icon, XCircleIcon } from "lucide-react";
 
 export function SessionStatusBadge({ status }: { status: string }) {

@@ -1,13 +1,13 @@
-﻿import {
+import {
   doctorHospitalAffiliations,
   doctorScheduleEntries,
   doctorWeeklyAvailability,
   hospitalAvailabilityOverrides,
-} from "@doca/db";
+} from "@suwa/db";
 import {
   createAvailabilityOverrideSchema,
   deleteAvailabilityOverrideSchema,
-} from "@doca/db/schemas-types";
+} from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 

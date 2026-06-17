@@ -1,4 +1,4 @@
-﻿import { doctorPlans, doctorSessions } from "@doca/db";
+import { doctorPlans, doctorSessions } from "@suwa/db";
 import { and, eq, gt, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";

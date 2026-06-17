@@ -1,5 +1,5 @@
-﻿import { doctorSessions } from "@doca/db";
-import { cancelSessionSchema } from "@doca/db/schemas-types";
+import { doctorSessions } from "@suwa/db";
+import { cancelSessionSchema } from "@suwa/db/schemas-types";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

@@ -1,11 +1,11 @@
-import { Badge } from "@doca/ui/components/badge";
+import { Badge } from "@suwa/ui/components/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@doca/ui/components/dropdown-menu";
+} from "@suwa/ui/components/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import {
   ClockIcon,

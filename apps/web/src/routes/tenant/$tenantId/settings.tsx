@@ -1,22 +1,22 @@
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Input } from "@doca/ui/components/input";
-import { Label } from "@doca/ui/components/label";
+} from "@suwa/ui/components/card";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Skeleton } from "@doca/ui/components/skeleton";
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

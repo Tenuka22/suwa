@@ -1,5 +1,5 @@
 {
-  "name": "@doca/api",
+  "name": "@suwa/api",
   "type": "module",
   "exports": {
     ".": {
@@ -15,9 +15,9 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
     "@clerk/backend": "^3.2.1",
-    "@doca/db": "workspace:*",
-    "@doca/env": "workspace:*",
-    "@doca/pricing": "workspace:*",
+    "@suwa/db": "workspace:*",
+    "@suwa/env": "workspace:*",
+    "@suwa/pricing": "workspace:*",
     "@langchain/core": "^1.1.48",
     "@langchain/google-genai": "^2.1.31",
     "@langchain/langgraph": "^1.4.1",
@@ -36,7 +36,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@doca/config": "workspace:*",
+    "@suwa/config": "workspace:*",
     "hono": "catalog:",
     "typescript": "^6"
   }

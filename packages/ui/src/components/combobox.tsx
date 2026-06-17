@@ -1,12 +1,12 @@
-﻿import { Combobox as ComboboxPrimitive } from "@base-ui/react";
-import { Button } from "@doca/ui/components/button";
+import { Combobox as ComboboxPrimitive } from "@base-ui/react";
+import { Button } from "@suwa/ui/components/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@doca/ui/components/input-group";
-import { cn } from "@doca/ui/lib/utils";
+} from "@suwa/ui/components/input-group";
+import { cn } from "@suwa/ui/lib/utils";
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react";
 import * as React from "react";
 

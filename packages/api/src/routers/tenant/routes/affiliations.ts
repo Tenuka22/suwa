@@ -1,15 +1,15 @@
-﻿import {
+import {
   doctorHospitalAffiliations,
   doctorHospitalInvitations,
   doctorProfiles,
   tenantAuditLogs,
   tenantNotifications,
-} from "@doca/db";
+} from "@suwa/db";
 import {
   inviteDoctorSchema,
   respondInvitationSchema,
   updateAffiliationWindowsSchema,
-} from "@doca/db/schemas-types";
+} from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -205,7 +205,7 @@ export const respondInvitationRoute = protectedProcedure
       });
 
       // Notify tenant admins
-      const { tenantAdmins: tenantAdminsTable } = await import("@doca/db");
+      const { tenantAdmins: tenantAdminsTable } = await import("@suwa/db");
       const admins = await context.db
         .select()
         .from(tenantAdminsTable)
@@ -300,7 +300,7 @@ export const listDoctorAffiliationsRoute = protectedProcedure.handler(
 
     const enriched = await Promise.all(
       affiliations.map(async (aff) => {
-        const { tenants: tenantsTable } = await import("@doca/db");
+        const { tenants: tenantsTable } = await import("@suwa/db");
         const [tenant] = await context.db
           .select()
           .from(tenantsTable)

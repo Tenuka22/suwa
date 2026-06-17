@@ -1,21 +1,21 @@
-import { Alert, AlertDescription } from "@doca/ui/components/alert";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Alert, AlertDescription } from "@suwa/ui/components/alert";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
+} from "@suwa/ui/components/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@doca/ui/components/select";
-import { Skeleton } from "@doca/ui/components/skeleton";
-import { Textarea } from "@doca/ui/components/textarea";
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 

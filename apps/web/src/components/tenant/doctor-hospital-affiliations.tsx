@@ -1,22 +1,22 @@
 "use client";
 
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
+} from "@suwa/ui/components/card";
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@doca/ui/components/empty";
-import { Separator } from "@doca/ui/components/separator";
+} from "@suwa/ui/components/empty";
+import { Separator } from "@suwa/ui/components/separator";
 import { BuildingIcon, CheckIcon, ClockIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 

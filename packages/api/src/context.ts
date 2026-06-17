@@ -1,4 +1,4 @@
-﻿import "./globals.d.ts";
+import "./globals.d.ts";
 
 export interface ClerkContextAuth {
   sessionClaims: CustomJwtSessionClaims | null;
@@ -27,8 +27,8 @@ function toClerkContextAuth(
 }
 
 import { createClerkClient } from "@clerk/backend";
-import { createDb } from "@doca/db";
-import { env } from "@doca/env/server";
+import { createDb } from "@suwa/db";
+import { env } from "@suwa/env/server";
 
 const clerkClient = createClerkClient({
   secretKey: env.CLERK_SECRET_KEY,

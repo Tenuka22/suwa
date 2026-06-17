@@ -1,13 +1,13 @@
-import { chatSystemRegistry } from "@doca/api/routers/chat/helpers/chat-systems";
+import { chatSystemRegistry } from "@suwa/api/routers/chat/helpers/chat-systems";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Label } from "@doca/ui/components/label";
-import { Switch } from "@doca/ui/components/switch";
+} from "@suwa/ui/components/card";
+import { Label } from "@suwa/ui/components/label";
+import { Switch } from "@suwa/ui/components/switch";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 

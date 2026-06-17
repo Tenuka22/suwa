@@ -1,6 +1,6 @@
-﻿import { doctorHubMaterials, hubUploadSessions } from "@doca/db";
-import { completeHubUploadSchema } from "@doca/db/schemas-types";
-import { env } from "@doca/env/server";
+import { doctorHubMaterials, hubUploadSessions } from "@suwa/db";
+import { completeHubUploadSchema } from "@suwa/db/schemas-types";
+import { env } from "@suwa/env/server";
 import { and, eq } from "drizzle-orm";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

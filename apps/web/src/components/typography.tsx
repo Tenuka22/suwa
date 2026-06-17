@@ -1,4 +1,4 @@
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import type { ComponentProps } from "react";
 
 type HeadingProps = ComponentProps<"h1">;

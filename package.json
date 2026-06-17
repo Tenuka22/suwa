@@ -1,5 +1,5 @@
 {
-  "name": "doca",
+  "name": "suwa",
   "private": true,
   "workspaces": {
     "packages": [
@@ -32,12 +32,12 @@
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
     "dev:stress": "turbo -F stress-predictor-service dev",
-    "db:push": "turbo -F @doca/db db:push",
-    "db:generate": "turbo -F @doca/db db:generate",
-    "db:local": "turbo -F @doca/db db:local",
-    "db:setup": "turbo -F @doca/db db:setup",
-    "deploy": "turbo -F @doca/infra deploy",
-    "destroy": "turbo -F @doca/infra destroy",
+    "db:push": "turbo -F @suwa/db db:push",
+    "db:generate": "turbo -F @suwa/db db:generate",
+    "db:local": "turbo -F @suwa/db db:local",
+    "db:setup": "turbo -F @suwa/db db:setup",
+    "deploy": "turbo -F @suwa/infra deploy",
+    "destroy": "turbo -F @suwa/infra destroy",
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
@@ -46,7 +46,7 @@
     "@langchain/cloudflare": "^1.0.6",
     "@langchain/core": "^1.1.48",
     "@langchain/langgraph": "^1.4.1",
-    "@doca/env": "workspace:*",
+    "@suwa/env": "workspace:*",
     "dotenv": "catalog:",
     "react-day-picker": "^10.0.1",
     "zod": "catalog:"
@@ -54,7 +54,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
     "@cloudflare/workers-types": "catalog:",
-    "@doca/config": "workspace:*",
+    "@suwa/config": "workspace:*",
     "@types/node": "catalog:",
     "shadcn": "^4.11.0",
     "turbo": "^2.8.12",

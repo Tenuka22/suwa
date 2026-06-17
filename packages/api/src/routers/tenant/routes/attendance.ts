@@ -1,16 +1,16 @@
-﻿import {
+import {
   clinicAttendance,
   clinics,
   hospitalAttendanceEvents,
   tenantAuditLogs,
   tenantNotifications,
-} from "@doca/db";
+} from "@suwa/db";
 import {
   clinicAttendanceSchema,
   getAttendanceSchema,
   logAttendanceEventSchema,
   updateAttendanceEventSchema,
-} from "@doca/db/schemas-types";
+} from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -226,7 +226,7 @@ export const getDoctorHospitalStatusRoute = protectedProcedure
     };
   });
 
-// â”€â”€ Clinic management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Clinic management ────────────────────────────────────────────────
 
 export const createClinicRoute = protectedProcedure
   .input(

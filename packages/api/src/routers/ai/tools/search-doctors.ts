@@ -5,7 +5,7 @@ import type { ClerkRequestContext } from "../../../context";
 export function createSearchDoctorsTool(context: ClerkRequestContext) {
   return tool(
     async ({ query }: { query: string }) => {
-      const { doctorProfiles } = await import("@doca/db");
+      const { doctorProfiles } = await import("@suwa/db");
       const { or, like } = await import("drizzle-orm");
       const doctors = await context.db
         .select()

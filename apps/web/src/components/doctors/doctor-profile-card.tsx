@@ -4,28 +4,28 @@ import {
   doctorFocusAreaValues,
   doctorLanguageValues,
   doctorSpecialtyValues,
-} from "@doca/db/doctor-profile";
+} from "@suwa/db/doctor-profile";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@doca/ui/components/avatar";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+} from "@suwa/ui/components/avatar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Checkbox } from "@doca/ui/components/checkbox";
+} from "@suwa/ui/components/card";
+import { Checkbox } from "@suwa/ui/components/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@doca/ui/components/dialog";
+} from "@suwa/ui/components/dialog";
 import {
   Field,
   FieldDescription,
@@ -33,16 +33,16 @@ import {
   FieldLabel,
   FieldLegend,
   FieldSet,
-} from "@doca/ui/components/field";
-import { Input } from "@doca/ui/components/input";
+} from "@suwa/ui/components/field";
+import { Input } from "@suwa/ui/components/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@doca/ui/components/tabs";
-import { Textarea } from "@doca/ui/components/textarea";
-import { cn } from "@doca/ui/lib/utils";
+} from "@suwa/ui/components/tabs";
+import { Textarea } from "@suwa/ui/components/textarea";
+import { cn } from "@suwa/ui/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {

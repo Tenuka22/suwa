@@ -1,6 +1,6 @@
-import { createContext } from "@doca/api/context";
-import { appRouter, wsAppRouter } from "@doca/api/routers/index";
-import { env } from "@doca/env/server";
+import { createContext } from "@suwa/api/context";
+import { appRouter, wsAppRouter } from "@suwa/api/routers/index";
+import { env } from "@suwa/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";

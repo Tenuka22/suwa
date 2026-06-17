@@ -1,6 +1,6 @@
 "use client";
 
-import { env } from "@doca/env/native";
+import { env } from "@suwa/env/native";
 import {
   Elements,
   PaymentElement,

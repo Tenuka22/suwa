@@ -5,12 +5,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
+} from "@suwa/ui/components/card";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@doca/ui/components/sidebar";
+} from "@suwa/ui/components/sidebar";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { ShieldIcon } from "lucide-react";
 

@@ -1,10 +1,10 @@
-import type { createDb } from "@doca/db";
+import type { createDb } from "@suwa/db";
 import {
   moonlightCredits,
   patientProfiles,
   stressDownloadAcknowledgments,
   stressPredictions,
-} from "@doca/db";
+} from "@suwa/db";
 import { faker } from "@faker-js/faker";
 import { inArray } from "drizzle-orm";
 

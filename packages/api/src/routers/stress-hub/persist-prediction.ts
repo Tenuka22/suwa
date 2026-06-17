@@ -1,4 +1,4 @@
-﻿import { stressPredictions } from "@doca/db";
+import { stressPredictions } from "@suwa/db";
 
 export type PredictionRecord = Record<string, unknown>;
 

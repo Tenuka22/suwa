@@ -3,7 +3,7 @@ import {
   doctorHospitalAffiliations,
   doctorProfiles,
   tenants,
-} from "@doca/db";
+} from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure } from "../../../index";

@@ -3,16 +3,16 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@doca/ui/components/avatar";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
+} from "@suwa/ui/components/avatar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Skeleton } from "@doca/ui/components/skeleton";
+} from "@suwa/ui/components/card";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
   Award,

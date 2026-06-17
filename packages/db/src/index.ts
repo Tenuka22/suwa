@@ -1,4 +1,4 @@
-﻿import { env } from "@doca/env/server";
+import { env } from "@suwa/env/server";
 import { drizzle } from "drizzle-orm/d1";
 
 import {

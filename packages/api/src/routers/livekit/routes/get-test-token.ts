@@ -1,5 +1,5 @@
-﻿import { doctorSessions } from "@doca/db";
-import { env } from "@doca/env/server";
+import { doctorSessions } from "@suwa/db";
+import { env } from "@suwa/env/server";
 import { eq } from "drizzle-orm";
 import { AccessToken } from "livekit-server-sdk";
 import { z } from "zod";

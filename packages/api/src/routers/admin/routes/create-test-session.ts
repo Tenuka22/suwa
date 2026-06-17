@@ -1,5 +1,5 @@
-﻿import { randomUUID } from "node:crypto";
-import { doctorSessions } from "@doca/db";
+import { randomUUID } from "node:crypto";
+import { doctorSessions } from "@suwa/db";
 import { z } from "zod";
 import { requireAdmin } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

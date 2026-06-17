@@ -1,5 +1,5 @@
 {
-  "extends": "@doca/config/tsconfig.base",
+  "extends": "@suwa/config/tsconfig.base",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src"

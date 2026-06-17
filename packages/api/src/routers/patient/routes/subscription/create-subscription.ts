@@ -1,4 +1,4 @@
-﻿import { userSubscriptions } from "@doca/db";
+import { userSubscriptions } from "@suwa/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../../hooks";

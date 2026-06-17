@@ -1,10 +1,10 @@
-﻿import type { DoctorProfile } from "@doca/db";
+import type { DoctorProfile } from "@suwa/db";
 import {
   doctorProfiles,
   parseJsonApproachSteps,
   parseJsonStringArray,
   tenantAdmins,
-} from "@doca/db";
+} from "@suwa/db";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 

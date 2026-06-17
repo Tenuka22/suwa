@@ -9,7 +9,7 @@ export function createGetUpcomingSessionsTool(context: ClerkRequestContext) {
       if (!userId) {
         return JSON.stringify({ error: "Authentication required" });
       }
-      const { doctorSessions } = await import("@doca/db");
+      const { doctorSessions } = await import("@suwa/db");
       const { and, gte, eq } = await import("drizzle-orm");
       const results = await context.db
         .select()

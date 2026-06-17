@@ -3,7 +3,7 @@ import type {
   doctorFocusAreaValues,
   doctorLanguageValues,
   doctorSpecialtyValues,
-} from "@doca/db/doctor-profile";
+} from "@suwa/db/doctor-profile";
 
 export type DoctorSpecialty = (typeof doctorSpecialtyValues)[number];
 export type DoctorLanguage = (typeof doctorLanguageValues)[number];

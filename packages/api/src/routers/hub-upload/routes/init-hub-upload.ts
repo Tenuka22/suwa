@@ -1,5 +1,5 @@
-﻿import { doctorHubMaterials, hubUploadSessions } from "@doca/db";
-import { CHUNK_SIZE, initHubUploadSchema } from "@doca/db/schemas-types";
+import { doctorHubMaterials, hubUploadSessions } from "@suwa/db";
+import { CHUNK_SIZE, initHubUploadSchema } from "@suwa/db/schemas-types";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 

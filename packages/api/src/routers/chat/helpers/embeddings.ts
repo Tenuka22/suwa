@@ -1,4 +1,4 @@
-import { doctorProfiles } from "@doca/db";
+import { doctorProfiles } from "@suwa/db";
 import type { ClerkRequestContext } from "../../../context";
 
 export interface DoctorEmbedding {

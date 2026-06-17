@@ -1,6 +1,6 @@
-﻿import { doctorFiles } from "@doca/db";
-import { fileKeySchema } from "@doca/db/schemas-types";
-import { env } from "@doca/env/server";
+import { doctorFiles } from "@suwa/db";
+import { fileKeySchema } from "@suwa/db/schemas-types";
+import { env } from "@suwa/env/server";
 import { and, eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

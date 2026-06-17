@@ -1,5 +1,5 @@
-﻿import { doctorFiles } from "@doca/db";
-import { updateDoctorFileSchema } from "@doca/db/schemas-types";
+import { doctorFiles } from "@suwa/db";
+import { updateDoctorFileSchema } from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

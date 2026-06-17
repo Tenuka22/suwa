@@ -1,9 +1,9 @@
-﻿import { tenantAdmins, tenantAuditLogs, tenants } from "@doca/db";
+import { tenantAdmins, tenantAuditLogs, tenants } from "@suwa/db";
 import {
   createTenantSchema,
   tenantIdSchema,
   updateTenantSchema,
-} from "@doca/db/schemas-types";
+} from "@suwa/db/schemas-types";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 

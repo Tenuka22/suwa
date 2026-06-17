@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "doca",
-    "slug": "doca",
+    "name": "suwa",
+    "slug": "suwa",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/Logo.png",
-    "scheme": "doca",
+    "scheme": "suwa",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,

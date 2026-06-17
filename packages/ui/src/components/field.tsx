@@ -1,7 +1,7 @@
-﻿import { Label } from "@doca/ui/components/label";
-import { Separator } from "@doca/ui/components/separator";
+import { Label } from "@suwa/ui/components/label";
+import { Separator } from "@suwa/ui/components/separator";
 
-import { cn } from "@doca/ui/lib/utils";
+import { cn } from "@suwa/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 

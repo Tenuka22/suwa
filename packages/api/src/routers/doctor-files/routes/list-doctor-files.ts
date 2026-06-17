@@ -1,4 +1,4 @@
-﻿import { doctorFileInputSchema } from "@doca/db/schemas-types";
+import { doctorFileInputSchema } from "@suwa/db/schemas-types";
 import { publicProcedure } from "../../../index";
 import { listFilesForDoctor } from "../file-utils";
 

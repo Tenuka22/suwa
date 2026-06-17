@@ -6,20 +6,20 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@doca/ui/components/breadcrumb";
+} from "@suwa/ui/components/breadcrumb";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@doca/ui/components/card";
-import { Separator } from "@doca/ui/components/separator";
+} from "@suwa/ui/components/card";
+import { Separator } from "@suwa/ui/components/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@doca/ui/components/sidebar";
+} from "@suwa/ui/components/sidebar";
 import {
   createFileRoute,
   Link,

@@ -1,4 +1,4 @@
-﻿import type { DoctorProfile } from "@doca/db";
+import type { DoctorProfile } from "@suwa/db";
 import {
   doctorEducationEntries,
   doctorPlans,
@@ -7,13 +7,13 @@ import {
   parseJsonStringArray,
   stringifyJsonApproachSteps,
   stringifyJsonStringArray,
-} from "@doca/db";
-import { doctorProfileInputSchema } from "@doca/db/schemas-types";
+} from "@suwa/db";
+import { doctorProfileInputSchema } from "@suwa/db/schemas-types";
 import {
   BASIC_PLAN_DURATION_MINUTES,
   BASIC_PLAN_FEATURES,
   BASIC_PLAN_NAME,
-} from "@doca/pricing";
+} from "@suwa/pricing";
 import { and, eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

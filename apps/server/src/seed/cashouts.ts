@@ -1,5 +1,5 @@
-import type { createDb } from "@doca/db";
-import { doctorCashoutRequests, doctorSessions } from "@doca/db";
+import type { createDb } from "@suwa/db";
+import { doctorCashoutRequests, doctorSessions } from "@suwa/db";
 import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 

@@ -1,4 +1,4 @@
-﻿import { patientProfiles } from "@doca/db";
+import { patientProfiles } from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";

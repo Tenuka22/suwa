@@ -1,4 +1,4 @@
-﻿import { env } from "@doca/env/server";
+import { env } from "@suwa/env/server";
 
 export interface DoctorMaterialFileInput {
   fileKey: string;

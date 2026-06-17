@@ -1,7 +1,7 @@
 "use client";
 
-import type { AppRouterClient } from "@doca/api/routers/index";
-import { env } from "@doca/env/native";
+import type { AppRouterClient } from "@suwa/api/routers/index";
+import { env } from "@suwa/env/native";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";

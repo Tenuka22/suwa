@@ -1,4 +1,4 @@
-import { Button } from "@doca/ui/components/button";
+import { Button } from "@suwa/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -6,10 +6,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@doca/ui/components/dialog";
-import { Input } from "@doca/ui/components/input";
-import { Label } from "@doca/ui/components/label";
-import { Textarea } from "@doca/ui/components/textarea";
+} from "@suwa/ui/components/dialog";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { AtSignIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { useCreateHubChannel } from "@/hooks/hub/use-hub";

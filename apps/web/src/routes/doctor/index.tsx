@@ -1,20 +1,20 @@
-import { Avatar, AvatarFallback } from "@doca/ui/components/avatar";
-import { Badge } from "@doca/ui/components/badge";
-import { Button } from "@doca/ui/components/button";
-import { Card, CardContent, CardHeader } from "@doca/ui/components/card";
+import { Avatar, AvatarFallback } from "@suwa/ui/components/avatar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@doca/ui/components/chart";
+} from "@suwa/ui/components/chart";
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@doca/ui/components/empty";
-import { Separator } from "@doca/ui/components/separator";
+} from "@suwa/ui/components/empty";
+import { Separator } from "@suwa/ui/components/separator";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {

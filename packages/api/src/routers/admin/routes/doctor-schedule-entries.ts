@@ -1,5 +1,5 @@
-﻿import type { DoctorScheduleEntry } from "@doca/db";
-import { doctorScheduleEntries } from "@doca/db";
+import type { DoctorScheduleEntry } from "@suwa/db";
+import { doctorScheduleEntries } from "@suwa/db";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../../../hooks";

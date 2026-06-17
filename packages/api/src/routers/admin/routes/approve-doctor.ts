@@ -1,9 +1,9 @@
-﻿import { doctorPlans, doctorProfiles } from "@doca/db";
+import { doctorPlans, doctorProfiles } from "@suwa/db";
 import {
   BASIC_PLAN_DURATION_MINUTES,
   BASIC_PLAN_FEATURES,
   BASIC_PLAN_NAME,
-} from "@doca/pricing";
+} from "@suwa/pricing";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "../../../hooks";

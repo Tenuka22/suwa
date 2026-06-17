@@ -1,8 +1,8 @@
 import { UserButton, useUser } from "@clerk/tanstack-react-start";
-import { APP_DISPLAY_NAME } from "@doca/app-info";
-import { Badge } from "@doca/ui/components/badge";
-import { buttonVariants } from "@doca/ui/components/button";
-import { Card, CardContent } from "@doca/ui/components/card";
+import { APP_DISPLAY_NAME } from "@suwa/app-info";
+import { Badge } from "@suwa/ui/components/badge";
+import { buttonVariants } from "@suwa/ui/components/button";
+import { Card, CardContent } from "@suwa/ui/components/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRightIcon, ShieldIcon, StethoscopeIcon } from "lucide-react";
 

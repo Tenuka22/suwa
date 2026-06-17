@@ -1,5 +1,5 @@
-﻿import { doctorPlaylists } from "@doca/db";
-import { updatePlaylistSchema } from "@doca/db/schemas-types";
+import { doctorPlaylists } from "@suwa/db";
+import { updatePlaylistSchema } from "@suwa/db/schemas-types";
 import { and, eq } from "drizzle-orm";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
