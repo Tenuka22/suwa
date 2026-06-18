@@ -4,7 +4,7 @@ import { useOAuth } from "@clerk/expo";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/design/ui/button";
 import { OAUTH_STRATEGIES } from "@/utils/auth";
 
 WebBrowser.maybeCompleteAuthSession();

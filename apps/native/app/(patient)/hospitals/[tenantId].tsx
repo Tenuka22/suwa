@@ -21,17 +21,14 @@ import {
   View,
 } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { IconButton } from "@/components/ui/icon-button";
-import { Screen } from "@/components/ui/screen";
-import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
-import { Tag } from "@/components/ui/tag";
+import { Button } from "@/components/design/ui/button";
+import { IconButton } from "@/components/design/ui/icon-button";
+import { Screen } from "@/components/design/ui/screen";
+import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
 import { orpc } from "@/utils/orpc";
-import { useThemeColor } from "@/utils/theme";
 
 export default function HospitalDetailScreen() {
-  const colors = useThemeColor();
-  const router = useRouter();
+    const router = useRouter();
   const { tenantId } = useLocalSearchParams<{ tenantId: string }>();
 
   const detailQuery = useQuery(
@@ -55,7 +52,7 @@ export default function HospitalDetailScreen() {
         >
           {detailQuery.isPending && (
             <View className="flex-1 items-center justify-center pt-20">
-              <ActivityIndicator color={colors.primary} size="large" />
+              <ActivityIndicator className="text-primary" size="large" />
             </View>
           )}
 
@@ -76,18 +73,14 @@ export default function HospitalDetailScreen() {
                     <Text className="font-black font-sans text-2xl text-foreground uppercase leading-tight tracking-tight">
                       {tenant.name}
                     </Text>
-                    <Tag size="sm" variant="primary">
-                      {tenant.type === "PRIVATE_HOSPITAL"
-                        ? "Private Hospital"
-                        : "Public Hospital"}
-                    </Tag>
+                    
                   </View>
                 </View>
 
                 {/* Address */}
                 <View className="flex-row items-start gap-2">
                   <MapPin
-                    color={colors.mutedForeground}
+                    className="text-mutedForeground"
                     size={16}
                     strokeWidth={2}
                   />
@@ -101,7 +94,7 @@ export default function HospitalDetailScreen() {
                     className="flex-row items-center gap-2"
                     onPress={() => Linking.openURL(`tel:${tenant.phone}`)}
                   >
-                    <Phone color={colors.primary} size={16} strokeWidth={2} />
+                    <Phone className="text-primary" size={16} strokeWidth={2} />
                     <Text className="font-medium font-sans text-primary text-sm">
                       {tenant.phone}
                     </Text>
@@ -117,7 +110,7 @@ export default function HospitalDetailScreen() {
                       }
                     }}
                   >
-                    <Globe color={colors.primary} size={16} strokeWidth={2} />
+                    <Globe className="text-primary" size={16} strokeWidth={2} />
                     <Text
                       className="flex-1 font-medium font-sans text-primary text-sm"
                       numberOfLines={1}
@@ -153,7 +146,7 @@ export default function HospitalDetailScreen() {
                 <View className="gap-3">
                   <View className="flex-row items-center gap-2">
                     <Building2
-                      color={colors.mutedForeground}
+                      className="text-mutedForeground"
                       size={14}
                       strokeWidth={2}
                     />
@@ -163,9 +156,9 @@ export default function HospitalDetailScreen() {
                   </View>
                   <View className="flex-row flex-wrap gap-1.5">
                     {tenant.services.map((service) => (
-                      <Tag key={service} size="sm" variant="secondary">
-                        {service}
-                      </Tag>
+                      <View key={service} className="rounded-full bg-background px-3 py-1">
+                        <Text className="text-xs font-medium text-foreground">{service}</Text>
+                      </View>
                     ))}
                   </View>
                 </View>
@@ -175,7 +168,7 @@ export default function HospitalDetailScreen() {
               <View className="gap-3">
                 <View className="flex-row items-center gap-2">
                   <HospitalIcon
-                    color={colors.mutedForeground}
+                    className="text-mutedForeground"
                     size={14}
                     strokeWidth={2}
                   />
@@ -199,15 +192,13 @@ export default function HospitalDetailScreen() {
                       <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-tight">
                         {clinic.name}
                       </Text>
-                      {clinic.specialization && (
-                        <Tag size="sm" variant="muted">
-                          {clinic.specialization}
-                        </Tag>
+{clinic.specialization && (
+                        <Text className="text-xs font-medium text-muted-foreground">{clinic.specialization}</Text>
                       )}
                       {clinic.schedule && (
                         <View className="flex-row items-start gap-1.5">
                           <Clock
-                            color={colors.mutedForeground}
+                            className="text-mutedForeground"
                             size={12}
                             strokeWidth={2}
                           />
@@ -225,7 +216,7 @@ export default function HospitalDetailScreen() {
               <View className="gap-3">
                 <View className="flex-row items-center gap-2">
                   <Stethoscope
-                    color={colors.mutedForeground}
+                    className="text-mutedForeground"
                     size={14}
                     strokeWidth={2}
                   />
@@ -250,7 +241,7 @@ export default function HospitalDetailScreen() {
                   >
                     <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/15">
                       <Stethoscope
-                        color={colors.primary}
+                        className="text-primary"
                         size={18}
                         strokeWidth={2}
                       />
@@ -269,14 +260,14 @@ export default function HospitalDetailScreen() {
                       )}
                       <View className="flex-row flex-wrap gap-1">
                         {doc.profile.specialties.slice(0, 3).map((s) => (
-                          <Tag key={s} size="sm" variant="muted">
-                            {s}
-                          </Tag>
+                          <View key={s} className="rounded-full bg-background px-2 py-0.5">
+                            <Text className="text-[10px] font-medium text-foreground">{s}</Text>
+                          </View>
                         ))}
                       </View>
                     </View>
                     <ArrowLeft
-                      color={colors.mutedForeground}
+                      className="text-mutedForeground"
                       size={14}
                       strokeWidth={2.5}
                       style={{ transform: [{ rotate: "180deg" }] }}
@@ -289,44 +280,12 @@ export default function HospitalDetailScreen() {
         </ScrollView>
       </Screen>
 
-      <ScreenBottomBar>
-        <Button
-          className="flex-1"
-          onPress={() => router.push("/map" as Href)}
-          size="sm"
-          variant="primary"
-        >
-          <Text className="font-bold font-sans text-[10px] text-primary-foreground uppercase">
-            Back to Map
-          </Text>
-        </Button>
-
-        {tenant?.phone && (
-          <IconButton
-            icon={Phone}
-            iconSize={16}
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-          />
-        )}
-
-        <IconButton
-          icon={ArrowLeft}
-          iconSize={16}
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-        />
-      </ScreenBottomBar>
+      <ScreenBottomBar
+        returnAction={{
+          href: "/map",
+          icon: <ArrowLeft className="text-foreground" size={24} />
+        }}
+      />
     </>
   );
 }

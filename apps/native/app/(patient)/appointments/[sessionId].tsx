@@ -6,8 +6,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { ActivityIndicator, Text, View, Pressable } from "react-native";
 import { Button } from "@/components/design/ui/button";
-import { Screen } from "@/components/ui/screen";
-import { VideoRoom } from "@/components/ui/video-room";
+import { Screen } from "@/components/design/ui/screen";
+import { VideoRoom } from "@/components/design/ui/video-room";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 

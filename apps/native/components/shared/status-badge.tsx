@@ -1,6 +1,6 @@
 "use client";
 
-import { Tag } from "@/components/ui/tag";
+import { Tag } from "@/components/design/ui/tag";
 
 const statusLabelMap: Record<string, string> = {
   attended: "Attended",

@@ -6,6 +6,7 @@ interface ScreenProps {
   children: any;
   className?: string;
   contentClassName?: string;
+  scrollClassName?: string;
 }
 
 export function Screen({ children, className, contentClassName }: ScreenProps) {

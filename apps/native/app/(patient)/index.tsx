@@ -21,7 +21,7 @@ import { Image, Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
-import { Screen } from "@/components/ui/screen";
+import { Screen } from "@/components/design/ui/screen";
 import { orpc } from "@/utils/orpc";
 
 export default function HomeScreen() {

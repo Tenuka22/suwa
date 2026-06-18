@@ -2,9 +2,9 @@
 
 import { Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Screen } from "@/components/ui/screen";
+import { Button } from "@/components/design/ui/button";
+import { Card } from "@/components/design/ui/card";
+import { Screen } from "@/components/design/ui/screen";
 import { wearablePackages } from "@/utils/wearable-packages";
 
 export default function TestIndexScreen() {

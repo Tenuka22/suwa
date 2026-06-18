@@ -5,12 +5,13 @@ import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 interface CardProps {
-  title: string;
+  title?: string;
   description?: string;
   icon?: ReactNode;
   iconBgColor?: string;
   onPress?: () => void;
   className?: string;
+  children?: ReactNode;
   variant?: "default" | "banner";
 }
 
@@ -21,6 +22,7 @@ export function Card({
   iconBgColor = "bg-background-subtle",
   onPress,
   className,
+  children,
   variant = "default",
 }: CardProps) {
   const isBanner = variant === "banner";
@@ -37,17 +39,20 @@ export function Card({
           </View>
         )}
         <View className={`${isBanner ? "flex-1" : "gap-1"}`}>
-          <View className="flex-row items-center justify-between">
-            <Text className="font-sans font-bold text-title text-foreground">
-              {title}
-            </Text>
-            {!isBanner && <ChevronRight size={16} className="text-foreground-muted" />}
-          </View>
+          {title && (
+            <View className="flex-row items-center justify-between">
+              <Text className="font-sans font-bold text-title text-foreground">
+                {title}
+              </Text>
+              {!isBanner && <ChevronRight size={16} className="text-foreground-muted" />}
+            </View>
+          )}
           {description && (
             <Text className="font-sans text-foreground-secondary text-body">
               {description}
             </Text>
           )}
+          {children}
         </View>
       </View>
       {isBanner && <ChevronRight size={20} className="text-foreground-muted" />}

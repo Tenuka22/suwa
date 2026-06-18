@@ -3,9 +3,9 @@
 import { Stack } from "expo-router";
 import { Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Screen } from "@/components/ui/screen";
+import { Button } from "@/components/design/ui/button";
+import { Card } from "@/components/design/ui/card";
+import { Screen } from "@/components/design/ui/screen";
 
 export default function NotFoundScreen() {
   return (

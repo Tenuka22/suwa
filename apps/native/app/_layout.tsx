@@ -28,12 +28,11 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ErrorDialog, useErrorDialog } from "@/components/ui/error-dialog";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { ErrorDialog, useErrorDialog } from "@/components/design/ui/error-dialog";
+import { showToast } from "@/components/design/ui/toast";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
 import { orpc, queryClient, setQueryErrorHandler } from "@/utils/orpc";
 import { StripePaymentProvider } from "@/utils/stripe";
-import { useThemeColor } from "@/utils/theme";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -53,8 +52,7 @@ function ClerkApiAuthBridge() {
 function OnboardingCheck() {
   const pathname = usePathname();
   const { isLoaded, isSignedIn } = useAuth();
-  const colors = useThemeColor();
-
+  
   const patientProfileQuery = useQuery(
     orpc.getPatientProfile.queryOptions({
       enabled: isLoaded && isSignedIn,
@@ -74,7 +72,6 @@ function OnboardingCheck() {
         patientData && !(patientData.secured && patientData._securedData);
 
       if (patientData && !needsRepair) {
-        queryClient.prefetchQuery(orpc.getTodayTasks.queryOptions());
         queryClient.prefetchQuery(orpc.listPatientSessions.queryOptions());
       }
     }
@@ -83,7 +80,7 @@ function OnboardingCheck() {
   if (!isLoaded) {
     return (
       <View className="absolute inset-0 z-50 flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={colors.primary} size="large" />
+        <ActivityIndicator className="text-primary" size="large" />
       </View>
     );
   }
@@ -91,7 +88,7 @@ function OnboardingCheck() {
   if (isLoaded && isSignedIn && !isProfileLoaded) {
     return (
       <View className="absolute inset-0 z-50 flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={colors.primary} size="large" />
+        <ActivityIndicator className="text-primary" size="large" />
       </View>
     );
   }
@@ -180,19 +177,19 @@ function GlobalErrorBoundary({
 }
 
 function LayoutContent() {
-  const { background, foreground } = useThemeColor();
-  const { toast } = useToast();
   const { dialogProps, showError } = useErrorDialog();
+  const background = "#f4f4f5";
+  const foreground = "#000000";
 
   useEffect(() => {
     setQueryErrorHandler((error) => {
-      toast({
+      showToast({
         type: "error",
         title: "Something went wrong",
         message: (error as Error)?.message ?? "Please try again.",
       });
     });
-  }, [toast]);
+  }, []);
 
   return (
     <ClerkProvider
@@ -260,8 +257,6 @@ export default function RootLayout() {
   }
 
   return (
-    <ToastProvider>
-      <LayoutContent />
-    </ToastProvider>
-  );
+          <LayoutContent />
+      );
 }

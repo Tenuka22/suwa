@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Text, View, type ViewStyle } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Screen } from "@/components/ui/screen";
+import { Button } from "@/components/design/ui/button";
+import { Card } from "@/components/design/ui/card";
+import { Screen } from "@/components/design/ui/screen";
 import { orpc } from "@/utils/orpc";
 import type { TestSequence } from "@/utils/test-sequences";
 import { TEST_SEQUENCES } from "@/utils/test-sequences";

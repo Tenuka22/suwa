@@ -22,11 +22,9 @@ import {
   storeSecret,
 } from "@/utils/privacy";
 import { useErrorHandler } from "@/utils/use-error-handler";
-import { useThemeColor } from "@/utils/theme";
 
 export default function ProfileScreen() {
-  const colors = useThemeColor();
-
+  
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -133,7 +131,7 @@ export default function ProfileScreen() {
   if (profileQuery.isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={colors.primary} size="large" />
+        <ActivityIndicator className="text-primary" size="large" />
       </View>
     );
   }

@@ -2,8 +2,8 @@
 
 import { useCallback } from "react";
 
-import type { Action } from "@/components/ui/error-dialog";
-import { useToast } from "@/components/ui/toast";
+import type { Action } from "@/components/design/ui/error-dialog";
+import { showToast } from "@/components/design/ui/toast";
 import { parseError } from "@/utils/error-handler";
 
 interface UseErrorHandlerOptions {
@@ -11,8 +11,6 @@ interface UseErrorHandlerOptions {
 }
 
 export function useErrorHandler({ onHardError }: UseErrorHandlerOptions = {}) {
-  const { toast } = useToast();
-
   const handleError = useCallback(
     (error: unknown, context?: { action?: string; retry?: () => void }) => {
       const parsed = parseError(error);
@@ -28,7 +26,7 @@ export function useErrorHandler({ onHardError }: UseErrorHandlerOptions = {}) {
         : undefined;
 
       if (parsed.isSoft) {
-        toast({
+        showToast({
           type: "error",
           title: parsed.title,
           message: parsed.message,
@@ -36,14 +34,14 @@ export function useErrorHandler({ onHardError }: UseErrorHandlerOptions = {}) {
       } else if (onHardError) {
         onHardError(parsed.title, parsed.message, actions);
       } else {
-        toast({
+        showToast({
           type: "error",
           title: parsed.title,
           message: parsed.message,
         });
       }
     },
-    [onHardError, toast]
+    [onHardError]
   );
 
   return { handleError };

@@ -23,7 +23,7 @@ import {
   View,
 } from "react-native";
 import { Button } from "@/components/design/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Screen } from "@/components/design/ui/screen";
 import { vibrate } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 import {

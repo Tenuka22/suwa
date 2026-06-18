@@ -5,17 +5,15 @@ import { Video } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Screen } from "@/components/ui/screen";
-import { VideoRoom } from "@/components/ui/video-room";
+import { Button } from "@/components/design/ui/button";
+import { Card } from "@/components/design/ui/card";
+import { Input } from "@/components/design/ui/input";
+import { Screen } from "@/components/design/ui/screen";
+import { VideoRoom } from "@/components/design/ui/video-room";
 import { orpc } from "@/utils/orpc";
-import { useThemeColor } from "@/utils/theme";
 
 export default function TestSessionScreen() {
-  const colors = useThemeColor();
-  const [sessionId, setSessionId] = useState("");
+    const [sessionId, setSessionId] = useState("");
   const [activeSession, setActiveSession] = useState<{
     id: string;
     isMock: boolean;
@@ -85,7 +83,7 @@ export default function TestSessionScreen() {
         <Card className="gap-4">
           <View className="gap-3">
             <View className="flex-row items-center gap-2">
-              <Video color={colors.foreground} size={20} />
+              <Video className="text-foreground" size={20} />
               <Text className="font-black font-sans text-foreground text-lg uppercase tracking-tight">
                 Join Session
               </Text>
@@ -120,7 +118,7 @@ export default function TestSessionScreen() {
             <Button
               className="w-full"
               disabled={!sessionId.trim()}
-              icon={<Video color={colors.primaryForeground} size={16} />}
+              icon={<Video className="text-primaryForeground" size={16} />}
               onPress={handleJoin}
             >
               Join as{" "}

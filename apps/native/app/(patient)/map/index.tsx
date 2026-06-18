@@ -26,7 +26,7 @@ import type MapView from "react-native-maps";
 
 import MapComponent from "@/components/map/map-view";
 import { Button } from "@/components/design/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Screen } from "@/components/design/ui/screen";
 import { hospitals as staticHospitals } from "@/data/hospitals";
 import { orpc } from "@/utils/orpc";
 import { useUserLocation } from "@/utils/use-user-location";
@@ -52,8 +52,8 @@ export default function MapScreen() {
     }
   }, [userLocation, requestLocation]);
 
-  const tenantsQuery = useQuery(orpc.listTenants.queryOptions());
-  const tenants = (tenantsQuery.data?.tenants ?? []) as any[];
+  const tenantsQuery = useQuery(orpc.listTenants.queryOptions({input:{page:0,pageSize:0}}));
+  const tenants = ((tenantsQuery.data)?.tenants ?? []) ;
 
   const allHospitals = useMemo(() => {
     const merged = [...staticHospitals];
@@ -81,11 +81,11 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
-      
+
       <MapComponent
         filteredHospitals={allHospitals}
         onMarkerPress={setSelectedHospital}
-        platformHospitalNames={tenants.map(t => t.name)}
+        platformHospitalNames={tenants.map((t: any) => t.name)}
         ref={mapRef}
         selectedHospitalId={selectedHospital?.name}
         userLocation={userLocation}
@@ -102,8 +102,8 @@ export default function MapScreen() {
           </Pressable>
           <View className="flex-1 h-12 flex-row items-center gap-md bg-background-elevated rounded-full px-lg shadow-lg">
             <Search size={20} className="text-foreground-placeholder" />
-            <TextInput 
-              placeholder="Search hospitals..." 
+            <TextInput
+              placeholder="Search hospitals..."
               className="flex-1 font-sans text-body"
               value={search}
               onChangeText={setSearch}

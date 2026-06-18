@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 
 import { Button } from "@/components/design/ui/button";
 import { Input } from "@/components/design/ui/input";
-import { Screen } from "@/components/ui/screen";
+import { Screen } from "@/components/design/ui/screen";
 import { _client, orpc, queryClient } from "@/utils/orpc";
 
 interface ChatMsg {

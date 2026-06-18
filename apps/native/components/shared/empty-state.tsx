@@ -4,7 +4,6 @@ import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
-import { useThemeColor } from "@/utils/theme";
 
 interface EmptyStateProps {
   action?: ReactNode;
@@ -19,13 +18,12 @@ export function EmptyState({
   description,
   action,
 }: EmptyStateProps) {
-  const colors = useThemeColor();
-
+  
   return (
     <View className="items-center justify-center rounded-card border-2 border-border border-dashed py-16">
       {Icon && (
         <View className="mb-4">
-          <Icon color={colors.mutedForeground} size={48} />
+          <Icon className="text-mutedForeground" size={48} />
         </View>
       )}
       <Text className="text-center font-bold font-sans text-muted-foreground text-sm">

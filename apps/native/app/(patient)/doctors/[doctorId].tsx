@@ -15,7 +15,7 @@ import { useMemo } from "react";
 import { ActivityIndicator, Image, ScrollView, Text, View, Pressable } from "react-native";
 
 import { Button } from "@/components/design/ui/button";
-import { Screen } from "@/components/ui/screen";
+import { Screen } from "@/components/design/ui/screen";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import {
   getYearsOfExperience,
