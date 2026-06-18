@@ -15,7 +15,7 @@ const SMALL_BREAKPOINT = 680;
 
 const patientTabs = [
   { href: "/doctors", icon: Stethoscope, label: "Doctors" },
-  { href: "/sprite", icon: Sparkles, label: "Sprite" },
+
   { href: "/stress-hub", icon: Activity, label: "Stress Hub" },
   { href: "/ai", icon: MessageCircle, label: "AI Chat" },
   { href: "/profile", icon: User, label: "Profile" },

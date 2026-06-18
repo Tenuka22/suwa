@@ -1,4 +1,4 @@
-import type { SpriteAction } from "@/components/ui/sprite-animation";
+export type SpriteAction = "idle" | "happy" | "thinking" | "alert" | "sleepy" | "excited";
 
 export function moodToAction(mood: string): SpriteAction {
   if (mood === "sleep" || mood === "sad") {

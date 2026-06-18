@@ -1,7 +1,7 @@
 import { createDb } from "@suwa/db";
 import { seedCashouts } from "./cashouts";
 import { getDoctorIds, seedDoctorRelations, seedDoctors } from "./doctors";
-import { seedGamification } from "./gamification";
+
 import { seedHub } from "./hub";
 import { seedHubUploads } from "./hub-uploads";
 import { getPatientIds, seedPatientRelations, seedPatients } from "./patients";
@@ -25,11 +25,9 @@ export interface SeedSummary {
     files: number;
   };
   doctors: { created: number; existing: number };
-  gamification: { sprites: number; wellness: number; moonlight: number };
   hub: { channels: number; materials: number; playlists: number };
   hubUploads: number;
   patientRelations: {
-    moonlight: number;
     stress: number;
     acknowledgments: number;
   };
@@ -61,7 +59,6 @@ export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
 
   const sessionsResult = await seedSessions(db, doctorIds, patientIds);
   const tenantsResult = await seedTenants(db, doctorIds);
-  const gamificationResult = await seedGamification(db, allIds);
   const hubResult = await seedHub(db, doctorIds, env?.doctorMaterialsKv);
   const hubUploadsResult = await seedHubUploads(db, doctorIds);
   const cashoutsResult = await seedCashouts(db, doctorIds);
@@ -81,7 +78,6 @@ export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
     patientRelations: patientRelationsResult,
     sessions: sessionsResult.created,
     tenants: { created: tenantsResult.tenants, clinics: tenantsResult.clinics },
-    gamification: gamificationResult,
     hub: hubResult,
     hubUploads: hubUploadsResult.uploadSessions,
     subscriptions: subscriptionsResult.subscriptions,

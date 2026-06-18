@@ -102,13 +102,7 @@ export default function HomeScreen() {
               iconBgColor="bg-tint-green"
               onPress={() => router.push("/doctors")}
             />
-            <Card
-              title="Health Library"
-              description="Learn & understand"
-              icon={<SquarePlus size={24} className="text-tint-beige-foreground" />}
-              iconBgColor="bg-tint-beige"
-              onPress={() => router.push("/(patient)/sprite")}
-            />
+
           </View>
           <View className="flex-row gap-xl">
             <Card

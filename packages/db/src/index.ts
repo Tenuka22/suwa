@@ -39,26 +39,16 @@ import {
   hospitalAttendanceEvents as hospitalAttendanceEventsTable,
   hospitalAvailabilityOverrides as hospitalAvailabilityOverridesTable,
   hubUploadSessions as hubUploadSessionsTable,
-  type MoonlightCredit as MoonlightCreditSchema,
-  type MoonlightCreditTransaction as MoonlightCreditTransactionSchema,
-  moonlightCredits as moonlightCreditsTable,
-  moonlightCreditTransactions as moonlightCreditTransactionsTable,
   type PatientProfile as PatientProfileSchema,
   patientProfiles as patientProfilesTable,
   type SessionAttendanceEvent as SessionAttendanceEventSchema,
   type SessionSnapshot as SessionSnapshotSchema,
   type SessionTaskAssignment as SessionTaskAssignmentSchema,
-  type SpriteCollection as SpriteCollectionSchema,
-  type SpriteInventory as SpriteInventorySchema,
-  type SpriteState as SpriteStateSchema,
   type StressDownloadAcknowledgment as StressDownloadAcknowledgmentSchema,
   type StressPrediction as StressPredictionSchema,
   sessionAttendanceEvents as sessionAttendanceEventsTable,
   sessionSnapshots as sessionSnapshotsTable,
   sessionTaskAssignments as sessionTaskAssignmentsTable,
-  spriteCollections as spriteCollectionsTable,
-  spriteInventory as spriteInventoryTable,
-  spriteStates as spriteStatesTable,
   stressDownloadAcknowledgments as stressDownloadAcknowledgmentsTable,
   stressPredictions as stressPredictionsTable,
   type TenantAdmin as TenantAdminSchema,
@@ -70,8 +60,6 @@ import {
   tenantNotifications as tenantNotificationsTable,
   tenants as tenantsTable,
   userSubscriptions as userSubscriptionsTable,
-  type WellnessAction as WellnessActionSchema,
-  wellnessActions as wellnessActionsTable,
 } from "./schema";
 
 export {
@@ -104,12 +92,6 @@ export const doctorCashoutRequests = doctorCashoutRequestsTable;
 export const sessionAttendanceEvents = sessionAttendanceEventsTable;
 export const sessionSnapshots = sessionSnapshotsTable;
 export const sessionTaskAssignments = sessionTaskAssignmentsTable;
-export const spriteStates = spriteStatesTable;
-export const spriteCollections = spriteCollectionsTable;
-export const spriteInventory = spriteInventoryTable;
-export const wellnessActions = wellnessActionsTable;
-export const moonlightCredits = moonlightCreditsTable;
-export const moonlightCreditTransactions = moonlightCreditTransactionsTable;
 export const stressPredictions = stressPredictionsTable;
 export const stressDownloadAcknowledgments = stressDownloadAcknowledgmentsTable;
 
@@ -142,12 +124,6 @@ export type DoctorCashoutRequest = DoctorCashoutRequestSchema;
 export type SessionAttendanceEvent = SessionAttendanceEventSchema;
 export type SessionSnapshot = SessionSnapshotSchema;
 export type SessionTaskAssignment = SessionTaskAssignmentSchema;
-export type SpriteState = SpriteStateSchema;
-export type SpriteCollection = SpriteCollectionSchema;
-export type SpriteInventory = SpriteInventorySchema;
-export type WellnessAction = WellnessActionSchema;
-export type MoonlightCredit = MoonlightCreditSchema;
-export type MoonlightCreditTransaction = MoonlightCreditTransactionSchema;
 export type StressPrediction = StressPredictionSchema;
 export type StressDownloadAcknowledgment = StressDownloadAcknowledgmentSchema;
 export type Tenant = TenantSchema;
@@ -178,12 +154,6 @@ export function createDb() {
       sessionAttendanceEvents,
       sessionSnapshots,
       sessionTaskAssignments,
-      spriteStates,
-      spriteCollections,
-      spriteInventory,
-      wellnessActions,
-      moonlightCredits,
-      moonlightCreditTransactions,
       stressPredictions,
       stressDownloadAcknowledgments,
       doctorHubMaterials,

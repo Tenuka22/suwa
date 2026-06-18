@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
-  moonlightCredits,
   patientProfiles,
   stressDownloadAcknowledgments,
   stressPredictions,
@@ -61,41 +60,22 @@ export async function seedPatientRelations(
   patientIds: string[]
 ) {
   if (patientIds.length === 0) {
-    return { moonlight: 0, stress: 0, acknowledgments: 0 };
+    return { stress: 0, acknowledgments: 0 };
   }
 
-  const existingMoonlightUsers = await db
-    .select({ userId: moonlightCredits.userId })
-    .from(moonlightCredits)
-    .where(inArray(moonlightCredits.userId, patientIds));
   const existingStressPatients = await db
     .select({ userId: stressPredictions.userId })
     .from(stressPredictions)
     .where(inArray(stressPredictions.userId, patientIds));
 
-  const existingMoonlightSet = new Set(
-    existingMoonlightUsers.map((r) => r.userId)
-  );
   const existingStressSet = new Set(
     existingStressPatients.map((r) => r.userId)
   );
 
-  let moonlightCount = 0;
   let stressCount = 0;
   let ackCount = 0;
 
   for (const userId of patientIds) {
-    // Moonlight credits
-    if (!existingMoonlightSet.has(userId)) {
-      await db.insert(moonlightCredits).values({
-        userId,
-        balance: faker.number.int({ min: 0, max: 100 }),
-        totalEarned: faker.number.int({ min: 50, max: 500 }),
-        consistencyScore: faker.number.int({ min: 0, max: 100 }),
-      });
-      moonlightCount++;
-    }
-
     // Stress predictions
     if (!existingStressSet.has(userId)) {
       const predictionCount = faker.number.int({ min: 1, max: 5 });
@@ -129,7 +109,6 @@ export async function seedPatientRelations(
   }
 
   return {
-    moonlight: moonlightCount,
     stress: stressCount,
     acknowledgments: ackCount,
   };

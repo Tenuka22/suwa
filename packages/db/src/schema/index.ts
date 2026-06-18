@@ -234,67 +234,9 @@ export const userSubscriptions = sqliteTable("user_subscriptions", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const spriteStates = sqliteTable("sprite_states", {
-  userId: text("user_id").primaryKey(),
-  health: integer("health").notNull().default(100),
-  mood: text("mood", { enum: ["idle", "sleep", "yawn", "happy", "sad"] })
-    .notNull()
-    .default("idle"),
-  streakDays: integer("streak_days").notNull().default(0),
-  lastInteractionAt: text("last_interaction_at"),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
 
-export const wellnessActions = sqliteTable("wellness_actions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  actionType: text("action_type", {
-    enum: [
-      "breathing_morning",
-      "breathing_evening",
-      "breathing_night",
-      "meditation_morning",
-      "meditation_evening",
-      "gratitude_morning",
-      "gratitude_evening",
-      "hydration",
-      "walking",
-      "sleep_prep",
-      "journaling",
-      "nutrition",
-      "social_checkin",
-      "stretching",
-    ],
-  }).notNull(),
-  completedAt: text("completed_at").notNull(),
-  durationSeconds: integer("duration_seconds"),
-  metadata: text("metadata"),
-  creditsEarned: integer("credits_earned").notNull().default(0),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-});
 
-export const moonlightCredits = sqliteTable("moonlight_credits", {
-  userId: text("user_id").primaryKey(),
-  balance: integer("balance").notNull().default(0),
-  totalEarned: integer("total_earned").notNull().default(0),
-  consistencyScore: integer("consistency_score").notNull().default(0),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
 
-export const moonlightCreditTransactions = sqliteTable(
-  "moonlight_credit_transactions",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id").notNull(),
-    amount: integer("amount").notNull(),
-    type: text("type", { enum: ["earned", "spent", "bonus"] }).notNull(),
-    reason: text("reason").notNull(),
-    wellnessActionId: text("wellness_action_id"),
-    createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  }
-);
 
 const hubVisibilityValues = ["public", "unlisted", "private"] as const;
 const hubMaterialStatusValues = [
@@ -404,34 +346,7 @@ export type SessionAttendanceEvent =
   typeof sessionAttendanceEvents.$inferSelect;
 export type SessionSnapshot = typeof sessionSnapshots.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
-export type SpriteState = typeof spriteStates.$inferSelect;
-export type WellnessAction = typeof wellnessActions.$inferSelect;
-export type MoonlightCredit = typeof moonlightCredits.$inferSelect;
-export type MoonlightCreditTransaction =
-  typeof moonlightCreditTransactions.$inferSelect;
-export const spriteCollections = sqliteTable("sprite_collections", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  iconName: text("icon_name").notNull(),
-  rarity: text("rarity", { enum: ["common", "uncommon", "rare", "legendary"] })
-    .notNull()
-    .default("common"),
-  count: integer("count").notNull().default(1),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
 
-export const spriteInventory = sqliteTable("sprite_inventory", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  itemId: text("item_id").notNull(),
-  quantity: integer("quantity").notNull().default(0),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
-
-export type SpriteCollection = typeof spriteCollections.$inferSelect;
-export type SpriteInventory = typeof spriteInventory.$inferSelect;
 
 export type {
   NewStressDownloadAcknowledgment,

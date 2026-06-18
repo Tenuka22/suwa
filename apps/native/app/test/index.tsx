@@ -42,26 +42,7 @@ export default function TestIndexScreen() {
           </Button>
         </Card>
 
-        <Card className="gap-4">
-          <View className="gap-1">
-            <Text className="font-bold font-sans text-primary text-xs uppercase tracking-[0.18em]">
-              Gamification
-            </Text>
-            <Text className="font-extrabold font-sans text-2xl text-foreground tracking-tight">
-              Gamify Logic
-            </Text>
-            <Text className="mt-1 font-normal font-sans text-muted-foreground text-sm leading-6">
-              Test points, badges, streaks, and progression rules.
-            </Text>
-          </View>
-          <Button
-            className="w-full"
-            href="/test/gamification"
-            variant="secondary"
-          >
-            Open Gamification Lab ›
-          </Button>
-        </Card>
+
 
         {wearablePackages.map((item) => (
           <Card className="gap-4" key={item.route}>

@@ -74,8 +74,6 @@ function OnboardingCheck() {
         patientData && !(patientData.secured && patientData._securedData);
 
       if (patientData && !needsRepair) {
-        queryClient.prefetchQuery(orpc.getSpriteState.queryOptions());
-        queryClient.prefetchQuery(orpc.getMoonlightCredits.queryOptions());
         queryClient.prefetchQuery(orpc.getTodayTasks.queryOptions());
         queryClient.prefetchQuery(orpc.listPatientSessions.queryOptions());
       }
