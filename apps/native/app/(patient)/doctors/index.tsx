@@ -4,28 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
   ArrowLeft,
-  BriefcaseMedical,
   ChevronLeft,
   ChevronRight,
-  GraduationCap,
-  MapPin,
   Search,
   Stethoscope,
+  Filter,
 } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { DoctorCard } from "@/components/ui/doctor-card";
-import { IconButton } from "@/components/ui/icon-button";
-import { Input } from "@/components/ui/input";
+import { Card } from "@/components/design/ui/card";
+import { Input } from "@/components/design/ui/input";
 import { Screen } from "@/components/ui/screen";
-import { ScreenBottomBar } from "@/components/ui/screen-bottom-bar";
 import { orpc } from "@/utils/orpc";
-import { useThemeColor } from "@/utils/theme";
 
 export default function DoctorsScreen() {
-  const colors = useThemeColor();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
@@ -54,164 +47,133 @@ export default function DoctorsScreen() {
   }
 
   return (
-    <>
+    <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
 
-      <Screen contentClassName="gap-section px-page py-page pb-40">
-        <View className="gap-2 border-border border-b pb-6">
-          <View className="flex-row items-center gap-3">
-            <View className="rounded-card bg-primary p-card">
-              <Stethoscope
-                color={colors.primaryForeground}
-                size={24}
-                strokeWidth={2.5}
-              />
-            </View>
-            <Text className="font-black font-sans text-4xl text-foreground uppercase tracking-tight">
-              Doctors
+      <Screen
+        contentClassName="flex-1 gap-xl pb-32 pt-lg px-lg bg-background"
+        scrollClassName="flex-1 bg-background"
+      >
+        {/* Header */}
+        <View className="flex-row items-center gap-md mt-sm">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm"
+          >
+            <ArrowLeft size={20} className="text-primary" />
+          </Pressable>
+          <View>
+            <Text className="font-serif text-hero text-primary leading-tight">
+              Clinicians
             </Text>
-            <View className="h-[3px] flex-1 self-center bg-primary/30" />
+            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+              Private Care
+            </Text>
           </View>
-          <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-[0.15em]">
-            Licensed care, private by design.
-          </Text>
         </View>
 
-        <View className="gap-4">
-          <Input
-            label="Search Directory"
-            onChangeText={(text) => {
-              setSearch(text);
-              setPage(1);
-            }}
-            placeholder="Search name, specialty, language..."
-            value={search}
+        {/* Search Bar */}
+        <Input
+          placeholder="Search by name or specialty..."
+          inputContainerClassName="rounded-full border-0 shadow-sm bg-background-elevated"
+          className="bg-transparent"
+          leftIcon={<Search size={20} className="text-foreground-placeholder" />}
+          onChangeText={(text) => {
+            setSearch(text);
+            setPage(1);
+          }}
+          value={search}
+        />
+
+        {/* Filters */}
+        <View className="flex-row gap-sm overflow-hidden">
+          <FilterItem 
+            active={selectedChips.includes("license")} 
+            label="License" 
+            onPress={() => toggleChip("license")} 
+          />
+          <FilterItem 
+            active={selectedChips.includes("video")} 
+            label="Video" 
+            onPress={() => toggleChip("video")} 
+          />
+          <FilterItem 
+            active={selectedChips.includes("english")} 
+            label="English" 
+            onPress={() => toggleChip("english")} 
           />
         </View>
 
-        <View className="flex-row items-center justify-between border-border border-b pb-2">
-          <Text className="font-bold font-sans text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
+        {/* Results Info */}
+        <View className="flex-row items-center justify-between border-b border-border pb-xxs">
+          <Text className="font-sans text-micro text-foreground-muted uppercase tracking-widest">
             {doctorsQuery.isPending
               ? "Loading..."
-              : `${totalDoctors} clinician${totalDoctors === 1 ? "" : "s"} found`}
+              : `${totalDoctors} clinicians found`}
           </Text>
-          <Text className="font-sans text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
+          <Text className="font-sans text-micro text-foreground-muted uppercase tracking-widest">
             Page {page}
           </Text>
         </View>
 
-        <View className="mt-2 gap-4">
-          {doctorsQuery.isPending && (
-            <View className="relative" style={{ overflow: "visible" }}>
-              <View
-                className="absolute inset-0 rounded-card bg-border"
-                style={{ transform: [{ translateX: 4 }, { translateY: 4 }] }}
-              />
-              <View className="items-center gap-4 rounded-card border-[3px] border-border bg-card p-8">
-                <ActivityIndicator color={colors.primary} size="large" />
-                <Text className="font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
-                  Finding clinicians...
-                </Text>
-              </View>
+        {/* Doctor List */}
+        <View className="gap-lg">
+          {doctorsQuery.isPending ? (
+            <View className="py-huge items-center">
+              <ActivityIndicator color="#2d3e35" />
             </View>
-          )}
-
-          {!doctorsQuery.isPending && doctors.length === 0 && (
-            <View className="relative" style={{ overflow: "visible" }}>
-              <View
-                className="absolute inset-0 rounded-card bg-border"
-                style={{ transform: [{ translateX: 4 }, { translateY: 4 }] }}
-              />
-              <View className="items-center gap-3 overflow-hidden rounded-card border-[3px] border-border bg-card p-8">
-                <View className="absolute -top-6 -right-6 h-16 w-16 rotate-12 border-[5px] border-primary/15" />
-                <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-muted">
-                  <Search
-                    color={colors.mutedForeground}
-                    size={24}
-                    strokeWidth={2}
-                  />
-                </View>
-                <Text className="font-black font-sans text-foreground text-xl uppercase tracking-tight">
-                  No Clinicians Found
-                </Text>
-                <Text className="max-w-[260px] text-center font-bold font-sans text-muted-foreground text-xs uppercase tracking-wider">
-                  Try refining your search terms or clearing active filters.
-                </Text>
-                <Button
-                  onPress={() => {
-                    setSearch("");
-                    setSelectedChips([]);
-                    setPage(1);
-                  }}
-                  size="sm"
-                  variant="secondary"
-                >
-                  Clear Filters
-                </Button>
-                <View className="h-[3px] w-12 bg-primary/40" />
-              </View>
+          ) : doctors.length === 0 ? (
+            <View className="py-huge items-center gap-md">
+              <Text className="font-serif text-title text-foreground-muted">No clinicians found</Text>
+              <Pressable onPress={() => { setSearch(""); setSelectedChips([]); setPage(1); }}>
+                <Text className="font-sans text-body text-accent font-bold">Clear Filters</Text>
+              </Pressable>
             </View>
-          )}
-
-          {!doctorsQuery.isPending &&
-            doctors.length > 0 &&
-            doctors.map(({ profile, portrait, hasAvailability }) => (
-              <DoctorCard
-                hasAvailability={hasAvailability}
-                key={profile.userId}
-                onPress={() => router.push(`/doctors/${profile.userId}`)}
-                portrait={portrait}
-                profile={profile}
+          ) : (
+            doctors.map((doc) => (
+              <Card
+                key={doc.profile.userId}
+                title={doc.profile.displayName ?? "Clinician"}
+                description={doc.profile.headline ?? "Licensed medical practitioner"}
+                icon={<Stethoscope size={24} className="text-tint-green-foreground" />}
+                iconBgColor="bg-tint-green"
+                onPress={() => router.push(`/doctors/${doc.profile.userId}`)}
               />
-            ))}
+            ))
+          )}
+        </View>
+
+        {/* Pagination */}
+        <View className="flex-row justify-center items-center gap-huge mt-md">
+          <Pressable 
+            disabled={page === 1} 
+            onPress={() => setPage(p => Math.max(1, p - 1))}
+            className={`h-12 w-12 rounded-full items-center justify-center border border-border ${page === 1 ? 'opacity-30' : 'bg-background-elevated shadow-sm'}`}
+          >
+            <ChevronLeft size={24} className="text-primary" />
+          </Pressable>
+          <Pressable 
+            disabled={!hasMore} 
+            onPress={() => setPage(p => p + 1)}
+            className={`h-12 w-12 rounded-full items-center justify-center border border-border ${!hasMore ? 'opacity-30' : 'bg-background-elevated shadow-sm'}`}
+          >
+            <ChevronRight size={24} className="text-primary" />
+          </Pressable>
         </View>
       </Screen>
-      <ScreenBottomBar>
-        <View className="flex-row gap-2">
-          <IconButton disabled={page === 1} icon={ChevronLeft} iconSize={18} />
-          <IconButton disabled={!hasMore} icon={ChevronRight} iconSize={18} />
-        </View>
+    </View>
+  );
+}
 
-        {[
-          { icon: Stethoscope, label: "License", value: "license" },
-          { icon: BriefcaseMedical, label: "Video", value: "video" },
-          { icon: MapPin, label: "In person", value: "in_person" },
-          { icon: GraduationCap, label: "English", value: "english" },
-        ].map(({ icon: Icon, label, value }) => {
-          const isActive = selectedChips.includes(value);
-          return (
-            <Pressable
-              accessibilityLabel={label}
-              className={`h-12 flex-1 items-center justify-center self-stretch rounded-control border-2 border-border ${isActive ? "bg-primary" : "bg-card"}`}
-              key={value}
-              onPress={() => toggleChip(value)}
-            >
-              <Icon
-                color={isActive ? "#ffffff" : colors.mutedForeground}
-                size={14}
-              />
-              <Text
-                className={`hidden text-center font-bold font-sans text-[10px] uppercase tracking-[0.12em] sm:flex ${isActive ? "text-white" : "text-foreground"}`}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
-            </Pressable>
-          );
-        })}
-
-        <IconButton
-          icon={ArrowLeft}
-          iconSize={18}
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-        />
-      </ScreenBottomBar>
-    </>
+function FilterItem({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`px-lg py-sm rounded-full border ${active ? "bg-primary border-primary" : "bg-background-elevated border-border"}`}
+    >
+      <Text className={`font-sans text-caption font-semibold ${active ? "text-primary-foreground" : "text-foreground-secondary"}`}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }

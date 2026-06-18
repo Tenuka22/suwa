@@ -4,7 +4,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -12,8 +11,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ArrowLeft, Send, Sparkles, User, StopCircle } from "lucide-react-native";
+import { useRouter } from "expo-router";
+
+import { Button } from "@/components/design/ui/button";
+import { Input } from "@/components/design/ui/input";
+import { Screen } from "@/components/ui/screen";
 import { _client, orpc, queryClient } from "@/utils/orpc";
 
 interface ChatMsg {
@@ -24,93 +27,27 @@ interface ChatMsg {
   toolName?: string;
 }
 
-const qc = queryClient;
-
 export default function AiChatScreen() {
+  const router = useRouter();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
-  const [showSessions, setShowSessions] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const abortRef = useRef<AbortController | null>(null);
-
-  // ── Sessions ──
-
-  const sessionsQuery = useQuery(
-    orpc.ai.chat.sessions.queryOptions({ input: { limit: 50 } })
-  );
 
   const createMutation = useMutation(
     orpc.ai.chat.create.mutationOptions({
       onSuccess: (s) => {
         setActiveSessionId(s.id);
         setMessages([]);
-        qc.invalidateQueries({ queryKey: ["ai"] });
-        setShowSessions(false);
+        queryClient.invalidateQueries({ queryKey: ["ai"] });
       },
     })
   );
-
-  const deleteMutation = useMutation(
-    orpc.ai.chat.delete.mutationOptions({
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: ["ai"] });
-        const remaining = sessionsQuery.data?.sessions?.filter(
-          (s) => s.id !== activeSessionId
-        );
-        if (remaining?.length) {
-          switchSession(remaining[0].id);
-        } else {
-          setActiveSessionId(null);
-          setMessages([]);
-        }
-      },
-    })
-  );
-
-  // ── History ──
-
-  const loadHistory = useCallback(async (sid: string) => {
-    try {
-      const data = await _client.ai.chat.history({
-        sessionId: sid,
-        limit: 100,
-      });
-      const history: ChatMsg[] = (
-        data as Array<{
-          id: string;
-          role: string;
-          content: string;
-          agent?: string;
-        }>
-      ).map((m) => ({
-        id: m.id,
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.content,
-        agent: m.agent,
-      }));
-      setMessages(history);
-    } catch {
-      setMessages([]);
-    }
-  }, []);
-
-  const switchSession = useCallback(
-    (sid: string) => {
-      setActiveSessionId(sid);
-      loadHistory(sid);
-      setShowSessions(false);
-    },
-    [loadHistory]
-  );
-
-  // ── Send (streaming via oRPC EventIterator) ──
 
   const sendMessage = async () => {
-    if (!input.trim() || streaming) {
-      return;
-    }
+    if (!input.trim() || streaming) return;
     const text = input.trim();
     setInput("");
 
@@ -120,11 +57,7 @@ export default function AiChatScreen() {
       sid = s.id;
     }
 
-    const userMsg: ChatMsg = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: text,
-    };
+    const userMsg: ChatMsg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
     setStreaming(true);
 
@@ -132,269 +65,109 @@ export default function AiChatScreen() {
     abortRef.current = ac;
 
     try {
-      const iter = await _client.ai.chat.send(
-        { sessionId: sid, message: text },
-        { signal: ac.signal }
-      );
-
+      const iter = await _client.ai.chat.send({ sessionId: sid, message: text }, { signal: ac.signal });
       let assistantContent = "";
       for await (const event of iter) {
-        console.log(event);
-        const ev = (event as { event: string; data: Record<string, unknown> })
-          .event;
-        const d = (event as { event: string; data: Record<string, unknown> })
-          .data;
-
+        const { event: ev, data: d } = event as any;
         if (ev === "message.token") {
-          const tk = (d.token as string) ?? "";
-          assistantContent += tk;
+          assistantContent += d.token ?? "";
           setMessages((prev) => {
             const cp = [...prev];
             const last = cp[cp.length - 1];
             if (last?.role === "assistant" && last.id === sid) {
               cp[cp.length - 1] = { ...last, content: assistantContent };
             } else {
-              cp.push({
-                id: sid!,
-                role: "assistant",
-                content: assistantContent,
-                agent: d.agent as string,
-              });
+              cp.push({ id: sid!, role: "assistant", content: assistantContent, agent: d.agent });
             }
             return cp;
           });
-        } else if (ev === "message.tool_call") {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: "tool_call",
-              content: `Using ${d.tool as string}...`,
-              toolName: d.tool as string,
-            },
-          ]);
         } else if (ev === "message.end") {
           setMessages((prev) => {
             const cp = [...prev];
             const last = cp[cp.length - 1];
-            if (last?.role === "assistant") {
-              cp[cp.length - 1] = {
-                ...last,
-                content: (d.finalResponse as string) || assistantContent,
-              };
-            }
+            if (last?.role === "assistant") cp[cp.length - 1] = { ...last, content: d.finalResponse || assistantContent };
             return cp;
           });
-          qc.invalidateQueries({ queryKey: ["ai"] });
-        } else if (ev === "message.error") {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: `Error: ${(d.error as string) ?? "Unknown"}`,
-            },
-          ]);
+          queryClient.invalidateQueries({ queryKey: ["ai"] });
         }
       }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") {
-        return;
+    } catch (err: any) {
+      if (err.name !== "AbortError") {
+        setMessages((p) => [...p, { id: crypto.randomUUID(), role: "assistant", content: `Error: ${err.message}` }]);
       }
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: `Error: ${msg}`,
-        },
-      ]);
     } finally {
       setStreaming(false);
       abortRef.current = null;
     }
   };
 
-  const stopStreaming = () => {
-    abortRef.current?.abort();
-  };
-
-  const activeSession = sessionsQuery.data?.sessions?.find(
-    (s) => s.id === activeSessionId
-  );
-
   return (
     <View className="flex-1 bg-background">
       {/* Header */}
-      <View className="flex-row items-center justify-between border-border border-b bg-card px-page py-3">
-        <Pressable
-          className="flex-1"
-          onPress={() => setShowSessions((v) => !v)}
-        >
-          <Text
-            className="font-bold font-sans text-base text-foreground"
-            numberOfLines={1}
-          >
-            {activeSession?.title ?? "AI Assistant"}
-          </Text>
-          <Text className="font-sans text-muted-foreground text-xs">
-            {activeSession
-              ? `${activeSession.messageCount} messages`
-              : "Tap to start"}
-          </Text>
+      <View className="flex-row items-center gap-md mt-sm px-lg py-md border-b border-border bg-background-elevated/50">
+        <Pressable onPress={() => router.back()} className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm">
+          <ArrowLeft size={20} className="text-primary" />
         </Pressable>
-        <Button
-          onPress={() => createMutation.mutate({ title: "New Chat" })}
-          size="sm"
-          variant="ghost"
-        >
-          +
-        </Button>
+        <View>
+          <Text className="font-serif text-hero text-primary leading-tight">AI Assistant</Text>
+          <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">Suwa Intelligent Care</Text>
+        </View>
       </View>
 
-      {/* Sessions panel */}
-      {showSessions && (
-        <View className="max-h-60 border-border border-b bg-card">
-          {sessionsQuery.isLoading && <ActivityIndicator className="py-4" />}
-          {sessionsQuery.data?.sessions?.map((s) => (
-            <Pressable
-              className="flex-row items-center justify-between px-page py-3 active:bg-muted"
-              key={s.id}
-              onPress={() => switchSession(s.id)}
-            >
-              <View className="flex-1">
-                <Text
-                  className="font-sans text-foreground text-sm"
-                  numberOfLines={1}
-                >
-                  {s.title}
-                </Text>
-                <Text className="font-sans text-muted-foreground text-xs">
-                  {s.messageCount} msgs ·{" "}
-                  {new Date(s.updatedAt).toLocaleDateString()}
-                </Text>
-              </View>
-              <Button
-                onPress={() =>
-                  Alert.alert("Delete session?", s.title, [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      style: "destructive",
-                      onPress: () => deleteMutation.mutate({ sessionId: s.id }),
-                    },
-                  ])
-                }
-                size="sm"
-                variant="ghost"
-              >
-                ✕
-              </Button>
-            </Pressable>
-          ))}
-          {sessionsQuery.data?.sessions?.length === 0 && (
-            <Text className="px-page py-4 font-sans text-muted-foreground text-sm">
-              No sessions yet
-            </Text>
-          )}
-        </View>
-      )}
-
-      {/* Messages */}
       <FlatList
-        className="flex-1 px-page"
-        contentContainerStyle={{ paddingVertical: 12 }}
+        ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
+        className="flex-1 px-lg"
+        contentContainerStyle={{ paddingVertical: 20 }}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         ListEmptyComponent={
-          activeSessionId ? null : (
-            <View className="flex-1 items-center justify-center pt-20">
-              <Text className="px-8 text-center font-sans text-lg text-muted-foreground">
-                Tap + to start a new conversation
+          <View className="flex-1 items-center justify-center pt-20 gap-huge">
+            <View className="h-24 w-24 rounded-full bg-tint-purple items-center justify-center">
+              <Sparkles size={48} className="text-tint-purple-foreground" />
+            </View>
+            <View className="items-center gap-md">
+              <Text className="font-serif text-hero text-primary text-center">How can I help you?</Text>
+              <Text className="font-sans text-body text-foreground-secondary text-center px-huge">
+                Ask about health, doctors, or wellness tools. I'm here to guide you anonymously.
               </Text>
             </View>
-          )
+          </View>
         }
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        ref={flatListRef}
-        renderItem={({ item }) => {
-          if (item.role === "tool_call") {
-            return (
-              <View className="mb-2 flex-row items-center gap-2 self-center px-3 py-1">
-                <ActivityIndicator size="small" />
-                <Text className="font-sans text-muted-foreground text-xs italic">
-                  {item.content}
-                </Text>
+        renderItem={({ item }) => (
+          <View className={`mb-lg max-w-[85%] rounded-3xl p-lg ${item.role === "user" ? "self-end bg-primary" : "self-start bg-background-elevated shadow-sm border border-border/50"}`}>
+            {item.role === "assistant" && (
+              <View className="flex-row items-center gap-sm mb-xs">
+                <Sparkles size={12} className="text-accent" />
+                <Text className="font-sans text-micro font-bold text-accent uppercase tracking-widest">Assistant</Text>
               </View>
-            );
-          }
-          return (
-            <View
-              className={`mb-3 max-w-[85%] rounded-2xl px-4 py-3 ${
-                item.role === "user"
-                  ? "self-end bg-primary"
-                  : "self-start bg-card"
-              }`}
-            >
-              {item.agent && (
-                <Text className="mb-1 font-bold text-[10px] uppercase tracking-wide opacity-50">
-                  {item.agent}
-                </Text>
-              )}
-              <Text
-                className={`font-sans text-base ${item.role === "user" ? "text-primary-foreground" : "text-foreground"}`}
-              >
-                {item.content}
-              </Text>
-            </View>
-          );
-        }}
+            )}
+            <Text className={`font-sans text-body leading-relaxed ${item.role === "user" ? "text-primary-foreground" : "text-foreground-secondary"}`}>
+              {item.content}
+            </Text>
+          </View>
+        )}
       />
 
-      {/* Streaming controls */}
-      {streaming && (
-        <View className="flex-row items-center justify-center gap-3 py-1">
-          <ActivityIndicator size="small" />
-          <Text className="font-sans text-muted-foreground text-xs">
-            Assistant is typing...
-          </Text>
-          <Pressable
-            className="rounded bg-destructive/20 px-3 py-1"
-            onPress={stopStreaming}
-          >
-            <Text className="font-bold font-sans text-destructive text-xs">
-              Stop
-            </Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={80}
-      >
-        <View className="flex-row items-end gap-2 border-border border-t bg-card px-page py-3">
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={100}>
+        <View className="p-lg border-t border-border bg-background-elevated/90 flex-row items-end gap-md">
           <View className="flex-1">
             <Input
-              editable={!streaming}
-              label=""
+              placeholder="Ask anything..."
               multiline
-              onChangeText={setInput}
-              placeholder="Ask about doctors, appointments..."
               value={input}
+              onChangeText={setInput}
+              className="bg-background border-0 shadow-none"
+              inputContainerClassName="rounded-3xl border-border/50"
             />
           </View>
-          <Button
-            disabled={streaming || !input.trim()}
-            onPress={sendMessage}
-            size="sm"
+          <Pressable
+            disabled={!input.trim() && !streaming}
+            onPress={streaming ? () => abortRef.current?.abort() : sendMessage}
+            className={`h-12 w-12 rounded-full items-center justify-center ${streaming ? "bg-accent" : "bg-primary"}`}
           >
-            Send
-          </Button>
+            {streaming ? <StopCircle size={24} className="text-white" /> : <Send size={20} className="text-white" />}
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </View>

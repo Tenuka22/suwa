@@ -116,7 +116,7 @@ export default function HomeScreen() {
               description="Self-care & support"
               icon={<Flower2 size={24} className="text-tint-purple-foreground" />}
               iconBgColor="bg-tint-purple"
-              onPress={() => router.push("/stress-hub")}
+              onPress={() => router.push("/health-hub")}
             />
             <Card
               title="Privacy Center"
