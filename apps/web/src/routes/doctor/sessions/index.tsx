@@ -1,19 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@suwa/ui/components/chart";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
+import { Button, Card, Chip, Separator } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { addMinutes, format, isWithinInterval, subMinutes } from "date-fns";
@@ -27,7 +12,14 @@ import {
   TrendingUpIcon,
   VideoIcon,
 } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { SessionStatusBadge } from "@/components/session-status-badge";
@@ -76,17 +68,15 @@ function PendingRequests({
 
   if (pendingSessions.length === 0) {
     return (
-      <Empty className="size-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <InboxIcon />
-          </EmptyMedia>
-          <EmptyTitle>No pending requests</EmptyTitle>
-          <EmptyDescription>
-            All caught up! No sessions are waiting for your response.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <div className="flex size-full flex-col items-center justify-center gap-3 py-12 text-center">
+        <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+          <InboxIcon className="size-5" />
+        </div>
+        <p className="font-medium text-sm">No pending requests</p>
+        <p className="max-w-xs text-muted-foreground text-sm">
+          All caught up! No sessions are waiting for your response.
+        </p>
+      </div>
     );
   }
 
@@ -101,7 +91,7 @@ function PendingRequests({
             className="rounded-2xl border-border/60 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary"
             key={session.id}
           >
-            <CardContent className="flex items-start justify-between gap-4">
+            <Card.Content className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-xl border bg-muted/40 p-2 text-muted-foreground">
                   <CalendarClockIcon className="size-4" />
@@ -126,34 +116,33 @@ function PendingRequests({
                 <SessionStatusBadge status={session.status} />
                 <div className="flex gap-2">
                   <Button
-                    disabled={isResponding}
-                    onClick={() =>
+                    isDisabled={isResponding}
+                    onPress={() =>
                       respondSession({
                         sessionId: session.id,
                         action: "reject",
                       })
                     }
                     size="sm"
-                    variant="destructive"
+                    variant="danger"
                   >
                     Reject
                   </Button>
                   <Button
-                    disabled={isResponding}
-                    onClick={() =>
+                    isDisabled={isResponding}
+                    onPress={() =>
                       respondSession({
                         sessionId: session.id,
                         action: "approve",
                       })
                     }
                     size="sm"
-                    variant="default"
                   >
                     Approve
                   </Button>
                 </div>
               </div>
-            </CardContent>
+            </Card.Content>
           </Card>
         );
       })}
@@ -193,11 +182,13 @@ function DoctorSessionsRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Sessions dashboard</Badge>
-              <Badge variant="secondary">Live overview</Badge>
+              <Chip>Sessions dashboard</Chip>
+              <Chip color="default" variant="soft">
+                Live overview
+              </Chip>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -212,7 +203,7 @@ function DoctorSessionsRoute() {
               </p>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -248,36 +239,30 @@ function DoctorSessionsRoute() {
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <TrendingUpIcon className="size-3" />
                   Sessions trend
-                </Badge>
+                </Chip>
               }
               description="Monthly session volume over the last six months"
               title="Session analytics"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {monthlySessions.length > 0 ? (
-              <ChartContainer
-                className="h-[360px] w-full"
-                config={{
-                  total: {
-                    label: "Sessions",
-                    color: "var(--primary)",
-                  },
-                }}
-              >
+              <div className="h-[360px] w-full">
                 <AreaChart
                   accessibilityLayer
                   data={monthlySessions}
+                  height={360}
                   margin={{ left: 8, right: 8 }}
+                  width="100%"
                 >
                   <CartesianGrid vertical={false} />
 
@@ -300,15 +285,18 @@ function DoctorSessionsRoute() {
                     tickMargin={10}
                   />
 
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: unknown) =>
-                          `${Number(value)} session${Number(value) === 1 ? "" : "s"}`
-                        }
-                        indicator="line"
-                      />
-                    }
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!(active && payload?.length)) {
+                        return null;
+                      }
+                      const val = Number(payload[0]?.value);
+                      return (
+                        <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
+                          <p className="text-sm">{`${val} session${val === 1 ? "" : "s"}`}</p>
+                        </div>
+                      );
+                    }}
                     cursor={false}
                   />
 
@@ -321,62 +309,60 @@ function DoctorSessionsRoute() {
                     type="monotone"
                   />
                 </AreaChart>
-              </ChartContainer>
+              </div>
             ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <TrendingUpIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No session data yet</EmptyTitle>
-                  <EmptyDescription>
-                    Session trends will appear once you start seeing patients.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+                  <TrendingUpIcon className="size-5" />
+                </div>
+                <p className="font-medium text-sm">No session data yet</p>
+                <p className="max-w-xs text-muted-foreground text-sm">
+                  Session trends will appear once you start seeing patients.
+                </p>
+              </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <InboxIcon className="size-3" />
                   Needs attention
-                </Badge>
+                </Chip>
               }
               description="Sessions awaiting your response"
               title="Pending requests"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent className="size-full">
+          <Card.Content className="size-full">
             <PendingRequests
               refetch={() => {
                 window.location.reload();
               }}
               sessions={sessions}
             />
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
 
       <div className="grid gap-6">
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               description="Approved sessions ready for you to join"
               title="Upcoming sessions"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {(() => {
               const upcoming = sessions.filter((session) => {
                 const start = new Date(session.startAt);
@@ -397,18 +383,15 @@ function DoctorSessionsRoute() {
 
               if (upcoming.length === 0) {
                 return (
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <VideoIcon />
-                      </EmptyMedia>
-                      <EmptyTitle>No upcoming sessions</EmptyTitle>
-                      <EmptyDescription>
-                        Approved sessions that are ready to join will appear
-                        here.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
+                  <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                    <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+                      <VideoIcon className="size-5" />
+                    </div>
+                    <p className="font-medium text-sm">No upcoming sessions</p>
+                    <p className="max-w-xs text-muted-foreground text-sm">
+                      Approved sessions that are ready to join will appear here.
+                    </p>
+                  </div>
                 );
               }
 
@@ -423,7 +406,7 @@ function DoctorSessionsRoute() {
                         className="rounded-2xl border-border/60 transition-all duration-200 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
                         key={session.id}
                       >
-                        <CardContent className="flex flex-col gap-3">
+                        <Card.Content className="flex flex-col gap-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-2.5">
                               <div className="rounded-xl border bg-muted/40 p-2 text-muted-foreground">
@@ -465,38 +448,37 @@ function DoctorSessionsRoute() {
 
                           <Button
                             className="w-full gap-2"
-                            onClick={() => {
+                            onPress={() => {
                               navigate({
                                 to: `/doctor/sessions/${session.id}`,
                               });
                             }}
                             size="sm"
-                            variant="default"
                           >
                             <VideoIcon className="size-4" />
                             Join Conference
                           </Button>
-                        </CardContent>
+                        </Card.Content>
                       </Card>
                     );
                   })}
                 </div>
               );
             })()}
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               description="Latest appointment updates and completed sessions"
               title="Recent activity"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {recentSessions.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                 {recentSessions.map((session) => {
@@ -532,7 +514,7 @@ function DoctorSessionsRoute() {
                       className="rounded-2xl border-border/60 transition-all duration-200 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
                       key={session.id}
                     >
-                      <CardContent className="flex flex-col gap-3">
+                      <Card.Content className="flex flex-col gap-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2.5">
                             <div className="rounded-xl border bg-muted/40 p-2 text-muted-foreground">
@@ -600,7 +582,7 @@ function DoctorSessionsRoute() {
                             <div className="col-span-2">
                               <Button
                                 className="w-full gap-2"
-                                onClick={() => {
+                                onPress={() => {
                                   navigate({
                                     to: `/doctor/sessions/${session.id}`,
                                   });
@@ -614,25 +596,23 @@ function DoctorSessionsRoute() {
                             </div>
                           )}
                         </div>
-                      </CardContent>
+                      </Card.Content>
                     </Card>
                   );
                 })}
               </div>
             ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <SparklesIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No recent activity</EmptyTitle>
-                  <EmptyDescription>
-                    Your recent sessions and earnings will appear here.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+                  <SparklesIcon className="size-5" />
+                </div>
+                <p className="font-medium text-sm">No recent activity</p>
+                <p className="max-w-xs text-muted-foreground text-sm">
+                  Your recent sessions and earnings will appear here.
+                </p>
+              </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
     </div>

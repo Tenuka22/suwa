@@ -1,6 +1,5 @@
 "use client";
 
-import { env } from "@suwa/env/native";
 import {
   Elements,
   PaymentElement,
@@ -8,6 +7,7 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { env } from "@suwa/env/native";
 import {
   createContext,
   type PropsWithChildren,

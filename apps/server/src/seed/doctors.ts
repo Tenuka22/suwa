@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
   doctorEducationEntries,
@@ -7,7 +8,6 @@ import {
   doctorScheduleEntries,
   doctorWeeklyAvailability,
 } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 import { inArray } from "drizzle-orm";
 
 const SPECIALTIES = [

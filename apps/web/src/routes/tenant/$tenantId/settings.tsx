@@ -1,25 +1,16 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Input } from "@suwa/ui/components/input";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Chip,
+  Input,
+  Label,
+  ListBox,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
-import { Skeleton } from "@suwa/ui/components/skeleton";
+  Skeleton,
+  toast,
+} from "@heroui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import { useGetTenant, useUpdateTenant } from "@/hooks/queries/tenant";
 
@@ -92,7 +83,7 @@ function TenantSettingsPage() {
       });
       toast.success("Tenant updated successfully");
     } catch {
-      toast.error("Failed to update tenant");
+      toast.danger("Failed to update tenant");
     }
   };
 
@@ -115,11 +106,11 @@ function TenantSettingsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Hospital Profile</CardTitle>
-          <CardDescription>Edit tenant details and services.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        <Card.Header>
+          <Card.Title className="text-base">Hospital Profile</Card.Title>
+          <Card.Description>Edit tenant details and services.</Card.Description>
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label>Hospital Name</Label>
@@ -128,17 +119,19 @@ function TenantSettingsPage() {
             <div className="flex flex-col gap-2">
               <Label>Status</Label>
               <Select
-                onValueChange={(v) => setStatus(v ?? "ACTIVE")}
-                value={status}
+                onSelectionChange={(id) => setStatus(String(id) ?? "ACTIVE")}
+                selectedKey={status}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
-                </SelectContent>
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    <ListBox.Item id="ACTIVE">Active</ListBox.Item>
+                    <ListBox.Item id="INACTIVE">Inactive</ListBox.Item>
+                    <ListBox.Item id="SUSPENDED">Suspended</ListBox.Item>
+                  </ListBox>
+                </Select.Popover>
               </Select>
             </div>
           </div>
@@ -172,44 +165,46 @@ function TenantSettingsPage() {
               value={contactInfo}
             />
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Services Offered</CardTitle>
-          <CardDescription>
+        <Card.Header>
+          <Card.Title className="text-base">Services Offered</Card.Title>
+          <Card.Description>
             Select which services this hospital provides.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </Card.Description>
+        </Card.Header>
+        <Card.Content>
           <div className="flex flex-wrap gap-2">
             {HOSPITAL_SERVICES.map((service) => (
-              <Badge
+              <Chip
                 className="cursor-pointer text-xs transition-colors"
+                color={
+                  selectedServices.includes(service) ? "accent" : "default"
+                }
                 key={service}
                 onClick={() => toggleService(service)}
                 variant={
-                  selectedServices.includes(service) ? "default" : "outline"
+                  selectedServices.includes(service) ? "soft" : "secondary"
                 }
               >
                 {service}
-              </Badge>
+              </Chip>
             ))}
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
-      {/* Admins */}
       {data?.admins && data.admins.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Tenant Admins</CardTitle>
-            <CardDescription>
+          <Card.Header>
+            <Card.Title className="text-base">Tenant Admins</Card.Title>
+            <Card.Description>
               Users who can manage this hospital.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </Card.Description>
+          </Card.Header>
+          <Card.Content>
             <div className="flex flex-col gap-2">
               {data.admins.map((admin) => (
                 <div
@@ -223,18 +218,18 @@ function TenantSettingsPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
       )}
 
       <div className="flex justify-between">
         <Button
-          onClick={() => navigate({ to: `/tenant/${tenantId}` })}
+          onPress={() => navigate({ to: `/tenant/${tenantId}` })}
           variant="outline"
         >
           Back to Dashboard
         </Button>
-        <Button disabled={updateTenant.isPending} onClick={handleSave}>
+        <Button isDisabled={updateTenant.isPending} onPress={handleSave}>
           {updateTenant.isPending ? "Saving..." : "Save Changes"}
         </Button>
       </div>

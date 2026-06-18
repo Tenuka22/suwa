@@ -1,29 +1,29 @@
-import { Badge } from "@suwa/ui/components/badge";
+import { Chip } from "@heroui/react";
 import { CheckCircle2Icon, Clock3Icon, XCircleIcon } from "lucide-react";
 
 export function SessionStatusBadge({ status }: { status: string }) {
   if (status === "requested" || status === "rescheduled") {
     return (
-      <Badge className="gap-1" variant="secondary">
+      <Chip className="gap-1" color="default" variant="soft">
         <Clock3Icon className="size-3.5" />
         {status === "requested" ? "Requested" : "Rescheduled"}
-      </Badge>
+      </Chip>
     );
   }
 
   if (status === "approved" || status === "attended") {
     return (
-      <Badge className="gap-1" variant="default">
+      <Chip className="gap-1" color="accent" variant="soft">
         <CheckCircle2Icon className="size-3.5" />
         {status === "approved" ? "Approved" : "Attended"}
-      </Badge>
+      </Chip>
     );
   }
 
   return (
-    <Badge className="gap-1" variant="destructive">
+    <Chip className="gap-1" color="danger" variant="soft">
       <XCircleIcon className="size-3.5" />
       Failed
-    </Badge>
+    </Chip>
   );
 }

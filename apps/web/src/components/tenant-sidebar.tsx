@@ -1,14 +1,6 @@
 "use client";
 
 import { APP_DISPLAY_NAME } from "@suwa/app-info";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-  useSidebar,
-} from "@suwa/ui/components/sidebar";
 import { useParams } from "@tanstack/react-router";
 import {
   BuildingIcon,
@@ -20,6 +12,14 @@ import {
   UserPlusIcon,
   UsersIcon,
 } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+  useSidebar,
+} from "@/components/sidebar-context";
 
 import { SidebarNavSection } from "@/components/sidebar-nav-section";
 import { SidebarUserFooter } from "@/components/sidebar-user-footer";

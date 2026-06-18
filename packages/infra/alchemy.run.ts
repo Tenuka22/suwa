@@ -33,16 +33,14 @@ const chatMessagesKv = await KVNamespace("chat-messages");
 
 // const redis = await UpstashRedis(
 //   process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
-  //   {
-  //     name:
-  //       process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
+//   {
+//     name:
+//       process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
 //     primaryRegion: "us-east-1",
 //   }
 // );
 
 const aiBinding = Ai({ binding: "AI" });
-
-
 
 export const server = await Worker("server", {
   cwd: "../../apps/server",

@@ -1,25 +1,5 @@
 import { SignInButton as ClerkSignInButton } from "@clerk/tanstack-react-start";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@suwa/ui/components/breadcrumb";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Separator } from "@suwa/ui/components/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@suwa/ui/components/sidebar";
+import { Button, Card, Separator } from "@heroui/react";
 import {
   createFileRoute,
   Link,
@@ -28,7 +8,8 @@ import {
   useLoaderData,
   useMatches,
 } from "@tanstack/react-router";
-import { StethoscopeIcon } from "lucide-react";
+import { MenuIcon, StethoscopeIcon } from "lucide-react";
+import { useState } from "react";
 
 import { DoctorSidebar } from "@/components/doctor-sidebar";
 import { getServerSession } from "@/utils/clerk-auth";
@@ -60,7 +41,7 @@ export const Route = createFileRoute("/doctor")({
   component: DoctorLayoutRoute,
 });
 
-function Breadcrumbs() {
+function DoctorBreadcrumbs() {
   const matches = useMatches();
   const breadcrumbs = matches
     .filter((match) => match.routeId !== "__root__")
@@ -85,66 +66,75 @@ function Breadcrumbs() {
   }
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {breadcrumbs.map((crumb) => (
-          <BreadcrumbItem key={crumb.href}>
-            {crumb.isLast ? (
-              <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-            ) : (
-              <BreadcrumbLink render={<Link to={crumb.href} />}>
-                {crumb.label}
-              </BreadcrumbLink>
-            )}
-            {!crumb.isLast && <BreadcrumbSeparator />}
-          </BreadcrumbItem>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
+    <nav
+      aria-label="Breadcrumb"
+      className="flex items-center gap-2 text-muted-foreground text-sm"
+    >
+      {breadcrumbs.map((crumb) => (
+        <span className="flex items-center gap-2" key={crumb.href}>
+          {crumb.isLast ? (
+            <span className="font-medium text-foreground">{crumb.label}</span>
+          ) : (
+            <Link
+              className="transition-colors hover:text-foreground"
+              to={crumb.href}
+            >
+              {crumb.label}
+            </Link>
+          )}
+          {!crumb.isLast && <span>/</span>}
+        </span>
+      ))}
+    </nav>
   );
 }
 
 function DoctorLayoutRoute() {
   const { session } = useLoaderData({ from: "/doctor" });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   if (!session) {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <Card className="w-full max-w-md rounded-3xl">
-          <CardHeader className="items-center text-center">
+          <Card.Header className="items-center text-center">
             <div className="rounded-2xl border bg-muted/40 p-4">
               <StethoscopeIcon className="size-6" />
             </div>
             <div className="flex flex-col gap-2">
-              <CardTitle>Unauthorized</CardTitle>
-              <CardDescription>
+              <Card.Title>Unauthorized</Card.Title>
+              <Card.Description>
                 You are not authorized to access this page.
-              </CardDescription>
+              </Card.Description>
             </div>
-          </CardHeader>
-          <CardContent className="flex justify-center">
+          </Card.Header>
+          <Card.Content className="flex justify-center">
             <ClerkSignInButton />
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <DoctorSidebar />
-      <SidebarInset>
-        <div className="flex min-h-svh flex-col">
-          <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b bg-background/80 px-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
-            <SidebarTrigger />
-            <Separator className="h-12" orientation="vertical" />
-            <Breadcrumbs />
-          </header>
-          <div className="flex-1 p-4">
-            <Outlet />
-          </div>
+    <div className="flex min-h-svh">
+      <DoctorSidebar collapsed={!sidebarOpen} />
+      <main className="flex w-full flex-1 flex-col">
+        <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b bg-background/80 px-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+          <Button
+            isIconOnly
+            onPress={() => setSidebarOpen((v) => !v)}
+            variant="ghost"
+          >
+            <MenuIcon />
+          </Button>
+          <Separator className="h-12" orientation="vertical" />
+          <DoctorBreadcrumbs />
+        </header>
+        <div className="flex-1 p-4">
+          <Outlet />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </main>
+    </div>
   );
 }

@@ -1,15 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Input } from "@suwa/ui/components/input";
-import { Separator } from "@suwa/ui/components/separator";
+import { Button, Card, Chip, Input, Separator } from "@heroui/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRightIcon,
@@ -53,11 +42,13 @@ function AdminDoctorsRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">Doctors</Badge>
+              <Chip variant="secondary">Admin console</Chip>
+              <Chip color="default" variant="soft">
+                Doctors
+              </Chip>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -69,11 +60,11 @@ function AdminDoctorsRoute() {
               </p>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Card className="rounded-3xl border-border/60">
-        <CardHeader>
+        <Card.Header>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col gap-1">
               <h2 className="font-medium text-sm">Approved doctors</h2>
@@ -101,7 +92,7 @@ function AdminDoctorsRoute() {
                 />
               </div>
               <Button
-                onClick={() => {
+                onPress={() => {
                   navigate({
                     search: {
                       page: 1,
@@ -117,25 +108,25 @@ function AdminDoctorsRoute() {
               </Button>
             </div>
           </div>
-        </CardHeader>
+        </Card.Header>
 
         <Separator />
 
-        <CardContent>
+        <Card.Content>
           {rows.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <StethoscopeIcon />
-                </EmptyMedia>
-                <EmptyTitle>No doctors found</EmptyTitle>
-                <EmptyDescription>
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+                <StethoscopeIcon className="size-6" />
+              </div>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="font-medium text-sm">No doctors found</p>
+                <p className="max-w-sm text-muted-foreground text-xs">
                   {search.query
                     ? "No doctors match your search query."
                     : "No doctors have been approved yet."}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
               {rows.map(
@@ -151,7 +142,7 @@ function AdminDoctorsRoute() {
                     className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
                     key={doctor.userId}
                   >
-                    <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <Card.Content className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div className="flex items-start gap-4">
                         <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
                           <StethoscopeIcon className="size-4" />
@@ -171,10 +162,14 @@ function AdminDoctorsRoute() {
                               </p>
                             ) : null}
                           </div>
-                          <Badge className="mt-1 gap-1" variant="default">
+                          <Chip
+                            className="mt-1 gap-1"
+                            color="accent"
+                            variant="soft"
+                          >
                             <CheckCircle2Icon className="size-3" />
                             Approved
-                          </Badge>
+                          </Chip>
                         </div>
                       </div>
 
@@ -186,7 +181,7 @@ function AdminDoctorsRoute() {
                         View details
                         <ArrowRightIcon className="size-3" />
                       </Link>
-                    </CardContent>
+                    </Card.Content>
                   </Card>
                 )
               )}
@@ -200,8 +195,8 @@ function AdminDoctorsRoute() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  disabled={!data?.prevPage}
-                  onClick={() => {
+                  isDisabled={!data?.prevPage}
+                  onPress={() => {
                     navigate({
                       search: {
                         page: Math.max(1, search.page - 1),
@@ -217,8 +212,8 @@ function AdminDoctorsRoute() {
                   Prev
                 </Button>
                 <Button
-                  disabled={!data?.nextPage}
-                  onClick={() => {
+                  isDisabled={!data?.nextPage}
+                  onPress={() => {
                     navigate({
                       search: {
                         page: search.page + 1,
@@ -236,7 +231,7 @@ function AdminDoctorsRoute() {
               </div>
             </div>
           ) : null}
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

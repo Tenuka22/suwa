@@ -1,32 +1,12 @@
 import { SignInButton as ClerkSignInButton } from "@clerk/tanstack-react-start";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@suwa/ui/components/breadcrumb";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Separator } from "@suwa/ui/components/separator";
+import { Breadcrumbs, Card, Separator } from "@heroui/react";
+import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
+import { BuildingIcon } from "lucide-react";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@suwa/ui/components/sidebar";
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useMatches,
-} from "@tanstack/react-router";
-import { BuildingIcon } from "lucide-react";
+} from "@/components/sidebar-context";
 
 import { TenantSidebar } from "@/components/tenant-sidebar";
 import { getServerSession } from "@/utils/clerk-auth";
@@ -40,13 +20,12 @@ export const Route = createFileRoute("/tenant")({
   component: TenantLayoutRoute,
 });
 
-function Breadcrumbs() {
+function TenantBreadcrumbs() {
   const matches = useMatches();
   const breadcrumbs = matches
     .filter((match) => match.routeId !== "__root__")
     .flatMap((match) => {
-      const pathname = match.pathname;
-      const segments = pathname.split("/").filter(Boolean);
+      const segments = match.pathname.split("/").filter(Boolean);
       return segments.map((segment, index) => {
         const href = `/${segments.slice(0, index + 1).join("/")}`;
         const isLast = index === segments.length - 1;
@@ -64,22 +43,16 @@ function Breadcrumbs() {
   }
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {breadcrumbs.map((crumb) => (
-          <BreadcrumbItem key={crumb.href}>
-            {crumb.isLast ? (
-              <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-            ) : (
-              <BreadcrumbLink render={<Link to={crumb.href} />}>
-                {crumb.label}
-              </BreadcrumbLink>
-            )}
-            {!crumb.isLast && <BreadcrumbSeparator />}
-          </BreadcrumbItem>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
+    <Breadcrumbs>
+      {breadcrumbs.map((crumb) => (
+        <Breadcrumbs.Item
+          href={crumb.isLast ? undefined : crumb.href}
+          key={crumb.href}
+        >
+          {crumb.label}
+        </Breadcrumbs.Item>
+      ))}
+    </Breadcrumbs>
   );
 }
 
@@ -90,20 +63,20 @@ function TenantLayoutRoute() {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <Card className="w-full max-w-md rounded-3xl">
-          <CardHeader className="items-center text-center">
+          <Card.Header className="items-center text-center">
             <div className="rounded-2xl border bg-muted/40 p-4">
               <BuildingIcon className="size-6" />
             </div>
             <div className="flex flex-col gap-2">
-              <CardTitle>Unauthorized</CardTitle>
-              <CardDescription>
+              <Card.Title>Unauthorized</Card.Title>
+              <Card.Description>
                 You do not have tenant admin access or are not signed in.
-              </CardDescription>
+              </Card.Description>
             </div>
-          </CardHeader>
-          <CardContent className="flex justify-center">
+          </Card.Header>
+          <Card.Content className="flex justify-center">
             <ClerkSignInButton />
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
     );
@@ -117,7 +90,7 @@ function TenantLayoutRoute() {
           <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 pl-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
             <SidebarTrigger />
             <Separator className="h-14" orientation="vertical" />
-            <Breadcrumbs />
+            <TenantBreadcrumbs />
           </header>
           <div className="flex-1 p-4">
             <Outlet />

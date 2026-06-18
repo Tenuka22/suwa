@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
   clinicAttendance,
@@ -11,7 +12,6 @@ import {
   tenantNotifications,
   tenants,
 } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 
 const HOSPITAL_TYPES = ["PRIVATE_HOSPITAL", "PUBLIC_HOSPITAL"] as const;
 

@@ -1,21 +1,17 @@
 import { useUser } from "@clerk/tanstack-react-start";
 import {
   Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@suwa/ui/components/avatar";
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Input } from "@suwa/ui/components/input";
-import {
+  Button,
+  Card,
+  Chip,
+  Input,
+  ListBox,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
-import { Skeleton } from "@suwa/ui/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@suwa/ui/components/tabs";
+  Skeleton,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tabs,
+} from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   FilmIcon,
@@ -163,25 +159,23 @@ function DoctorHubPage() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Channel Header Banner */}
-      <div className="relative h-40 overflow-hidden bg-gradient-to-r from-primary/20 via-primary/10 to-background md:h-52">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(120,119,198,0.15),transparent_50%)]" />
+      <div className="relative h-40 overflow-hidden bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52">
       </div>
 
-      {/* Channel Info */}
       <div className="relative z-10 -mt-12 px-6">
-        <div className="flex items-end gap-5">
-          <Avatar className="size-24 border-4 border-background shadow-xl">
-            <AvatarImage src={user?.imageUrl} />
-            <AvatarFallback className="text-xl">{initials}</AvatarFallback>
+        <div className="flex items-center gap-5">
+          <Avatar size='lg'>
+            <Avatar.Image src={user?.imageUrl} />
+            <Avatar.Fallback>{initials}</Avatar.Fallback>
           </Avatar>
 
           <div className="flex-1 pb-2">
             <div className="flex items-center gap-3">
               <h1 className="font-semibold text-lg tracking-tight">{name}</h1>
-              <Badge className="gap-1" variant="default">
+              <Chip className="gap-1" color="accent" variant="soft">
                 <FilmIcon className="size-3" />
                 Doctor Hub
-              </Badge>
+              </Chip>
             </div>
             <div className="flex items-center gap-4 text-muted-foreground text-sm">
               <span>
@@ -199,10 +193,10 @@ function DoctorHubPage() {
               {totalUploading > 0 && (
                 <>
                   <span>&middot;</span>
-                  <Badge className="gap-1" variant="outline">
+                  <Chip className="gap-1">
                     <UploadIcon className="size-3" />
                     {totalUploading} uploading
-                  </Badge>
+                  </Chip>
                 </>
               )}
             </div>
@@ -211,15 +205,17 @@ function DoctorHubPage() {
           <div className="flex items-center gap-2 pb-2">
             <Button
               className="gap-2 rounded-full"
-              onClick={() => setCreateChannelOpen(true)}
+              onPress={() => setCreateChannelOpen(true)}
               variant="outline"
+              size="sm"
             >
               <PlusIcon className="size-4" />
               Channel
             </Button>
             <Button
+              size="sm"
               className="gap-2 rounded-full"
-              onClick={() => setUploadOpen(true)}
+              onPress={() => setUploadOpen(true)}
             >
               <UploadIcon className="size-4" />
               Upload
@@ -230,125 +226,125 @@ function DoctorHubPage() {
 
       {/* Channel Tabs (YouTube-style horizontal scroll) */}
       {allChannels.length > 0 && (
-        <div className="px-6">
-          <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto pb-2">
-            <Button
-              className="shrink-0 rounded-full"
-              onClick={() => setSelectedChannel("all")}
-              size="sm"
-              variant={selectedChannel === "all" ? "default" : "ghost"}
+        <div className="px-6 pt-4">
+            <ToggleButtonGroup
+              className="flex flex-wrap"
+              isDetached
+              selectedKeys={[selectedChannel]}
+              selectionMode="single"
+              onSelectionChange={(keys) => {
+                const key = [...keys][0] as string | undefined;
+                if (key) {
+                  setSelectedChannel(key);
+                }
+              }}
             >
-              All channels
-            </Button>
-            {allChannels.map((ch) => (
-              <Button
-                className="shrink-0 gap-2 rounded-full"
-                key={ch.id}
-                onClick={() => setSelectedChannel(ch.id)}
-                size="sm"
-                variant={selectedChannel === ch.id ? "default" : "ghost"}
-              >
-                <RadioIcon className="size-3" />
-                {ch.name}
-              </Button>
-            ))}
+              <ToggleButton id="all">All channels</ToggleButton>
+              {allChannels.map((channel) => (
+                <ToggleButton id={channel.id} key={channel.id}>
+                  <RadioIcon className="mr-2 size-3" />
+                  {channel.name}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
           </div>
-        </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col gap-4 px-6">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex max-w-md flex-1 items-center gap-3">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-10 rounded-full border-none bg-muted/30 pl-10 focus-visible:ring-1 focus-visible:ring-primary/50"
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search your materials..."
-                value={searchQuery}
-              />
+      <div>
+      <div className="flex flex-1 flex-row gap-4 px-6 pb-6 pt-4">
+            <div className="flex max-w-md flex-1 items-center gap-3">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-10 rounded-full border-none bg-muted/30 pl-10 focus-visible:ring-1 focus-visible:ring-primary/50"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search your materials..."
+                  value={searchQuery}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Tabs
-              onValueChange={(v) => setActiveTab(v as FilterTab)}
-              value={activeTab}
+            <div className="flex flex-wrap items-center gap-2">
+              <Tabs
+              onSelectionChange={(v) => setActiveTab(v as FilterTab)}
+              selectedKey={activeTab}
             >
-              <TabsList className="h-auto gap-1 border-none bg-transparent p-0">
-                <TabsTrigger
-                  className="rounded-full border border-border/60 px-4 py-1.5 text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
-                  value="all"
+              <Tabs.List>
+                <Tabs.Tab
+                  id="all"
                 >
-                  All
-                </TabsTrigger>
-                <TabsTrigger
-                  className="rounded-full border border-border/60 px-4 py-1.5 text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
-                  value="videos"
+                    All
+                     <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab
+                  id="videos"
                 >
-                  Videos
-                </TabsTrigger>
-                <TabsTrigger
-                  className="rounded-full border border-border/60 px-4 py-1.5 text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
-                  value="audio"
+                    Videos
+                     <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab
+                  id="audio"
                 >
-                  Audio
-                </TabsTrigger>
+                    Audio
+                     <Tabs.Indicator />
+                </Tabs.Tab>
                 {totalUploading > 0 && (
-                  <TabsTrigger
+                  <Tabs.Tab
                     className="rounded-full border border-border/60 px-4 py-1.5 text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
-                    value="uploading"
+                    id="uploading"
                   >
                     <UploadIcon className="mr-1 size-3" />
                     Uploading
-                    <Badge className="ml-1.5 px-1.5" variant="secondary">
+                    <Chip
+                      className="ml-1.5 px-1.5"
+                      color="default"
+                      variant="soft"
+                    >
                       {totalUploading}
-                    </Badge>
-                  </TabsTrigger>
+                    </Chip>
+                  </Tabs.Tab>
                 )}
-              </TabsList>
+              </Tabs.List>
             </Tabs>
 
             <div className="mx-1 h-6 w-px bg-border/60" />
-
             <Select
-              onValueChange={(v) => setSortBy(v as SortOption)}
-              value={sortBy}
+              onSelectionChange={(id) => setSortBy(id as SortOption)}
+              selectedKey={sortBy}
             >
-              <SelectTrigger className="h-9 w-[140px] rounded-full border-border/60 text-sm">
+              <Select.Trigger className="h-9 w-[140px] rounded-full border-border/60 text-sm flex flex-row gap-2 items-center justify-center">
                 <FilterIcon className="mr-1 size-3.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest first</SelectItem>
-                <SelectItem value="oldest">Oldest first</SelectItem>
-                <SelectItem value="title">By title</SelectItem>
-              </SelectContent>
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Popover>
+                <ListBox>
+                  <ListBox.Item id="newest">Newest first</ListBox.Item>
+                  <ListBox.Item id="oldest">Oldest first</ListBox.Item>
+                  <ListBox.Item id="title">By title</ListBox.Item>
+                </ListBox>
+              </Select.Popover>
             </Select>
 
             <div className="flex items-center gap-0.5">
               <Button
                 className="size-9 rounded-full"
-                onClick={() => setViewMode("grid")}
-                size="icon"
+                isIconOnly
+                onPress={() => setViewMode("grid")}
                 variant={viewMode === "grid" ? "secondary" : "ghost"}
               >
                 <LayoutGridIcon className="size-4" />
               </Button>
               <Button
                 className="size-9 rounded-full"
-                onClick={() => setViewMode("list")}
-                size="icon"
+                isIconOnly
+                onPress={() => setViewMode("list")}
                 variant={viewMode === "list" ? "secondary" : "ghost"}
               >
                 <ListIcon className="size-4" />
               </Button>
             </div>
           </div>
-        </div>
-
+      </div>
         {/* Content Grid/List */}
         {materialsLoading ? (
           <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -367,7 +363,7 @@ function DoctorHubPage() {
           </div>
         ) : sortedMaterials.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
-            <div className="rounded-full bg-muted/40">
+            <div>
               {activeTab === "uploading" ? (
                 <UploadIcon className="size-8 text-muted-foreground" />
               ) : activeTab === "audio" ? (
@@ -391,7 +387,7 @@ function DoctorHubPage() {
             {!searchQuery && activeTab !== "uploading" && (
               <Button
                 className="gap-2 rounded-full"
-                onClick={() => setUploadOpen(true)}
+                onPress={() => setUploadOpen(true)}
               >
                 <UploadIcon className="size-4" />
                 Upload content
@@ -449,15 +445,12 @@ function DoctorHubPage() {
                     <RadioIcon className="size-6 text-muted-foreground/40" />
                   )}
                   {material.durationSeconds && (
-                    <Badge
-                      className="absolute right-1 bottom-1 border-none bg-black/80 px-1 py-0 text-[10px] text-white"
-                      variant="outline"
-                    >
+                    <Chip className="absolute right-1 bottom-1 border-none bg-black/80 px-1 py-0 text-[10px] text-white">
                       {Math.floor(material.durationSeconds / 60)}:
                       {(material.durationSeconds % 60)
                         .toString()
                         .padStart(2, "0")}
-                    </Badge>
+                    </Chip>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -468,12 +461,13 @@ function DoctorHubPage() {
                     {material.description ?? "No description"}
                   </p>
                   <div className="flex items-center gap-2">
-                    <Badge
+                    <Chip
                       className="px-1.5 py-0 text-[10px]"
-                      variant="secondary"
+                      color="default"
+                      variant="soft"
                     >
                       {material.visibility}
-                    </Badge>
+                    </Chip>
                     <span className="text-[10px] text-muted-foreground">
                       {new Date(material.createdAt).toLocaleDateString()}
                     </span>
@@ -481,7 +475,8 @@ function DoctorHubPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Button
-                    onClick={() => {
+                    isIconOnly
+                    onPress={() => {
                       setEditMaterial({
                         id: material.id,
                         title: material.title,
@@ -495,15 +490,14 @@ function DoctorHubPage() {
                       });
                       setEditOpen(true);
                     }}
-                    size="icon"
                     variant="ghost"
                   >
                     <PencilIcon className="size-4" />
                   </Button>
                   <Button
                     className="shrink-0"
-                    onClick={() => deleteMaterial.mutate({ id: material.id })}
-                    size="icon"
+                    isIconOnly
+                    onPress={() => deleteMaterial.mutate({ id: material.id })}
                     variant="ghost"
                   >
                     <PlusIcon className="size-4 rotate-45" />

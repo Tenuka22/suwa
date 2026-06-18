@@ -1,5 +1,10 @@
-import { cn } from "@suwa/ui/lib/utils";
+import { type ClassValue, clsx } from "clsx";
 import type { ReactNode } from "react";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 import { SectionLabel } from "@/components/typography";
 

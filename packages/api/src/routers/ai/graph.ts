@@ -1,6 +1,10 @@
-import { Annotation, MessagesAnnotation, StateGraph } from "@langchain/langgraph";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
 import type { BaseMessage } from "@langchain/core/messages";
+import {
+  Annotation,
+  MessagesAnnotation,
+  StateGraph,
+} from "@langchain/langgraph";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 import type { ClerkRequestContext } from "../../context";
 import { CloudflareChatModel } from "./cloudflare-chat-model";
 import {
@@ -46,7 +50,9 @@ function createAgentRouter() {
 function createToolsRouter() {
   return (state: GraphState) => {
     const agent = state.activeAgent as string;
-    if (agent === "db" || agent === "general") return agent;
+    if (agent === "db" || agent === "general") {
+      return agent;
+    }
     return "__end__";
   };
 }
@@ -56,7 +62,7 @@ function createToolsRouter() {
 export function createGraph(ctx: ClerkRequestContext) {
   const llm = new CloudflareChatModel(
     "@cf/meta/llama-3.1-8b-instruct-fast",
-    ctx.ai,
+    ctx.ai
   );
 
   const tools = createAiTools(ctx);

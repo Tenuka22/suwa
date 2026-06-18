@@ -1,8 +1,7 @@
 import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
+import { Toast } from "@heroui/react";
 import { APP_DISPLAY_NAME, LOGO_PATH } from "@suwa/app-info";
 import { env } from "@suwa/env/web";
-import { Toaster } from "@suwa/ui/components/sonner";
-import { TooltipProvider } from "@suwa/ui/components/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -72,23 +71,18 @@ function RootDocument() {
       signUpUrl="/sign-up"
     >
       <ClerkApiAuthBridge />
-      <TooltipProvider>
-        <html lang="en" className="dark">
-          <head>
-            <HeadContent />
-          </head>
-          <body className="font-sans bg-background text-foreground">
-            <Outlet />
-            <Toaster richColors />
-            <TanStackRouterDevtools position="bottom-left" />
-            <ReactQueryDevtools
-              buttonPosition="bottom-right"
-              position="bottom"
-            />
-            <Scripts />
-          </body>
-        </html>
-      </TooltipProvider>
+      <html className="dark" lang="en">
+        <head>
+          <HeadContent />
+        </head>
+        <body className="bg-background font-sans text-foreground">
+          <Outlet />
+          <Toast.Provider />
+          <TanStackRouterDevtools position="bottom-left" />
+          <ReactQueryDevtools buttonPosition="bottom-right" position="bottom" />
+          <Scripts />
+        </body>
+      </html>
     </ClerkProvider>
   );
 }

@@ -1,20 +1,5 @@
 import { useUser } from "@clerk/tanstack-react-start";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@suwa/ui/components/avatar";
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@suwa/ui/components/dropdown-menu";
-import { Separator } from "@suwa/ui/components/separator";
+import { Avatar, Button, Card, Chip, Dropdown, Separator } from "@heroui/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -78,16 +63,15 @@ function HubMaterialDetailPage() {
             )}
             {material.status !== "ready" && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-                <Badge
+                <Chip
                   className="px-4 py-1 text-sm"
-                  variant={
-                    material.status === "failed" ? "destructive" : "secondary"
-                  }
+                  color={material.status === "failed" ? "danger" : "default"}
+                  variant="soft"
                 >
                   {material.status === "uploading" && "Still uploading..."}
                   {material.status === "processing" && "Processing..."}
                   {material.status === "failed" && "Upload failed"}
-                </Badge>
+                </Chip>
               </div>
             )}
           </div>
@@ -100,11 +84,12 @@ function HubMaterialDetailPage() {
                   {material.title}
                 </h1>
                 <div className="flex items-center gap-3 text-muted-foreground text-sm">
-                  <Badge
+                  <Chip
                     className="gap-1"
-                    variant={
-                      material.visibility === "public" ? "default" : "secondary"
+                    color={
+                      material.visibility === "public" ? "accent" : "default"
                     }
+                    variant="soft"
                   >
                     {material.visibility === "public" && (
                       <EyeIcon className="size-3" />
@@ -117,7 +102,7 @@ function HubMaterialDetailPage() {
                     )}
                     {material.visibility.charAt(0).toUpperCase() +
                       material.visibility.slice(1)}
-                  </Badge>
+                  </Chip>
                   <span>{timeAgo}</span>
                   {material.size && (
                     <>
@@ -137,28 +122,30 @@ function HubMaterialDetailPage() {
                   <ShareIcon className="size-4" />
                   Share
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button size="icon" variant="ghost">
+                <Dropdown>
+                  <Dropdown.Trigger>
+                    <Button isIconOnly variant="ghost">
                       <EllipsisIcon className="size-4" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                      <PencilIcon className="mr-2 size-4" />
-                      Edit details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <EyeIcon className="mr-2 size-4" />
-                      Change visibility
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
-                      <Trash2Icon className="mr-2 size-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </Dropdown.Trigger>
+                  <Dropdown.Popover placement="end">
+                    <Dropdown.Menu>
+                      <Dropdown.Item onPress={() => setEditOpen(true)}>
+                        <PencilIcon className="mr-2 size-4" />
+                        Edit details
+                      </Dropdown.Item>
+                      <Dropdown.Item>
+                        <EyeIcon className="mr-2 size-4" />
+                        Change visibility
+                      </Dropdown.Item>
+                      <Separator className="my-1" />
+                      <Dropdown.Item className="text-destructive focus:text-destructive">
+                        <Trash2Icon className="mr-2 size-4" />
+                        Delete
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
+                </Dropdown>
               </div>
             </div>
           </div>
@@ -168,15 +155,15 @@ function HubMaterialDetailPage() {
           {/* Channel Info */}
           <div className="flex items-center gap-3">
             <Avatar className="size-10">
-              <AvatarImage src={user?.imageUrl} />
-              <AvatarFallback className="font-semibold text-sm">
+              <Avatar.Image src={user?.imageUrl} />
+              <Avatar.Fallback className="font-semibold text-sm">
                 {name
                   .split(" ")
                   .map((p) => p[0])
                   .join("")
                   .toUpperCase()
                   .slice(0, 2)}
-              </AvatarFallback>
+              </Avatar.Fallback>
             </Avatar>
             <div className="flex-1">
               <p className="font-medium text-sm">{name}</p>
@@ -190,11 +177,11 @@ function HubMaterialDetailPage() {
           {/* Description */}
           {material.description && (
             <Card className="rounded-xl">
-              <CardContent>
+              <Card.Content>
                 <p className="whitespace-pre-wrap text-sm">
                   {material.description}
                 </p>
-              </CardContent>
+              </Card.Content>
             </Card>
           )}
 
@@ -204,9 +191,9 @@ function HubMaterialDetailPage() {
             material.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {(material.tags as string[]).map((tag: string) => (
-                  <Badge key={tag} variant="secondary">
+                  <Chip color="default" key={tag} variant="soft">
                     {tag}
-                  </Badge>
+                  </Chip>
                 ))}
               </div>
             )}
@@ -215,10 +202,10 @@ function HubMaterialDetailPage() {
         {/* Sidebar - Related/Playlists */}
         <div className="flex flex-col gap-4">
           <Card className="rounded-xl">
-            <CardHeader className="pb-3">
+            <Card.Header className="pb-3">
               <h3 className="font-medium text-sm">Details</h3>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 text-sm">
+            </Card.Header>
+            <Card.Content className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Type</span>
                 <span className="font-medium capitalize">
@@ -227,20 +214,19 @@ function HubMaterialDetailPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Visibility</span>
-                <Badge className="text-xs" variant="secondary">
+                <Chip className="text-xs" color="default" variant="soft">
                   {material.visibility}
-                </Badge>
+                </Chip>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Status</span>
-                <Badge
+                <Chip
                   className="text-xs"
-                  variant={
-                    material.status === "ready" ? "default" : "secondary"
-                  }
+                  color={material.status === "ready" ? "accent" : "default"}
+                  variant="soft"
                 >
                   {material.status}
-                </Badge>
+                </Chip>
               </div>
               {material.durationSeconds && (
                 <div className="flex items-center justify-between">
@@ -261,14 +247,14 @@ function HubMaterialDetailPage() {
                   </span>
                 </div>
               )}
-            </CardContent>
+            </Card.Content>
           </Card>
 
           <Card className="rounded-xl">
-            <CardHeader className="pb-3">
+            <Card.Header className="pb-3">
               <h3 className="font-medium text-sm">Content Notes</h3>
-            </CardHeader>
-            <CardContent>
+            </Card.Header>
+            <Card.Content>
               {material.content ? (
                 <p className="whitespace-pre-wrap text-muted-foreground text-sm">
                   {material.content}
@@ -278,7 +264,7 @@ function HubMaterialDetailPage() {
                   No additional notes added.
                 </p>
               )}
-            </CardContent>
+            </Card.Content>
           </Card>
         </div>
       </div>

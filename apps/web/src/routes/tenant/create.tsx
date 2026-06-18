@@ -1,28 +1,18 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Input } from "@suwa/ui/components/input";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Chip,
+  Input,
+  Label,
+  ListBox,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
+  toast,
+} from "@heroui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { useCreateTenant } from "@/hooks/queries/tenant";
 
-// Hospital services enum
 const HOSPITAL_SERVICES = [
   "EMERGENCY",
   "THEATRE",
@@ -36,8 +26,6 @@ const HOSPITAL_SERVICES = [
   "PEDIATRICS",
 ] as const;
 
-// Dynamically fetch places data - file is served from public/
-// Update apps/web/public/places_data.json to change available places
 const PLACES_DATA_URL = "/places_data.json";
 
 interface PlaceData {
@@ -79,7 +67,6 @@ function TenantCreatePage() {
   const [contactInfo, setContactInfo] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
-  // Load places data
   const loadPlacesData = async () => {
     setPlacesLoading(true);
     try {
@@ -90,7 +77,7 @@ function TenantCreatePage() {
       const data = (await res.json()) as PlaceData[];
       setPlacesData(data);
     } catch {
-      toast.error(
+      toast.danger(
         "Could not load places data. You can still fill in manually."
       );
     } finally {
@@ -98,7 +85,6 @@ function TenantCreatePage() {
     }
   };
 
-  // Select a place and prefill fields
   const handlePlaceSelect = (placeName: string | null) => {
     if (!placeName) {
       return;
@@ -133,12 +119,12 @@ function TenantCreatePage() {
     e.preventDefault();
 
     if (!selectedPlace) {
-      toast.error("Please select a place from the list first");
+      toast.danger("Please select a place from the list first");
       return;
     }
 
     if (!(name && address)) {
-      toast.error("Name and address are required");
+      toast.danger("Name and address are required");
       return;
     }
 
@@ -160,7 +146,7 @@ function TenantCreatePage() {
       toast.success("Hospital registered successfully!");
       navigate({ to: "/tenant" });
     } catch {
-      toast.error("Failed to register hospital");
+      toast.danger("Failed to register hospital");
     }
   };
 
@@ -175,16 +161,17 @@ function TenantCreatePage() {
         </p>
       </div>
 
-      {/* Place Selector */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Select Hospital Location</CardTitle>
-          <CardDescription>
+        <Card.Header>
+          <Card.Title className="text-base">
+            Select Hospital Location
+          </Card.Title>
+          <Card.Description>
             Choose from our pre-loaded places database. This is required to
             proceed.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+          </Card.Description>
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {placesData.length ? (
             <>
               <Input
@@ -193,24 +180,29 @@ function TenantCreatePage() {
                 value={searchQuery}
               />
               <Select
-                onValueChange={handlePlaceSelect}
-                value={selectedPlace?.name}
+                className="w-full"
+                onSelectionChange={(id) => handlePlaceSelect(String(id))}
+                placeholder="Select a hospital..."
+                selectedKey={selectedPlace?.name}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a hospital..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredPlaces.map((place) => (
-                    <SelectItem key={place.name} value={place.name}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{place.name}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {place.address} • {place.category} • ⭐ {place.rating}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {filteredPlaces.map((place) => (
+                      <ListBox.Item id={place.name} key={place.name}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{place.name}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {place.address} • {place.category} • ⭐{" "}
+                            {place.rating}
+                          </span>
+                        </div>
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
               </Select>
               {selectedPlace && (
                 <div className="rounded-lg border bg-muted/30 text-sm">
@@ -233,46 +225,50 @@ function TenantCreatePage() {
             </>
           ) : (
             <Button
-              disabled={placesLoading}
-              onClick={loadPlacesData}
+              isDisabled={placesLoading}
+              onPress={loadPlacesData}
               variant="outline"
             >
               {placesLoading ? "Loading..." : "Load Hospital Places"}
             </Button>
           )}
-        </CardContent>
+        </Card.Content>
       </Card>
 
-      {/* Configuration Form */}
       <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Hospital Details</CardTitle>
-            <CardDescription>
+          <Card.Header>
+            <Card.Title className="text-base">Hospital Details</Card.Title>
+            <Card.Description>
               Configure your hospital tenant profile.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+            </Card.Description>
+          </Card.Header>
+          <Card.Content className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="type">Hospital Type</Label>
                 <Select
-                  onValueChange={(v) =>
-                    setHospitalType(v as "PRIVATE_HOSPITAL" | "PUBLIC_HOSPITAL")
+                  id="type"
+                  onSelectionChange={(id) =>
+                    setHospitalType(
+                      String(id) as "PRIVATE_HOSPITAL" | "PUBLIC_HOSPITAL"
+                    )
                   }
-                  value={hospitalType}
+                  selectedKey={hospitalType}
                 >
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PRIVATE_HOSPITAL">
-                      Private Hospital
-                    </SelectItem>
-                    <SelectItem value="PUBLIC_HOSPITAL">
-                      Public Hospital
-                    </SelectItem>
-                  </SelectContent>
+                  <Select.Trigger>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="PRIVATE_HOSPITAL">
+                        Private Hospital
+                      </ListBox.Item>
+                      <ListBox.Item id="PUBLIC_HOSPITAL">
+                        Public Hospital
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
               </div>
               <div className="flex flex-col gap-2">
@@ -330,45 +326,43 @@ function TenantCreatePage() {
                 value={contactInfo}
               />
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
 
-        {/* Services */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Services Offered</CardTitle>
-            <CardDescription>
+          <Card.Header>
+            <Card.Title className="text-base">Services Offered</Card.Title>
+            <Card.Description>
               Select which services this hospital provides.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </Card.Description>
+          </Card.Header>
+          <Card.Content>
             <div className="flex flex-wrap gap-2">
               {HOSPITAL_SERVICES.map((service) => (
-                <Badge
+                <Chip
                   className="cursor-pointer text-xs transition-colors"
+                  color={
+                    selectedServices.includes(service) ? "accent" : "default"
+                  }
                   key={service}
                   onClick={() => toggleService(service)}
                   variant={
-                    selectedServices.includes(service) ? "default" : "outline"
+                    selectedServices.includes(service) ? "soft" : "secondary"
                   }
                 >
                   {service}
-                </Badge>
+                </Chip>
               ))}
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button
-            onClick={() => navigate({ to: "/tenant" })}
-            type="button"
-            variant="outline"
-          >
+          <Button onPress={() => navigate({ to: "/tenant" })} variant="outline">
             Cancel
           </Button>
           <Button
-            disabled={createTenant.isPending || !selectedPlace}
+            isDisabled={createTenant.isPending || !selectedPlace}
             type="submit"
           >
             {createTenant.isPending ? "Registering..." : "Register Hospital"}

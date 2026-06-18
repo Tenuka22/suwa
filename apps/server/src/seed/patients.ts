@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
   moonlightCredits,
@@ -5,7 +6,6 @@ import {
   stressDownloadAcknowledgments,
   stressPredictions,
 } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 import { inArray } from "drizzle-orm";
 
 export async function seedPatients(db: ReturnType<typeof createDb>) {

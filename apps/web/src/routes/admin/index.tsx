@@ -1,20 +1,5 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@suwa/ui/components/chart";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
-import { createFileRoute } from "@tanstack/react-router";
+import { Button, Card, Chip, Separator } from "@heroui/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowRightIcon,
@@ -26,7 +11,14 @@ import {
   TrendingUpIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { orpc } from "@/utils/orpc";
@@ -39,13 +31,14 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminDashboardRoute() {
+  const navigate = useNavigate();
   const stats = Route.useLoaderData();
   const sessionsByDay = stats?.sessionsByDay ?? [];
 
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex items-start gap-4">
             <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
               <ShieldIcon className="size-8" />
@@ -53,8 +46,10 @@ function AdminDashboardRoute() {
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">Admin console</Badge>
-                <Badge variant="secondary">Live overview</Badge>
+                <Chip variant="secondary">Admin console</Chip>
+                <Chip color="default" variant="soft">
+                  Live overview
+                </Chip>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -68,7 +63,7 @@ function AdminDashboardRoute() {
               </div>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -103,32 +98,24 @@ function AdminDashboardRoute() {
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <TrendingUpIcon className="size-3" />
                   Session trend
-                </Badge>
+                </Chip>
               }
               description="Daily session volume over the last seven days"
               title="Platform activity"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {sessionsByDay.length > 0 ? (
-              <ChartContainer
-                className="h-[360px] w-full"
-                config={{
-                  sessions: {
-                    label: "Sessions",
-                    color: "var(--primary)",
-                  },
-                }}
-              >
+              <div className="h-[360px] w-full">
                 <AreaChart
                   accessibilityLayer
                   data={sessionsByDay}
@@ -154,15 +141,18 @@ function AdminDashboardRoute() {
                     tickMargin={10}
                   />
 
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: unknown) =>
-                          `${Number(value)} session${Number(value) === 1 ? "" : "s"}`
-                        }
-                        indicator="line"
-                      />
-                    }
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!(active && payload?.length)) {
+                        return null;
+                      }
+                      const value = Number(payload[0].value);
+                      return (
+                        <div className="rounded-lg border bg-background px-3 py-1.5 shadow-sm">
+                          <p className="text-sm">{`${value} session${value === 1 ? "" : "s"}`}</p>
+                        </div>
+                      );
+                    }}
                     cursor={false}
                   />
 
@@ -175,73 +165,80 @@ function AdminDashboardRoute() {
                     type="monotone"
                   />
                 </AreaChart>
-              </ChartContainer>
+              </div>
             ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <TrendingUpIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No activity data yet</EmptyTitle>
-                  <EmptyDescription>
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+                  <TrendingUpIcon className="size-6" />
+                </div>
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <p className="font-medium text-sm">No activity data yet</p>
+                  <p className="max-w-sm text-muted-foreground text-xs">
                     Session activity will appear once patients start booking.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
+                  </p>
+                </div>
+              </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <StethoscopeIcon className="size-3" />
                   Quick actions
-                </Badge>
+                </Chip>
               }
               description="Manage platform operations"
               title="Admin tools"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent className="flex flex-col gap-3">
+          <Card.Content className="flex flex-col gap-3">
             <Button
               className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
-              render={
-                <a href="/admin/doc-requests?page=1&query=">
-                  Review doctor requests
-                  <ArrowRightIcon className="size-4" />
-                </a>
+              onPress={() =>
+                navigate({
+                  to: "/admin/doc-requests",
+                  search: { page: 1, query: "" },
+                })
               }
+              size="sm"
               variant="outline"
-            />
+            >
+              Review doctor requests
+              <ArrowRightIcon className="size-4" />
+            </Button>
 
             <Button
               className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
-              render={
-                <a href="/admin/doctors?page=1&query=">
-                  Manage approved doctors
-                  <ArrowRightIcon className="size-4" />
-                </a>
+              onPress={() =>
+                navigate({
+                  to: "/admin/doctors",
+                  search: { page: 1, query: "" },
+                })
               }
+              size="sm"
               variant="outline"
-            />
+            >
+              Manage approved doctors
+              <ArrowRightIcon className="size-4" />
+            </Button>
 
             <Button
               className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
-              render={
-                <a href="/admin/session">
-                  Create test session
-                  <ArrowRightIcon className="size-4" />
-                </a>
-              }
+              onPress={() => navigate({ to: "/admin/session" })}
+              size="sm"
               variant="outline"
-            />
-          </CardContent>
+            >
+              Create test session
+              <ArrowRightIcon className="size-4" />
+            </Button>
+          </Card.Content>
         </Card>
       </div>
     </div>

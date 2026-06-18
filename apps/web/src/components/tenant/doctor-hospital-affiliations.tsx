@@ -1,24 +1,17 @@
 "use client";
 
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@suwa/ui/components/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
+  Chip,
+  Separator,
+  toast,
+} from "@heroui/react";
 import { BuildingIcon, CheckIcon, ClockIcon, XIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   useListDoctorAffiliations,
@@ -65,7 +58,7 @@ export function DoctorHospitalAffiliations() {
           : "Invitation declined."
       );
     } catch {
-      toast.error("Failed to respond to invitation");
+      toast.danger("Failed to respond to invitation");
     }
   };
 
@@ -99,7 +92,9 @@ export function DoctorHospitalAffiliations() {
               Your hospital memberships and pending invitations
             </CardDescription>
           </div>
-          <Badge variant="secondary">{affiliations.length} active</Badge>
+          <Chip color="default" variant="soft">
+            {affiliations.length} active
+          </Chip>
         </div>
       </CardHeader>
 
@@ -130,16 +125,16 @@ export function DoctorHospitalAffiliations() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    disabled={respondInvitation.isPending}
-                    onClick={() => handleRespond(inv.id, "ACCEPTED")}
+                    isDisabled={respondInvitation.isPending}
+                    onPress={() => handleRespond(inv.id, "ACCEPTED")}
                     size="sm"
                   >
                     <CheckIcon className="size-3" />
                     Accept
                   </Button>
                   <Button
-                    disabled={respondInvitation.isPending}
-                    onClick={() => handleRespond(inv.id, "DECLINED")}
+                    isDisabled={respondInvitation.isPending}
+                    onPress={() => handleRespond(inv.id, "DECLINED")}
                     size="sm"
                     variant="outline"
                   >
@@ -162,18 +157,19 @@ export function DoctorHospitalAffiliations() {
                     <BuildingIcon className="size-4 text-primary" />
                     <p className="font-medium text-sm">{aff.tenantName}</p>
                   </div>
-                  <Badge
+                  <Chip
                     className="text-[10px]"
-                    variant={
+                    color={
                       aff.status === "ACTIVE"
-                        ? "default"
+                        ? "accent"
                         : aff.status === "INACTIVE"
-                          ? "secondary"
-                          : "outline"
+                          ? "default"
+                          : "default"
                     }
+                    variant={aff.status === "ACTIVE" ? "soft" : "tertiary"}
                   >
                     {aff.status}
-                  </Badge>
+                  </Chip>
                 </div>
                 {aff.tenantType && (
                   <p className="text-muted-foreground text-xs">
@@ -190,13 +186,13 @@ export function DoctorHospitalAffiliations() {
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {aff.availabilityWindows.map((w, i) => (
-                        <Badge
+                        <Chip
                           className="text-[10px]"
                           key={i}
-                          variant="outline"
+                          variant="tertiary"
                         >
                           {DAYS[w.dayOfWeek]} {w.startTime}–{w.endTime}
-                        </Badge>
+                        </Chip>
                       ))}
                     </div>
                   </div>
@@ -206,18 +202,18 @@ export function DoctorHospitalAffiliations() {
           </div>
         ) : (
           !hasContent && (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <BuildingIcon />
-                </EmptyMedia>
-                <EmptyTitle>No hospital affiliations</EmptyTitle>
-                <EmptyDescription>
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                <BuildingIcon className="size-6 text-muted-foreground" />
+              </div>
+              <div className="text-center">
+                <p className="font-medium text-sm">No hospital affiliations</p>
+                <p className="text-muted-foreground text-sm">
                   You haven't joined any hospitals yet. Invitations will appear
                   here.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+                </p>
+              </div>
+            </div>
           )
         )}
       </CardContent>

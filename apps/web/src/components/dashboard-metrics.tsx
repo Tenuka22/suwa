@@ -1,12 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Card, Chip, Skeleton } from "@heroui/react";
 import { TrendingUpIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -44,29 +36,29 @@ export function MetricCard({
 }) {
   return (
     <Card className={metricCard}>
-      <CardHeader>
+      <Card.Header>
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <CardDescription>{title}</CardDescription>
-            <CardTitle>
+            <Card.Description>{title}</Card.Description>
+            <Card.Title>
               <StatValue>{value}</StatValue>
-            </CardTitle>
+            </Card.Title>
           </div>
 
           <div className={metricIconBox}>{icon}</div>
         </div>
-      </CardHeader>
+      </Card.Header>
 
-      <CardFooter className="flex items-center justify-between">
+      <Card.Footer className="flex items-center justify-between">
         <BodyText>{description}</BodyText>
 
         {trend ? (
-          <Badge className="gap-1" variant="secondary">
+          <Chip className="gap-1" color="default" variant="soft">
             <TrendingUpIcon className="size-3" />
             {trend}
-          </Badge>
+          </Chip>
         ) : null}
-      </CardFooter>
+      </Card.Footer>
     </Card>
   );
 }

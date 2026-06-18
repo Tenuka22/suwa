@@ -1,24 +1,14 @@
-import { Button } from "@suwa/ui/components/button";
-import { Calendar } from "@suwa/ui/components/calendar";
 import {
+  Button,
+  Calendar,
   Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Label,
+  ListBox,
   Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@suwa/ui/components/popover";
-import {
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
+  toast,
+} from "@heroui/react";
+import { parseDate } from "@internationalized/date";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
@@ -30,7 +20,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import {
   useGetClinicAttendance,
@@ -74,7 +63,7 @@ function ClinicAttendancePage() {
 
   const handleMarkAttendance = async () => {
     if (!attendanceDoctorId) {
-      toast.error("Please select a doctor");
+      toast.danger("Please select a doctor");
       return;
     }
 
@@ -96,7 +85,7 @@ function ClinicAttendancePage() {
       setArrivedAt("");
       setLeftAt("");
     } catch {
-      toast.error("Failed to mark attendance");
+      toast.danger("Failed to mark attendance");
     }
   };
 
@@ -127,68 +116,87 @@ function ClinicAttendancePage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <Card>
-            <CardHeader className="pb-3">
+            <Card.Header className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Mark Attendance</CardTitle>
+                <Card.Title className="text-sm">Mark Attendance</Card.Title>
                 <div className="flex items-center gap-2">
                   <Popover>
-                    <PopoverTrigger
-                      render={
-                        <Button
-                          className="justify-start text-left font-normal"
-                          size="sm"
-                          variant="outline"
-                        />
-                      }
+                    <Button
+                      className="justify-start text-left font-normal"
+                      size="sm"
+                      variant="outline"
                     >
                       <CalendarIcon className="mr-1 size-3" />
                       {attendanceDate
                         ? format(new Date(attendanceDate), "PPP")
                         : "Pick a date"}
-                    </PopoverTrigger>
-                    <PopoverContent align="start" className="w-auto p-0">
+                    </Button>
+                    <Popover.Content className="w-auto p-0">
                       <Calendar
-                        mode="single"
-                        onSelect={(date) => {
+                        aria-label="Select date"
+                        onChange={(date) => {
                           if (date) {
-                            setAttendanceDate(format(date, "yyyy-MM-dd"));
+                            setAttendanceDate(date.toString());
                           }
                         }}
-                        selected={
-                          attendanceDate ? new Date(attendanceDate) : undefined
+                        value={
+                          attendanceDate
+                            ? parseDate(attendanceDate.split("T")[0]!)
+                            : undefined
                         }
-                      />
-                    </PopoverContent>
+                      >
+                        <Calendar.Header>
+                          <Calendar.Heading />
+                          <Calendar.NavButton slot="previous" />
+                          <Calendar.NavButton slot="next" />
+                        </Calendar.Header>
+                        <Calendar.Grid>
+                          <Calendar.GridHeader>
+                            {(day) => (
+                              <Calendar.HeaderCell>{day}</Calendar.HeaderCell>
+                            )}
+                          </Calendar.GridHeader>
+                          <Calendar.GridBody>
+                            {(date) => <Calendar.Cell date={date} />}
+                          </Calendar.GridBody>
+                        </Calendar.Grid>
+                      </Calendar>
+                    </Popover.Content>
                   </Popover>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+            </Card.Header>
+            <Card.Content>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <Label>Doctor</Label>
                   <Select
-                    onValueChange={(v) => setAttendanceDoctorId(v ?? "")}
-                    value={attendanceDoctorId}
+                    onSelectionChange={(id) =>
+                      setAttendanceDoctorId(String(id) ?? "")
+                    }
+                    placeholder="Select doctor..."
+                    selectedKey={attendanceDoctorId}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select doctor..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.length === 0 && (
-                        <p className="px-2 py-4 text-center text-muted-foreground text-xs">
-                          No active doctors found.
-                        </p>
-                      )}
-                      {doctors.map((d) => (
-                        <SelectItem key={d.doctorId} value={d.doctorId}>
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="size-3" />
-                            {d.doctorName}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <Select.Trigger className="w-full">
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        {doctors.length === 0 && (
+                          <p className="px-2 py-4 text-center text-muted-foreground text-xs">
+                            No active doctors found.
+                          </p>
+                        )}
+                        {doctors.map((d) => (
+                          <ListBox.Item id={d.doctorId} key={d.doctorId}>
+                            <div className="flex items-center gap-2">
+                              <UserIcon className="size-3" />
+                              {d.doctorName}
+                            </div>
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
                   </Select>
                 </div>
 
@@ -196,62 +204,68 @@ function ClinicAttendancePage() {
                   <div className="flex flex-col gap-2">
                     <Label>Arrived at</Label>
                     <Select
-                      onValueChange={(v) => setArrivedAt(v ?? "")}
-                      value={arrivedAt}
+                      onSelectionChange={(id) => setArrivedAt(String(id) ?? "")}
+                      placeholder="--:--"
+                      selectedKey={arrivedAt}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="--:--" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_OPTIONS.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                      <Select.Trigger className="w-full">
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {TIME_OPTIONS.map((t) => (
+                            <ListBox.Item id={t} key={t}>
+                              {t}
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
                     </Select>
                   </div>
                   <div className="flex flex-col gap-2">
                     <Label>Scheduled leave</Label>
                     <Select
-                      onValueChange={(v) => setLeftAt(v ?? "")}
-                      value={leftAt}
+                      onSelectionChange={(id) => setLeftAt(String(id) ?? "")}
+                      placeholder="--:--"
+                      selectedKey={leftAt}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="--:--" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_OPTIONS.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                      <Select.Trigger className="w-full">
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {TIME_OPTIONS.map((t) => (
+                            <ListBox.Item id={t} key={t}>
+                              {t}
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
                     </Select>
                   </div>
                 </div>
 
                 <Button
-                  disabled={markAttendance.isPending || !attendanceDoctorId}
-                  onClick={handleMarkAttendance}
+                  isDisabled={markAttendance.isPending || !attendanceDoctorId}
+                  onPress={handleMarkAttendance}
                 >
                   {markAttendance.isPending ? "Saving..." : "Save Attendance"}
                 </Button>
               </div>
-            </CardContent>
+            </Card.Content>
           </Card>
         </div>
 
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">
+          <Card.Header className="pb-3">
+            <Card.Title className="text-sm">
               Records for{" "}
               {attendanceDate
                 ? format(new Date(attendanceDate), "MMM d, yyyy")
                 : "selected date"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </Card.Title>
+          </Card.Header>
+          <Card.Content>
             {attendanceRecords.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-8">
                 <ClockIcon className="size-8 text-muted-foreground/30" />
@@ -297,7 +311,7 @@ function ClinicAttendancePage() {
                 })}
               </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
     </div>

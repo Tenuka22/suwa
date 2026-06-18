@@ -1,6 +1,6 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import { doctorPlans, userSubscriptions } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 
 const SUBSCRIPTION_STATUSES = [
   "active",

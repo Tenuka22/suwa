@@ -1,6 +1,6 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import { doctorCashoutRequests, doctorSessions } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 import { sql } from "drizzle-orm";
 
 const CASHOUT_STATUSES = ["pending", "completed", "failed"] as const;

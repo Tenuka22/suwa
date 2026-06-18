@@ -1,4 +1,4 @@
-import { Button } from "@suwa/ui/components/button";
+import { Button } from "@heroui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { VideoRoomWeb } from "@/components/livekit/video-room";
@@ -35,7 +35,7 @@ function DoctorSessionDetailRoute() {
         <p className="text-muted-foreground text-sm">
           The video session could not be loaded. Please try again.
         </p>
-        <Button onClick={() => navigate({ to: "/doctor/sessions" })}>
+        <Button onPress={() => navigate({ to: "/doctor/sessions" })}>
           Back to Sessions
         </Button>
       </div>
@@ -49,8 +49,8 @@ function DoctorSessionDetailRoute() {
       <header className="flex items-center gap-3 border-b px-6 py-4">
         <Button
           aria-label="Back to sessions"
-          onClick={() => navigate({ to: "/doctor/sessions" })}
-          size="icon"
+          isIconOnly
+          onPress={() => navigate({ to: "/doctor/sessions" })}
           variant="ghost"
         >
           <ChevronLeft className="h-4 w-4" />

@@ -1,5 +1,5 @@
-import { doctorProfiles } from "@suwa/db";
 import { tool } from "@langchain/core/tools";
+import { doctorProfiles } from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import type { ClerkRequestContext } from "../../../../context";

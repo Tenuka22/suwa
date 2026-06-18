@@ -1,27 +1,18 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Input } from "@suwa/ui/components/input";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Chip,
+  Input,
+  Label,
+  ListBox,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
-import { Skeleton } from "@suwa/ui/components/skeleton";
-import { Textarea } from "@suwa/ui/components/textarea";
+  Skeleton,
+  TextArea,
+  toast,
+} from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckIcon, SendIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import {
   useInviteDoctor,
@@ -44,7 +35,7 @@ function TenantInvitePage() {
 
   const handleInvite = async () => {
     if (!doctorId.trim()) {
-      toast.error("Please enter a doctor ID");
+      toast.danger("Please enter a doctor ID");
       return;
     }
 
@@ -58,7 +49,7 @@ function TenantInvitePage() {
       setDoctorId("");
       setMessage("");
     } catch (error) {
-      toast.error(
+      toast.danger(
         error instanceof Error ? error.message : "Failed to send invitation"
       );
     }
@@ -79,15 +70,14 @@ function TenantInvitePage() {
         </p>
       </div>
 
-      {/* Invite Form */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Send New Invitation</CardTitle>
-          <CardDescription>
+        <Card.Header>
+          <Card.Title className="text-base">Send New Invitation</Card.Title>
+          <Card.Description>
             Enter the doctor's user ID to send them an invitation.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+          </Card.Description>
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="doctorId">Doctor ID *</Label>
             <Input
@@ -99,7 +89,7 @@ function TenantInvitePage() {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="message">Message (optional)</Label>
-            <Textarea
+            <TextArea
               id="message"
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Add a personal message to the invitation..."
@@ -107,38 +97,40 @@ function TenantInvitePage() {
               value={message}
             />
           </div>
-          <Button disabled={inviteDoctor.isPending} onClick={handleInvite}>
+          <Button isDisabled={inviteDoctor.isPending} onPress={handleInvite}>
             <SendIcon className="size-4" />
             {inviteDoctor.isPending ? "Sending..." : "Send Invitation"}
           </Button>
-        </CardContent>
+        </Card.Content>
       </Card>
 
-      {/* Invitation History */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <Card.Header className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-base">Invitation History</CardTitle>
-            <CardDescription>
+            <Card.Title className="text-base">Invitation History</Card.Title>
+            <Card.Description>
               Track all invitations sent for this hospital.
-            </CardDescription>
+            </Card.Description>
           </div>
           <Select
-            onValueChange={(v) => setFilterStatus(v ?? "ALL")}
-            value={filterStatus}
+            className="w-[140px]"
+            onSelectionChange={(id) => setFilterStatus(String(id) ?? "ALL")}
+            selectedKey={filterStatus}
           >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="ACCEPTED">Accepted</SelectItem>
-              <SelectItem value="DECLINED">Declined</SelectItem>
-            </SelectContent>
+            <Select.Trigger>
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="ALL">All</ListBox.Item>
+                <ListBox.Item id="PENDING">Pending</ListBox.Item>
+                <ListBox.Item id="ACCEPTED">Accepted</ListBox.Item>
+                <ListBox.Item id="DECLINED">Declined</ListBox.Item>
+              </ListBox>
+            </Select.Popover>
           </Select>
-        </CardHeader>
-        <CardContent>
+        </Card.Header>
+        <Card.Content>
           {isLoading ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-12 w-full" />
@@ -158,14 +150,21 @@ function TenantInvitePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-sm">{inv.doctorName}</p>
-                      <Badge
+                      <Chip
                         className="text-[10px]"
+                        color={
+                          inv.status === "ACCEPTED"
+                            ? "accent"
+                            : inv.status === "DECLINED"
+                              ? "danger"
+                              : "default"
+                        }
                         variant={
                           inv.status === "ACCEPTED"
-                            ? "default"
+                            ? "soft"
                             : inv.status === "DECLINED"
-                              ? "destructive"
-                              : "outline"
+                              ? "soft"
+                              : "secondary"
                         }
                       >
                         {inv.status === "ACCEPTED" ? (
@@ -174,7 +173,7 @@ function TenantInvitePage() {
                           <XIcon className="size-3" />
                         ) : null}
                         {inv.status}
-                      </Badge>
+                      </Chip>
                     </div>
                     {inv.message && (
                       <p className="text-muted-foreground text-xs">
@@ -189,7 +188,7 @@ function TenantInvitePage() {
               ))}
             </div>
           )}
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

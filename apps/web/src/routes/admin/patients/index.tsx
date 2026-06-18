@@ -1,14 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
+import { Button, Card, Chip, Separator } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, UserRoundIcon } from "lucide-react";
 import { z } from "zod";
@@ -41,11 +31,13 @@ function AdminPatientsRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">Patients</Badge>
+              <Chip variant="secondary">Admin console</Chip>
+              <Chip color="default" variant="soft">
+                Patients
+              </Chip>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -57,11 +49,11 @@ function AdminPatientsRoute() {
               </p>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Card className="rounded-3xl border-border/60">
-        <CardHeader>
+        <Card.Header>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="font-medium text-sm">Registered patients</h2>
@@ -70,28 +62,28 @@ function AdminPatientsRoute() {
               </p>
             </div>
 
-            <Badge className="gap-1" variant="secondary">
+            <Chip className="gap-1" color="default" variant="soft">
               <UserRoundIcon className="size-3" />
               {rows.length} patient{rows.length === 1 ? "" : "s"}
-            </Badge>
+            </Chip>
           </div>
-        </CardHeader>
+        </Card.Header>
 
         <Separator />
 
-        <CardContent>
+        <Card.Content>
           {rows.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <UserRoundIcon />
-                </EmptyMedia>
-                <EmptyTitle>No patients yet</EmptyTitle>
-                <EmptyDescription>
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+                <UserRoundIcon className="size-6" />
+              </div>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="font-medium text-sm">No patients yet</p>
+                <p className="max-w-sm text-muted-foreground text-xs">
                   Patients will appear once they register on the platform.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
               {rows.map((patient) => (
@@ -99,7 +91,7 @@ function AdminPatientsRoute() {
                   className="cursor-pointer rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
                   key={patient.userId}
                 >
-                  <CardContent className="flex items-center justify-between gap-4">
+                  <Card.Content className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
                         <UserRoundIcon className="size-4" />
@@ -110,14 +102,15 @@ function AdminPatientsRoute() {
                       </div>
                     </div>
 
-                    <Badge
-                      variant={
-                        patient.isOnboardingComplete ? "default" : "secondary"
+                    <Chip
+                      color={
+                        patient.isOnboardingComplete ? "accent" : "default"
                       }
+                      variant="soft"
                     >
                       {patient.isOnboardingComplete ? "Onboarded" : "Pending"}
-                    </Badge>
-                  </CardContent>
+                    </Chip>
+                  </Card.Content>
                 </Card>
               ))}
             </div>
@@ -130,8 +123,8 @@ function AdminPatientsRoute() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  disabled={!data?.prevPage}
-                  onClick={() => {
+                  isDisabled={!data?.prevPage}
+                  onPress={() => {
                     navigate({
                       search: { page: Math.max(1, search.page - 1) },
                       replace: true,
@@ -144,8 +137,8 @@ function AdminPatientsRoute() {
                   Prev
                 </Button>
                 <Button
-                  disabled={!data?.nextPage}
-                  onClick={() => {
+                  isDisabled={!data?.nextPage}
+                  onPress={() => {
                     navigate({
                       search: { page: search.page + 1 },
                       replace: true,
@@ -160,7 +153,7 @@ function AdminPatientsRoute() {
               </div>
             </div>
           ) : null}
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

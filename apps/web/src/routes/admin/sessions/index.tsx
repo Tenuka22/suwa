@@ -1,14 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
+import { Button, Card, Chip, Separator } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { CalendarDaysIcon, ChevronLeft, ChevronRight } from "lucide-react";
@@ -43,11 +33,13 @@ function AdminSessionsRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">Sessions</Badge>
+              <Chip variant="secondary">Admin console</Chip>
+              <Chip color="default" variant="soft">
+                Sessions
+              </Chip>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -61,11 +53,11 @@ function AdminSessionsRoute() {
               </p>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Card className="rounded-3xl border-border/60">
-        <CardHeader>
+        <Card.Header>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="font-medium text-sm">Session history</h2>
@@ -74,28 +66,28 @@ function AdminSessionsRoute() {
               </p>
             </div>
 
-            <Badge className="gap-1" variant="secondary">
+            <Chip className="gap-1" color="default" variant="soft">
               <CalendarDaysIcon className="size-3" />
               {rows.length} session{rows.length === 1 ? "" : "s"}
-            </Badge>
+            </Chip>
           </div>
-        </CardHeader>
+        </Card.Header>
 
         <Separator />
 
-        <CardContent>
+        <Card.Content>
           {rows.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CalendarDaysIcon />
-                </EmptyMedia>
-                <EmptyTitle>No sessions yet</EmptyTitle>
-                <EmptyDescription>
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+                <CalendarDaysIcon className="size-6" />
+              </div>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="font-medium text-sm">No sessions yet</p>
+                <p className="max-w-sm text-muted-foreground text-xs">
                   Sessions will appear once patients start booking appointments.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
               {rows.map((session) => {
@@ -107,7 +99,7 @@ function AdminSessionsRoute() {
                     className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
                     key={session.id}
                   >
-                    <CardContent className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <Card.Content className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex items-start gap-4">
                         <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
                           <CalendarDaysIcon className="size-4" />
@@ -136,7 +128,7 @@ function AdminSessionsRoute() {
                       <div className="flex flex-row items-center justify-between gap-3 md:flex-col md:items-end">
                         <SessionStatusBadge status={session.status} />
                       </div>
-                    </CardContent>
+                    </Card.Content>
                   </Card>
                 );
               })}
@@ -150,8 +142,8 @@ function AdminSessionsRoute() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  disabled={!data?.prevPage}
-                  onClick={() => {
+                  isDisabled={!data?.prevPage}
+                  onPress={() => {
                     navigate({
                       search: {
                         page: Math.max(1, search.page - 1),
@@ -166,8 +158,8 @@ function AdminSessionsRoute() {
                   Prev
                 </Button>
                 <Button
-                  disabled={!data?.nextPage}
-                  onClick={() => {
+                  isDisabled={!data?.nextPage}
+                  onPress={() => {
                     navigate({
                       search: {
                         page: search.page + 1,
@@ -184,7 +176,7 @@ function AdminSessionsRoute() {
               </div>
             </div>
           ) : null}
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

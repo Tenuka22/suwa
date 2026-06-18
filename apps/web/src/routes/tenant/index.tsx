@@ -1,14 +1,5 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { buttonVariants } from "@suwa/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Skeleton } from "@suwa/ui/components/skeleton";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button, Card, Chip, Skeleton } from "@heroui/react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   BuildingIcon,
   MapPinIcon,
@@ -23,6 +14,7 @@ export const Route = createFileRoute("/tenant/")({
 });
 
 function TenantListPage() {
+  const navigate = useNavigate();
   const { data, isLoading } = useListTenants();
 
   return (
@@ -34,23 +26,23 @@ function TenantListPage() {
             Manage your hospital organizations and tenant settings.
           </p>
         </div>
-        <Link className={buttonVariants({})} to="/tenant/create">
+        <Button onPress={() => navigate({ to: "/tenant/create" })} size="sm">
           <PlusIcon className="size-4" />
           Register Hospital
-        </Link>
+        </Button>
       </div>
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
-              <CardHeader>
+              <Card.Header>
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
+              </Card.Header>
+              <Card.Content>
                 <Skeleton className="h-4 w-full" />
-              </CardContent>
+              </Card.Content>
             </Card>
           ))}
         </div>
@@ -63,44 +55,52 @@ function TenantListPage() {
               to="/tenant/$tenantId"
             >
               <Card className="cursor-pointer transition-colors hover:border-primary/50 hover:shadow-md">
-                <CardHeader>
+                <Card.Header>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <div className="rounded-lg border bg-muted/40 p-2">
                         <StethoscopeIcon className="size-4 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-base">
+                        <Card.Title className="text-base">
                           {tenant.name}
-                        </CardTitle>
-                        <Badge
+                        </Card.Title>
+                        <Chip
                           className="text-[10px]"
-                          variant={
+                          color={
                             tenant.type === "PRIVATE_HOSPITAL"
-                              ? "default"
-                              : "secondary"
+                              ? "accent"
+                              : "default"
                           }
+                          variant="soft"
                         >
                           {tenant.type === "PRIVATE_HOSPITAL"
                             ? "Private"
                             : "Public"}
-                        </Badge>
+                        </Chip>
                       </div>
                     </div>
-                    <Badge
+                    <Chip
+                      color={
+                        tenant.status === "ACTIVE"
+                          ? "accent"
+                          : tenant.status === "SUSPENDED"
+                            ? "danger"
+                            : "default"
+                      }
                       variant={
                         tenant.status === "ACTIVE"
-                          ? "default"
+                          ? "soft"
                           : tenant.status === "SUSPENDED"
-                            ? "destructive"
-                            : "outline"
+                            ? "soft"
+                            : "secondary"
                       }
                     >
                       {tenant.status}
-                    </Badge>
+                    </Chip>
                   </div>
-                </CardHeader>
-                <CardContent>
+                </Card.Header>
+                <Card.Content>
                   <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
                     <MapPinIcon className="size-3.5" />
                     <span className="truncate">{tenant.address}</span>
@@ -108,22 +108,22 @@ function TenantListPage() {
                   {tenant.services && tenant.services.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {tenant.services.slice(0, 4).map((service) => (
-                        <Badge
+                        <Chip
                           className="text-[10px]"
                           key={service}
-                          variant="outline"
+                          variant="secondary"
                         >
                           {service}
-                        </Badge>
+                        </Chip>
                       ))}
                       {tenant.services.length > 4 && (
-                        <Badge className="text-[10px]" variant="outline">
+                        <Chip className="text-[10px]" variant="secondary">
                           +{tenant.services.length - 4}
-                        </Badge>
+                        </Chip>
                       )}
                     </div>
                   )}
-                </CardContent>
+                </Card.Content>
               </Card>
             </Link>
           ))}
@@ -131,15 +131,15 @@ function TenantListPage() {
       ) : (
         <Card className="flex flex-col items-center justify-center">
           <BuildingIcon className="size-12 text-muted-foreground/40" />
-          <CardTitle>No hospitals yet</CardTitle>
-          <CardDescription className="text-center">
+          <Card.Title>No hospitals yet</Card.Title>
+          <Card.Description className="text-center">
             Register your first hospital to start managing doctors and
             attendance.
-          </CardDescription>
-          <Link className={buttonVariants({})} to="/tenant/create">
+          </Card.Description>
+          <Button onPress={() => navigate({ to: "/tenant/create" })} size="sm">
             <PlusIcon className="size-4" />
             Register Hospital
-          </Link>
+          </Button>
         </Card>
       )}
     </div>

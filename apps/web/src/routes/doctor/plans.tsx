@@ -1,36 +1,15 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@suwa/ui/components/chart";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@suwa/ui/components/dialog";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Input } from "@suwa/ui/components/input";
-import { Label } from "@suwa/ui/components/label";
-import { Separator } from "@suwa/ui/components/separator";
-import { Textarea } from "@suwa/ui/components/textarea";
+  Chip,
+  cn,
+  Input,
+  Label,
+  Modal,
+  Separator,
+  TextArea,
+  useOverlayState,
+} from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -50,6 +29,7 @@ import {
   BarChart,
   CartesianGrid,
   LabelList,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -72,18 +52,23 @@ interface DoctorPlan {
 }
 
 function CreatePlanDialog() {
-  const [open, setOpen] = useState(false);
+  const overlay = useOverlayState();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [priceCents, setPriceCents] = useState("1500");
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [features, setFeatures] = useState("");
+  const [showErrors, setShowErrors] = useState(false);
+
+  const hasNameError = showErrors && !name.trim();
+  const hasPriceError = showErrors && !priceCents.trim();
+  const hasDurationError = showErrors && !durationMinutes.trim();
 
   const createMutation = useMutation(
     orpc.createDoctorPlan.mutationOptions({
       onSuccess: async () => {
         notify.success("Plan created");
-        setOpen(false);
+        overlay.close();
         setName("");
         setDescription("");
         setPriceCents("1500");
@@ -97,6 +82,12 @@ function CreatePlanDialog() {
   );
 
   const handleCreate = () => {
+    setShowErrors(true);
+
+    if (!(name.trim() && priceCents.trim() && durationMinutes.trim())) {
+      return;
+    }
+
     const parsedFeatures = features
       .split("\n")
       .map((feature) => feature.trim())
@@ -112,84 +103,104 @@ function CreatePlanDialog() {
   };
 
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger
-        render={
-          <Button className="gap-2" size="sm">
-            <PlusIcon className="size-4" />
-            Create plan
-          </Button>
-        }
-      />
-      <DialogContent className="sm:max-w-[520px]">
-        <DialogHeader>
-          <DialogTitle>Create plan</DialogTitle>
-          <DialogDescription>
-            Add a new consultation plan for your patients.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Button className="gap-2" onPress={() => overlay.open()} size="sm">
+        <PlusIcon className="size-4" />
+        Create plan
+      </Button>
+      <Modal isOpen={overlay.isOpen} onOpenChange={overlay.setOpen}>
+        <Modal.Backdrop />
+        <Modal.Container className="sm:max-w-[520px]">
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>Create plan</Modal.Heading>
+              <p>Add a new consultation plan for your patients.</p>
+            </Modal.Header>
 
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <Label htmlFor="plan-name">Plan name</Label>
-            <Input
-              id="plan-name"
-              onChange={(e) => setName(e.target.value)}
-              value={name}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="plan-description">Description</Label>
-            <Input
-              id="plan-description"
-              onChange={(e) => setDescription(e.target.value)}
-              value={description}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="price-cents">Price (cents)</Label>
-              <Input
-                id="price-cents"
-                min="100"
-                onChange={(e) => setPriceCents(e.target.value)}
-                type="number"
-                value={priceCents}
-              />
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="plan-name">
+                  Plan name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  className={cn(hasNameError && "border-destructive/70 ring-destructive/30")}
+                  id="plan-name"
+                  onChange={(e) => setName(e.target.value)}
+                  value={name}
+                />
+                {hasNameError && (
+                  <p className="text-destructive text-xs">Plan name is required</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="plan-description">Description</Label>
+                <Input
+                  id="plan-description"
+                  onChange={(e) => setDescription(e.target.value)}
+                  value={description}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                <Label htmlFor="price-cents">
+                  Price (cents) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  className={cn(hasPriceError && "border-destructive/70 ring-destructive/30")}
+                  id="price-cents"
+                  min="100"
+                  onChange={(e) => setPriceCents(e.target.value)}
+                  type="number"
+                  value={priceCents}
+                />
+                {hasPriceError && (
+                  <p className="text-destructive text-xs">Price is required</p>
+                )}
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="duration">
+                  Duration minutes <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  className={cn(hasDurationError && "border-destructive/70 ring-destructive/30")}
+                  id="duration"
+                  min="60"
+                  onChange={(e) => setDurationMinutes(e.target.value)}
+                  type="number"
+                  value={durationMinutes}
+                />
+                {hasDurationError && (
+                  <p className="text-destructive text-xs">Duration is required</p>
+                )}
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="features">Features</Label>
+                <TextArea
+                  className="min-h-24 resize-y"
+                  id="features"
+                  onChange={(e) => setFeatures(e.target.value)}
+                  placeholder="One feature per line"
+                  value={features}
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="duration">Duration minutes</Label>
-              <Input
-                id="duration"
-                min="60"
-                onChange={(e) => setDurationMinutes(e.target.value)}
-                type="number"
-                value={durationMinutes}
-              />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="features">Features</Label>
-            <Textarea
-              className="min-h-24 resize-y"
-              id="features"
-              onChange={(e) => setFeatures(e.target.value)}
-              placeholder="One feature per line"
-              value={features}
-            />
-          </div>
-        </div>
 
-        <DialogFooter>
-          <Button disabled={createMutation.isPending} onClick={handleCreate}>
-            {createMutation.isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : null}
-            Create
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <Modal.Footer>
+              <Button
+                isDisabled={createMutation.isPending}
+                onPress={handleCreate}
+              >
+                {createMutation.isPending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : null}
+                Create
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal>
+    </>
   );
 }
 
@@ -239,11 +250,13 @@ function DoctorPlansRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Plans dashboard</Badge>
-              <Badge variant="secondary">Pricing overview</Badge>
+              <Chip>Plans dashboard</Chip>
+              <Chip color="default" variant="soft">
+                Pricing overview
+              </Chip>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -256,7 +269,7 @@ function DoctorPlansRoute() {
               </BodyText>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -293,17 +306,17 @@ function DoctorPlansRoute() {
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={<CreatePlanDialog />}
               description="Create and manage the plans patients can book"
               title="Plan controls"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent className="flex flex-col gap-4">
+          <Card.Content className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
                 <p className="text-muted-foreground text-xs uppercase tracking-wider">
@@ -325,40 +338,34 @@ function DoctorPlansRoute() {
               Keep your pricing simple and consistent. Use the chart to compare
               price against session duration.
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <CreditCardIcon className="size-3" />
                   Price comparison
-                </Badge>
+                </Chip>
               }
               description="A compact comparison of pricing and minutes"
               title="Plan comparison"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {chartData.length > 0 ? (
-              <ChartContainer
-                className="h-[280px] w-full"
-                config={{
-                  priceCents: {
-                    label: "Price",
-                    color: "var(--primary)",
-                  },
-                }}
-              >
+              <div className="h-[280px] w-full">
                 <BarChart
                   accessibilityLayer
                   data={chartData}
+                  height={280}
                   margin={{ left: 12, right: 12, top: 8 }}
+                  width="100%"
                 >
                   <CartesianGrid vertical={false} />
 
@@ -371,22 +378,20 @@ function DoctorPlansRoute() {
 
                   <YAxis axisLine={false} hide tickLine={false} />
 
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(
-                          value: unknown,
-                          _name: unknown,
-                          payload: unknown
-                        ) => {
-                          const item = payload as {
-                            payload?: { minutes?: number };
-                          };
-                          return `$${(Number(value) / 100).toFixed(2)} · ${item.payload?.minutes ?? 0} min`;
-                        }}
-                        indicator="dot"
-                      />
-                    }
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!(active && payload?.length)) {
+                        return null;
+                      }
+                      const item = payload[0]?.payload as
+                        | { minutes?: number }
+                        | undefined;
+                      return (
+                        <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
+                          <p className="text-sm">{`$${(Number(payload[0]?.value) / 100).toFixed(2)} · ${item?.minutes ?? 0} min`}</p>
+                        </div>
+                      );
+                    }}
                     cursor={false}
                   />
 
@@ -408,22 +413,20 @@ function DoctorPlansRoute() {
                     />
                   </Bar>
                 </BarChart>
-              </ChartContainer>
+              </div>
             ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <PackageIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No plans configured</EmptyTitle>
-                  <EmptyDescription>
-                    Create your first session plan to start offering
-                    consultations to patients.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+                  <PackageIcon className="size-5" />
+                </div>
+                <p className="font-medium text-sm">No plans configured</p>
+                <p className="max-w-xs text-muted-foreground text-sm">
+                  Create your first session plan to start offering consultations
+                  to patients.
+                </p>
+              </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
 
@@ -446,18 +449,15 @@ function DoctorPlansRoute() {
                 }`}
                 key={plan.id}
               >
-                <CardHeader className="pb-3">
+                <Card.Header className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="font-medium text-sm">
+                    <Card.Title className="font-medium text-sm">
                       {plan.name}
-                    </CardTitle>
+                    </Card.Title>
                     {plan.isDefault && (
-                      <Badge
-                        className="border-primary/20 bg-primary/10 text-primary"
-                        variant="outline"
-                      >
+                      <Chip className="border-primary/20 bg-primary/10 text-primary">
                         Default
-                      </Badge>
+                      </Chip>
                     )}
                   </div>
 
@@ -466,9 +466,9 @@ function DoctorPlansRoute() {
                       {plan.description}
                     </p>
                   )}
-                </CardHeader>
+                </Card.Header>
 
-                <CardContent className="flex flex-1 flex-col gap-4">
+                <Card.Content className="flex flex-1 flex-col gap-4">
                   <div className="flex items-center gap-4 border-border/50 border-y py-2">
                     <div className="flex items-center gap-1.5">
                       <CoinsIcon className="size-4 text-muted-foreground" />
@@ -505,7 +505,7 @@ function DoctorPlansRoute() {
                   ) : null}
 
                   <div className="mt-auto" />
-                </CardContent>
+                </Card.Content>
               </Card>
             );
           })}

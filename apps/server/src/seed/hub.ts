@@ -1,10 +1,10 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
   doctorHubChannels,
   doctorHubMaterials,
   doctorPlaylists,
 } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 
 const CHANNEL_NAMES = [
   "Mental Wellness",

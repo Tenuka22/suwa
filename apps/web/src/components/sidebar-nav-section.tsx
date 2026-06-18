@@ -1,5 +1,7 @@
 "use client";
 
+import { Link } from "@tanstack/react-router";
+import type { LucideIcon } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -7,9 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@suwa/ui/components/sidebar";
-import { Link } from "@tanstack/react-router";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/sidebar-context";
 
 export interface SidebarNavItem {
   icon: LucideIcon;

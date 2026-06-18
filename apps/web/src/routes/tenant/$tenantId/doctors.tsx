@@ -1,12 +1,6 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { buttonVariants } from "@suwa/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Button, Card, Chip, Skeleton } from "@heroui/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { UserPlusIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,9 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@suwa/ui/components/table";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { UserPlusIcon } from "lucide-react";
+} from "@/components/table";
 
 import { useListTenantAffiliations } from "@/hooks/queries/tenant";
 
@@ -28,6 +20,7 @@ export const Route = createFileRoute("/tenant/$tenantId/doctors")({
 
 function TenantDoctorsPage() {
   const { tenantId } = Route.useParams();
+  const navigate = useNavigate();
   const { data, isLoading } = useListTenantAffiliations(tenantId);
 
   return (
@@ -41,23 +34,24 @@ function TenantDoctorsPage() {
             All doctors affiliated with this hospital.
           </p>
         </div>
-        <Link
-          className={buttonVariants({ size: "sm" })}
-          params={{ tenantId }}
-          to="/tenant/$tenantId/invite"
+        <Button
+          onPress={() =>
+            navigate({ to: "/tenant/$tenantId/invite", params: { tenantId } })
+          }
+          size="sm"
         >
           <UserPlusIcon className="size-4" />
           Invite Doctor
-        </Link>
+        </Button>
       </div>
 
       {isLoading ? (
         <Card>
-          <CardContent>
+          <Card.Content>
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
-          </CardContent>
+          </Card.Content>
         </Card>
       ) : data?.affiliations?.length ? (
         <Card>
@@ -82,28 +76,35 @@ function TenantDoctorsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge
+                    <Chip
+                      color={
+                        aff.status === "ACTIVE"
+                          ? "accent"
+                          : aff.status === "INACTIVE"
+                            ? "default"
+                            : "default"
+                      }
                       variant={
                         aff.status === "ACTIVE"
-                          ? "default"
+                          ? "soft"
                           : aff.status === "INACTIVE"
-                            ? "secondary"
-                            : "outline"
+                            ? "soft"
+                            : "secondary"
                       }
                     >
                       {aff.status}
-                    </Badge>
+                    </Chip>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {aff.doctorSpecialties?.map((s) => (
-                        <Badge
+                        <Chip
                           className="text-[10px]"
                           key={s}
-                          variant="outline"
+                          variant="secondary"
                         >
                           {s}
-                        </Badge>
+                        </Chip>
                       ))}
                     </div>
                   </TableCell>
@@ -129,18 +130,22 @@ function TenantDoctorsPage() {
         </Card>
       ) : (
         <Card className="flex flex-col items-center justify-center">
-          <CardTitle>No doctors yet</CardTitle>
-          <CardDescription>
+          <Card.Title>No doctors yet</Card.Title>
+          <Card.Description>
             Invite doctors to join this hospital.
-          </CardDescription>
-          <Link
-            className={buttonVariants({})}
-            params={{ tenantId }}
-            to="/tenant/$tenantId/invite"
+          </Card.Description>
+          <Button
+            onPress={() =>
+              navigate({
+                to: "/tenant/$tenantId/invite",
+                params: { tenantId },
+              })
+            }
+            size="sm"
           >
             <UserPlusIcon className="size-4" />
             Invite Doctor
-          </Link>
+          </Button>
         </Card>
       )}
     </div>

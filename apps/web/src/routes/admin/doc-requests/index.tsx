@@ -1,15 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Input } from "@suwa/ui/components/input";
-import { Separator } from "@suwa/ui/components/separator";
+import { Button, Card, Chip, Input, Separator } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ChevronLeft,
@@ -55,11 +44,13 @@ function AdminDocRequestsRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">Doctor requests</Badge>
+              <Chip variant="secondary">Admin console</Chip>
+              <Chip color="default" variant="soft">
+                Doctor requests
+              </Chip>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -73,11 +64,11 @@ function AdminDocRequestsRoute() {
               </p>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Card className="rounded-3xl border-border/60">
-        <CardHeader>
+        <Card.Header>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col gap-1">
               <h2 className="font-medium text-sm">Pending submissions</h2>
@@ -105,7 +96,7 @@ function AdminDocRequestsRoute() {
                 />
               </div>
               <Button
-                onClick={() => {
+                onPress={() => {
                   navigate({
                     search: {
                       page: 1,
@@ -121,24 +112,24 @@ function AdminDocRequestsRoute() {
               </Button>
             </div>
           </div>
-        </CardHeader>
+        </Card.Header>
 
         <Separator />
 
-        <CardContent>
+        <Card.Content>
           {rows.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <InboxIcon />
-                </EmptyMedia>
-                <EmptyTitle>No pending requests</EmptyTitle>
-                <EmptyDescription>
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+                <InboxIcon className="size-6" />
+              </div>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="font-medium text-sm">No pending requests</p>
+                <p className="max-w-sm text-muted-foreground text-xs">
                   All doctor requests have been reviewed. Check back later for
                   new submissions.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
               {rows.map(
@@ -154,7 +145,7 @@ function AdminDocRequestsRoute() {
                     className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
                     key={doctor.userId}
                   >
-                    <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <Card.Content className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div className="flex items-start gap-4">
                         <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
                           <UserCheckIcon className="size-4" />
@@ -174,28 +165,27 @@ function AdminDocRequestsRoute() {
                               </p>
                             ) : null}
                           </div>
-                          <Badge
+                          <Chip
                             className="mt-1"
-                            variant={
-                              doctor.permanent ? "secondary" : "destructive"
-                            }
+                            color={doctor.permanent ? "default" : "danger"}
+                            variant="soft"
                           >
                             <Clock3Icon className="size-3" />
                             {doctor.permanent ? "Approved" : "Pending"}
-                          </Badge>
+                          </Chip>
                         </div>
                       </div>
 
                       <Button
-                        disabled={approveDoctor.isPending}
-                        onClick={() => {
+                        isDisabled={approveDoctor.isPending}
+                        onPress={() => {
                           approveDoctor.mutate({ userId: doctor.userId });
                         }}
                         size="sm"
                       >
                         {approveDoctor.isPending ? "Approving..." : "Approve"}
                       </Button>
-                    </CardContent>
+                    </Card.Content>
                   </Card>
                 )
               )}
@@ -209,8 +199,8 @@ function AdminDocRequestsRoute() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  disabled={!data?.prevPage}
-                  onClick={() => {
+                  isDisabled={!data?.prevPage}
+                  onPress={() => {
                     navigate({
                       search: {
                         page: Math.max(1, search.page - 1),
@@ -226,8 +216,8 @@ function AdminDocRequestsRoute() {
                   Prev
                 </Button>
                 <Button
-                  disabled={!data?.nextPage}
-                  onClick={() => {
+                  isDisabled={!data?.nextPage}
+                  onPress={() => {
                     navigate({
                       search: {
                         page: search.page + 1,
@@ -245,7 +235,7 @@ function AdminDocRequestsRoute() {
               </div>
             </div>
           ) : null}
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

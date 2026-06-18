@@ -1,6 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent } from "@suwa/ui/components/card";
+import { Button, Card, CardContent, Chip, Modal } from "@heroui/react";
 import {
   Camera,
   CameraOff,
@@ -263,7 +261,7 @@ function VideoRoomContent({
       <div className="flex flex-col items-center justify-center gap-4">
         <VideoOff className="h-12 w-12 text-muted-foreground" />
         <p className="text-muted-foreground text-sm">{tokenError}</p>
-        <Button onClick={fetchToken} size="sm" variant="default">
+        <Button onPress={fetchToken} size="sm">
           Retry
         </Button>
       </div>
@@ -361,7 +359,7 @@ function VideoRoomContent({
               )}
 
               {liveKit.isConnected && !isMock && !hasRemote && (
-                <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 flex-col">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900">
                   <UserX className="h-12 w-12 text-neutral-600" />
                   <p className="font-medium text-neutral-400 text-sm">
                     {role === "admin"
@@ -494,14 +492,14 @@ function VideoRoomContent({
                     <div className="flex gap-3">
                       <Button
                         className="flex-1 bg-white/5 text-white hover:bg-white/10"
-                        onClick={() => setShowEndConfirm(false)}
+                        onPress={() => setShowEndConfirm(false)}
                         variant="ghost"
                       >
                         Cancel
                       </Button>
                       <Button
                         className="flex-1 bg-red-600 text-white hover:bg-red-500"
-                        onClick={handleEndSession}
+                        onPress={handleEndSession}
                       >
                         End Call
                       </Button>
@@ -797,30 +795,32 @@ export function VideoRoomWeb({
   );
 
   if (asDialog) {
-    const { Dialog, DialogContent } =
-      require("@suwa/ui/components/dialog") as typeof import("@suwa/ui/components/dialog");
     return (
-      <Dialog onOpenChange={(o: boolean) => !o && onClose()} open={open}>
-        <DialogContent className="max-w-5xl overflow-hidden p-0 sm:rounded-2xl">
-          <div className="flex h-[80vh] flex-col">
-            <div className="flex items-center justify-between border-b">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                  <Video className="h-4 w-4 text-primary" />
+      <Modal.Backdrop isOpen={open} onOpenChange={(o) => !o && onClose()}>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-5xl overflow-hidden p-0 sm:rounded-2xl">
+            <div className="flex h-[80vh] flex-col">
+              <div className="flex items-center justify-between border-b">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <Video className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-medium text-sm">
+                      Clinical Consultation
+                    </h2>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                      Secure Session
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-medium text-sm">Clinical Consultation</h2>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                    Secure Session
-                  </p>
-                </div>
+                {statusBadge}
               </div>
-              {statusBadge}
+              <div className="flex-1 bg-black">{contentToRender}</div>
             </div>
-            <div className="flex-1 bg-black">{contentToRender}</div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     );
   }
 
@@ -836,12 +836,12 @@ export function VideoRoomWeb({
               <span className="font-semibold text-lg tracking-tight">
                 Session
               </span>
-              <Badge
+              <Chip
                 className="h-5 rounded-md text-[10px] uppercase"
-                variant="outline"
+                variant="tertiary"
               >
                 {role}
-              </Badge>
+              </Chip>
             </div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
               LiveKit Infrastructure
@@ -876,16 +876,16 @@ export function SessionJoinButton({
 
   if (timing.mustLeave) {
     return (
-      <Badge className="bg-rose-500/10 text-rose-600" variant="outline">
+      <Chip className="bg-rose-500/10 text-rose-600" variant="tertiary">
         <VideoOff className="h-3 w-3" />
         Expired
-      </Badge>
+      </Chip>
     );
   }
 
   if (timing.canJoin) {
     return (
-      <Button onClick={() => onJoin(sessionId)} size="sm" variant="default">
+      <Button onPress={() => onJoin(sessionId)} size="sm">
         <Video className="h-3 w-3" />
         Join
       </Button>
@@ -897,17 +897,17 @@ export function SessionJoinButton({
     const minutes = Math.max(0, Math.ceil(diff / 60_000));
 
     return (
-      <Badge className="bg-amber-500/10 text-amber-600" variant="outline">
+      <Chip className="bg-amber-500/10 text-amber-600" variant="tertiary">
         <Clock className="h-3 w-3" />
         Join in {minutes}m
-      </Badge>
+      </Chip>
     );
   }
 
   return (
-    <Badge variant="outline">
+    <Chip variant="tertiary">
       <Clock className="h-3 w-3" />
       Scheduled
-    </Badge>
+    </Chip>
   );
 }

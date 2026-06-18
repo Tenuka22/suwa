@@ -1,8 +1,8 @@
 "use client";
 
+import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import { APP_DISPLAY_NAME_SPACE } from "@suwa/app-info";
 import { env } from "@suwa/env/native";
-import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import {
   createContext,
   type PropsWithChildren,

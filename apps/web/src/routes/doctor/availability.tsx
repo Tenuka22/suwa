@@ -1,26 +1,13 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@suwa/ui/components/chart";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Chip,
+  Label,
+  ListBox,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
-import { Separator } from "@suwa/ui/components/separator";
-import { Switch } from "@suwa/ui/components/switch";
+  Separator,
+  Switch,
+} from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -39,6 +26,7 @@ import {
   BarChart,
   CartesianGrid,
   LabelList,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -196,7 +184,8 @@ function DoctorAvailabilityRoute() {
     ? updateAffiliationWindows.isPending
     : saveMutation.isPending;
 
-  const handleTenantChange = (value: string | null) => {
+  const handleTenantChange = (id: string | number) => {
+    const value = String(id);
     if (hasChanges) {
       const discard = window.confirm(
         "You have unsaved changes. Switch anyway?"
@@ -205,7 +194,7 @@ function DoctorAvailabilityRoute() {
         return;
       }
     }
-    setSelectedTenantId(value ?? "");
+    setSelectedTenantId(value);
     setHasChanges(false);
   };
 
@@ -367,16 +356,18 @@ function DoctorAvailabilityRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Availability dashboard</Badge>
+              <Chip>Availability dashboard</Chip>
               {isTenantMode ? (
-                <Badge variant="secondary">
+                <Chip color="default" variant="soft">
                   {currentAffiliation?.tenantName ?? "Hospital"}
-                </Badge>
+                </Chip>
               ) : (
-                <Badge variant="secondary">Schedule overview</Badge>
+                <Chip color="default" variant="soft">
+                  Schedule overview
+                </Chip>
               )}
             </div>
 
@@ -398,25 +389,27 @@ function DoctorAvailabilityRoute() {
               <div className="flex items-center gap-2">
                 <BuildingIcon className="size-4 text-muted-foreground" />
                 <Select
-                  onValueChange={handleTenantChange}
-                  value={selectedTenantId}
+                  onSelectionChange={(id) => handleTenantChange(id ?? "")}
+                  selectedKey={selectedTenantId}
                 >
-                  <SelectTrigger className="w-[260px]">
-                    <SelectValue placeholder="My general availability" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">My general availability</SelectItem>
-                    {affiliations.map((aff) => (
-                      <SelectItem key={aff.id} value={aff.tenantId}>
-                        {aff.tenantName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                  <Select.Trigger className="w-[260px]">
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="">My general availability</ListBox.Item>
+                      {affiliations.map((aff) => (
+                        <ListBox.Item id={aff.tenantId} key={aff.id}>
+                          {aff.tenantName}
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
               </div>
             )}
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -452,35 +445,29 @@ function DoctorAvailabilityRoute() {
 
       {chartData.some((d: { hours: number }) => d.hours > 0) ? (
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <TrendingUpIcon className="size-3" />
                   Hours breakdown
-                </Badge>
+                </Chip>
               }
               description="Available hours per day of the week"
               title="Weekly distribution"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
-            <ChartContainer
-              className="h-[300px] w-full"
-              config={{
-                hours: {
-                  label: "Hours",
-                  color: "var(--primary)",
-                },
-              }}
-            >
+          <Card.Content>
+            <div className="h-[300px] w-full">
               <BarChart
                 accessibilityLayer
                 data={chartData}
+                height={300}
                 margin={{ left: 8, right: 8, top: 20 }}
+                width="100%"
               >
                 <CartesianGrid vertical={false} />
 
@@ -498,15 +485,17 @@ function DoctorAvailabilityRoute() {
                   tickMargin={10}
                 />
 
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value: unknown) =>
-                        `${Number(value).toFixed(1)} hours`
-                      }
-                      indicator="dot"
-                    />
-                  }
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!(active && payload?.length)) {
+                      return null;
+                    }
+                    return (
+                      <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
+                        <p className="text-sm">{`${Number(payload[0]?.value).toFixed(1)} hours`}</p>
+                      </div>
+                    );
+                  }}
                   cursor={false}
                 />
 
@@ -527,23 +516,23 @@ function DoctorAvailabilityRoute() {
                   />
                 </Bar>
               </BarChart>
-            </ChartContainer>
-          </CardContent>
+            </div>
+          </Card.Content>
         </Card>
       ) : null}
 
       <Card className="rounded-3xl border-border/60">
-        <CardHeader>
+        <Card.Header>
           <SectionHeader
             action={
               <Button
                 className="text-xs"
-                disabled={
+                isDisabled={
                   isSaving ||
                   slots.filter((slot) => slot.isAvailable).length === 0 ||
                   !hasChanges
                 }
-                onClick={handleSave}
+                onPress={handleSave}
                 size="sm"
               >
                 {isSaving ? (
@@ -555,11 +544,11 @@ function DoctorAvailabilityRoute() {
             description="Configure time windows for each day of the week"
             title="Schedule editor"
           />
-        </CardHeader>
+        </Card.Header>
 
         <Separator />
 
-        <CardContent>
+        <Card.Content>
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {DAYS.map((dayName, dayOfWeek) => {
               const daySlots = slots.filter(
@@ -576,21 +565,22 @@ function DoctorAvailabilityRoute() {
                   className="border-border/80 bg-gradient-to-br from-card to-card/50 shadow-sm transition-shadow duration-200 hover:shadow-md"
                   key={dayName}
                 >
-                  <CardHeader className="pb-3">
+                  <Card.Header className="pb-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <CardTitle className="text-base">{dayName}</CardTitle>
-                          <Badge
+                          <Card.Title className="text-base">
+                            {dayName}
+                          </Card.Title>
+                          <Chip
                             className={
                               isDayAvailable
                                 ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400"
                                 : "bg-muted text-muted-foreground"
                             }
-                            variant="outline"
                           >
                             {isDayAvailable ? "Available" : "Off"}
-                          </Badge>
+                          </Chip>
                         </div>
                         <p className="text-muted-foreground text-xs">
                           {daySlots.length === 0
@@ -603,9 +593,9 @@ function DoctorAvailabilityRoute() {
                         <div className="flex items-center gap-2 rounded-md border border-border/50 bg-muted/30 px-2.5 py-1.5">
                           <Switch
                             aria-label={`${dayName} availability`}
-                            checked={isDayAvailable}
                             className="h-4 w-7"
-                            onCheckedChange={(checked) =>
+                            isSelected={isDayAvailable}
+                            onChange={(checked) =>
                               toggleDay(dayOfWeek, checked)
                             }
                           />
@@ -615,7 +605,7 @@ function DoctorAvailabilityRoute() {
                         </div>
                         <Button
                           className="text-xs"
-                          onClick={() => addSlotForDay(dayOfWeek)}
+                          onPress={() => addSlotForDay(dayOfWeek)}
                           size="sm"
                           variant="outline"
                         >
@@ -623,9 +613,9 @@ function DoctorAvailabilityRoute() {
                         </Button>
                       </div>
                     </div>
-                  </CardHeader>
+                  </Card.Header>
 
-                  <CardContent className="flex flex-col gap-3">
+                  <Card.Content className="flex flex-col gap-3">
                     {daySlots.length === 0 ? (
                       <div className="rounded-lg border border-border/70 border-dashed bg-muted/20 px-4 py-6 text-center text-muted-foreground text-xs">
                         No slots yet — tap "Add Slot" to set your available
@@ -658,8 +648,8 @@ function DoctorAvailabilityRoute() {
                                 <Button
                                   aria-label="Remove slot"
                                   className="h-8 w-8"
-                                  onClick={() => removeSlot(slotIndex)}
-                                  size="icon"
+                                  isIconOnly
+                                  onPress={() => removeSlot(slotIndex)}
                                   variant="ghost"
                                 >
                                   <Trash2 className="size-3.5" />
@@ -672,21 +662,27 @@ function DoctorAvailabilityRoute() {
                                     Start
                                   </Label>
                                   <Select
-                                    onValueChange={(value) =>
-                                      updateSlot(slotIndex, "startTime", value)
+                                    onSelectionChange={(value) =>
+                                      updateSlot(
+                                        slotIndex,
+                                        "startTime",
+                                        String(value ?? "")
+                                      )
                                     }
-                                    value={slot.startTime}
+                                    selectedKey={slot.startTime}
                                   >
-                                    <SelectTrigger className="h-9 w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {TIME_OPTIONS.map((time) => (
-                                        <SelectItem key={time} value={time}>
-                                          {time}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
+                                    <Select.Trigger className="h-9 w-full">
+                                      <Select.Value />
+                                    </Select.Trigger>
+                                    <Select.Popover>
+                                      <ListBox>
+                                        {TIME_OPTIONS.map((time) => (
+                                          <ListBox.Item id={time} key={time}>
+                                            {time}
+                                          </ListBox.Item>
+                                        ))}
+                                      </ListBox>
+                                    </Select.Popover>
                                   </Select>
                                 </div>
 
@@ -695,22 +691,28 @@ function DoctorAvailabilityRoute() {
                                     End
                                   </Label>
                                   <Select
-                                    disabled={!slot.startTime}
-                                    onValueChange={(value) =>
-                                      updateSlot(slotIndex, "endTime", value)
+                                    isDisabled={!slot.startTime}
+                                    onSelectionChange={(value) =>
+                                      updateSlot(
+                                        slotIndex,
+                                        "endTime",
+                                        String(value ?? "")
+                                      )
                                     }
-                                    value={slot.endTime}
+                                    selectedKey={slot.endTime}
                                   >
-                                    <SelectTrigger className="h-9 w-full">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {validEndOptions.map((time) => (
-                                        <SelectItem key={time} value={time}>
-                                          {time}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
+                                    <Select.Trigger className="h-9 w-full">
+                                      <Select.Value />
+                                    </Select.Trigger>
+                                    <Select.Popover>
+                                      <ListBox>
+                                        {validEndOptions.map((time) => (
+                                          <ListBox.Item id={time} key={time}>
+                                            {time}
+                                          </ListBox.Item>
+                                        ))}
+                                      </ListBox>
+                                    </Select.Popover>
                                   </Select>
                                 </div>
 
@@ -721,9 +723,9 @@ function DoctorAvailabilityRoute() {
                                   <div className="flex h-9 items-center rounded-md border border-border/50 bg-background px-3">
                                     <Switch
                                       aria-label={`Slot ${slot.startTime}-${slot.endTime} status`}
-                                      checked={slot.isAvailable}
                                       className="h-4 w-7"
-                                      onCheckedChange={(checked) =>
+                                      isSelected={slot.isAvailable}
+                                      onChange={(checked) =>
                                         updateSlot(
                                           slotIndex,
                                           "isAvailable",
@@ -757,12 +759,13 @@ function DoctorAvailabilityRoute() {
                                 className="flex items-center gap-2 rounded-lg border border-border/50 bg-primary/5 px-3 py-2"
                                 key={i}
                               >
-                                <Badge
+                                <Chip
                                   className="text-[10px]"
-                                  variant="secondary"
+                                  color="default"
+                                  variant="soft"
                                 >
                                   {w.tenantName}
-                                </Badge>
+                                </Chip>
                                 <span className="font-mono text-muted-foreground text-xs">
                                   {w.startTime}–{w.endTime}
                                 </span>
@@ -770,7 +773,7 @@ function DoctorAvailabilityRoute() {
                             ))}
                         </div>
                       )}
-                  </CardContent>
+                  </Card.Content>
                 </Card>
               );
             })}
@@ -779,21 +782,18 @@ function DoctorAvailabilityRoute() {
           <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-border/80 bg-card/95 p-4 shadow-lg backdrop-blur-md">
             <div className="flex items-center gap-2">
               {hasChanges ? (
-                <Badge
-                  className="bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                  variant="outline"
-                >
+                <Chip className="bg-amber-500/10 text-amber-600 dark:text-amber-400">
                   Unsaved changes
-                </Badge>
+                </Chip>
               ) : null}
             </div>
             <Button
-              disabled={
+              isDisabled={
                 isSaving ||
                 slots.filter((slot) => slot.isAvailable).length === 0 ||
                 !hasChanges
               }
-              onClick={handleSave}
+              onPress={handleSave}
             >
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -801,7 +801,7 @@ function DoctorAvailabilityRoute() {
               {isTenantMode ? "Save Tenant Availability" : "Save Availability"}
             </Button>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

@@ -1,21 +1,5 @@
-import { Avatar, AvatarFallback } from "@suwa/ui/components/avatar";
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@suwa/ui/components/chart";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Avatar, Button, Card, Chip, Separator } from "@heroui/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowRightIcon,
@@ -27,7 +11,14 @@ import {
   SparklesIcon,
   TrendingUpIcon,
 } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { SessionStatusBadge } from "@/components/session-status-badge";
@@ -64,17 +55,15 @@ function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
 
   if (pendingSessions.length === 0) {
     return (
-      <Empty className="size-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <InboxIcon />
-          </EmptyMedia>
-          <EmptyTitle>No pending requests</EmptyTitle>
-          <EmptyDescription>
-            New patient requests will appear here.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <div className="flex size-full flex-col items-center justify-center gap-3 py-12 text-center">
+        <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+          <InboxIcon className="size-5" />
+        </div>
+        <p className="font-medium text-sm">No pending requests</p>
+        <p className="max-w-xs text-muted-foreground text-sm">
+          New patient requests will appear here.
+        </p>
+      </div>
     );
   }
 
@@ -89,7 +78,7 @@ function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
             className="rounded-2xl border-border/60 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary"
             key={session.id}
           >
-            <CardContent className="flex items-start justify-between gap-4">
+            <Card.Content className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-xl border bg-muted/40 p-2 text-muted-foreground">
                   <CalendarClockIcon className="size-4" />
@@ -111,7 +100,7 @@ function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
               </div>
 
               <SessionStatusBadge status={session.status} />
-            </CardContent>
+            </Card.Content>
           </Card>
         );
       })}
@@ -134,6 +123,7 @@ export const Route = createFileRoute("/doctor/")({
 });
 
 function DoctorDashboardRoute() {
+  const navigate = useNavigate();
   const { session } = Route.useRouteContext();
   const { stats, sessions: sessionsData } = Route.useLoaderData();
   const sessions = (sessionsData?.sessions as SessionItem[]) ?? [];
@@ -168,19 +158,21 @@ function DoctorDashboardRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-start gap-4">
               <Avatar className="size-16 border shadow-sm">
-                <AvatarFallback className="font-semibold text-lg">
+                <Avatar.Fallback className="font-semibold text-lg">
                   {initials}
-                </AvatarFallback>
+                </Avatar.Fallback>
               </Avatar>
 
               <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">Doctor dashboard</Badge>
-                  <Badge variant="secondary">Live overview</Badge>
+                  <Chip>Doctor dashboard</Chip>
+                  <Chip color="default" variant="soft">
+                    Live overview
+                  </Chip>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -197,7 +189,7 @@ function DoctorDashboardRoute() {
               </div>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -234,36 +226,30 @@ function DoctorDashboardRoute() {
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
-                <Badge className="gap-1" variant="secondary">
+                <Chip className="gap-1" color="default" variant="soft">
                   <TrendingUpIcon className="size-3" />
                   Earnings overview
-                </Badge>
+                </Chip>
               }
               description="Monthly income over the last six months"
               title="Earnings analytics"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {earningsTrend.length > 0 ? (
-              <ChartContainer
-                className="h-[360px] w-full"
-                config={{
-                  earnings: {
-                    label: "Earnings",
-                    color: "var(--primary)",
-                  },
-                }}
-              >
+              <div className="h-[360px] w-full">
                 <AreaChart
                   accessibilityLayer
                   data={earningsTrend}
+                  height={360}
                   margin={{ left: 8, right: 8 }}
+                  width="100%"
                 >
                   <CartesianGrid vertical={false} />
 
@@ -286,15 +272,17 @@ function DoctorDashboardRoute() {
                     tickMargin={10}
                   />
 
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: unknown) =>
-                          `$${Number(value).toFixed(2)}`
-                        }
-                        indicator="line"
-                      />
-                    }
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!(active && payload?.length)) {
+                        return null;
+                      }
+                      return (
+                        <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
+                          <p className="text-sm">{`$${Number(payload[0]?.value).toFixed(2)}`}</p>
+                        </div>
+                      );
+                    }}
                     cursor={false}
                   />
 
@@ -307,75 +295,69 @@ function DoctorDashboardRoute() {
                     type="monotone"
                   />
                 </AreaChart>
-              </ChartContainer>
+              </div>
             ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <TrendingUpIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No earnings data yet</EmptyTitle>
-                  <EmptyDescription>
-                    Earnings analytics will appear once sessions are completed.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+                  <TrendingUpIcon className="size-5" />
+                </div>
+                <p className="font-medium text-sm">No earnings data yet</p>
+                <p className="max-w-xs text-muted-foreground text-sm">
+                  Earnings analytics will appear once sessions are completed.
+                </p>
+              </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
 
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
                 <Button
-                  render={
-                    <Link to="/doctor/availability">
-                      Manage
-                      <ArrowRightIcon />
-                    </Link>
-                  }
+                  onPress={() => navigate({ to: "/doctor/availability" })}
                   size="sm"
                   variant="secondary"
-                />
+                >
+                  Manage
+                  <ArrowRightIcon />
+                </Button>
               }
               description="Patients currently waiting for your response"
               title="Pending requests"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent className="size-full">
+          <Card.Content className="size-full">
             <PendingRequests sessions={sessions} />
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr]">
         <Card className="rounded-3xl border-border/60">
-          <CardHeader>
+          <Card.Header>
             <SectionHeader
               action={
                 <Button
-                  render={
-                    <Link to="/doctor/sessions">
-                      View
-                      <ArrowRightIcon />
-                    </Link>
-                  }
+                  onPress={() => navigate({ to: "/doctor/sessions" })}
                   size="sm"
                   variant="secondary"
-                />
+                >
+                  View
+                  <ArrowRightIcon />
+                </Button>
               }
               description="Latest appointment updates and completed sessions"
               title="Recent activity"
             />
-          </CardHeader>
+          </Card.Header>
 
           <Separator />
 
-          <CardContent>
+          <Card.Content>
             {recentSessions.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {recentSessions.map((session) => {
@@ -392,7 +374,7 @@ function DoctorDashboardRoute() {
                       className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
                       key={session.id}
                     >
-                      <CardContent className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <Card.Content className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="flex items-start gap-4">
                           <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
                             <Clock3Icon className="size-4" />
@@ -422,25 +404,23 @@ function DoctorDashboardRoute() {
                             {sessionValue}
                           </div>
                         </div>
-                      </CardContent>
+                      </Card.Content>
                     </Card>
                   );
                 })}
               </div>
             ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <SparklesIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No recent activity</EmptyTitle>
-                  <EmptyDescription>
-                    Your recent sessions and earnings will appear here.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <div className="rounded-xl border bg-muted/40 p-3 text-muted-foreground">
+                  <SparklesIcon className="size-5" />
+                </div>
+                <p className="font-medium text-sm">No recent activity</p>
+                <p className="max-w-xs text-muted-foreground text-sm">
+                  Your recent sessions and earnings will appear here.
+                </p>
+              </div>
             )}
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
 

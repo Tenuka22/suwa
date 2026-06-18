@@ -1,6 +1,6 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import { doctorHubMaterials, hubUploadSessions } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 
 const UPLOAD_STATUSES = [
   "completed",

@@ -1,3 +1,4 @@
+import { ORPCError } from "@orpc/server";
 import type { DoctorProfile } from "@suwa/db";
 import {
   doctorProfiles,
@@ -5,7 +6,6 @@ import {
   parseJsonStringArray,
   tenantAdmins,
 } from "@suwa/db";
-import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 
 import type { Context } from "./context";

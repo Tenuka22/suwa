@@ -1,30 +1,16 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
 import {
+  Button,
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@suwa/ui/components/dialog";
-import { Input } from "@suwa/ui/components/input";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Chip,
+  Input,
+  Label,
+  ListBox,
+  Modal,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
-import { Skeleton } from "@suwa/ui/components/skeleton";
+  Skeleton,
+  toast,
+  useOverlayState,
+} from "@heroui/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CalendarCheckIcon,
@@ -34,7 +20,6 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { useCreateClinic, useListClinics } from "@/hooks/queries/tenant";
 
@@ -84,7 +69,7 @@ function TenantClinicsPage() {
   const { data, isLoading } = useListClinics(tenantId);
   const createClinic = useCreateClinic();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const state = useOverlayState();
   const [clinicName, setClinicName] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
@@ -97,7 +82,7 @@ function TenantClinicsPage() {
     const startMin = timeToMinutes(newStart);
     const endMin = timeToMinutes(newEnd);
     if (endMin <= startMin) {
-      toast.error("End time must be after start time");
+      toast.danger("End time must be after start time");
       return;
     }
 
@@ -108,7 +93,7 @@ function TenantClinicsPage() {
         timeToMinutes(s.endTime) > startMin
     );
     if (hasOverlap) {
-      toast.error("Slots cannot overlap on the same day");
+      toast.danger("Slots cannot overlap on the same day");
       return;
     }
 
@@ -133,7 +118,7 @@ function TenantClinicsPage() {
 
   const handleCreate = async () => {
     if (!clinicName) {
-      toast.error("Clinic name is required");
+      toast.danger("Clinic name is required");
       return;
     }
 
@@ -146,12 +131,12 @@ function TenantClinicsPage() {
           scheduleSlots.length > 0 ? JSON.stringify(scheduleSlots) : undefined,
       });
       toast.success("Clinic created successfully");
-      setDialogOpen(false);
+      state.close();
       setClinicName("");
       setSpecialization("");
       setScheduleSlots([]);
     } catch {
-      toast.error("Failed to create clinic");
+      toast.danger("Failed to create clinic");
     }
   };
 
@@ -165,155 +150,169 @@ function TenantClinicsPage() {
           </p>
         </div>
 
-        <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
-          <DialogTrigger
-            render={
-              <Button>
-                <PlusIcon className="size-4" />
-                Create Clinic
-              </Button>
-            }
-          />
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Create New Clinic</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Clinic Name *</Label>
-                <Input
-                  onChange={(e) => setClinicName(e.target.value)}
-                  placeholder="e.g., Cardiology OPD"
-                  value={clinicName}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Specialization</Label>
-                <Input
-                  onChange={(e) => setSpecialization(e.target.value)}
-                  placeholder="e.g., Cardiology"
-                  value={specialization}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Schedule</Label>
-                <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
-                  {scheduleSlots.length > 0 && (
-                    <div className="mb-3 flex flex-col gap-1.5">
-                      {scheduleSlots.map((slot, i) => (
-                        <div
-                          className="flex items-center justify-between rounded-md border border-border/40 bg-background px-3 py-1.5"
-                          key={i}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Badge className="text-[10px]" variant="secondary">
-                              {DAYS[slot.dayOfWeek]}
-                            </Badge>
-                            <span className="font-mono text-muted-foreground text-xs">
-                              {slot.startTime}-{slot.endTime}
-                            </span>
-                          </div>
-                          <Button
-                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                            onClick={() => removeSlot(i)}
-                            size="icon"
-                            variant="ghost"
+        <Button onPress={state.open}>
+          <PlusIcon className="size-4" />
+          Create Clinic
+        </Button>
+
+        <Modal.Backdrop isOpen={state.isOpen} onOpenChange={state.setOpen}>
+          <Modal.Container>
+            <Modal.Dialog className="sm:max-w-lg">
+              <Modal.Header>
+                <Modal.Heading>Create New Clinic</Modal.Heading>
+              </Modal.Header>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label>Clinic Name *</Label>
+                  <Input
+                    onChange={(e) => setClinicName(e.target.value)}
+                    placeholder="e.g., Cardiology OPD"
+                    value={clinicName}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Specialization</Label>
+                  <Input
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    placeholder="e.g., Cardiology"
+                    value={specialization}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Schedule</Label>
+                  <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                    {scheduleSlots.length > 0 && (
+                      <div className="mb-3 flex flex-col gap-1.5">
+                        {scheduleSlots.map((slot, i) => (
+                          <div
+                            className="flex items-center justify-between rounded-md border border-border/40 bg-background px-3 py-1.5"
+                            key={i}
                           >
-                            <TrashIcon className="size-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex flex-wrap items-end gap-2">
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-[10px]">Day</Label>
-                      <Select
-                        onValueChange={(v) => setNewDay(v ?? "1")}
-                        value={newDay}
+                            <div className="flex items-center gap-2">
+                              <Chip className="text-[10px]" variant="secondary">
+                                {DAYS[slot.dayOfWeek]}
+                              </Chip>
+                              <span className="font-mono text-muted-foreground text-xs">
+                                {slot.startTime}-{slot.endTime}
+                              </span>
+                            </div>
+                            <Button
+                              className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                              isIconOnly
+                              onPress={() => removeSlot(i)}
+                              variant="ghost"
+                            >
+                              <TrashIcon className="size-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-[10px]">Day</Label>
+                        <Select
+                          onSelectionChange={(id) =>
+                            setNewDay(String(id) ?? "1")
+                          }
+                          selectedKey={newDay}
+                        >
+                          <Select.Trigger className="w-20">
+                            <Select.Value />
+                          </Select.Trigger>
+                          <Select.Popover>
+                            <ListBox>
+                              {DAYS.map((day, i) => (
+                                <ListBox.Item id={String(i)} key={i}>
+                                  {day}
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-[10px]">Start</Label>
+                        <Select
+                          onSelectionChange={(id) =>
+                            setNewStart(String(id) ?? "09:00")
+                          }
+                          selectedKey={newStart}
+                        >
+                          <Select.Trigger className="w-20">
+                            <Select.Value />
+                          </Select.Trigger>
+                          <Select.Popover>
+                            <ListBox>
+                              {TIME_OPTIONS.map((t) => (
+                                <ListBox.Item id={t} key={t}>
+                                  {t}
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-[10px]">End</Label>
+                        <Select
+                          onSelectionChange={(id) =>
+                            setNewEnd(String(id) ?? "10:00")
+                          }
+                          selectedKey={newEnd}
+                        >
+                          <Select.Trigger className="w-20">
+                            <Select.Value />
+                          </Select.Trigger>
+                          <Select.Popover>
+                            <ListBox>
+                              {validEndOptions.map((t) => (
+                                <ListBox.Item id={t} key={t}>
+                                  {t}
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                        </Select>
+                      </div>
+                      <Button
+                        className="h-8"
+                        onPress={addSlot}
+                        size="sm"
+                        variant="outline"
                       >
-                        <SelectTrigger className="w-20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DAYS.map((day, i) => (
-                            <SelectItem key={i} value={String(i)}>
-                              {day}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        Add
+                      </Button>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-[10px]">Start</Label>
-                      <Select
-                        onValueChange={(v) => setNewStart(v ?? "09:00")}
-                        value={newStart}
-                      >
-                        <SelectTrigger className="w-20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TIME_OPTIONS.map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {t}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-[10px]">End</Label>
-                      <Select
-                        onValueChange={(v) => setNewEnd(v ?? "10:00")}
-                        value={newEnd}
-                      >
-                        <SelectTrigger className="w-20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {validEndOptions.map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {t}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button
-                      className="h-8"
-                      onClick={addSlot}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Add
-                    </Button>
                   </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={() => setDialogOpen(false)} variant="outline">
-                Cancel
-              </Button>
-              <Button disabled={createClinic.isPending} onClick={handleCreate}>
-                {createClinic.isPending ? "Creating..." : "Create Clinic"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <Modal.Footer>
+                <Button onPress={() => state.close()} variant="outline">
+                  Cancel
+                </Button>
+                <Button
+                  isDisabled={createClinic.isPending}
+                  onPress={handleCreate}
+                >
+                  {createClinic.isPending ? "Creating..." : "Create Clinic"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </div>
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
-              <CardHeader>
+              <Card.Header>
                 <Skeleton className="h-5 w-40" />
-              </CardHeader>
-              <CardContent>
+              </Card.Header>
+              <Card.Content>
                 <Skeleton className="h-4 w-full" />
-              </CardContent>
+              </Card.Content>
             </Card>
           ))}
         </div>
@@ -321,16 +320,16 @@ function TenantClinicsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.clinics.map((clinic) => (
             <Card className="flex flex-col" key={clinic.id}>
-              <CardHeader>
+              <Card.Header>
                 <div className="flex items-center gap-2">
                   <StethoscopeIcon className="size-4 text-primary" />
-                  <CardTitle className="text-base">{clinic.name}</CardTitle>
+                  <Card.Title className="text-base">{clinic.name}</Card.Title>
                 </div>
                 {clinic.specialization && (
-                  <CardDescription>{clinic.specialization}</CardDescription>
+                  <Card.Description>{clinic.specialization}</Card.Description>
                 )}
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col gap-2">
+              </Card.Header>
+              <Card.Content className="flex flex-1 flex-col gap-2">
                 {clinic.schedule && (
                   <div className="flex items-start gap-1.5">
                     <ClockIcon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
@@ -352,18 +351,18 @@ function TenantClinicsPage() {
                     Attendance
                   </Link>
                 </div>
-              </CardContent>
+              </Card.Content>
             </Card>
           ))}
         </div>
       ) : (
         <Card className="flex flex-col items-center justify-center">
           <StethoscopeIcon className="size-12 text-muted-foreground/40" />
-          <CardTitle>No clinics yet</CardTitle>
-          <CardDescription className="text-center">
+          <Card.Title>No clinics yet</Card.Title>
+          <Card.Description className="text-center">
             Create clinics to organize doctor attendance within this hospital.
-          </CardDescription>
-          <Button onClick={() => setDialogOpen(true)}>
+          </Card.Description>
+          <Button onPress={state.open}>
             <PlusIcon className="size-4" />
             Create Clinic
           </Button>

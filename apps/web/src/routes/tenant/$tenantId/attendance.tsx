@@ -1,36 +1,19 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Calendar } from "@suwa/ui/components/calendar";
 import {
+  Button,
+  Calendar,
   Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@suwa/ui/components/dialog";
-import { Label } from "@suwa/ui/components/label";
-import {
+  Chip,
+  Label,
+  ListBox,
+  Modal,
   Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@suwa/ui/components/popover";
-import {
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@suwa/ui/components/select";
-import { Skeleton } from "@suwa/ui/components/skeleton";
-import { Textarea } from "@suwa/ui/components/textarea";
+  Skeleton,
+  TextArea,
+  toast,
+  useOverlayState,
+} from "@heroui/react";
+import { parseDate } from "@internationalized/date";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
@@ -45,7 +28,6 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 
 import {
   useDeleteAttendanceEvent,
@@ -92,7 +74,7 @@ function TenantAttendancePage() {
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const state = useOverlayState();
   const [editingEvent, setEditingEvent] = useState<{
     id: string;
     eventType: string;
@@ -187,14 +169,14 @@ function TenantAttendancePage() {
   const handleLogEvent = async () => {
     const doctorId = selectedDoctorId;
     if (!doctorId) {
-      toast.error("Please select a doctor");
+      toast.danger("Please select a doctor");
       return;
     }
 
     const timestamp = buildTimestamp();
 
     if (selectedDoctorWindows.length > 0 && !isWithinWindow(timestamp)) {
-      toast.error(
+      toast.danger(
         `Time must be within reserved windows: ${selectedDoctorWindows.join(", ")}`
       );
       return;
@@ -212,7 +194,7 @@ function TenantAttendancePage() {
       resetForm();
       refetch();
     } catch {
-      toast.error("Failed to log event");
+      toast.danger("Failed to log event");
     }
   };
 
@@ -224,7 +206,7 @@ function TenantAttendancePage() {
     const timestamp = buildTimestamp();
 
     if (selectedDoctorWindows.length > 0 && !isWithinWindow(timestamp)) {
-      toast.error(
+      toast.danger(
         `Time must be within reserved windows: ${selectedDoctorWindows.join(", ")}`
       );
       return;
@@ -241,7 +223,7 @@ function TenantAttendancePage() {
       resetForm();
       refetch();
     } catch {
-      toast.error("Failed to update event");
+      toast.danger("Failed to update event");
     }
   };
 
@@ -251,7 +233,7 @@ function TenantAttendancePage() {
       toast.success("Event deleted");
       refetch();
     } catch {
-      toast.error("Failed to delete event");
+      toast.danger("Failed to delete event");
     }
   };
 
@@ -267,11 +249,11 @@ function TenantAttendancePage() {
     setEventHour(String(d.getHours()).padStart(2, "0"));
     setEventMinute(String(d.getMinutes()).padStart(2, "0"));
     setEventNote(event.note ?? "");
-    setDialogOpen(true);
+    state.open();
   };
 
   const resetForm = () => {
-    setDialogOpen(false);
+    state.close();
     setEditingEvent(null);
     setEventType("CHECKED_IN");
     setEventHour("09");
@@ -291,231 +273,257 @@ function TenantAttendancePage() {
           </p>
         </div>
 
-        <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
-          <DialogTrigger
-            render={
-              <Button
-                onClick={() => {
-                  setEditingEvent(null);
-                  setEventType("CHECKED_IN");
-                  setEventHour("09");
-                  setEventMinute("00");
-                  setEventNote("");
-                }}
-              >
-                <PlusIcon className="size-4" />
-                Log Event
-              </Button>
-            }
-          />
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {editingEvent
-                  ? "Edit Attendance Event"
-                  : "Log Attendance Event"}
-              </DialogTitle>
-              <DialogDescription>
+        <Button
+          onPress={() => {
+            setEditingEvent(null);
+            setEventType("CHECKED_IN");
+            setEventHour("09");
+            setEventMinute("00");
+            setEventNote("");
+            state.open();
+          }}
+        >
+          <PlusIcon className="size-4" />
+          Log Event
+        </Button>
+
+        <Modal.Backdrop isOpen={state.isOpen} onOpenChange={state.setOpen}>
+          <Modal.Container>
+            <Modal.Dialog className="sm:max-w-md">
+              <Modal.Header>
+                <Modal.Heading>
+                  {editingEvent
+                    ? "Edit Attendance Event"
+                    : "Log Attendance Event"}
+                </Modal.Heading>
+              </Modal.Header>
+              <p>
                 {editingEvent
                   ? "Update the attendance event details."
                   : "Record a check-in, check-out, or other event for a doctor."}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Doctor</Label>
-                <Select
-                  disabled={!!editingEvent}
-                  onValueChange={(v) => {
-                    setSelectedDoctorId(v ?? "");
-                    setEventHour("09");
-                    setEventMinute("00");
-                  }}
-                  value={selectedDoctorId}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select doctor..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {doctors
-                      .filter((d) => d.status === "ACTIVE")
-                      .map((d) => (
-                        <SelectItem key={d.doctorId} value={d.doctorId}>
-                          {d.doctorName}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedDoctorId && selectedDoctorWindows.length > 0 && (
-                <div className="rounded-lg border border-border/50 bg-primary/5 p-3">
-                  <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                    <ClockIcon className="size-3" />
-                    Reserved time slots
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {selectedDoctorWindows.map((w, i) => (
-                      <Badge
-                        className="text-[10px]"
-                        key={i}
-                        variant="secondary"
-                      >
-                        {w}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">
-                    Timestamp must fall within a reserved window
-                  </p>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2">
-                <Label>Event Type</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v) {
-                      setEventType(v as (typeof EVENT_TYPES)[number]);
-                    }
-                  }}
-                  value={eventType}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EVENT_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.replace(/_/g, " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label>Timestamp</Label>
-                <div className="flex items-center gap-2">
-                  <div className="rounded-md border border-border bg-background px-3 py-2 text-sm">
-                    {format(selectedDate, "MMM d, yyyy")}
-                  </div>
+              </p>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label>Doctor</Label>
                   <Select
-                    onValueChange={(v) => setEventHour(v ?? "09")}
-                    value={eventHour}
+                    isDisabled={!!editingEvent}
+                    onSelectionChange={(id) => {
+                      setSelectedDoctorId(String(id) ?? "");
+                      setEventHour("09");
+                      setEventMinute("00");
+                    }}
+                    placeholder="Select doctor..."
+                    selectedKey={selectedDoctorId}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HOURS.map((h) => (
-                        <SelectItem key={h} value={h}>
-                          {h}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-muted-foreground">:</span>
-                  <Select
-                    onValueChange={(v) => setEventMinute(v ?? "00")}
-                    value={eventMinute}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MINUTES.map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <Select.Trigger className="w-full">
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        {doctors
+                          .filter((d) => d.status === "ACTIVE")
+                          .map((d) => (
+                            <ListBox.Item id={d.doctorId} key={d.doctorId}>
+                              {d.doctorName}
+                            </ListBox.Item>
+                          ))}
+                      </ListBox>
+                    </Select.Popover>
                   </Select>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <Label>Note (optional)</Label>
-                <Textarea
-                  onChange={(e) => setEventNote(e.target.value)}
-                  placeholder="Add a note..."
-                  rows={2}
-                  value={eventNote}
-                />
+                {selectedDoctorId && selectedDoctorWindows.length > 0 && (
+                  <div className="rounded-lg border border-border/50 bg-primary/5 p-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                      <ClockIcon className="size-3" />
+                      Reserved time slots
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {selectedDoctorWindows.map((w, i) => (
+                        <Chip
+                          className="text-[10px]"
+                          key={i}
+                          variant="secondary"
+                        >
+                          {w}
+                        </Chip>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Timestamp must fall within a reserved window
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2">
+                  <Label>Event Type</Label>
+                  <Select
+                    onSelectionChange={(id) => {
+                      setEventType(String(id) as (typeof EVENT_TYPES)[number]);
+                    }}
+                    selectedKey={eventType}
+                  >
+                    <Select.Trigger className="w-full">
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        {EVENT_TYPES.map((type) => (
+                          <ListBox.Item id={type} key={type}>
+                            {type.replace(/_/g, " ")}
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label>Timestamp</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-md border border-border bg-background px-3 py-2 text-sm">
+                      {format(selectedDate, "MMM d, yyyy")}
+                    </div>
+                    <Select
+                      onSelectionChange={(id) =>
+                        setEventHour(String(id) ?? "09")
+                      }
+                      selectedKey={eventHour}
+                    >
+                      <Select.Trigger className="w-full">
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {HOURS.map((h) => (
+                            <ListBox.Item id={h} key={h}>
+                              {h}
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
+                    </Select>
+                    <span className="text-muted-foreground">:</span>
+                    <Select
+                      onSelectionChange={(id) =>
+                        setEventMinute(String(id) ?? "00")
+                      }
+                      selectedKey={eventMinute}
+                    >
+                      <Select.Trigger className="w-full">
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {MINUTES.map((m) => (
+                            <ListBox.Item id={m} key={m}>
+                              {m}
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label>Note (optional)</Label>
+                  <TextArea
+                    onChange={(e) => setEventNote(e.target.value)}
+                    placeholder="Add a note..."
+                    rows={2}
+                    value={eventNote}
+                  />
+                </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={resetForm} variant="outline">
-                Cancel
-              </Button>
-              <Button
-                disabled={isSaving}
-                onClick={editingEvent ? handleUpdateEvent : handleLogEvent}
-              >
-                {isSaving
-                  ? "Saving..."
-                  : editingEvent
-                    ? "Update Event"
-                    : "Log Event"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <Modal.Footer>
+                <Button onPress={resetForm} variant="outline">
+                  Cancel
+                </Button>
+                <Button
+                  isDisabled={isSaving}
+                  onPress={editingEvent ? handleUpdateEvent : handleLogEvent}
+                >
+                  {isSaving
+                    ? "Saving..."
+                    : editingEvent
+                      ? "Update Event"
+                      : "Log Event"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="flex flex-col gap-1">
           <Label className="text-xs">Date</Label>
           <Popover>
-            <PopoverTrigger
-              render={
-                <Button
-                  className="w-[240px] justify-start text-left font-normal"
-                  variant="outline"
-                />
-              }
+            <Button
+              className="w-[240px] justify-start text-left font-normal"
+              variant="outline"
             >
               <CalendarIcon className="mr-2 size-4" />
               {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-auto p-0">
+            </Button>
+            <Popover.Content className="w-auto p-0">
               <Calendar
-                mode="single"
-                onSelect={(date) => {
+                aria-label="Select date"
+                onChange={(date) => {
                   if (date) {
-                    setSelectedDate(date);
+                    setSelectedDate(new Date(date.toString()));
                   }
                 }}
-                selected={selectedDate}
-              />
-            </PopoverContent>
+                value={
+                  selectedDate
+                    ? parseDate(format(selectedDate, "yyyy-MM-dd"))
+                    : undefined
+                }
+              >
+                <Calendar.Header>
+                  <Calendar.Heading />
+                  <Calendar.NavButton slot="previous" />
+                  <Calendar.NavButton slot="next" />
+                </Calendar.Header>
+                <Calendar.Grid>
+                  <Calendar.GridHeader>
+                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                  </Calendar.GridHeader>
+                  <Calendar.GridBody>
+                    {(date) => <Calendar.Cell date={date} />}
+                  </Calendar.GridBody>
+                </Calendar.Grid>
+              </Calendar>
+            </Popover.Content>
           </Popover>
         </div>
         <div className="flex flex-col gap-1">
           <Label className="text-xs">Doctor</Label>
           <Select
-            onValueChange={(v) => setSelectedDoctorId(v ?? "")}
-            value={selectedDoctorId}
+            onSelectionChange={(id) => setSelectedDoctorId(String(id) ?? "")}
+            placeholder="All doctors"
+            selectedKey={selectedDoctorId}
           >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All doctors" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">All doctors</SelectItem>
-              {doctors
-                .filter((d) => d.status === "ACTIVE")
-                .map((d) => (
-                  <SelectItem key={d.doctorId} value={d.doctorId}>
-                    {d.doctorName}
-                  </SelectItem>
-                ))}
-            </SelectContent>
+            <Select.Trigger className="w-full">
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="__all__">All doctors</ListBox.Item>
+                {doctors
+                  .filter((d) => d.status === "ACTIVE")
+                  .map((d) => (
+                    <ListBox.Item id={d.doctorId} key={d.doctorId}>
+                      {d.doctorName}
+                    </ListBox.Item>
+                  ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
         </div>
       </div>
 
-      {/* Events Timeline */}
       {isLoading ? (
         <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
@@ -525,12 +533,12 @@ function TenantAttendancePage() {
       ) : events.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-12">
           <CalendarCheckIcon className="size-8 text-muted-foreground/40" />
-          <CardTitle className="mt-3 text-base">
+          <Card.Title className="mt-3 text-base">
             No events for this date
-          </CardTitle>
-          <CardDescription>
+          </Card.Title>
+          <Card.Description>
             Log an attendance event to start tracking.
-          </CardDescription>
+          </Card.Description>
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
@@ -542,7 +550,7 @@ function TenantAttendancePage() {
 
             return (
               <Card key={event.id}>
-                <CardContent className="flex items-center justify-between">
+                <Card.Content className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`rounded-full border p-2 ${colorClass}`}>
                       <Icon className="size-4" />
@@ -552,9 +560,9 @@ function TenantAttendancePage() {
                         <p className="font-medium">
                           {doctor?.doctorName ?? event.doctorId}
                         </p>
-                        <Badge className="text-[10px]" variant="outline">
+                        <Chip className="text-[10px]" variant="secondary">
                           {event.eventType.replace(/_/g, " ")}
-                        </Badge>
+                        </Chip>
                       </div>
                       <p className="text-muted-foreground text-sm">
                         {new Date(event.timestamp).toLocaleTimeString("en-US", {
@@ -569,22 +577,22 @@ function TenantAttendancePage() {
                   <div className="flex items-center gap-1">
                     <Button
                       className="text-muted-foreground hover:text-foreground"
-                      onClick={() => handleEditEvent(event)}
-                      size="icon"
+                      isIconOnly
+                      onPress={() => handleEditEvent(event)}
                       variant="ghost"
                     >
                       <PencilIcon className="size-4" />
                     </Button>
                     <Button
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDeleteEvent(event.id)}
-                      size="icon"
+                      isIconOnly
+                      onPress={() => handleDeleteEvent(event.id)}
                       variant="ghost"
                     >
                       <TrashIcon className="size-4" />
                     </Button>
                   </div>
-                </CardContent>
+                </Card.Content>
               </Card>
             );
           })}

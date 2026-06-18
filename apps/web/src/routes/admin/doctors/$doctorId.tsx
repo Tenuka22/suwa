@@ -1,18 +1,5 @@
 import { SignInButton, useUser } from "@clerk/tanstack-react-start";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@suwa/ui/components/avatar";
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Avatar, Button, Card, Chip, Skeleton } from "@heroui/react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
   Award,
@@ -108,11 +95,11 @@ function AdminDoctorDetailRoute() {
   return (
     <div className="flex w-full flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <Button
-                onClick={() =>
+                onPress={() =>
                   router.navigate({
                     to: "/admin/doctors",
                     search: { page: 1, query: "" },
@@ -123,34 +110,36 @@ function AdminDoctorDetailRoute() {
               >
                 Back to list
               </Button>
-              <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">{displayName}</Badge>
+              <Chip variant="secondary">Admin console</Chip>
+              <Chip color="default" variant="soft">
+                {displayName}
+              </Chip>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       {profile ? (
         <>
           <Card>
-            <CardHeader className="flex flex-col gap-4 border-border/30 border-b sm:flex-row sm:items-center sm:justify-between">
+            <Card.Header className="flex flex-col gap-4 border-border/30 border-b sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Avatar
                   className="size-16 border-2 border-primary/20 shadow-md"
                   size="lg"
                 >
                   {profile.placeName ? (
-                    <AvatarImage alt={displayName} src={profile.placeName} />
+                    <Avatar.Image alt={displayName} src={profile.placeName} />
                   ) : null}
-                  <AvatarFallback className="bg-primary/10 font-semibold text-lg text-primary">
+                  <Avatar.Fallback className="bg-primary/10 font-semibold text-lg text-primary">
                     {displayName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
+                  </Avatar.Fallback>
                 </Avatar>
                 <div>
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <CardTitle className="font-medium text-sm">
+                    <Card.Title className="font-medium text-sm">
                       {displayName}
-                    </CardTitle>
+                    </Card.Title>
                     <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 text-primary text-xs">
                       {profile.permanent ? (
                         <>
@@ -170,9 +159,9 @@ function AdminDoctorDetailRoute() {
                   </p>
                 </div>
               </div>
-            </CardHeader>
+            </Card.Header>
 
-            <CardContent className="grid gap-6 md:grid-cols-2">
+            <Card.Content className="grid gap-6 md:grid-cols-2">
               <div className="flex flex-col gap-4">
                 <h3 className="flex items-center gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   <Building className="size-4 text-primary" />
@@ -329,14 +318,14 @@ function AdminDoctorDetailRoute() {
                     bios.
                   </p>
                 </div>
-                <Badge
+                <Chip
                   className="shrink-0 self-start sm:self-auto"
-                  variant="outline"
+                  variant="secondary"
                 >
                   {files.length} file{files.length === 1 ? "" : "s"}
-                </Badge>
+                </Chip>
               </div>
-            </CardContent>
+            </Card.Content>
           </Card>
 
           <DoctorFilesPanel
@@ -347,14 +336,14 @@ function AdminDoctorDetailRoute() {
         </>
       ) : (
         <Card>
-          <CardHeader>
-            <CardTitle>Doctor not found</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <Card.Header>
+            <Card.Title>Doctor not found</Card.Title>
+          </Card.Header>
+          <Card.Content>
             <p className="text-muted-foreground">
               That public profile does not exist yet.
             </p>
-          </CardContent>
+          </Card.Content>
         </Card>
       )}
     </div>

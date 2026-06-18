@@ -1,49 +1,28 @@
-import { useUser } from "@clerk/tanstack-react-start";
+import {
+  Button,
+  Chip,
+  cn,
+  Description,
+  FieldError,
+  Fieldset,
+  Form,
+  Input,
+  Label,
+  Modal,
+  Tabs,
+  TextArea,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  toast,
+} from "@heroui/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   doctorConsultationModeValues,
   doctorFocusAreaValues,
   doctorLanguageValues,
   doctorSpecialtyValues,
 } from "@suwa/db/doctor-profile";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@suwa/ui/components/avatar";
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Checkbox } from "@suwa/ui/components/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@suwa/ui/components/dialog";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@suwa/ui/components/field";
-import { Input } from "@suwa/ui/components/input";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@suwa/ui/components/tabs";
-import { Textarea } from "@suwa/ui/components/textarea";
-import { cn } from "@suwa/ui/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Award,
@@ -61,7 +40,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import {
   consultationModeLabels,
@@ -129,7 +107,6 @@ type DoctorProfileFormInput = z.input<typeof doctorProfileFormSchema>;
 type DoctorProfileFormValues = z.output<typeof doctorProfileFormSchema>;
 
 export function DoctorProfileCard() {
-  const user = useUser();
   const [open, setOpen] = useState(false);
   const [approachSteps, setApproachSteps] = useState<ApproachStep[]>([]);
   const [educationRows, setEducationRows] = useState<EducationRow[]>([]);
@@ -145,7 +122,7 @@ export function DoctorProfileCard() {
         toast.success("Doctor profile updated");
       },
       onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Save failed");
+        toast.danger(error instanceof Error ? error.message : "Save failed");
       },
     })
   );
@@ -159,6 +136,28 @@ export function DoctorProfileCard() {
     resolver: zodResolver(doctorProfileFormSchema),
     defaultValues: getDoctorProfileFormValues(profile ?? null),
   });
+
+  const errors = form.formState.errors;
+
+  const hasBasicErrors = !!(
+    errors.displayName ||
+    errors.headline ||
+    errors.licenseNumber ||
+    errors.bio ||
+    errors.location ||
+    errors.experienceStartYear
+  );
+  const hasPracticeErrors = !!(
+    errors.placeName ||
+    errors.placeAddress ||
+    errors.placeDescription
+  );
+  const hasSpecialtiesErrors = !!(
+    errors.specialties ||
+    errors.languages ||
+    errors.consultationModes ||
+    errors.focusAreas
+  );
 
   useEffect(() => {
     form.reset(getDoctorProfileFormValues(profile ?? null));
@@ -186,31 +185,11 @@ export function DoctorProfileCard() {
           })),
       });
     },
-    (errors) => {
-      const messages = Object.entries(errors)
-        .map(([field, error]) => {
-          const message =
-            typeof error?.message === "string" ? error.message : null;
-
-          if (!message) {
-            return null;
-          }
-
-          return `${doctorProfileFieldLabels[field as keyof typeof doctorProfileFieldLabels]}: ${message}`;
-        })
-        .filter((message): message is string => message !== null);
-
-      toast.error(
-        messages.length > 0
-          ? `Please fix these fields: ${messages.join(", ")}`
-          : "Please fill in the missing or invalid fields."
-      );
+    () => {
+      toast.danger("Please fix the highlighted fields.");
     }
   );
 
-  const displayName = profile
-    ? (profile.displayName ?? profile.licenseNumber ?? "Doctor")
-    : "Unknown";
   const specialties = (profile?.specialties ?? []) as DoctorSpecialty[];
   const languages = (profile?.languages ?? []) as DoctorLanguage[];
   const consultationModes = (profile?.consultationModes ??
@@ -233,133 +212,93 @@ export function DoctorProfileCard() {
     [profile?.education]
   );
 
-  const statusBadge = (() => {
-    if (!profile) {
-      return (
-        <>
-          <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-          Waiting for the name to be created
-        </>
-      );
-    }
-    if (profile.permanent) {
-      return (
-        <>
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-          Approved
-        </>
-      );
-    }
-    return (
-      <>
-        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-        Pending Approval
-      </>
-    );
-  })();
-
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-col gap-4 border-border/30 border-b sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar
-              className="size-16 border-2 border-primary/20 shadow-md"
-              size="lg"
-            >
-              {user.user?.imageUrl ? (
-                <AvatarImage alt={displayName} src={user.user.imageUrl} />
-              ) : null}
-              <AvatarFallback className="bg-primary/10 text-lg text-primary">
-                {displayName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <CardTitle className="font-medium text-sm">
-                  {displayName}
-                </CardTitle>
-                <div className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2 font-semibold text-primary text-xs">
-                  {statusBadge}
-                </div>
+      {profile ? (
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Chip
+                size="sm"
+                variant={profile.permanent ? "primary" : "secondary"}
+              >
+                {profile.permanent ? "Approved" : "Pending Verification"}
+              </Chip>
+              {profile.permanent ? null : (
+                <p className="text-muted-foreground text-xs">
+                  Your profile is under review. You&apos;ll be notified once
+                  verified.
+                </p>
+              )}
+            </div>
+            <Button onPress={() => setOpen(true)} size="sm" variant="outline">
+              <Sparkles className="size-4" />
+              Edit Profile
+            </Button>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="flex flex-col gap-4">
+              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
+                <Building className="size-4 text-primary" />
+                Practice Details
+              </h3>
+              <div className="grid gap-3 rounded-xl border border-border/50 bg-muted/5 p-4">
+                <SummaryItem
+                  icon={<Clock className="size-3.5 text-muted-foreground" />}
+                  label="Experience"
+                  value={experienceLabel}
+                />
+                <SummaryItem
+                  icon={<MapPin className="size-3.5 text-muted-foreground" />}
+                  label="Location"
+                  value={profile?.location ?? "Not set"}
+                />
+                <SummaryItem
+                  icon={<Building className="size-3.5 text-muted-foreground" />}
+                  label="Practice Address"
+                  value={profile?.placeAddress ?? "Not set"}
+                />
               </div>
-              <p className="text-muted-foreground text-sm">
-                {profile?.headline ?? "No professional headline set yet"}
-              </p>
             </div>
-          </div>
-          <Button
-            className="shrink-0 font-medium hover:bg-muted"
-            onClick={() => setOpen(true)}
-            variant="outline"
-          >
-            <Sparkles className="h-4 w-4 text-primary" />
-            Edit Profile
-          </Button>
-        </CardHeader>
-
-        <CardContent className="grid gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-4">
-            <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-              <Building className="size-4 text-primary" />
-              Practice Details
-            </h3>
-            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5">
-              <SummaryItem
-                icon={<Clock className="size-3.5 text-muted-foreground" />}
-                label="Experience"
-                value={experienceLabel}
-              />
-              <SummaryItem
-                icon={<MapPin className="size-3.5 text-muted-foreground" />}
-                label="Location"
-                value={profile?.location ?? "Not set"}
-              />
-              <SummaryItem
-                icon={<Building className="size-3.5 text-muted-foreground" />}
-                label="Practice Address"
-                value={profile?.placeAddress ?? "Not set"}
-              />
+            <div className="flex flex-col gap-4">
+              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
+                <Award className="size-4 text-primary" />
+                Professional Info
+              </h3>
+              <div className="grid gap-3 rounded-xl border border-border/50 bg-muted/5 p-4">
+                <SummaryItem
+                  icon={<FileText className="size-3.5 text-muted-foreground" />}
+                  label="License Number"
+                  value={profile?.licenseNumber ?? "Not set"}
+                />
+                <SummaryItem
+                  icon={<Building className="size-3.5 text-muted-foreground" />}
+                  label="Practice Place Name"
+                  value={profile?.placeName ?? "Not set"}
+                />
+                <SummaryItem
+                  icon={<FileText className="size-3.5 text-muted-foreground" />}
+                  label="Place Description"
+                  value={profile?.placeDescription ?? "No description added"}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-              <Award className="size-4 text-primary" />
-              Professional Info
-            </h3>
-            <div className="grid gap-4 rounded-xl border border-border/50 bg-muted/5">
-              <SummaryItem
-                icon={<FileText className="size-3.5 text-muted-foreground" />}
-                label="License Number"
-                value={profile?.licenseNumber ?? "Not set"}
-              />
-              <SummaryItem
-                icon={<Building className="size-3.5 text-muted-foreground" />}
-                label="Practice Place Name"
-                value={profile?.placeName ?? "Not set"}
-              />
-              <SummaryItem
-                icon={<FileText className="size-3.5 text-muted-foreground" />}
-                label="Place Description"
-                value={profile?.placeDescription ?? "No description added"}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 border-border/20 border-t md:col-span-2">
+          <div className="flex flex-col gap-2">
             <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
               Biography
             </h3>
-            <p className="rounded-xl border border-border/30 bg-muted/5 text-foreground/90 text-sm italic leading-relaxed">
-              "
+            <p className="rounded-xl border border-border/30 bg-muted/5 px-4 py-3 text-foreground/90 text-sm italic leading-relaxed">
+              &ldquo;
               {profile?.bio ??
-                "Welcome to my profile. Set up your biography using the edit button above."}
-              "
+                "No biography set yet. Use the edit button above to add one."}
+              &rdquo;
             </p>
           </div>
 
-          <div className="grid gap-6 border-border/20 border-t md:col-span-2 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             <SummaryBlock
               colorTheme="primary"
               label="Specialties"
@@ -387,7 +326,7 @@ export function DoctorProfileCard() {
           </div>
 
           {stepsList.length > 0 && (
-            <div className="flex flex-col gap-3 border-border/20 border-t md:col-span-2">
+            <div className="flex flex-col gap-3">
               <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
                 <Sparkles className="size-4 text-primary" />
                 Therapeutic Approach
@@ -395,10 +334,10 @@ export function DoctorProfileCard() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {stepsList.map((step, idx) => (
                   <div
-                    className="relative rounded-xl border border-border/50 bg-muted/5 transition-all hover:bg-muted/15"
+                    className="relative rounded-xl border border-border/50 bg-muted/5 p-4 transition-all hover:bg-muted/15"
                     key={step.id}
                   >
-                    <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
+                    <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 px-2 font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
                       Step {idx + 1}
                     </span>
                     <p className="font-medium text-foreground/80 text-sm leading-relaxed">
@@ -411,7 +350,7 @@ export function DoctorProfileCard() {
           )}
 
           {parsedEducation.length > 0 && (
-            <div className="flex flex-col gap-3 border-border/20 border-t md:col-span-2">
+            <div className="flex flex-col gap-3">
               <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
                 <Award className="size-4 text-primary" />
                 Education & Credentials
@@ -419,7 +358,7 @@ export function DoctorProfileCard() {
               <div className="divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-muted/5">
                 {parsedEducation.map((edu) => (
                   <div
-                    className="flex items-center justify-between text-sm transition-all hover:bg-muted/10"
+                    className="flex items-center justify-between px-4 py-3 text-sm transition-all hover:bg-muted/10"
                     key={edu.id}
                   >
                     <div className="flex flex-col gap-0.5">
@@ -431,7 +370,7 @@ export function DoctorProfileCard() {
                       </p>
                     </div>
                     {edu.year && (
-                      <span className="rounded-full border bg-muted font-mono font-semibold text-muted-foreground text-xs">
+                      <span className="rounded-full border bg-muted px-2 font-mono font-semibold text-muted-foreground text-xs">
                         {edu.year}
                       </span>
                     )}
@@ -440,364 +379,390 @@ export function DoctorProfileCard() {
               </div>
             </div>
           )}
-
-          <div className="flex flex-col gap-4 rounded-xl border border-dashed bg-muted/20 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
-            <div className="flex flex-col gap-1">
-              <h3 className="flex items-center gap-1.5 font-semibold text-foreground text-sm">
-                <FileText className="size-4" />
-                Proof of Credentials & Marketing Materials
-              </h3>
-              <p className="text-muted-foreground text-xs">
-                Make your profile stand out by uploading certificates,
-                professional portraits, and video bios in the doctor materials
-                section below.
-              </p>
-            </div>
-            <Badge
-              className="shrink-0 self-start sm:self-auto"
-              variant="outline"
-            >
-              Managed Below
-            </Badge>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-6 rounded-xl border border-dashed px-6 py-16 text-center">
+          <div className="rounded-full bg-muted/30 p-4">
+            <User className="size-8 text-muted-foreground/60" />
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold text-lg">No professional profile yet</p>
+            <p className="max-w-md text-muted-foreground text-sm">
+              Create your professional profile to appear in patient searches.
+              After submission, an admin will review and verify your information
+              before you can start using the platform.
+            </p>
+          </div>
+          <Button onPress={() => setOpen(true)}>
+            <Sparkles className="size-4" />
+            Create Profile
+          </Button>
+        </div>
+      )}
 
-      <Dialog onOpenChange={setOpen} open={open}>
-        <DialogContent className="flex max-h-[90vh] max-w-sm flex-col gap-6 overflow-y-auto sm:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Edit Doctor Profile</DialogTitle>
-            <DialogDescription>
-              Build a stronger public profile with structured practice and
-              background details.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form className="flex flex-col gap-6" onSubmit={submitProfile}>
-            <Tabs className="w-full" defaultValue="basic">
-              <TabsList>
-                <TabsTrigger
-                  className="flex items-center justify-center gap-2"
-                  value="basic"
-                >
-                  <User className="size-4 shrink-0" />
-                  <span>Basic Info</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  className="flex items-center justify-center gap-2"
-                  value="practice"
-                >
-                  <Building className="size-4 shrink-0" />
-                  <span>Practice Place</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  className="flex items-center justify-center gap-2"
-                  value="specialties"
-                >
-                  <Sparkles className="size-4 shrink-0" />
-                  <span>Specialties</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  className="flex items-center justify-center gap-2"
-                  value="experience"
-                >
-                  <Award className="size-4 shrink-0" />
-                  <span>Approach & Edu</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent
-                className="flex flex-col gap-5 outline-none focus:outline-none"
-                value="basic"
+      <Modal.Backdrop isOpen={open} onOpenChange={setOpen}>
+        <Modal.Container>
+          <Modal.Dialog className="flex flex-col gap-6 overflow-y-auto bg-background">
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Edit Doctor Profile</Modal.Heading>
+              <p className="text-muted-foreground text-sm font-light">
+                Build a stronger public profile with structured practice and
+                background details.
+              </p>
+            </Modal.Header>
+            <Modal.Body>
+              <Form
+                className="flex flex-col gap-6"
+                onSubmit={submitProfile}
+                validationBehavior="aria"
               >
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="profile-display-name">
-                      Display name
-                    </FieldLabel>
-                    <Input
-                      id="profile-display-name"
-                      placeholder="e.g. Dr. Alex Mercer"
-                      {...form.register("displayName")}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="profile-headline">Headline</FieldLabel>
-                    <Input
-                      id="profile-headline"
-                      placeholder="e.g. Clinical Psychologist specializing in anxiety and trauma relief"
-                      {...form.register("headline")}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="profile-license">
-                      License number
-                    </FieldLabel>
-                    <Input
-                      id="profile-license"
-                      placeholder="e.g. PSY-CA-987654"
-                      {...form.register("licenseNumber")}
-                    />
-                  </Field>
-                </FieldGroup>
-
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="profile-bio">Bio</FieldLabel>
-                    <Textarea
-                      className="min-h-[120px]"
-                      id="profile-bio"
-                      placeholder="Write a welcoming description of your practice, therapeutic style, and values..."
-                      {...form.register("bio")}
-                    />
-                  </Field>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Field>
-                      <FieldLabel htmlFor="profile-location">
-                        Location
-                      </FieldLabel>
-                      <Input
-                        id="profile-location"
-                        placeholder="e.g. San Francisco, CA (or Remote)"
-                        {...form.register("location")}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="profile-experience-start">
-                        Experience start year
-                      </FieldLabel>
-                      <Input
-                        id="profile-experience-start"
-                        min={1900}
-                        placeholder="e.g. 2018"
-                        type="number"
-                        {...form.register("experienceStartYear")}
-                      />
-                    </Field>
-                  </div>
-                </FieldGroup>
-              </TabsContent>
-
-              <TabsContent
-                className="flex flex-col gap-5 outline-none focus:outline-none"
-                value="practice"
-              >
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="profile-place-name">
-                      Practice / place name
-                    </FieldLabel>
-                    <Input
-                      id="profile-place-name"
-                      placeholder="e.g. Serenity Healing Center"
-                      {...form.register("placeName")}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="profile-place-address">
-                      Place address
-                    </FieldLabel>
-                    <Input
-                      id="profile-place-address"
-                      placeholder="e.g. 456 Peaceful Valley Rd, Suite A"
-                      {...form.register("placeAddress")}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="profile-place-description">
-                      Place description
-                    </FieldLabel>
-                    <Textarea
-                      className="min-h-[100px]"
-                      id="profile-place-description"
-                      placeholder="Describe your physical clinic space or office environment..."
-                      {...form.register("placeDescription")}
-                    />
-                  </Field>
-                </FieldGroup>
-              </TabsContent>
-
-              <TabsContent
-                className="flex flex-col gap-6 outline-none focus:outline-none"
-                value="specialties"
-              >
-                <FieldSet>
-                  <FieldLegend className="font-medium text-sm" variant="label">
-                    Specialties (Select up to 5)
-                  </FieldLegend>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-                    {doctorSpecialtyValues.map((value) => (
-                      <Field
-                        className="rounded-lg border transition-colors hover:bg-muted/10"
-                        key={value}
-                        orientation="horizontal"
-                      >
-                        <FieldLabel className="flex w-full cursor-pointer items-center gap-3">
-                          <Checkbox
-                            checked={(form.watch("specialties") ?? []).includes(
-                              value
-                            )}
-                            onCheckedChange={(checked) =>
-                              toggleArrayValue(
-                                form,
-                                "specialties",
-                                value,
-                                checked
-                              )
-                            }
-                          />
-                          <span className="font-medium text-sm">
-                            {specialtyLabels[value]}
-                          </span>
-                        </FieldLabel>
-                      </Field>
-                    ))}
-                  </div>
-                </FieldSet>
-
-                <FieldSet>
-                  <FieldLegend className="font-medium text-sm" variant="label">
-                    Languages (Select up to 8)
-                  </FieldLegend>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                    {doctorLanguageValues.map((value) => (
-                      <Field
-                        className="rounded-lg border transition-colors hover:bg-muted/10"
-                        key={value}
-                        orientation="horizontal"
-                      >
-                        <FieldLabel className="flex w-full cursor-pointer items-center gap-3">
-                          <Checkbox
-                            checked={(form.watch("languages") ?? []).includes(
-                              value
-                            )}
-                            onCheckedChange={(checked) =>
-                              toggleArrayValue(
-                                form,
-                                "languages",
-                                value,
-                                checked
-                              )
-                            }
-                          />
-                          <span className="font-medium text-sm">
-                            {languageLabels[value]}
-                          </span>
-                        </FieldLabel>
-                      </Field>
-                    ))}
-                  </div>
-                </FieldSet>
-
-                <FieldSet>
-                  <FieldLegend className="font-medium text-sm" variant="label">
-                    Consultation modes (Select up to 3)
-                  </FieldLegend>
-                  <div className="flex flex-wrap gap-3">
-                    {doctorConsultationModeValues.map((value) => (
-                      <Button
+                <Tabs defaultSelectedKey="basic">
+                  <Tabs.ListContainer>
+                    <Tabs.List aria-label="Profile tabs"
+                      className="*:h-8 *:px-1 *:text-sm *:font-normal *:data-[selected=true]:text-accent-foreground"
+                    >
+                      <Tabs.Tab
                         className={cn(
-                          "rounded-xl border font-medium text-sm transition-all",
-                          (form.watch("consultationModes") ?? []).includes(
-                            value
-                          )
-                            ? "border-indigo-500 bg-indigo-500/10 text-indigo-700 dark:border-indigo-400 dark:text-indigo-300"
-                            : "border-border bg-transparent hover:bg-muted"
+                          hasBasicErrors &&
+                            "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
                         )}
-                        key={value}
-                        onClick={() =>
-                          toggleButtonValue(form, "consultationModes", value)
-                        }
-                        type="button"
-                        variant="outline"
+                        id="basic"
                       >
-                        {consultationModeLabels[value]}
-                      </Button>
-                    ))}
-                  </div>
-                </FieldSet>
+                        <span>Info</span>
+  <Tabs.Indicator className="bg-accent" />
+                      </Tabs.Tab>
+                      <Tabs.Tab
+                        className={cn(
+                          hasPracticeErrors &&
+                            "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
+                        )}
+                        id="practice"
+                      >
+                        <span>Practice</span>
+  <Tabs.Indicator className="bg-accent" />
+                      </Tabs.Tab>
+                      <Tabs.Tab
+                        className={cn(
+                          hasSpecialtiesErrors &&
+                            "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
+                        )}
+                        id="specialties"
+                      >
+                        <span>Specialties</span>
+  <Tabs.Indicator className="bg-accent" />
+                      </Tabs.Tab>
+                      <Tabs.Tab id="experience">
+                        <span>App. & Edu</span>
+  <Tabs.Indicator className="bg-accent" />
+                      </Tabs.Tab>
+                    </Tabs.List>
+                  </Tabs.ListContainer>
 
-                <FieldSet>
-                  <FieldLegend className="font-medium text-sm" variant="label">
-                    Focus areas (Select up to 10)
-                  </FieldLegend>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                    {doctorFocusAreaValues.map((value) => (
-                      <Field
-                        className="rounded-lg border transition-colors hover:bg-muted/10"
-                        key={value}
-                        orientation="horizontal"
-                      >
-                        <FieldLabel className="flex w-full cursor-pointer items-center gap-3">
-                          <Checkbox
-                            checked={(form.watch("focusAreas") ?? []).includes(
-                              value
-                            )}
-                            onCheckedChange={(checked) =>
-                              toggleArrayValue(
-                                form,
-                                "focusAreas",
-                                value,
-                                checked
-                              )
-                            }
+                  <Tabs.Panel
+                    className="flex flex-col gap-5 outline-none focus:outline-none"
+                    id="basic"
+                  >
+                    <Fieldset>
+                      <Fieldset.Legend>Basic Information</Fieldset.Legend>
+                      <Fieldset.Group>
+                        <TextField
+                          isInvalid={!!errors.displayName}
+                          name="displayName"
+                        >
+                          <Label>Display name</Label>
+                          <Input
+                            placeholder="e.g. Dr. Alex Mercer"
+                            {...form.register("displayName")}
                           />
-                          <span className="font-medium text-sm">
-                            {focusAreaLabels[value]}
-                          </span>
-                        </FieldLabel>
-                      </Field>
-                    ))}
-                  </div>
-                </FieldSet>
-              </TabsContent>
+                          <FieldError>
+                            {errors.displayName?.message as string}
+                          </FieldError>
+                        </TextField>
+                        <TextField
+                          isInvalid={!!errors.headline}
+                          name="headline"
+                        >
+                          <Label>Headline</Label>
+                          <Input
+                            placeholder="e.g. Clinical Psychologist specializing in anxiety and trauma relief"
+                            {...form.register("headline")}
+                          />
+                          <FieldError>
+                            {errors.headline?.message as string}
+                          </FieldError>
+                        </TextField>
+                        <TextField
+                          isInvalid={!!errors.licenseNumber}
+                          name="licenseNumber"
+                        >
+                          <Label>License number</Label>
+                          <Input
+                            placeholder="e.g. PSY-CA-987654"
+                            {...form.register("licenseNumber")}
+                          />
+                          <FieldError>
+                            {errors.licenseNumber?.message as string}
+                          </FieldError>
+                        </TextField>
+                      </Fieldset.Group>
+                    </Fieldset>
 
-              <TabsContent
-                className="flex flex-col gap-6 outline-none focus:outline-none"
-                value="experience"
-              >
-                <StructuredListEditor
-                  description="Drag steps to reorder them. Describe your care path in chronological, patient-friendly terms."
-                  draggedIndex={draggedStepIndex}
-                  emptyLabel="Add your first approach step to help patients understand your style."
-                  items={approachSteps}
-                  label="Approach steps"
-                  onChange={setApproachSteps}
-                  onDragStart={setDraggedStepIndex}
-                  onDropIndex={(fromIndex, toIndex) => {
-                    if (fromIndex === toIndex) {
-                      return;
-                    }
-                    const next = [...approachSteps];
-                    const [item] = next.splice(fromIndex, 1);
-                    next.splice(toIndex, 0, item);
-                    setApproachSteps(next);
-                    setDraggedStepIndex(null);
-                  }}
-                />
+                    <Fieldset>
+                      <Fieldset.Legend>Bio & Experience</Fieldset.Legend>
+                      <Fieldset.Group>
+                        <TextField isInvalid={!!errors.bio} name="bio">
+                          <Label>Bio</Label>
+                          <TextArea
+                            className="min-h-[120px]"
+                            placeholder="Write a welcoming description of your practice, therapeutic style, and values..."
+                            {...form.register("bio")}
+                          />
+                          <FieldError>
+                            {errors.bio?.message as string}
+                          </FieldError>
+                        </TextField>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <TextField
+                            isInvalid={!!errors.location}
+                            name="location"
+                          >
+                            <Label>Location</Label>
+                            <Input
+                              placeholder="e.g. San Francisco, CA (or Remote)"
+                              {...form.register("location")}
+                            />
+                            <FieldError>
+                              {errors.location?.message as string}
+                            </FieldError>
+                          </TextField>
+                          <TextField
+                            isInvalid={!!errors.experienceStartYear}
+                            name="experienceStartYear"
+                          >
+                            <Label>Experience start year</Label>
+                            <Input
+                              min={1900}
+                              placeholder="e.g. 2018"
+                              type="number"
+                              {...form.register("experienceStartYear")}
+                            />
+                            <FieldError>
+                              {errors.experienceStartYear?.message as string}
+                            </FieldError>
+                          </TextField>
+                        </div>
+                      </Fieldset.Group>
+                    </Fieldset>
+                  </Tabs.Panel>
 
-                <EducationTableEditor
-                  rows={educationRows}
-                  setRows={setEducationRows}
-                />
-              </TabsContent>
-            </Tabs>
+                  <Tabs.Panel
+                    className="flex flex-col gap-5 outline-none focus:outline-none"
+                    id="practice"
+                  >
+                    <Fieldset>
+                      <Fieldset.Legend>Practice Details</Fieldset.Legend>
+                      <Fieldset.Group>
+                        <TextField
+                          isInvalid={!!errors.placeName}
+                          name="placeName"
+                        >
+                          <Label>Practice / place name</Label>
+                          <Input
+                            placeholder="e.g. Serenity Healing Center"
+                            {...form.register("placeName")}
+                          />
+                          <FieldError>
+                            {errors.placeName?.message as string}
+                          </FieldError>
+                        </TextField>
+                        <TextField
+                          isInvalid={!!errors.placeAddress}
+                          name="placeAddress"
+                        >
+                          <Label>Place address</Label>
+                          <Input
+                            placeholder="e.g. 456 Peaceful Valley Rd, Suite A"
+                            {...form.register("placeAddress")}
+                          />
+                          <FieldError>
+                            {errors.placeAddress?.message as string}
+                          </FieldError>
+                        </TextField>
+                        <TextField
+                          isInvalid={!!errors.placeDescription}
+                          name="placeDescription"
+                        >
+                          <Label>Place description</Label>
+                          <TextArea
+                            className="min-h-[100px]"
+                            placeholder="Describe your physical clinic space or office environment..."
+                            {...form.register("placeDescription")}
+                          />
+                          <FieldError>
+                            {errors.placeDescription?.message as string}
+                          </FieldError>
+                        </TextField>
+                      </Fieldset.Group>
+                    </Fieldset>
+                  </Tabs.Panel>
 
-            <div className="flex justify-end gap-3 border-t">
-              <Button
-                onClick={() => setOpen(false)}
-                type="button"
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button disabled={saveDoctorProfile.isPending} type="submit">
-                {saveDoctorProfile.isPending ? "Saving..." : "Save profile"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+                  <Tabs.Panel
+                    className="flex flex-col gap-6 outline-none focus:outline-none"
+                    id="specialties"
+                  >
+                    <Fieldset>
+                      <Fieldset.Legend>
+                        Specialties (Select up to 5)
+                      </Fieldset.Legend>
+                      <Fieldset.Group>
+                        <ToggleButtonGroup
+                          className="flex flex-wrap pt-4"
+                          isDetached
+                          selectedKeys={new Set(form.watch("specialties") ?? [])}
+                          selectionMode="multiple"
+                          onSelectionChange={(keys) =>
+                            form.setValue("specialties", [...keys] as never, {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            })
+                          }
+                        >
+                          {doctorSpecialtyValues.map((value) => (
+                            <ToggleButton id={value} key={value}>
+                              {specialtyLabels[value]}
+                            </ToggleButton>
+                          ))}
+                        </ToggleButtonGroup>
+                      </Fieldset.Group>
+                    </Fieldset>
+
+                    <Fieldset>
+                      <Fieldset.Legend>
+                        Languages (Select up to 8)
+                      </Fieldset.Legend>
+                      <Fieldset.Group>
+                        <ToggleButtonGroup
+                          className="flex flex-wrap pt-4"
+                          isDetached
+                          selectedKeys={new Set(form.watch("languages") ?? [])}
+                          selectionMode="multiple"
+                          onSelectionChange={(keys) =>
+                            form.setValue("languages", [...keys] as never, {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            })
+                          }
+                        >
+                          {doctorLanguageValues.map((value) => (
+                            <ToggleButton id={value} key={value}>
+                              {languageLabels[value]}
+                            </ToggleButton>
+                          ))}
+                        </ToggleButtonGroup>
+                      </Fieldset.Group>
+                    </Fieldset>
+
+                    <Fieldset>
+                      <Fieldset.Legend>
+                        Consultation modes (Select up to 3)
+                      </Fieldset.Legend>
+                      <Fieldset.Group>
+                        <ToggleButtonGroup
+                          className="flex flex-wrap pt-4"
+                          isDetached
+                          selectedKeys={new Set(form.watch("consultationModes") ?? [])}
+                          selectionMode="multiple"
+                          onSelectionChange={(keys) =>
+                            form.setValue("consultationModes", [...keys] as never, {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            })
+                          }
+                        >
+                          {doctorConsultationModeValues.map((value) => (
+                            <ToggleButton id={value} key={value}>
+                              {consultationModeLabels[value]}
+                            </ToggleButton>
+                          ))}
+                        </ToggleButtonGroup>
+                      </Fieldset.Group>
+                    </Fieldset>
+
+                    <Fieldset>
+                      <Fieldset.Legend>
+                        Focus areas (Select up to 10)
+                      </Fieldset.Legend>
+                      <Fieldset.Group>
+                        <ToggleButtonGroup
+                          className="flex flex-wrap pt-4"
+                          isDetached
+                          selectedKeys={new Set(form.watch("focusAreas") ?? [])}
+                          selectionMode="multiple"
+                          onSelectionChange={(keys) =>
+                            form.setValue("focusAreas", [...keys] as never, {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            })
+                          }
+                        >
+                          {doctorFocusAreaValues.map((value) => (
+                            <ToggleButton id={value} key={value}>
+                              {focusAreaLabels[value]}
+                            </ToggleButton>
+                          ))}
+                        </ToggleButtonGroup>
+                      </Fieldset.Group>
+                    </Fieldset>
+                  </Tabs.Panel>
+
+                  <Tabs.Panel
+                    className="flex flex-col gap-6 outline-none focus:outline-none"
+                    id="experience"
+                  >
+                    <StructuredListEditor
+                      description="Drag steps to reorder them. Describe your care path in chronological, patient-friendly terms."
+                      draggedIndex={draggedStepIndex}
+                      emptyLabel="Add your first approach step to help patients understand your style."
+                      items={approachSteps}
+                      label="Approach steps"
+                      onChange={setApproachSteps}
+                      onDragStart={setDraggedStepIndex}
+                      onDropIndex={(fromIndex, toIndex) => {
+                        if (fromIndex === toIndex) {
+                          return;
+                        }
+                        const next = [...approachSteps];
+                        const [item] = next.splice(fromIndex, 1);
+                        next.splice(toIndex, 0, item);
+                        setApproachSteps(next);
+                        setDraggedStepIndex(null);
+                      }}
+                    />
+
+                    <EducationTableEditor
+                      rows={educationRows}
+                      setRows={setEducationRows}
+                    />
+                  </Tabs.Panel>
+                </Tabs>
+
+                <div className="flex justify-end gap-3">
+                  <Button onPress={() => setOpen(false)} variant="outline">
+                    Cancel
+                  </Button>
+                  <Button
+                    isDisabled={saveDoctorProfile.isPending}
+                    type="submit"
+                  >
+                    {saveDoctorProfile.isPending ? "Saving..." : "Save profile"}
+                  </Button>
+                </div>
+              </Form>
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </>
   );
 }
@@ -835,10 +800,10 @@ function StructuredListEditor({
   };
 
   return (
-    <FieldSet>
-      <FieldLegend>{label}</FieldLegend>
-      <FieldDescription>{description}</FieldDescription>
-      <div className="flex flex-col gap-3">
+    <Fieldset>
+      <Fieldset.Legend>{label}</Fieldset.Legend>
+      <Description>{description}</Description>
+      <Fieldset.Group className="flex flex-col gap-3">
         {items.length === 0 ? (
           <p className="text-muted-foreground text-sm">{emptyLabel}</p>
         ) : null}
@@ -863,7 +828,7 @@ function StructuredListEditor({
               <p className="text-muted-foreground text-xs uppercase tracking-wider">
                 Step {index + 1}
               </p>
-              <Textarea
+              <TextArea
                 className="min-h-[70px]"
                 onChange={(event) => {
                   const next = [...items];
@@ -877,31 +842,31 @@ function StructuredListEditor({
             <div className="flex flex-col justify-center gap-1.5">
               <Button
                 className="size-8"
-                disabled={index === 0}
-                onClick={() => moveItem(index, -1)}
-                size="icon"
-                type="button"
+                isDisabled={index === 0}
+                isIconOnly
+                onPress={() => moveItem(index, -1)}
+                size="sm"
                 variant="outline"
               >
                 <ChevronUp className="size-4" />
               </Button>
               <Button
                 className="size-8"
-                disabled={index === items.length - 1}
-                onClick={() => moveItem(index, 1)}
-                size="icon"
-                type="button"
+                isDisabled={index === items.length - 1}
+                isIconOnly
+                onPress={() => moveItem(index, 1)}
+                size="sm"
                 variant="outline"
               >
                 <ChevronDown className="size-4" />
               </Button>
               <Button
                 className="size-8 border-rose-200 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 dark:border-rose-900/50"
-                onClick={() =>
+                isIconOnly
+                onPress={() =>
                   onChange(items.filter((_, current) => current !== index))
                 }
-                size="icon"
-                type="button"
+                size="sm"
                 variant="outline"
               >
                 <Trash2 className="size-4" />
@@ -911,15 +876,14 @@ function StructuredListEditor({
         ))}
         <Button
           className="w-full sm:w-auto"
-          onClick={addItem}
-          type="button"
+          onPress={addItem}
           variant="outline"
         >
           <Plus className="size-4" />
           Add step
         </Button>
-      </div>
-    </FieldSet>
+      </Fieldset.Group>
+    </Fieldset>
   );
 }
 
@@ -937,30 +901,40 @@ function EducationTableEditor({
     ]);
 
   return (
-    <FieldSet>
-      <FieldLegend>Education & Degrees</FieldLegend>
-      <FieldDescription>
+    <Fieldset>
+      <Fieldset.Legend>Education & Degrees</Fieldset.Legend>
+      <Description>
         Add your academic credentials and training programs so patients can
         easily verify your background.
-      </FieldDescription>
-      <div className="overflow-hidden rounded-xl border border-border/70 bg-card/30">
-        <div className="grid grid-cols-[1.3fr_1.1fr_0.6fr_auto] gap-2 border-b bg-muted/40 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-          <span>Institution</span>
-          <span>Degree</span>
-          <span>Year</span>
-          <span />
-        </div>
-        <div className="flex flex-col gap-3">
-          {rows.length === 0 ? (
-            <p className="text-center text-muted-foreground text-sm">
-              No education history added yet.
-            </p>
-          ) : null}
-          {rows.map((row, index) => (
-            <div
-              className="grid grid-cols-[1.3fr_1.1fr_0.6fr_auto] items-center gap-2"
-              key={row.id}
-            >
+      </Description>
+      <Fieldset.Group className="flex flex-col gap-3">
+        {rows.length === 0 ? (
+          <p className="text-center text-muted-foreground text-sm">
+            No education history added yet.
+          </p>
+        ) : null}
+        {rows.map((row, index) => (
+          <div
+            className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/5 p-4"
+            key={row.id}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                Entry {index + 1}
+              </p>
+              <Button
+                className="h-7 border-rose-200 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 dark:border-rose-900/50"
+                onPress={() =>
+                  setRows(rows.filter((_, current) => current !== index))
+                }
+                size="sm"
+                variant="outline"
+              >
+                <Trash2 className="size-3.5" />
+                Remove
+              </Button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
               <Input
                 onChange={(event) =>
                   updateEducationRow(
@@ -971,7 +945,7 @@ function EducationTableEditor({
                     event.target.value
                   )
                 }
-                placeholder="e.g. Stanford University"
+                placeholder="Institution (e.g. Stanford)"
                 value={row.institution}
               />
               <Input
@@ -984,7 +958,7 @@ function EducationTableEditor({
                     event.target.value
                   )
                 }
-                placeholder="e.g. Master of Science in Counseling"
+                placeholder="Degree (e.g. M.Sc. Counseling)"
                 value={row.degree}
               />
               <Input
@@ -997,34 +971,19 @@ function EducationTableEditor({
                     event.target.value
                   )
                 }
-                placeholder="e.g. 2018"
+                placeholder="Year (e.g. 2018)"
                 type="number"
                 value={row.year}
               />
-              <Button
-                className="border-rose-200 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 dark:border-rose-900/50"
-                onClick={() =>
-                  setRows(rows.filter((_, current) => current !== index))
-                }
-                type="button"
-                variant="outline"
-              >
-                Remove
-              </Button>
             </div>
-          ))}
-        </div>
-      </div>
-      <Button
-        className="w-full sm:w-auto"
-        onClick={addRow}
-        type="button"
-        variant="outline"
-      >
-        <Plus className="size-4" />
-        Add Education Row
-      </Button>
-    </FieldSet>
+          </div>
+        ))}
+        <Button className="w-full sm:w-auto" onPress={addRow} variant="outline">
+          <Plus className="size-4" />
+          Add Education Row
+        </Button>
+      </Fieldset.Group>
+    </Fieldset>
   );
 }
 
@@ -1040,54 +999,9 @@ function updateEducationRow(
   setRows(next);
 }
 
-function toggleArrayValue<T extends string>(
-  form: ReturnType<
-    typeof useForm<DoctorProfileFormInput, undefined, DoctorProfileFormValues>
-  >,
-  field: "specialties" | "languages" | "focusAreas",
-  value: T,
-  checked: boolean | "indeterminate"
-) {
-  const current = (form.getValues(field) ?? []) as T[];
-  const next = checked
-    ? [...new Set([...current, value])]
-    : current.filter((item) => item !== value);
-  form.setValue(field, next as never, { shouldDirty: true, shouldTouch: true });
-}
-
-function toggleButtonValue<T extends string>(
-  form: ReturnType<
-    typeof useForm<DoctorProfileFormInput, undefined, DoctorProfileFormValues>
-  >,
-  field: "consultationModes",
-  value: T
-) {
-  const current = (form.getValues(field) ?? []) as T[];
-  const next = current.includes(value)
-    ? current.filter((item) => item !== value)
-    : [...current, value];
-  form.setValue(field, next as never, { shouldDirty: true, shouldTouch: true });
-}
-
 function emptyToUndefined(value: unknown) {
   return typeof value === "string" && value.trim() === "" ? undefined : value;
 }
-
-const doctorProfileFieldLabels = {
-  displayName: "Display name",
-  headline: "Headline",
-  bio: "Bio",
-  licenseNumber: "License number",
-  location: "Location",
-  placeName: "Practice / place name",
-  placeAddress: "Place address",
-  placeDescription: "Place description",
-  experienceStartYear: "Experience start year",
-  specialties: "Specialties",
-  languages: "Languages",
-  consultationModes: "Consultation modes",
-  focusAreas: "Focus areas",
-} as const;
 
 function getDoctorProfileFormValues(
   profile: {

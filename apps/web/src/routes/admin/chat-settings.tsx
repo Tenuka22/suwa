@@ -1,13 +1,5 @@
+import { Card, Label, Switch } from "@heroui/react";
 import { chatSystemRegistry } from "@suwa/api/routers/chat/helpers/chat-systems";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@suwa/ui/components/card";
-import { Label } from "@suwa/ui/components/label";
-import { Switch } from "@suwa/ui/components/switch";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 
@@ -29,14 +21,14 @@ function ChatSettingsPage() {
         <div className="grid gap-4">
           {systems.map((system) => (
             <Card key={system.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+              <Card.Header>
+                <Card.Title className="flex items-center justify-between">
                   {system.name}
-                  <Switch defaultChecked={system.enabled} />
-                </CardTitle>
-                <CardDescription>{system.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
+                  <Switch defaultSelected={system.enabled} />
+                </Card.Title>
+                <Card.Description>{system.description}</Card.Description>
+              </Card.Header>
+              <Card.Content>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Label className="font-medium text-sm">ID:</Label>
@@ -55,7 +47,7 @@ function ChatSettingsPage() {
                     </span>
                   </div>
                 </div>
-              </CardContent>
+              </Card.Content>
             </Card>
           ))}
         </div>

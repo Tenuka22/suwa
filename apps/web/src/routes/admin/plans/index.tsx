@@ -1,14 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
-import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@suwa/ui/components/empty";
-import { Separator } from "@suwa/ui/components/separator";
+import { Button, Card, Chip, Separator } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, FileTextIcon } from "lucide-react";
 import { z } from "zod";
@@ -41,11 +31,13 @@ function AdminPlansRoute() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
+        <Card.Content>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">Plans</Badge>
+              <Chip variant="secondary">Admin console</Chip>
+              <Chip color="default" variant="soft">
+                Plans
+              </Chip>
             </div>
             <div className="flex flex-col gap-2">
               <h1 className="font-semibold text-lg tracking-tight">
@@ -57,11 +49,11 @@ function AdminPlansRoute() {
               </p>
             </div>
           </div>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       <Card className="rounded-3xl border-border/60">
-        <CardHeader>
+        <Card.Header>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="font-medium text-sm">All plans</h2>
@@ -69,28 +61,28 @@ function AdminPlansRoute() {
                 Plans ordered by most recently created.
               </p>
             </div>
-            <Badge className="gap-1" variant="secondary">
+            <Chip className="gap-1" color="default" variant="soft">
               <FileTextIcon className="size-3" />
               {rows.length} plan{rows.length === 1 ? "" : "s"}
-            </Badge>
+            </Chip>
           </div>
-        </CardHeader>
+        </Card.Header>
 
         <Separator />
 
-        <CardContent>
+        <Card.Content>
           {rows.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <FileTextIcon />
-                </EmptyMedia>
-                <EmptyTitle>No plans yet</EmptyTitle>
-                <EmptyDescription>
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+                <FileTextIcon className="size-6" />
+              </div>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="font-medium text-sm">No plans yet</p>
+                <p className="max-w-sm text-muted-foreground text-xs">
                   Plans will appear once doctors create them.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {rows.map((plan) => (
@@ -98,7 +90,7 @@ function AdminPlansRoute() {
                   className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
                   key={plan.id}
                 >
-                  <CardContent className="flex flex-col gap-3">
+                  <Card.Content className="flex flex-col gap-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-medium text-sm">{plan.name}</p>
@@ -107,13 +99,21 @@ function AdminPlansRoute() {
                         </p>
                       </div>
                       {plan.isActive ? (
-                        <Badge className="shrink-0" variant="default">
+                        <Chip
+                          className="shrink-0"
+                          color="accent"
+                          variant="soft"
+                        >
                           Active
-                        </Badge>
+                        </Chip>
                       ) : (
-                        <Badge className="shrink-0" variant="secondary">
+                        <Chip
+                          className="shrink-0"
+                          color="default"
+                          variant="soft"
+                        >
                           Inactive
-                        </Badge>
+                        </Chip>
                       )}
                     </div>
 
@@ -136,7 +136,7 @@ function AdminPlansRoute() {
                         </span>
                       ) : null}
                     </div>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
               ))}
             </div>
@@ -149,8 +149,8 @@ function AdminPlansRoute() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  disabled={!data?.prevPage}
-                  onClick={() => {
+                  isDisabled={!data?.prevPage}
+                  onPress={() => {
                     navigate({
                       search: { page: Math.max(1, search.page - 1) },
                       replace: true,
@@ -163,8 +163,8 @@ function AdminPlansRoute() {
                   Prev
                 </Button>
                 <Button
-                  disabled={!data?.nextPage}
-                  onClick={() => {
+                  isDisabled={!data?.nextPage}
+                  onPress={() => {
                     navigate({
                       search: { page: search.page + 1 },
                       replace: true,
@@ -179,7 +179,7 @@ function AdminPlansRoute() {
               </div>
             </div>
           ) : null}
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

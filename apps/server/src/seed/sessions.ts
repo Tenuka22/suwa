@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
   doctorSessions,
@@ -5,7 +6,6 @@ import {
   sessionSnapshots,
   sessionTaskAssignments,
 } from "@suwa/db";
-import { faker } from "@faker-js/faker";
 
 const SESSION_STATUSES = [
   "requested",
