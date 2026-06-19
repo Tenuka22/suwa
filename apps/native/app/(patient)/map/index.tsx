@@ -91,12 +91,7 @@ export default function MapScreen() {
       {/* Floating Header */}
       <View className="absolute top-14 right-lg left-lg gap-md">
         <View className="flex-row items-center gap-md">
-          <Pressable
-            className="h-12 w-12 items-center justify-center rounded-full bg-background-elevated shadow-lg"
-            onPress={() => router.back()}
-          >
-            <ArrowLeft className="text-primary" size={24} />
-          </Pressable>
+
           <View className="h-12 flex-1 flex-row items-center gap-md rounded-full bg-background-elevated px-lg shadow-lg">
             <Search className="text-foreground-placeholder" size={20} />
             <TextInput

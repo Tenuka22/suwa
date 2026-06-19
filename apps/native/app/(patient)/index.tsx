@@ -8,6 +8,7 @@ import {
   Flower2,
   Heart,
   Home,
+  MapPin,
   MessageCircle,
   Mic,
   MicOff,
@@ -215,6 +216,17 @@ export default function HomeScreen() {
                 title="Privacy Center"
               />
             </View>
+          </View>
+
+          {/* Doctor Map */}
+          <View className="flex-row gap-xl">
+            <Card
+              description="Find nearby clinics"
+              icon={<MapPin className="text-tint-beige-foreground" size={24} />}
+              iconBgColor="bg-tint-beige"
+              onPress={() => router.push("/(patient)/map")}
+              title="Doctor Map"
+            />
           </View>
 
           {/* Bottom Banner */}
