@@ -1,13 +1,13 @@
 "use client";
 
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
 
 interface IconButtonProps {
+  className?: string;
+  disabled?: boolean;
   icon: React.ComponentType<{ size?: number; color?: string }>;
   iconSize?: number;
   onPress: () => void;
-  className?: string;
-  disabled?: boolean;
 }
 
 export function IconButton({
@@ -19,13 +19,13 @@ export function IconButton({
 }: IconButtonProps) {
   return (
     <Pressable
+      className={`h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-background ${disabled ? "opacity-50" : ""} ${className ?? ""}`.trim()}
+      disabled={disabled}
       onPress={() => {
         if (!disabled) {
           onPress();
         }
       }}
-      className={`h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-background ${disabled ? "opacity-50" : ""} ${className ?? ""}`.trim()}
-      disabled={disabled}
     >
       <Icon size={iconSize} />
     </Pressable>

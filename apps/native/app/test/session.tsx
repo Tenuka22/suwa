@@ -13,7 +13,7 @@ import { VideoRoom } from "@/components/design/ui/video-room";
 import { orpc } from "@/utils/orpc";
 
 export default function TestSessionScreen() {
-    const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState("");
   const [activeSession, setActiveSession] = useState<{
     id: string;
     isMock: boolean;

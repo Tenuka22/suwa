@@ -4,10 +4,10 @@ import type { ReactNode } from "react";
 import { Text, TextInput, View } from "react-native";
 
 interface InputProps extends React.ComponentProps<typeof TextInput> {
-  label?: string;
-  error?: string;
   containerClassName?: string;
+  error?: string;
   inputContainerClassName?: string;
+  label?: string;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
 }
@@ -25,7 +25,7 @@ export function Input({
   return (
     <View className={`gap-2 ${containerClassName ?? ""}`.trim()}>
       {label ? (
-        <Text className="font-medium font-sans text-foreground text-caption">
+        <Text className="font-medium font-sans text-caption text-foreground">
           {label}
         </Text>
       ) : null}
@@ -40,7 +40,7 @@ export function Input({
         {rightIcon && <View className="ml-2">{rightIcon}</View>}
       </View>
       {error ? (
-        <Text className="font-sans text-destructive text-caption">{error}</Text>
+        <Text className="font-sans text-caption text-destructive">{error}</Text>
       ) : null}
     </View>
   );

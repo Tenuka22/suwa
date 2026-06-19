@@ -5,22 +5,20 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
   BookOpen,
+  Calendar,
   GraduationCap,
   Heart,
   MapPin,
-  Stethoscope,
   Sparkles,
+  Stethoscope,
 } from "lucide-react-native";
 import { useMemo } from "react";
-import { ActivityIndicator, Image, ScrollView, Text, View, Pressable } from "react-native";
+import { ActivityIndicator, Image, Text, View } from "react-native";
 
-import { Button } from "@/components/design/ui/button";
 import { Screen } from "@/components/design/ui/screen";
+import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
-import {
-  getYearsOfExperience,
-  specialtyLabels,
-} from "@/utils/doctor-profile";
+import { getYearsOfExperience, specialtyLabels } from "@/utils/doctor-profile";
 import { orpc } from "@/utils/orpc";
 import { useIsDoctorSaved } from "@/utils/saved-doctors";
 
@@ -54,75 +52,82 @@ export default function DoctorProfileScreen() {
     );
   }
 
-  if (!profile) return null;
+  if (!profile) {
+    return null;
+  }
 
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
       <Screen
-        contentClassName="flex-1 gap-xl pb-32 pt-lg px-lg bg-background"
+        contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
         scrollClassName="flex-1 bg-background"
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between mt-sm">
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm"
-          >
-            <ArrowLeft size={20} className="text-primary" />
-          </Pressable>
-          <Pressable
-            onPress={toggleSave}
-            className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm"
-          >
-            <Heart size={20} className={isSaved ? "text-accent fill-accent" : "text-primary"} />
-          </Pressable>
+        <View className="mt-sm">
+          <Text className="font-serif text-hero text-primary leading-tight">
+            {profile.displayName}
+          </Text>
+          <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+            {profile.specialties?.[0]
+              ? specialtyLabels[profile.specialties[0]] ||
+                profile.specialties[0]
+              : "Specialist"}
+          </Text>
         </View>
 
         {/* Hero / Profile Info */}
         <View className="items-center gap-lg">
-          <View className="h-32 w-32 rounded-full border-4 border-background-elevated shadow-lg overflow-hidden bg-background-subtle">
+          <View className="h-32 w-32 overflow-hidden rounded-full border-4 border-background-elevated bg-background-subtle shadow-lg">
             {portraitPreviewUrl ? (
-              <Image source={{ uri: portraitPreviewUrl }} className="h-full w-full" resizeMode="cover" />
+              <Image
+                className="h-full w-full"
+                resizeMode="cover"
+                source={{ uri: portraitPreviewUrl }}
+              />
             ) : (
               <View className="flex-1 items-center justify-center">
-                <Stethoscope size={48} className="text-primary/20" />
+                <Stethoscope className="text-primary/20" size={48} />
               </View>
             )}
-          </View>
-          <View className="items-center gap-1">
-            <Text className="font-serif text-hero text-primary text-center leading-tight">
-              {profile.displayName}
-            </Text>
-            <Text className="font-sans text-subtitle text-accent font-semibold">
-              {profile.specialties?.[0] ? (specialtyLabels[profile.specialties[0]] || profile.specialties[0]) : "Specialist"}
-            </Text>
           </View>
         </View>
 
         {/* Quick Stats */}
         <View className="flex-row gap-lg">
-          <View className="flex-1 bg-background-elevated p-md rounded-2xl shadow-sm items-center gap-1">
-            <GraduationCap size={20} className="text-tint-green-foreground" />
-            <Text className="font-sans text-micro text-foreground-muted uppercase">Experience</Text>
-            <Text className="font-sans text-body font-bold text-foreground">{yearsOfExperience}+ Yrs</Text>
+          <View className="flex-1 items-center gap-1 rounded-2xl bg-background-elevated p-md shadow-sm">
+            <GraduationCap className="text-tint-green-foreground" size={20} />
+            <Text className="font-sans text-foreground-muted text-micro uppercase">
+              Experience
+            </Text>
+            <Text className="font-bold font-sans text-body text-foreground">
+              {yearsOfExperience}+ Yrs
+            </Text>
           </View>
-          <View className="flex-1 bg-background-elevated p-md rounded-2xl shadow-sm items-center gap-1">
-            <MapPin size={20} className="text-tint-beige-foreground" />
-            <Text className="font-sans text-micro text-foreground-muted uppercase">Location</Text>
-            <Text className="font-sans text-body font-bold text-foreground" numberOfLines={1}>{profile.location || "Remote"}</Text>
+          <View className="flex-1 items-center gap-1 rounded-2xl bg-background-elevated p-md shadow-sm">
+            <MapPin className="text-tint-beige-foreground" size={20} />
+            <Text className="font-sans text-foreground-muted text-micro uppercase">
+              Location
+            </Text>
+            <Text
+              className="font-bold font-sans text-body text-foreground"
+              numberOfLines={1}
+            >
+              {profile.location || "Remote"}
+            </Text>
           </View>
         </View>
 
         {/* Bio */}
         <View className="gap-md">
           <View className="flex-row items-center gap-sm">
-            <BookOpen size={20} className="text-primary" />
-            <Text className="font-serif text-title text-primary">About</Text>
+            <BookOpen className="text-primary" size={20} />
+            <Text className="font-serif text-primary text-title">About</Text>
           </View>
-          <View className="bg-background-subtle/50 p-lg rounded-3xl border border-border/50">
+          <View className="rounded-3xl border border-border/50 bg-background-subtle/50 p-lg">
             <Text className="font-sans text-body text-foreground-secondary leading-relaxed">
-              {profile.bio || "Professional clinician dedicated to providing high-quality care."}
+              {profile.bio ||
+                "Professional clinician dedicated to providing high-quality care."}
             </Text>
           </View>
         </View>
@@ -131,34 +136,56 @@ export default function DoctorProfileScreen() {
         {profile.approachSteps?.length > 0 && (
           <View className="gap-md">
             <View className="flex-row items-center gap-sm">
-              <Sparkles size={20} className="text-primary" />
-              <Text className="font-serif text-title text-primary">Approach</Text>
+              <Sparkles className="text-primary" size={20} />
+              <Text className="font-serif text-primary text-title">
+                Approach
+              </Text>
             </View>
             <View className="gap-md">
               {profile.approachSteps.map((step, index) => (
-                <View key={step.id} className="flex-row gap-md items-start">
-                  <View className="h-8 w-8 rounded-full bg-primary items-center justify-center">
-                    <Text className="font-sans text-caption text-primary-foreground font-bold">{index + 1}</Text>
+                <View className="flex-row items-start gap-md" key={step.id}>
+                  <View className="h-8 w-8 items-center justify-center rounded-full bg-primary">
+                    <Text className="font-bold font-sans text-caption text-primary-foreground">
+                      {index + 1}
+                    </Text>
                   </View>
-                  <View className="flex-1 bg-background-elevated p-md rounded-2xl shadow-sm">
-                    <Text className="font-sans text-body text-foreground-secondary">{step.text}</Text>
+                  <View className="flex-1 rounded-2xl bg-background-elevated p-md shadow-sm">
+                    <Text className="font-sans text-body text-foreground-secondary">
+                      {step.text}
+                    </Text>
                   </View>
                 </View>
               ))}
             </View>
           </View>
         )}
-
-        {/* Book Button */}
-        <View className="mt-huge">
-          <Button 
-            size="lg"
-            onPress={() => router.push(`/doctors/${id}/booking`)}
-          >
-            Schedule Consultation
-          </Button>
-        </View>
       </Screen>
+
+      <ScreenBottomBar
+        leftActions={[
+          {
+            icon: (
+              <Heart
+                className={
+                  isSaved ? "fill-accent text-accent" : "text-foreground"
+                }
+                size={20}
+              />
+            ),
+            label: isSaved ? "Saved" : "Save",
+            onPress: toggleSave,
+          },
+          {
+            icon: <Calendar className="text-foreground" size={20} />,
+            label: "Schedule",
+            onPress: () => router.push(`/doctors/${id}/booking`),
+          },
+        ]}
+        returnAction={{
+          href: "/(patient)/doctors",
+          icon: <ArrowLeft className="text-foreground" size={24} />,
+        }}
+      />
     </View>
   );
 }

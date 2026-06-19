@@ -4,7 +4,7 @@ import { useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import { ActivityIndicator, Text, View, Pressable } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Button } from "@/components/design/ui/button";
 import { Screen } from "@/components/design/ui/screen";
 import { VideoRoom } from "@/components/design/ui/video-room";
@@ -56,8 +56,10 @@ export default function AppointmentSessionDetailScreen() {
 
   if (sessionQuery.isError || !sessionQuery.data) {
     return (
-      <View className="flex-1 items-center justify-center bg-background gap-md">
-        <Text className="font-serif text-title text-primary">Failed to load session</Text>
+      <View className="flex-1 items-center justify-center gap-md bg-background">
+        <Text className="font-serif text-primary text-title">
+          Failed to load session
+        </Text>
         <Button onPress={() => router.back()}>Go Back</Button>
       </View>
     );
@@ -67,9 +69,11 @@ export default function AppointmentSessionDetailScreen() {
 
   if (!timing.canJoin) {
     return (
-      <View className="flex-1 items-center justify-center bg-background p-huge gap-md">
-        <Text className="font-serif text-hero text-primary text-center">Join window not open</Text>
-        <Text className="font-sans text-body text-foreground-secondary text-center">
+      <View className="flex-1 items-center justify-center gap-md bg-background p-huge">
+        <Text className="text-center font-serif text-hero text-primary">
+          Join window not open
+        </Text>
+        <Text className="text-center font-sans text-body text-foreground-secondary">
           You can join 30 minutes before the session starts.
         </Text>
         <Button onPress={() => router.back()}>Go Back</Button>
@@ -81,24 +85,28 @@ export default function AppointmentSessionDetailScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
       <Screen
-        contentClassName="flex-1 gap-xl pb-32 pt-lg px-lg bg-background"
+        contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
         scrollClassName="flex-1 bg-background"
       >
         {/* Header */}
-        <View className="flex-row items-center gap-md mt-sm">
+        <View className="mt-sm flex-row items-center gap-md">
           <Pressable
+            className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background-elevated shadow-sm"
             onPress={() => router.back()}
-            className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm"
           >
-            <ArrowLeft size={20} className="text-primary" />
+            <ArrowLeft className="text-primary" size={20} />
           </Pressable>
           <View>
-            <Text className="font-serif text-hero text-primary leading-tight">Session</Text>
-            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">ID: {sessionId?.slice(0, 8)}</Text>
+            <Text className="font-serif text-hero text-primary leading-tight">
+              Session
+            </Text>
+            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+              ID: {sessionId?.slice(0, 8)}
+            </Text>
           </View>
         </View>
 
-        <View className="flex-1 rounded-3xl overflow-hidden border border-border shadow-lg bg-background-elevated">
+        <View className="flex-1 overflow-hidden rounded-3xl border border-border bg-background-elevated shadow-lg">
           <VideoRoom
             alias={alias}
             endAt={session.endAt}

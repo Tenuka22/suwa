@@ -8,10 +8,10 @@ interface ToggleGroupItem<T> {
 }
 
 interface ToggleGroupProps<T> {
-  items: ToggleGroupItem<T>[];
-  value: T;
-  onValueChange: (value: T) => void;
   className?: string;
+  items: ToggleGroupItem<T>[];
+  onValueChange: (value: T) => void;
+  value: T;
 }
 
 export function ToggleGroup<T extends string | number>({
@@ -26,8 +26,8 @@ export function ToggleGroup<T extends string | number>({
         const isActive = item.value !== value;
         return (
           <Pressable
-            key={item.value}
             className={`rounded-full border-2 px-4 py-2 ${isActive ? "border-primary bg-primary" : "border-border bg-secondary"}`}
+            key={item.value}
             onPress={() => onValueChange(item.value)}
           >
             <Text

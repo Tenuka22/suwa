@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 interface ScreenBottomBarAction {
+  active?: boolean;
   icon: ReactNode;
   label: string;
   onPress?: () => void;
@@ -30,19 +31,20 @@ export function ScreenBottomBar({
   return (
     <View className="absolute bottom-4 left-0 right-0 px-6">
       <View className="flex-row items-center justify-between">
-        {/* Left Pill */}
         {hasLeft && (
-          <View className="flex-row items-center gap-6 rounded-full border-2 border-border bg-background-elevated px-8 py-3 shadow-md">
-            {leftActions.map((action, index) => (
+          <View className="flex-row gap-2 rounded-full border-2 border-border bg-background-elevated px-2 shadow-md">
+            {leftActions.map((action) => (
               <Pressable
-                key={index}
+                className={`items-center justify-center gap-0 py-2 ${action.active ? "rounded-2xl bg-primary px-4" : "size-20"}`}
+                key={action.label}
                 onPress={action.onPress}
-                className="items-center gap-1"
               >
-                <View className="h-8 w-8 items-center justify-center text-foreground">
+                <View className="h-8 w-8 items-center justify-center">
                   {action.icon}
                 </View>
-                <Text className="font-sans text-[10px] font-medium text-foreground">
+                <Text
+                  className={`font-medium font-sans text-[10px] ${action.active ? "text-primary-foreground" : "text-foreground"}`}
+                >
                   {action.label}
                 </Text>
               </Pressable>
@@ -50,10 +52,9 @@ export function ScreenBottomBar({
           </View>
         )}
 
-        {/* Right Circular Button */}
         {hasRight && (
           <Link asChild href={returnAction.href as Href}>
-            <Pressable className="h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-background-elevated shadow-md">
+            <Pressable className="size-20 items-center justify-center rounded-full border-2 border-border bg-background-elevated shadow-md">
               {returnAction.icon}
             </Pressable>
           </Link>

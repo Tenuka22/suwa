@@ -1,57 +1,75 @@
 "use client";
 
-import { useUser } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import {
-  ArrowLeft,
+  BookOpen,
   Calendar,
-  Check,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  List,
-  Stethoscope,
+  Home,
+  ListRestart,
+  MessageCircle,
+  SlidersHorizontal,
   User,
-  Video,
   X,
 } from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 
 import { Card } from "@/components/design/ui/card";
 import { Screen } from "@/components/design/ui/screen";
+import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
 import { orpc } from "@/utils/orpc";
+
+const sessionStatusLabels: Record<string, string> = {
+  requested: "Requested",
+  rescheduled: "Rescheduled",
+  approved: "Approved",
+  attended: "Attended",
+  timing_balance_failure: "Failed",
+};
+
+const STATUS_OPTIONS = Object.entries(sessionStatusLabels).map(
+  ([value, label]) => ({ value, label })
+);
 
 export default function AppointmentsScreen() {
   const router = useRouter();
-  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [selectedChips, setSelectedChips] = useState<string[]>([]);
   const [page, setPage] = useState(1);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [pendingChips, setPendingChips] = useState<string[]>([]);
   const perPage = 5;
 
-  const profileQuery = useQuery(orpc.getPatientProfile.queryOptions());
   const sessionsQuery = useQuery(orpc.listPatientSessions.queryOptions());
 
   const sessions = sessionsQuery.data?.sessions ?? [];
-  const hasProfile = profileQuery.data?.isOnboardingComplete ?? false;
+
+  const combinedFilter = selectedChips.length > 0 ? selectedChips : ["all"];
 
   const filteredSessions = useMemo(() => {
-    if (selectedFilter === "all") return sessions;
-    return sessions.filter((s) => s.status === selectedFilter);
-  }, [sessions, selectedFilter]);
+    if (combinedFilter.includes("all")) {
+      return sessions;
+    }
+    return sessions.filter((s) => combinedFilter.includes(s.status));
+  }, [sessions, combinedFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredSessions.length / perPage));
-  const paginatedSessions = filteredSessions.slice((page - 1) * perPage, page * perPage);
+  const paginatedSessions = filteredSessions.slice(
+    (page - 1) * perPage,
+    page * perPage
+  );
   const hasMore = page < totalPages;
 
-  if (profileQuery.isLoading || sessionsQuery.isLoading) {
+  if (sessionsQuery.isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator color="#2d3e35" size="large" />
@@ -59,91 +77,262 @@ export default function AppointmentsScreen() {
     );
   }
 
+  function toggleChip(value: string) {
+    setSelectedChips((current) =>
+      current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value]
+    );
+    setPage(1);
+  }
+
+  function openFilters() {
+    setPendingChips([...selectedChips]);
+    setFilterOpen(true);
+  }
+
+  function togglePending(value: string) {
+    setPendingChips((current) =>
+      current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value]
+    );
+  }
+
+  function applyFilters() {
+    setSelectedChips(pendingChips);
+    setPage(1);
+    setFilterOpen(false);
+  }
+
+  function clearAllFilters() {
+    setSelectedChips([]);
+    setPendingChips([]);
+    setPage(1);
+  }
+
   return (
-    <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
-      <Screen
-        contentClassName="flex-1 gap-xl pb-32 pt-lg px-lg bg-background"
-        scrollClassName="flex-1 bg-background"
-      >
-        {/* Header */}
-        <View className="flex-row items-center gap-md mt-sm">
-          <Pressable
-            onPress={() => router.replace("/(patient)")}
-            className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm"
-          >
-            <ArrowLeft size={20} className="text-primary" />
-          </Pressable>
-          <View>
-            <Text className="font-serif text-hero text-primary leading-tight">Appointments</Text>
-            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">History</Text>
+    <ScreenTabBar
+      tabs={[
+        {
+          icon: <Home className="text-foreground" size={20} />,
+          label: "Home",
+          onPress: () => router.push("/(patient)"),
+        },
+        {
+          active: true,
+          icon: <MessageCircle className="text-primary-foreground" size={20} />,
+          label: "Doctors",
+          onPress: () => router.push("/(patient)/doctors"),
+        },
+        {
+          icon: <BookOpen className="text-foreground" size={20} />,
+          label: "Health",
+          onPress: () => router.push("/(patient)/health-hub"),
+        },
+        {
+          icon: <User className="text-foreground" size={20} />,
+          label: "Profile",
+          onPress: () => router.push("/(patient)/profile"),
+        },
+      ]}
+    >
+      <View className="flex-1 bg-background">
+        <Stack.Screen options={{ headerShown: false }} />
+        <Screen
+          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+          scrollClassName="flex-1 bg-background"
+        >
+          {/* Header */}
+          <View className="mt-sm">
+            <Text className="font-serif text-hero text-primary leading-tight">
+              Appointments
+            </Text>
+            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+              History
+            </Text>
           </View>
-        </View>
 
-        {/* Filters */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-sm py-xxs overflow-hidden">
-          <FilterTab active={selectedFilter === "all"} label="All" onPress={() => setSelectedFilter("all")} />
-          <FilterTab active={selectedFilter === "requested"} label="Requested" onPress={() => setSelectedFilter("requested")} />
-          <FilterTab active={selectedFilter === "approved"} label="Approved" onPress={() => setSelectedFilter("approved")} />
-          <FilterTab active={selectedFilter === "attended"} label="Attended" onPress={() => setSelectedFilter("attended")} />
-        </ScrollView>
+          {/* Results Info */}
+          <View className="flex-row items-center justify-between border-border border-b pb-xxs">
+            <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
+              {sessionsQuery.isPending
+                ? "Loading..."
+                : `${filteredSessions.length} appointment${filteredSessions.length === 1 ? "" : "s"}`}
+            </Text>
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
+                onPress={openFilters}
+              >
+                <SlidersHorizontal className="text-foreground" size={16} />
+              </Pressable>
+              <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
+                Page {page}
+              </Text>
+            </View>
+          </View>
 
-        {/* Sessions */}
-        <View className="gap-lg">
-          {paginatedSessions.length === 0 ? (
-            <View className="py-huge items-center gap-md">
-              <Text className="font-serif text-title text-foreground-muted">No appointments</Text>
-              <Pressable onPress={() => router.push("/doctors")}>
-                <Text className="font-sans text-body text-accent font-bold">Find a Doctor</Text>
+          {/* Active Filter Chips */}
+          {selectedChips.length > 0 && (
+            <View className="flex-row flex-wrap gap-2">
+              {selectedChips.map((chip) => (
+                <Pressable
+                  className="flex-row items-center gap-1 rounded-full border border-primary bg-primary/10 px-3 py-1.5"
+                  key={chip}
+                  onPress={() => toggleChip(chip)}
+                >
+                  <Text className="font-sans text-caption text-primary">
+                    {sessionStatusLabels[chip] ?? chip}
+                  </Text>
+                  <X className="text-primary" size={14} />
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {/* Sessions */}
+          <View className="gap-lg">
+            {paginatedSessions.length === 0 ? (
+              <View className="items-center gap-md py-huge">
+                <Text className="font-serif text-foreground-muted text-title">
+                  No appointments
+                </Text>
+                <Text className="text-center font-sans text-foreground-muted text-sm">
+                  Try adjusting your filters
+                </Text>
+                {selectedChips.length > 0 && (
+                  <Pressable onPress={clearAllFilters}>
+                    <Text className="font-bold font-sans text-accent text-body">
+                      Clear filters
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : (
+              paginatedSessions.map((session) => (
+                <Card
+                  description={`${new Date(session.startAt).toLocaleDateString()} at ${new Date(session.startAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+                  icon={
+                    <Calendar
+                      className="text-tint-purple-foreground"
+                      size={24}
+                    />
+                  }
+                  iconBgColor="bg-tint-purple"
+                  key={session.id}
+                  onPress={() => router.push(`/appointments/${session.id}`)}
+                  title={`Dr. ${session.doctorId.slice(0, 8)}`}
+                />
+              ))
+            )}
+          </View>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <View className="mt-md flex-row items-center justify-center gap-huge">
+              <Pressable
+                className={`h-12 w-12 items-center justify-center rounded-full border border-border ${page === 1 ? "opacity-30" : "bg-background-elevated shadow-sm"}`}
+                disabled={page === 1}
+                onPress={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="text-primary" size={24} />
+              </Pressable>
+              <Pressable
+                className={`h-12 w-12 items-center justify-center rounded-full border border-border ${hasMore ? "bg-background-elevated shadow-sm" : "opacity-30"}`}
+                disabled={!hasMore}
+                onPress={() => setPage((p) => p + 1)}
+              >
+                <ChevronRight className="text-primary" size={24} />
               </Pressable>
             </View>
-          ) : (
-            paginatedSessions.map((session) => (
-              <Card
-                key={session.id}
-                title={`Dr. ${session.doctorId.slice(0, 8)}`}
-                description={`${new Date(session.startAt).toLocaleDateString()} at ${new Date(session.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                icon={<Calendar size={24} className="text-tint-purple-foreground" />}
-                iconBgColor="bg-tint-purple"
-                onPress={() => router.push(`/appointments/${session.id}`)}
-              />
-            ))
           )}
-        </View>
+        </Screen>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <View className="flex-row justify-center items-center gap-huge mt-md">
-            <Pressable 
-              disabled={page === 1} 
-              onPress={() => setPage(p => Math.max(1, p - 1))}
-              className={`h-12 w-12 rounded-full items-center justify-center border border-border ${page === 1 ? 'opacity-30' : 'bg-background-elevated shadow-sm'}`}
-            >
-              <ChevronLeft size={24} className="text-primary" />
-            </Pressable>
-            <Pressable 
-              disabled={!hasMore} 
-              onPress={() => setPage(p => p + 1)}
-              className={`h-12 w-12 rounded-full items-center justify-center border border-border ${!hasMore ? 'opacity-30' : 'bg-background-elevated shadow-sm'}`}
-            >
-              <ChevronRight size={24} className="text-primary" />
-            </Pressable>
+        {/* Filter Modal */}
+        <Modal
+          animationType="slide"
+          onRequestClose={() => setFilterOpen(false)}
+          statusBarTranslucent
+          transparent
+          visible={filterOpen}
+        >
+          <View className="flex-1 justify-end bg-black/50">
+            <View className="max-h-[80%] rounded-t-3xl border-2 border-border bg-background pb-8">
+              {/* Modal Header */}
+              <View className="flex-row items-center justify-between border-border border-b px-6 py-4">
+                <Text className="font-serif text-foreground text-title">
+                  Filters
+                </Text>
+                <Pressable
+                  className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
+                  onPress={() => setFilterOpen(false)}
+                >
+                  <X className="text-foreground-muted" size={18} />
+                </Pressable>
+              </View>
+
+              <ScrollView
+                className="px-6 pt-4"
+                showsVerticalScrollIndicator={false}
+              >
+                <View className="gap-6">
+                  {/* Clear All */}
+                  {pendingChips.length > 0 && (
+                    <Pressable
+                      className="flex-row items-center gap-2"
+                      onPress={() => setPendingChips([])}
+                    >
+                      <ListRestart className="text-accent" size={16} />
+                      <Text className="font-sans font-semibold text-accent text-body">
+                        Clear all filters
+                      </Text>
+                    </Pressable>
+                  )}
+
+                  <View className="gap-3">
+                    <Text className="font-sans font-semibold text-foreground text-subtitle">
+                      Status
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {STATUS_OPTIONS.map((opt) => {
+                        const active = pendingChips.includes(opt.value);
+                        return (
+                          <Pressable
+                            className={`rounded-full border px-4 py-2 ${active ? "border-primary bg-primary" : "border-border bg-background-elevated"}`}
+                            key={opt.value}
+                            onPress={() => togglePending(opt.value)}
+                          >
+                            <Text
+                              className={`font-sans text-caption ${active ? "text-primary-foreground" : "text-foreground-secondary"}`}
+                            >
+                              {opt.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <View className="h-4" />
+                </View>
+              </ScrollView>
+
+              {/* Apply Button */}
+              <View className="border-border border-t px-6 pt-4">
+                <Pressable
+                  className="items-center rounded-full bg-primary py-3.5"
+                  onPress={applyFilters}
+                >
+                  <Text className="font-bold font-sans text-body text-primary-foreground">
+                    Show Results
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
-        )}
-      </Screen>
-    </View>
-  );
-}
-
-function FilterTab({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`px-lg py-sm rounded-full border ${active ? "bg-primary border-primary" : "bg-background-elevated border-border"}`}
-    >
-      <Text className={`font-sans text-caption font-semibold ${active ? "text-primary-foreground" : "text-foreground-secondary"}`}>
-        {label}
-      </Text>
-    </Pressable>
+        </Modal>
+      </View>
+    </ScreenTabBar>
   );
 }

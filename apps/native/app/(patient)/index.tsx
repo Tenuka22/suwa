@@ -3,153 +3,234 @@
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
-  AudioLines,
   Bell,
   BookOpen,
   Flower2,
   Heart,
   Home,
   MessageCircle,
+  Mic,
+  MicOff,
   Search,
   Shield,
   ShieldCheck,
   User,
 } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
 import { Screen } from "@/components/design/ui/screen";
+import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
+import { showToast, ToastContainer } from "@/components/design/ui/toast";
 import { orpc } from "@/utils/orpc";
+import { useSpeechToText } from "@/utils/use-speech-to-text";
 
 export default function HomeScreen() {
   const router = useRouter();
   const patientProfileQuery = useQuery(orpc.getPatientProfile.queryOptions());
   const patientName = patientProfileQuery.data?.alias ?? "Guest";
+  const [input, setInput] = useState("");
+  const {
+    error: speechError,
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+  } = useSpeechToText();
+
+  useEffect(() => {
+    if (isListening && transcript) {
+      setInput(transcript);
+    }
+  }, [isListening, transcript]);
+
+  useEffect(() => {
+    if (speechError) {
+      showToast({
+        type: "warning",
+        title: "Speech Recognition",
+        message: speechError,
+      });
+    }
+  }, [speechError]);
+
+  function handleSubmit() {
+    const text = input.trim();
+    if (!text) {
+      return;
+    }
+    router.push({ pathname: "/(patient)/ai", params: { message: text } });
+  }
+
+  function toggleMic() {
+    if (isListening) {
+      stopListening();
+    } else {
+      setInput("");
+      startListening();
+    }
+  }
 
   return (
-    <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+    <ScreenTabBar
+      tabs={[
+        {
+          active: true,
+          icon: <Home className="text-primary-foreground" size={20} />,
+          label: "Home",
+          onPress: () => router.push("/(patient)"),
+        },
+        {
+          icon: <MessageCircle className="text-foreground" size={20} />,
+          label: "Doctors",
+          onPress: () => router.push("/(patient)/doctors"),
+        },
+        {
+          icon: <BookOpen className="text-foreground" size={20} />,
+          label: "Health",
+          onPress: () => router.push("/(patient)/health-hub"),
+        },
+        {
+          icon: <User className="text-foreground" size={20} />,
+          label: "Profile",
+          onPress: () => router.push("/(patient)/profile"),
+        },
+      ]}
+    >
+      <View className="flex-1 bg-background">
+        <Stack.Screen options={{ headerShown: false }} />
+        <Screen
+          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+          scrollClassName="flex-1 bg-background"
+        >
+          {/* Header */}
+          <View className="mt-sm flex-row items-center justify-between">
+            <View className="flex-row items-center gap-md">
+              <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full">
+                <Image
+                  resizeMode="contain"
+                  source={require("@/assets/images/icon-stripped.png")}
+                  style={{ width: 32 }}
+                />
+              </View>
+              <View className="flex flex-col">
+                <Text className="font-sans text-foreground-muted text-title">
+                  Welcome
+                </Text>
+                <Text className="font-sans text-primary text-subtitle">
+                  {patientName},
+                </Text>
+              </View>
+            </View>
+            <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background-elevated shadow-sm">
+              <Bell className="text-primary" size={20} />
+            </View>
+          </View>
 
-      <Screen
-        contentClassName="flex-1 gap-xl pb-32 pt-lg px-lg bg-background"
-        scrollClassName="flex-1 bg-background"
-      >
-        {/* Header */}
-        <View className="flex-row items-center justify-between mt-sm">
-          <View className="flex-row items-center gap-md">
-            <View className="h-14 w-14 rounded-full items-center justify-center overflow-hidden">
-              <Image
-              style={{width:32}}
-                source={require("@/assets/images/icon-stripped.png")}
-                resizeMode="contain"
+          {/* Hero Section */}
+          <View className="my-sm gap-0">
+            <Text className="font-serif text-hero text-primary leading-tight">
+              Health is
+            </Text>
+            <Text className="font-serif text-hero text-primary leading-tight">
+              personal.
+            </Text>
+            <View className="flex-row items-baseline">
+              <Text className="font-serif text-hero text-primary leading-tight">
+                Privacy is{" "}
+              </Text>
+              <Text className="font-serif text-accent text-hero italic leading-tight">
+                ours.
+              </Text>
+            </View>
+          </View>
+
+          {/* Search Bar */}
+          <Input
+            className="bg-transparent"
+            inputContainerClassName={`rounded-full border-0 shadow-sm ${isListening ? "bg-accent/10" : "bg-background-elevated"}`}
+            leftIcon={
+              <Search className="text-foreground-placeholder" size={20} />
+            }
+            onChangeText={setInput}
+            onSubmitEditing={handleSubmit}
+            placeholder="How can we help you today?"
+            returnKeyType="send"
+            rightIcon={
+              input.trim() ? (
+                <Pressable onPress={handleSubmit}>
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-primary">
+                    <Search className="text-primary-foreground" size={18} />
+                  </View>
+                </Pressable>
+              ) : (
+                <Pressable onPress={toggleMic}>
+                  <View
+                    className={`h-10 w-10 items-center justify-center rounded-full ${isListening ? "bg-accent" : "bg-primary"}`}
+                  >
+                    {isListening ? (
+                      <MicOff className="text-primary-foreground" size={18} />
+                    ) : (
+                      <Mic className="text-primary-foreground" size={18} />
+                    )}
+                  </View>
+                </Pressable>
+              )
+            }
+            value={input}
+          />
+
+          {/* 2x2 Grid */}
+          <View className="gap-xl">
+            <View className="flex-row gap-xl">
+              <Card
+                description="Chat anonymously"
+                icon={
+                  <Heart className="text-tint-green-foreground" size={24} />
+                }
+                iconBgColor="bg-tint-green"
+                onPress={() => router.push("/doctors")}
+                title="Start a Consultation"
               />
             </View>
-            <View className="flex flex-col">
-              <Text className="font-sans text-title text-foreground-muted">
-                Welcome
-              </Text>
-              <Text className="font-sans text-subtitle text-primary">
-                {patientName},
-              </Text>
+            <View className="flex-row gap-xl">
+              <Card
+                description="Self-care & support"
+                icon={
+                  <Flower2 className="text-tint-purple-foreground" size={24} />
+                }
+                iconBgColor="bg-tint-purple"
+                onPress={() => router.push("/health-hub")}
+                title="Wellness Tools"
+              />
+              <Card
+                description="You're in control"
+                icon={
+                  <Shield className="text-tint-yellow-foreground" size={24} />
+                }
+                iconBgColor="bg-tint-yellow"
+                onPress={() => router.push("/profile")}
+                title="Privacy Center"
+              />
             </View>
           </View>
-          <View className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm">
-            <Bell size={20} className="text-primary" />
-          </View>
-        </View>
 
-        {/* Hero Section */}
-        <View className="gap-0 my-sm">
-          <Text className="font-serif text-hero text-primary leading-tight">
-            Health is
-          </Text>
-          <Text className="font-serif text-hero text-primary leading-tight">
-            personal.
-          </Text>
-          <View className="flex-row items-baseline">
-            <Text className="font-serif text-hero text-primary leading-tight">
-              Privacy is{" "}
-            </Text>
-            <Text className="font-serif text-hero text-accent italic leading-tight">
-              ours.
-            </Text>
-          </View>
-        </View>
+          {/* Bottom Banner */}
+          <Card
+            className="border-0 bg-background-subtle"
+            description="No names. No data linked to you. Ever."
+            icon={<ShieldCheck className="text-primary" size={24} />}
+            iconBgColor="bg-primary-subtle"
+            onPress={() => router.push("/profile")}
+            title="100% Anonymous"
+            variant="banner"
+          />
+        </Screen>
 
-        {/* Search Bar */}
-        <Input
-          placeholder="How can we help you today?"
-          inputContainerClassName="rounded-full border-0 shadow-sm bg-background-elevated"
-          className="bg-transparent"
-          leftIcon={<Search size={20} className="text-foreground-placeholder" />}
-          rightIcon={
-            <View className="h-10 w-10 rounded-full bg-primary items-center justify-center">
-              <AudioLines size={18} className="text-primary-foreground" />
-            </View>
-          }
-        />
-
-        {/* 2x2 Grid */}
-        <View className="gap-xl">
-          <View className="flex-row gap-xl">
-            <Card
-              title="Start a Consultation"
-              description="Chat anonymously"
-              icon={<Heart size={24} className="text-tint-green-foreground" />}
-              iconBgColor="bg-tint-green"
-              onPress={() => router.push("/doctors")}
-            />
-
-          </View>
-          <View className="flex-row gap-xl">
-            <Card
-              title="Wellness Tools"
-              description="Self-care & support"
-              icon={<Flower2 size={24} className="text-tint-purple-foreground" />}
-              iconBgColor="bg-tint-purple"
-              onPress={() => router.push("/health-hub")}
-            />
-            <Card
-              title="Privacy Center"
-              description="You're in control"
-              icon={<Shield size={24} className="text-tint-yellow-foreground" />}
-              iconBgColor="bg-tint-yellow"
-              onPress={() => router.push("/profile")}
-            />
-          </View>
-        </View>
-
-        {/* Bottom Banner */}
-        <Card
-          variant="banner"
-          title="100% Anonymous"
-          description="No names. No data linked to you. Ever."
-          icon={<ShieldCheck size={24} className="text-primary" />}
-          iconBgColor="bg-primary-subtle"
-          className="bg-background-subtle border-0"
-          onPress={() => router.push("/profile")}
-        />
-      </Screen>
-
-      {/* Custom Tab Bar */}
-      <View className="absolute bottom-0 left-0 right-0 bg-background-elevated/90 px-lg py-md flex-row justify-between items-center border-t border-border/50 rounded-t-3xl shadow-lg">
-        <TabItem icon={<Home size={24} className="text-primary" />} label="Home" active />
-        <TabItem icon={<MessageCircle size={24} className="text-foreground-muted" />} label="Consultations" />
-        <TabItem icon={<BookOpen size={24} className="text-foreground-muted" />} label="Library" />
-        <TabItem icon={<User size={24} className="text-foreground-muted" />} label="Profile" />
+        <ToastContainer />
       </View>
-    </View>
-  );
-}
-
-function TabItem({ icon, label, active = false }: { icon: any; label: string; active?: boolean }) {
-  return (
-    <Pressable className="items-center gap-1 flex-1">
-      {icon}
-      <Text className={`text-micro font-sans ${active ? "text-primary font-bold" : "text-foreground-muted"}`}>
-        {label}
-      </Text>
-    </Pressable>
+    </ScreenTabBar>
   );
 }

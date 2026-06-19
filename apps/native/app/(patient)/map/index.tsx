@@ -1,10 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { type Href, Stack, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import {
   ArrowLeft,
-  Hospital as HospitalIcon,
   LocateFixed,
   MapPin,
   Search,
@@ -12,21 +11,11 @@ import {
   X,
 } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Linking, Pressable, Text, TextInput, View } from "react-native";
 import type MapView from "react-native-maps";
-
-import MapComponent from "@/components/map/map-view";
 import { Button } from "@/components/design/ui/button";
-import { Screen } from "@/components/design/ui/screen";
+import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
+import MapComponent from "@/components/map/map-view";
 import { hospitals as staticHospitals } from "@/data/hospitals";
 import { orpc } from "@/utils/orpc";
 import { useUserLocation } from "@/utils/use-user-location";
@@ -41,24 +30,29 @@ export default function MapScreen() {
 
   const centerOnUserLocation = useCallback(() => {
     if (userLocation) {
-      mapRef.current?.animateToRegion({
-        latitude: userLocation.lat,
-        longitude: userLocation.lng,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      }, 400);
+      mapRef.current?.animateToRegion(
+        {
+          latitude: userLocation.lat,
+          longitude: userLocation.lng,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02,
+        },
+        400
+      );
     } else {
       requestLocation();
     }
   }, [userLocation, requestLocation]);
 
-  const tenantsQuery = useQuery(orpc.listTenants.queryOptions({input:{page:0,pageSize:0}}));
-  const tenants = ((tenantsQuery.data)?.tenants ?? []) ;
+  const tenantsQuery = useQuery(
+    orpc.listTenants.queryOptions({ input: { page: 0, pageSize: 0 } })
+  );
+  const tenants = tenantsQuery.data?.tenants ?? [];
 
   const allHospitals = useMemo(() => {
     const merged = [...staticHospitals];
     for (const t of tenants) {
-      if (!merged.some(h => h.name === t.name)) {
+      if (!merged.some((h) => h.name === t.name)) {
         merged.push({
           name: t.name,
           address: t.address,
@@ -66,7 +60,10 @@ export default function MapScreen() {
           latitude: Number.parseFloat(t.latitude ?? "0"),
           longitude: Number.parseFloat(t.longitude ?? "0"),
           phone: t.phone,
-          category: t.type === "PRIVATE_HOSPITAL" ? "Private hospital" : "Government hospital",
+          category:
+            t.type === "PRIVATE_HOSPITAL"
+              ? "Private hospital"
+              : "Government hospital",
         } as any);
       }
     }
@@ -92,21 +89,21 @@ export default function MapScreen() {
       />
 
       {/* Floating Header */}
-      <View className="absolute top-14 left-lg right-lg gap-md">
+      <View className="absolute top-14 right-lg left-lg gap-md">
         <View className="flex-row items-center gap-md">
           <Pressable
+            className="h-12 w-12 items-center justify-center rounded-full bg-background-elevated shadow-lg"
             onPress={() => router.back()}
-            className="h-12 w-12 rounded-full bg-background-elevated shadow-lg items-center justify-center"
           >
-            <ArrowLeft size={24} className="text-primary" />
+            <ArrowLeft className="text-primary" size={24} />
           </Pressable>
-          <View className="flex-1 h-12 flex-row items-center gap-md bg-background-elevated rounded-full px-lg shadow-lg">
-            <Search size={20} className="text-foreground-placeholder" />
+          <View className="h-12 flex-1 flex-row items-center gap-md rounded-full bg-background-elevated px-lg shadow-lg">
+            <Search className="text-foreground-placeholder" size={20} />
             <TextInput
-              placeholder="Search hospitals..."
               className="flex-1 font-sans text-body"
-              value={search}
               onChangeText={setSearch}
+              placeholder="Search hospitals..."
+              value={search}
             />
           </View>
         </View>
@@ -114,47 +111,80 @@ export default function MapScreen() {
 
       {/* Selected Hospital Card */}
       {selectedHospital && (
-        <View className="absolute bottom-huge left-lg right-lg">
-          <View className="bg-background-elevated rounded-3xl p-lg shadow-xl gap-lg">
-            <View className="flex-row justify-between items-start">
+        <View className="absolute right-lg bottom-huge left-lg">
+          <View className="gap-lg rounded-3xl bg-background-elevated p-lg shadow-xl">
+            <View className="flex-row items-start justify-between">
               <View className="flex-1 gap-xxs">
-                <Text className="font-serif text-title text-primary">{selectedHospital.name}</Text>
+                <Text className="font-serif text-primary text-title">
+                  {selectedHospital.name}
+                </Text>
                 <View className="flex-row items-center gap-xs">
-                  <Star size={14} className="text-accent fill-accent" />
-                  <Text className="font-sans text-caption text-foreground-secondary">{selectedHospital.rating || "4.5"}</Text>
-                  <Text className="font-sans text-caption text-foreground-muted">•</Text>
-                  <Text className="font-sans text-caption text-foreground-muted">{selectedHospital.category}</Text>
+                  <Star className="fill-accent text-accent" size={14} />
+                  <Text className="font-sans text-caption text-foreground-secondary">
+                    {selectedHospital.rating || "4.5"}
+                  </Text>
+                  <Text className="font-sans text-caption text-foreground-muted">
+                    •
+                  </Text>
+                  <Text className="font-sans text-caption text-foreground-muted">
+                    {selectedHospital.category}
+                  </Text>
                 </View>
               </View>
-              <Pressable onPress={() => setSelectedHospital(null)} className="h-8 w-8 rounded-full bg-background-subtle items-center justify-center">
-                <X size={16} className="text-foreground-muted" />
+              <Pressable
+                className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
+                onPress={() => setSelectedHospital(null)}
+              >
+                <X className="text-foreground-muted" size={16} />
               </Pressable>
             </View>
 
             <View className="flex-row items-center gap-sm">
-              <MapPin size={16} className="text-foreground-muted" />
-              <Text className="font-sans text-body text-foreground-secondary flex-1" numberOfLines={2}>{selectedHospital.address}</Text>
+              <MapPin className="text-foreground-muted" size={16} />
+              <Text
+                className="flex-1 font-sans text-body text-foreground-secondary"
+                numberOfLines={2}
+              >
+                {selectedHospital.address}
+              </Text>
             </View>
 
             <View className="flex-row gap-md">
-              <Button className="flex-1" onPress={() => openMapsNavigation(selectedHospital)}>Navigate</Button>
+              <Button
+                className="flex-1"
+                onPress={() => openMapsNavigation(selectedHospital)}
+              >
+                Navigate
+              </Button>
               {selectedHospital.phone && (
-                <Button variant="outline" className="flex-1" onPress={() => Linking.openURL(`tel:${selectedHospital.phone}`)}>Call</Button>
+                <Button
+                  className="flex-1"
+                  onPress={() =>
+                    Linking.openURL(`tel:${selectedHospital.phone}`)
+                  }
+                  variant="outline"
+                >
+                  Call
+                </Button>
               )}
             </View>
           </View>
         </View>
       )}
 
-      {/* Locate Button */}
-      {!selectedHospital && (
-        <Pressable
-          onPress={centerOnUserLocation}
-          className="absolute bottom-huge right-lg h-14 w-14 rounded-full bg-primary shadow-lg items-center justify-center"
-        >
-          <LocateFixed size={24} className="text-primary-foreground" />
-        </Pressable>
-      )}
+      <ScreenBottomBar
+        leftActions={[
+          {
+            icon: <LocateFixed className="text-foreground" size={20} />,
+            label: "My location",
+            onPress: centerOnUserLocation,
+          },
+        ]}
+        returnAction={{
+          href: "/(patient)",
+          icon: <ArrowLeft className="text-foreground" size={24} />,
+        }}
+      />
     </View>
   );
 }

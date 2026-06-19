@@ -6,13 +6,16 @@ import { useMutation } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
   Activity,
-  ArrowLeft,
   BarChart3,
+  BookOpen,
   Brain,
+  Home,
+  MessageCircle,
   Play,
   Square,
   TrendingDown,
   TrendingUp,
+  User,
 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -22,8 +25,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { Button } from "@/components/design/ui/button";
 import { Screen } from "@/components/design/ui/screen";
+import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
 import { vibrate } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 import {
@@ -67,7 +70,7 @@ export default function HealthHubScreen() {
   const [streamLoading, setStreamLoading] = useState(true);
   const [bundles, setBundles] = useState<StressBundle[]>([]);
   const [totalSamples, setTotalSamples] = useState(0);
-  const [bufferedSamples, setBufferedSamples] = useState(0);
+  const [_bufferedSamples, setBufferedSamples] = useState(0);
   const [iconPressed, setIconPressed] = useState(false);
 
   const cancelRef = useRef<(() => Promise<void>) | null>(null);
@@ -76,12 +79,20 @@ export default function HealthHubScreen() {
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const ingestMutation = useMutation(orpc.ingestIoTData.mutationOptions());
-  const acknowledgeMutation = useMutation(orpc.acknowledgeStressDownload.mutationOptions());
-  const startSimulationMutation = useMutation(orpc.startStressSimulation.mutationOptions());
-  const stopSimulationMutation = useMutation(orpc.stopStressSimulation.mutationOptions());
+  const acknowledgeMutation = useMutation(
+    orpc.acknowledgeStressDownload.mutationOptions()
+  );
+  const startSimulationMutation = useMutation(
+    orpc.startStressSimulation.mutationOptions()
+  );
+  const stopSimulationMutation = useMutation(
+    orpc.stopStressSimulation.mutationOptions()
+  );
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
 
     const uid: string = userId;
     const mmkvBundles = getBundles(uid);
@@ -105,12 +116,21 @@ export default function HealthHubScreen() {
         const cancel = consumeEventIterator(iterator, {
           onEvent: (data) => {
             if (data.type === "state") {
-              const stateData = data as { type: "state"; bundles: StressBundle[]; totalSamples: number; buffered: number };
-              if (mmkvBundles.length === 0 && stateData.bundles.length > 0) appendBundles(uid, stateData.bundles);
+              const stateData = data as {
+                type: "state";
+                bundles: StressBundle[];
+                totalSamples: number;
+                buffered: number;
+              };
+              if (mmkvBundles.length === 0 && stateData.bundles.length > 0) {
+                appendBundles(uid, stateData.bundles);
+              }
               const stored = getBundles(uid);
               setBundles(stored);
               setBufferedSamples(stateData.buffered);
-              setTotalSamples(stored.length > 0 ? stored.length * 360 : stateData.totalSamples);
+              setTotalSamples(
+                stored.length > 0 ? stored.length * 360 : stateData.totalSamples
+              );
               setStreamLoading(false);
               return;
             }
@@ -126,7 +146,11 @@ export default function HealthHubScreen() {
             }
 
             if (data.type === "progress") {
-              const pData = data as { type: "progress"; buffered: number; totalSamples: number };
+              const pData = data as {
+                type: "progress";
+                buffered: number;
+                totalSamples: number;
+              };
               setBufferedSamples(pData.buffered);
               setTotalSamples(pData.totalSamples);
               setStreamLoading(false);
@@ -136,7 +160,9 @@ export default function HealthHubScreen() {
         });
         cancelRef.current = cancel;
       } catch {
-        if (!isCancelled) setStreamLoading(false);
+        if (!isCancelled) {
+          setStreamLoading(false);
+        }
       }
     }
 
@@ -150,36 +176,62 @@ export default function HealthHubScreen() {
   }, [userId]);
 
   useEffect(() => {
-    if (totalSamples > 0 && userId) acknowledgeMutation.mutate({} as never);
-  }, [totalSamples, userId]);
+    if (totalSamples > 0 && userId) {
+      acknowledgeMutation.mutate({} as never);
+    }
+  }, [totalSamples, userId, acknowledgeMutation.mutate]);
 
-  const latestPrediction: StoredPrediction | null = bundles.length > 0 ? bundles[bundles.length - 1].prediction : null;
-  const status = latestPrediction ? statusFromPrediction(latestPrediction.predictedClass) : null;
+  const latestPrediction: StoredPrediction | null =
+    bundles.length > 0 ? (bundles.at(-1)?.prediction ?? null) : null;
+  const status = latestPrediction
+    ? statusFromPrediction(latestPrediction.predictedClass)
+    : null;
   const StatusIcon = status?.icon ?? Brain;
   const insights = useMemo(() => computeInsights(bundles), [bundles]);
 
   const handleStartStop = useCallback(() => {
     if (streaming) {
       stopSimulationMutation.mutate({} as never);
-      if (genTimerRef.current) { clearInterval(genTimerRef.current); genTimerRef.current = null; }
-      if (flushTimerRef.current) { clearInterval(flushTimerRef.current); flushTimerRef.current = null; }
+      if (genTimerRef.current) {
+        clearInterval(genTimerRef.current);
+        genTimerRef.current = null;
+      }
+      if (flushTimerRef.current) {
+        clearInterval(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
       if (pendingBatchRef.current.length > 0) {
         const batch = pendingBatchRef.current;
         pendingBatchRef.current = [];
         const now = Date.now();
-        ingestMutation.mutate({ deviceId: "mock-iot-001", samples: batch.map((sample, i) => ({ sample, timestamp: now + i * 250 })) } as never);
+        ingestMutation.mutate({
+          deviceId: "mock-iot-001",
+          samples: batch.map((sample, i) => ({
+            sample,
+            timestamp: now + i * 250,
+          })),
+        } as never);
       }
       setStreaming(false);
       setSimulationState(false);
     } else {
       startSimulationMutation.mutate({} as never);
-      const genInterval = setInterval(() => pendingBatchRef.current.push(generateMockSample()), 250);
+      const genInterval = setInterval(
+        () => pendingBatchRef.current.push(generateMockSample()),
+        250
+      );
       const flushInterval = setInterval(() => {
         const batch = pendingBatchRef.current;
         pendingBatchRef.current = [];
         if (batch.length > 0) {
           const now = Date.now();
-          ingestMutation.mutate({ deviceId: "mock-iot-001", samples: batch.map((sample, i) => ({ sample, timestamp: now + i * 250 })) } as never);
+          ingestMutation.mutate({
+            deviceId: "mock-iot-001",
+            samples: batch.map((sample, i) => ({
+              sample,
+              timestamp: now + i * 250,
+            })),
+          } as never);
         }
       }, 1000);
       genTimerRef.current = genInterval;
@@ -188,142 +240,234 @@ export default function HealthHubScreen() {
       setSimulationState(true);
     }
     vibrate(10);
-  }, [streaming, startSimulationMutation, stopSimulationMutation, ingestMutation]);
+  }, [
+    streaming,
+    startSimulationMutation,
+    stopSimulationMutation,
+    ingestMutation,
+  ]);
+
+  function trendIcon(direction: string | undefined) {
+    if (direction === "up") {
+      return <TrendingUp className="text-destructive" size={20} />;
+    }
+
+    if (direction === "down") {
+      return <TrendingDown className="text-accent" size={20} />;
+    }
+
+    return <BarChart3 className="text-primary" size={20} />;
+  }
 
   return (
-    <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
-      <Screen
-        contentClassName="flex-1 gap-xl pb-32 pt-lg px-lg bg-background"
-        scrollClassName="flex-1 bg-background"
-      >
-        {/* Header */}
-        <View className="flex-row items-center gap-md mt-sm">
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm"
-          >
-            <ArrowLeft size={20} className="text-primary" />
-          </Pressable>
-          <View>
-            <Text className="font-serif text-hero text-primary leading-tight">Health Hub</Text>
-            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">Wellness Monitor</Text>
+    <ScreenTabBar
+      tabs={[
+        {
+          icon: <Home className="text-foreground" size={20} />,
+          label: "Home",
+          onPress: () => router.push("/(patient)"),
+        },
+        {
+          icon: <MessageCircle className="text-foreground" size={20} />,
+          label: "Doctors",
+          onPress: () => router.push("/(patient)/doctors"),
+        },
+        {
+          active: true,
+          icon: <BookOpen className="text-primary-foreground" size={20} />,
+          label: "Health",
+          onPress: () => router.push("/(patient)/health-hub"),
+        },
+        {
+          icon: <User className="text-foreground" size={20} />,
+          label: "Profile",
+          onPress: () => router.push("/(patient)/profile"),
+        },
+      ]}
+    >
+      <View className="flex-1 bg-background">
+        <Stack.Screen options={{ headerShown: false }} />
+        <Screen
+          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+          scrollClassName="flex-1 bg-background"
+        >
+          {/* Header */}
+          <View className="mt-sm">
+            <Text className="font-serif text-hero text-primary leading-tight">
+              Health Hub
+            </Text>
+            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+              Wellness Monitor
+            </Text>
           </View>
-        </View>
 
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Status Ring */}
-          <View className="items-center py-huge">
-            <Pressable
-              onPressIn={() => setIconPressed(true)}
-              onPressOut={() => setIconPressed(false)}
-              className="h-52 w-52 items-center justify-center rounded-full border-4 border-border shadow-lg"
-            >
-              <View
-                className={`h-full w-full items-center justify-center rounded-full ${status?.bg || "bg-background-subtle/50"}`}
-                style={{ transform: [{ translateY: iconPressed ? 4 : 0 }, { scale: iconPressed ? 0.96 : 1 }] }}
+            {/* Status Ring */}
+            <View className="items-center py-huge">
+              <Pressable
+                className="h-52 w-52 items-center justify-center rounded-full border-4 border-border shadow-lg"
+                onPressIn={() => setIconPressed(true)}
+                onPressOut={() => setIconPressed(false)}
               >
-                {streamLoading && bundles.length === 0 ? (
-                  <ActivityIndicator color="#2d3e35" size="large" />
-                ) : (
-                  <>
-                    <StatusIcon size={56} className={status?.color || "text-primary"} />
-                    <Text className={`mt-md font-serif text-title uppercase tracking-wider ${status?.color || "text-foreground-muted"}`}>
-                      {status?.label || "No Data"}
+                <View
+                  className={`h-full w-full items-center justify-center rounded-full ${status?.bg || "bg-background-subtle/50"}`}
+                  style={{
+                    transform: [
+                      { translateY: iconPressed ? 4 : 0 },
+                      { scale: iconPressed ? 0.96 : 1 },
+                    ],
+                  }}
+                >
+                  {streamLoading && bundles.length === 0 ? (
+                    <ActivityIndicator color="#2d3e35" size="large" />
+                  ) : (
+                    <>
+                      <StatusIcon
+                        className={status?.color || "text-primary"}
+                        size={56}
+                      />
+                      <Text
+                        className={`mt-md font-serif text-title uppercase tracking-wider ${status?.color || "text-foreground-muted"}`}
+                      >
+                        {status?.label || "No Data"}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              </Pressable>
+            </View>
+
+            {/* Live Stats */}
+            <View className="gap-lg rounded-3xl bg-background-elevated p-lg shadow-sm">
+              <View className="flex-row items-center justify-between">
+                <Text className="font-serif text-primary text-title">
+                  Live Stats
+                </Text>
+                {streaming && (
+                  <View className="flex-row items-center gap-xs rounded-full bg-primary-subtle px-md py-xxs">
+                    <View className="h-2 w-2 rounded-full bg-primary" />
+                    <Text className="font-bold font-sans text-micro text-primary uppercase tracking-widest">
+                      Active
                     </Text>
-                  </>
+                  </View>
                 )}
               </View>
-            </Pressable>
-          </View>
 
-          {/* Live Stats */}
-          <View className="bg-background-elevated rounded-3xl p-lg shadow-sm gap-lg">
-            <View className="flex-row items-center justify-between">
-              <Text className="font-serif text-title text-primary">Live Stats</Text>
-              {streaming && (
-                <View className="flex-row items-center gap-xs bg-primary-subtle px-md py-xxs rounded-full">
-                  <View className="h-2 w-2 rounded-full bg-primary" />
-                  <Text className="font-sans text-micro text-primary font-bold uppercase tracking-widest">Active</Text>
+              <View className="flex-row items-center gap-lg rounded-2xl bg-background-subtle/50 p-lg">
+                <View className="h-12 w-12 items-center justify-center rounded-full bg-tint-green">
+                  <Activity className="text-tint-green-foreground" size={24} />
                 </View>
+                <View className="flex-1">
+                  <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
+                    Current State
+                  </Text>
+                  <Text className="font-serif text-foreground text-subtitle">
+                    {insights?.dominantLabel || "Idle"}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="gap-sm">
+                <View className="flex-row justify-between">
+                  <Text className="font-sans text-foreground-muted text-micro uppercase">
+                    Stress Level
+                  </Text>
+                  <Text className="font-bold font-sans text-foreground text-micro">
+                    {insights?.stressRatio || 0}%
+                  </Text>
+                </View>
+                <View className="h-2 rounded-full bg-background-subtle">
+                  <View
+                    className="h-full rounded-full bg-accent"
+                    style={{
+                      width: `${Math.min(100, insights?.stressRatio || 0)}%`,
+                    }}
+                  />
+                </View>
+              </View>
+
+              <View className="flex-row gap-md">
+                <View className="flex-1 items-center gap-xxs rounded-2xl bg-background-subtle/50 p-md">
+                  {trendIcon(insights?.trendDirection)}
+                  <Text className="font-sans text-foreground-muted text-micro">
+                    Trend
+                  </Text>
+                  <Text className="font-bold font-sans text-caption text-foreground">
+                    {insights?.trendLabel || "Stable"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-center gap-xxs rounded-2xl bg-background-subtle/50 p-md">
+                  <Brain className="text-tint-purple-foreground" size={20} />
+                  <Text className="font-sans text-foreground-muted text-micro">
+                    Confidence
+                  </Text>
+                  <Text className="font-bold font-sans text-caption text-foreground">
+                    {insights?.averageConfidence || 0}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Timeline */}
+            {bundles.length > 0 && (
+              <View className="mt-md gap-md">
+                <Text className="font-serif text-primary text-title">
+                  Prediction Timeline
+                </Text>
+                <View className="rounded-3xl bg-background-elevated p-lg shadow-sm">
+                  <View className="flex-row items-end gap-[2px]">
+                    {bundles.slice(-60).map((b, i) => {
+                      const idx = b.prediction
+                        ? classIndex(b.prediction.predictedClass)
+                        : -1;
+                      const color = idx >= 0 ? CLASS_COLORS[idx] : "#7f8a83";
+                      const height = idx >= 0 ? 16 + idx * 10 : 6;
+                      return (
+                        <View
+                          className="flex-1 rounded-sm"
+                          key={b.bundleId ?? i}
+                          style={{ backgroundColor: color, height }}
+                        />
+                      );
+                    })}
+                  </View>
+                  <View className="mt-md flex-row gap-lg">
+                    {CLASS_LABELS.map((label, i) => (
+                      <View
+                        className="flex-row items-center gap-xs"
+                        key={label}
+                      >
+                        <View
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: CLASS_COLORS[i] }}
+                        />
+                        <Text className="font-sans text-foreground-muted text-micro">
+                          {label}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <Pressable
+              className={`mt-md flex-row items-center justify-center gap-2 rounded-full py-3.5 ${streaming ? "border-2 border-border bg-background-elevated" : "bg-primary"}`}
+              onPress={handleStartStop}
+            >
+              {streaming ? (
+                <Square className="text-foreground" size={18} />
+              ) : (
+                <Play className="text-primary-foreground" size={18} />
               )}
-            </View>
+              <Text
+                className={`font-bold font-sans text-body ${streaming ? "text-foreground" : "text-primary-foreground"}`}
+              >
+                {streaming ? "Stop Monitoring" : "Start Monitoring"}
+              </Text>
+            </Pressable>
 
-            <View className="flex-row items-center gap-lg bg-background-subtle/50 p-lg rounded-2xl">
-              <View className="h-12 w-12 rounded-full bg-tint-green items-center justify-center">
-                <Activity size={24} className="text-tint-green-foreground" />
-              </View>
-              <View className="flex-1">
-                <Text className="font-sans text-micro text-foreground-muted uppercase tracking-widest">Current State</Text>
-                <Text className="font-serif text-subtitle text-foreground">{insights?.dominantLabel || "Idle"}</Text>
-              </View>
-            </View>
-
-            <View className="gap-sm">
-              <View className="flex-row justify-between">
-                <Text className="font-sans text-micro text-foreground-muted uppercase">Stress Level</Text>
-                <Text className="font-sans text-micro font-bold text-foreground">{insights?.stressRatio || 0}%</Text>
-              </View>
-              <View className="h-2 rounded-full bg-background-subtle">
-                <View className="h-full rounded-full bg-accent" style={{ width: `${Math.min(100, insights?.stressRatio || 0)}%` }} />
-              </View>
-            </View>
-
-            <View className="flex-row gap-md">
-              <View className="flex-1 bg-background-subtle/50 p-md rounded-2xl items-center gap-xxs">
-                {insights?.trendDirection === "up" ? <TrendingUp size={20} className="text-destructive" /> : insights?.trendDirection === "down" ? <TrendingDown size={20} className="text-accent" /> : <BarChart3 size={20} className="text-primary" />}
-                <Text className="font-sans text-micro text-foreground-muted">Trend</Text>
-                <Text className="font-sans text-caption font-bold text-foreground">{insights?.trendLabel || "Stable"}</Text>
-              </View>
-              <View className="flex-1 bg-background-subtle/50 p-md rounded-2xl items-center gap-xxs">
-                <Brain size={20} className="text-tint-purple-foreground" />
-                <Text className="font-sans text-micro text-foreground-muted">Confidence</Text>
-                <Text className="font-sans text-caption font-bold text-foreground">{insights?.averageConfidence || 0}%</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Timeline */}
-          {bundles.length > 0 && (
-            <View className="gap-md mt-md">
-              <Text className="font-serif text-title text-primary">Prediction Timeline</Text>
-              <View className="bg-background-elevated rounded-3xl p-lg shadow-sm">
-                <View className="flex-row items-end gap-[2px]">
-                  {bundles.slice(-60).map((b, i) => {
-                    const idx = b.prediction ? classIndex(b.prediction.predictedClass) : -1;
-                    const color = idx >= 0 ? CLASS_COLORS[idx] : "#7f8a83";
-                    const height = idx >= 0 ? 16 + idx * 10 : 6;
-                    return <View key={b.bundleId ?? i} className="flex-1 rounded-sm" style={{ backgroundColor: color, height }} />;
-                  })}
-                </View>
-                <View className="flex-row gap-lg mt-md">
-                  {CLASS_LABELS.map((label, i) => (
-                    <View className="flex-row items-center gap-xs" key={label}>
-                      <View className="h-2 w-2 rounded-full" style={{ backgroundColor: CLASS_COLORS[i] }} />
-                      <Text className="font-sans text-micro text-foreground-muted">{label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          )}
-        </ScrollView>
-      </Screen>
-
-      {/* Bottom Bar */}
-      <View className="absolute bottom-0 left-0 right-0 bg-background-elevated/90 px-lg py-md flex-row items-center gap-lg border-t border-border rounded-t-3xl">
-        <Button
-          className="flex-1"
-          icon={streaming ? <Square size={16} className="text-foreground" /> : <Play size={16} className="text-white" />}
-          onPress={handleStartStop}
-          variant={streaming ? "outline" : "primary"}
-        >
-          {streaming ? "Stop Monitoring" : "Start Monitoring"}
-        </Button>
-        <Pressable onPress={() => router.back()} className="h-12 w-12 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm">
-          <ArrowLeft size={20} className="text-primary" />
-        </Pressable>
+        </Screen>
       </View>
-    </View>
+    </ScreenTabBar>
   );
 }

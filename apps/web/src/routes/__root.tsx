@@ -71,7 +71,7 @@ function RootDocument() {
       signUpUrl="/sign-up"
     >
       <ClerkApiAuthBridge />
-      <html className="dark" lang="en">
+      <html className="light" lang="en">
         <head>
           <HeadContent />
         </head>

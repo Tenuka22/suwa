@@ -234,10 +234,6 @@ export const userSubscriptions = sqliteTable("user_subscriptions", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-
-
-
-
 const hubVisibilityValues = ["public", "unlisted", "private"] as const;
 const hubMaterialStatusValues = [
   "uploading",
@@ -346,7 +342,6 @@ export type SessionAttendanceEvent =
   typeof sessionAttendanceEvents.$inferSelect;
 export type SessionSnapshot = typeof sessionSnapshots.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
-
 
 export type {
   NewStressDownloadAcknowledgment,

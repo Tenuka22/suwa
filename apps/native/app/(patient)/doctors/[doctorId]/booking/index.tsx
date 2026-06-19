@@ -3,28 +3,36 @@
 import { APP_DISPLAY_NAME_SPACE } from "@suwa/app-info";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import {
-  ArrowLeft,
-  Calendar,
-  Check,
-  Clock,
-  Sparkles,
-} from "lucide-react-native";
+import { ArrowLeft, Calendar, Clock, Sparkles } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { Button } from "@/components/design/ui/button";
-import { Input } from "@/components/design/ui/input";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
-import { orpc, queryClient } from "@/utils/orpc";
+import { orpc } from "@/utils/orpc";
 import { usePaymentSheet } from "@/utils/stripe";
 import { useErrorHandler } from "@/utils/use-error-handler";
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 function getNext7Days(): Date[] {
@@ -50,11 +58,26 @@ export default function BookingScreen() {
 
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<{ startAt: string; endAt: string } | null>(null);
-  const [bookingStep, setBookingStep] = useState<"select" | "processing" | "done">("select");
+  const [selectedSlot, setSelectedSlot] = useState<{
+    startAt: string;
+    endAt: string;
+  } | null>(null);
+  const [bookingStep, setBookingStep] = useState<
+    "select" | "processing" | "done"
+  >("select");
 
-  const plansQuery = useQuery(orpc.getDoctorPlans.queryOptions({ input: { doctorId: id ?? "" }, enabled: !!id }));
-  const doctorQuery = useQuery(orpc.getDoctor.queryOptions({ input: { doctorId: id ?? "" }, enabled: !!id }));
+  const plansQuery = useQuery(
+    orpc.getDoctorPlans.queryOptions({
+      input: { doctorId: id ?? "" },
+      enabled: !!id,
+    })
+  );
+  const doctorQuery = useQuery(
+    orpc.getDoctor.queryOptions({
+      input: { doctorId: id ?? "" },
+      enabled: !!id,
+    })
+  );
   const doctor = doctorQuery.data?.profile;
   const portraitId = doctorQuery.data?.portrait?.id ?? null;
   const portraitPreviewUrl = useDoctorMaterialPreviewUrl(portraitId);
@@ -64,7 +87,9 @@ export default function BookingScreen() {
 
   const fromDate = useMemo(() => selectedDate?.toISOString(), [selectedDate]);
   const toDate = useMemo(() => {
-    if (!selectedDate) return;
+    if (!selectedDate) {
+      return;
+    }
     const d = new Date(selectedDate);
     d.setDate(d.getDate() + 1);
     return d.toISOString();
@@ -72,38 +97,62 @@ export default function BookingScreen() {
 
   const slotsQuery = useQuery({
     ...orpc.getDoctorAvailableSlots.queryOptions({
-      input: { doctorId: id ?? "", from: fromDate ?? "", to: toDate ?? "", durationMinutes: selectedPlan?.durationMinutes ?? 30 },
+      input: {
+        doctorId: id ?? "",
+        from: fromDate ?? "",
+        to: toDate ?? "",
+        durationMinutes: selectedPlan?.durationMinutes ?? 30,
+      },
     }),
     enabled: !!id && !!selectedDate && !!selectedPlanId,
   });
 
-  const slots = (slotsQuery.data?.slots ?? []) as Array<{ startAt: string; endAt: string; available: boolean }>;
+  const slots = (slotsQuery.data?.slots ?? []) as Array<{
+    startAt: string;
+    endAt: string;
+    available: boolean;
+  }>;
   const filteredSlots = slots.filter((slot) => {
-    if (!slot.available) return false;
+    if (!slot.available) {
+      return false;
+    }
     const slotStart = new Date(slot.startAt);
-    if (slotStart.toDateString() !== new Date().toDateString()) return true;
+    if (slotStart.toDateString() !== new Date().toDateString()) {
+      return true;
+    }
     return slotStart.getTime() > Date.now();
   });
 
   const paymentSheet = usePaymentSheet();
-  const cancelSessionMutation = useMutation(orpc.cancelSession.mutationOptions());
+  const cancelSessionMutation = useMutation(
+    orpc.cancelSession.mutationOptions()
+  );
 
   const bookMutation = useMutation(
     orpc.bookSession.mutationOptions({
       onSuccess: async (result) => {
         const clientSecret = result.clientSecret;
-        if (!clientSecret) throw new Error("No payment client secret returned");
+        if (!clientSecret) {
+          throw new Error("No payment client secret returned");
+        }
 
-        const initResult = await paymentSheet.initPaymentSheet({ paymentIntentClientSecret: clientSecret, merchantDisplayName: APP_DISPLAY_NAME_SPACE });
+        const initResult = await paymentSheet.initPaymentSheet({
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: APP_DISPLAY_NAME_SPACE,
+        });
         if (initResult.error) {
           cancelSessionMutation.mutate({ sessionId: result.sessionId });
-          throw new Error(initResult.error.message ?? "Unable to open payment sheet");
+          throw new Error(
+            initResult.error.message ?? "Unable to open payment sheet"
+          );
         }
 
         const presentResult = await paymentSheet.presentPaymentSheet();
         if (presentResult.error) {
           cancelSessionMutation.mutate({ sessionId: result.sessionId });
-          throw new Error(presentResult.error.message ?? "Payment authorization failed");
+          throw new Error(
+            presentResult.error.message ?? "Payment authorization failed"
+          );
         }
 
         setBookingStep("done");
@@ -117,66 +166,107 @@ export default function BookingScreen() {
   );
 
   const handleBook = useCallback(() => {
-    if (!(selectedSlot && selectedPlanId && id)) return;
+    if (!(selectedSlot && selectedPlanId && id)) {
+      return;
+    }
     setBookingStep("processing");
-    bookMutation.mutate({ doctorId: id, planId: selectedPlanId, startAt: selectedSlot.startAt, endAt: selectedSlot.endAt });
+    bookMutation.mutate({
+      doctorId: id,
+      planId: selectedPlanId,
+      startAt: selectedSlot.startAt,
+      endAt: selectedSlot.endAt,
+    });
   }, [bookMutation, selectedSlot, selectedPlanId, id]);
 
   const next7Days = getNext7Days();
-  const canBook = !!(selectedSlot && selectedPlanId) && bookingStep !== "processing";
+  const canBook =
+    !!(selectedSlot && selectedPlanId) && bookingStep !== "processing";
 
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        <View className="flex-1 gap-xl pb-32 pt-lg px-lg bg-background">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-1 gap-xl bg-background px-lg pt-lg pb-32">
           {/* Header */}
-          <View className="flex-row items-center gap-md mt-sm">
-            <Pressable onPress={() => router.back()} className="h-10 w-10 rounded-full border border-border bg-background-elevated items-center justify-center shadow-sm">
-              <ArrowLeft size={20} className="text-primary" />
+          <View className="mt-sm flex-row items-center gap-md">
+            <Pressable
+              className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background-elevated shadow-sm"
+              onPress={() => router.back()}
+            >
+              <ArrowLeft className="text-primary" size={20} />
             </Pressable>
             <View>
-              <Text className="font-serif text-hero text-primary leading-tight">Book</Text>
-              <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">Consultation</Text>
+              <Text className="font-serif text-hero text-primary leading-tight">
+                Book
+              </Text>
+              <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+                Consultation
+              </Text>
             </View>
           </View>
 
           {/* Doctor Info */}
-          <View className="flex-row items-center gap-lg bg-background-subtle/50 p-lg rounded-3xl border border-border/50">
-            <View className="h-16 w-16 rounded-full border-2 border-border bg-background-elevated overflow-hidden">
+          <View className="flex-row items-center gap-lg rounded-3xl border border-border/50 bg-background-subtle/50 p-lg">
+            <View className="h-16 w-16 overflow-hidden rounded-full border-2 border-border bg-background-elevated">
               {portraitPreviewUrl ? (
-                <Image source={{ uri: portraitPreviewUrl }} className="h-full w-full" resizeMode="cover" />
+                <Image
+                  className="h-full w-full"
+                  resizeMode="cover"
+                  source={{ uri: portraitPreviewUrl }}
+                />
               ) : (
-                <View className="flex-1 items-center justify-center"><Text className="font-serif text-lg text-foreground-muted">{doctor?.displayName?.[0] ?? "D"}</Text></View>
+                <View className="flex-1 items-center justify-center">
+                  <Text className="font-serif text-foreground-muted text-lg">
+                    {doctor?.displayName?.[0] ?? "D"}
+                  </Text>
+                </View>
               )}
             </View>
             <View className="flex-1">
-              <Text className="font-serif text-title text-primary">{doctor?.displayName}</Text>
-              <Text className="font-sans text-caption text-foreground-secondary">{doctor?.headline}</Text>
+              <Text className="font-serif text-primary text-title">
+                {doctor?.displayName}
+              </Text>
+              <Text className="font-sans text-caption text-foreground-secondary">
+                {doctor?.headline}
+              </Text>
             </View>
           </View>
 
           {/* Plans */}
           <View className="gap-md">
             <View className="flex-row items-center gap-sm">
-              <Sparkles size={20} className="text-primary" />
-              <Text className="font-serif text-title text-primary">Select Plan</Text>
+              <Sparkles className="text-primary" size={20} />
+              <Text className="font-serif text-primary text-title">
+                Select Plan
+              </Text>
             </View>
             <View className="gap-md">
               {plans.map((plan) => (
                 <Pressable
+                  className={`rounded-2xl border p-lg ${plan.id === selectedPlanId ? "border-primary bg-primary/5" : "border-border bg-background-elevated"}`}
                   key={plan.id}
-                  onPress={() => { setSelectedPlanId(plan.id); setSelectedSlot(null); }}
-                  className={`p-lg rounded-2xl border ${plan.id === selectedPlanId ? "bg-primary/5 border-primary" : "bg-background-elevated border-border"}`}
+                  onPress={() => {
+                    setSelectedPlanId(plan.id);
+                    setSelectedSlot(null);
+                  }}
                 >
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-md">
-                      <Text className="font-serif text-subtitle text-foreground">{plan.name}</Text>
-                      <View className="bg-primary-subtle px-md py-xxs rounded-full">
-                        <Text className="font-sans text-micro text-primary uppercase font-bold">{plan.durationMinutes} min</Text>
+                      <Text className="font-serif text-foreground text-subtitle">
+                        {plan.name}
+                      </Text>
+                      <View className="rounded-full bg-primary-subtle px-md py-xxs">
+                        <Text className="font-bold font-sans text-micro text-primary uppercase">
+                          {plan.durationMinutes} min
+                        </Text>
                       </View>
                     </View>
-                    <Text className="font-serif text-title text-accent">${(plan.priceCents / 100).toFixed(0)}</Text>
+                    <Text className="font-serif text-accent text-title">
+                      ${(plan.priceCents / 100).toFixed(0)}
+                    </Text>
                   </View>
                 </Pressable>
               ))}
@@ -187,20 +277,29 @@ export default function BookingScreen() {
           {selectedPlanId && (
             <View className="gap-md">
               <View className="flex-row items-center gap-sm">
-                <Calendar size={20} className="text-primary" />
-                <Text className="font-serif text-title text-primary">Select Date</Text>
+                <Calendar className="text-primary" size={20} />
+                <Text className="font-serif text-primary text-title">
+                  Select Date
+                </Text>
               </View>
               <View className="flex-row flex-wrap gap-sm">
                 {next7Days.map((day) => {
-                  const isToday = day.toDateString() === new Date().toDateString();
-                  const isSelected = selectedDate?.toDateString() === day.toDateString();
+                  const isToday =
+                    day.toDateString() === new Date().toDateString();
+                  const isSelected =
+                    selectedDate?.toDateString() === day.toDateString();
                   return (
                     <Pressable
+                      className={`rounded-2xl px-lg py-md ${isSelected ? "bg-primary" : "bg-background-elevated shadow-sm"}`}
                       key={day.toISOString()}
-                      onPress={() => { setSelectedDate(day); setSelectedSlot(null); }}
-                      className={`px-lg py-md rounded-2xl ${isSelected ? "bg-primary" : "bg-background-elevated shadow-sm"}`}
+                      onPress={() => {
+                        setSelectedDate(day);
+                        setSelectedSlot(null);
+                      }}
                     >
-                      <Text className={`font-sans text-caption font-semibold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                      <Text
+                        className={`font-sans font-semibold text-caption ${isSelected ? "text-primary-foreground" : "text-foreground"}`}
+                      >
                         {isToday ? "Today" : formatDate(day)}
                       </Text>
                     </Pressable>
@@ -214,19 +313,23 @@ export default function BookingScreen() {
           {selectedPlanId && selectedDate && filteredSlots.length > 0 && (
             <View className="gap-md">
               <View className="flex-row items-center gap-sm">
-                <Clock size={20} className="text-primary" />
-                <Text className="font-serif text-title text-primary">Available Times</Text>
+                <Clock className="text-primary" size={20} />
+                <Text className="font-serif text-primary text-title">
+                  Available Times
+                </Text>
               </View>
               <View className="flex-row flex-wrap gap-sm">
                 {filteredSlots.map((slot, i) => {
                   const isSelected = selectedSlot?.startAt === slot.startAt;
                   return (
                     <Pressable
+                      className={`rounded-2xl px-lg py-md ${isSelected ? "bg-primary" : "bg-background-elevated shadow-sm"}`}
                       key={i}
                       onPress={() => setSelectedSlot(slot)}
-                      className={`px-lg py-md rounded-2xl ${isSelected ? "bg-primary" : "bg-background-elevated shadow-sm"}`}
                     >
-                      <Text className={`font-sans text-caption font-semibold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                      <Text
+                        className={`font-sans font-semibold text-caption ${isSelected ? "text-primary-foreground" : "text-foreground"}`}
+                      >
                         {formatTime(new Date(slot.startAt))}
                       </Text>
                     </Pressable>
@@ -239,18 +342,25 @@ export default function BookingScreen() {
       </ScrollView>
 
       {/* Bottom Bar */}
-      <View className="absolute bottom-0 left-0 right-0 bg-background-elevated/90 px-lg py-md flex-row items-center gap-lg border-t border-border">
+      <View className="absolute right-0 bottom-0 left-0 flex-row items-center gap-lg border-border border-t bg-background-elevated/90 px-lg py-md">
         {selectedSlot ? (
           <View className="flex-1">
             <Text className="font-sans text-body text-foreground">
-              {formatDate(new Date(selectedSlot.startAt))} at {formatTime(new Date(selectedSlot.startAt))}
+              {formatDate(new Date(selectedSlot.startAt))} at{" "}
+              {formatTime(new Date(selectedSlot.startAt))}
             </Text>
           </View>
         ) : (
-          <Text className="font-sans text-body text-foreground-muted flex-1">Select a date and time</Text>
+          <Text className="flex-1 font-sans text-body text-foreground-muted">
+            Select a date and time
+          </Text>
         )}
         <Button disabled={!canBook} onPress={handleBook} size="lg">
-          {bookingStep === "processing" ? <ActivityIndicator color="#faf7f2" /> : "Book Now"}
+          {bookingStep === "processing" ? (
+            <ActivityIndicator color="#faf7f2" />
+          ) : (
+            "Book Now"
+          )}
         </Button>
       </View>
     </View>

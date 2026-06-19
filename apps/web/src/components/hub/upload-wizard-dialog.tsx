@@ -1,6 +1,9 @@
 import {
   Button,
+  Checkbox,
+  CheckboxGroup,
   Chip,
+  Description,
   Input,
   Label,
   ListBox,
@@ -10,6 +13,7 @@ import {
   TextArea,
   ToggleButton,
   ToggleButtonGroup,
+  toast,
 } from "@heroui/react";
 import {
   EyeIcon,
@@ -22,7 +26,7 @@ import {
   UploadIcon,
   XIcon,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DropZoneArea,
   Dropzone,
@@ -110,6 +114,19 @@ export function UploadWizardDialog({
     [onOpenChange, reset]
   );
 
+  useEffect(() => {
+    if (progress?.status === "done") {
+      handleClose(false);
+      toast.success("Content uploaded successfully");
+    }
+  }, [handleClose, progress?.status]);
+
+  useEffect(() => {
+    if (progress?.status === "error" && progress.error) {
+      toast.danger(progress.error);
+    }
+  }, [progress?.error, progress?.status]);
+
   const handleStartUpload = useCallback(async () => {
     setShowErrors(true);
     if (!(selectedFile && title.trim())) {
@@ -177,7 +194,9 @@ export function UploadWizardDialog({
                 selectionMode="single"
               >
                 <ToggleButton id="file">File</ToggleButton>
-                <ToggleButton id="details">Details</ToggleButton>
+                <ToggleButton id="details" isDisabled={!selectedFile}>
+                  Details
+                </ToggleButton>
               </ToggleButtonGroup>
 
               {section === "file" ? (
@@ -357,45 +376,42 @@ export function UploadWizardDialog({
 
                   <div className="grid gap-3">
                     <Label>Visibility</Label>
-                    <ToggleButtonGroup
-                      disallowEmptySelection
-                      fullWidth
-                      isDetached
-                      onSelectionChange={(keys) =>
-                        setVisibility(
-                          (Array.from(keys)[0] as typeof visibility) ??
-                            "private"
-                        )
-                      }
-                      selectedKeys={new Set([visibility])}
-                      selectionMode="single"
+                    <CheckboxGroup
+                      onChange={(values) => {
+                        if (values.length > 0) {
+                          setVisibility(
+                            values.at(-1) as typeof visibility
+                          );
+                        }
+                      }}
+                      value={[visibility]}
                     >
                       {VISIBILITY_OPTIONS.map((option) => {
                         const Icon = option.icon;
                         return (
-                          <ToggleButton
-                            className="justify-start text-left"
-                            id={option.value}
+                          <Checkbox
                             key={option.value}
-                            variant="ghost"
+                            value={option.value}
+                            variant="secondary"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground">
-                                <Icon className="size-4" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-sm">
+                            <Checkbox.Content className="group relative flex w-full flex-row items-start justify-start gap-4 rounded-2xl border bg-muted/10 px-5 py-4 shadow-sm transition-all data-[selected=true]:bg-accent/10">
+                              <Checkbox.Control className="absolute top-4 right-4 size-5 rounded-full before:rounded-full">
+                                <Checkbox.Indicator />
+                              </Checkbox.Control>
+                              <Icon className="size-5 shrink-0 text-accent-soft-foreground" />
+                              <div className="flex flex-col gap-1">
+                                <span className="font-medium text-sm">
                                   {option.label}
-                                </p>
-                                <p className="text-muted-foreground text-xs">
+                                </span>
+                                <Description className="text-xs">
                                   {option.description}
-                                </p>
+                                </Description>
                               </div>
-                            </div>
-                          </ToggleButton>
+                            </Checkbox.Content>
+                          </Checkbox>
                         );
                       })}
-                    </ToggleButtonGroup>
+                    </CheckboxGroup>
                   </div>
                 </div>
               )}
@@ -453,7 +469,7 @@ export function UploadWizardDialog({
               ) : null}
             </Modal.Body>
 
-            <Modal.Footer className="border-border/60 border-t px-6 py-4">
+            <Modal.Footer>
               {section === "file" ? (
                 <Button
                   className="ml-auto gap-2"

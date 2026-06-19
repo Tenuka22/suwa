@@ -62,7 +62,6 @@ function OAuthButton({
   const { startOAuthFlow } = useOAuth({ strategy });
   return (
     <Button
-      variant="outline"
       onPress={async () => {
         const { createdSessionId, setActive } = await startOAuthFlow({
           redirectUrl: Linking.createURL("/", { scheme: "suwa" }),
@@ -71,6 +70,7 @@ function OAuthButton({
           await setActive({ session: createdSessionId });
         }
       }}
+      variant="outline"
     >
       {label}
     </Button>
@@ -197,14 +197,14 @@ export default function LandingScreen() {
           showsVerticalScrollIndicator={false}
         >
           {currentFlow === "start" ? (
-            <View className="flex-1 relative">
+            <View className="relative flex-1">
               <Image
+                className="absolute right-0 bottom-0"
                 resizeMode="cover"
-                className="absolute  right-0 bottom-0"
                 source={require("@/assets/leaves01.png")}
-                style={{  width:  480, height:820  }}
+                style={{ width: 480, height: 820 }}
               />
-              <View className="gap-8 px-8 flex-1 justify-center">
+              <View className="flex-1 justify-center gap-8 px-8">
                 <Image
                   resizeMode="contain"
                   source={require("@/assets/images/icon-stripped.png")}
@@ -230,8 +230,8 @@ export default function LandingScreen() {
                 <Button
                   icon={<ArrowRight color="white" />}
                   justify="between"
-                  size="lg"
                   onPress={() => setStep("auth")}
+                  size="lg"
                 >
                   Begin your journey
                 </Button>

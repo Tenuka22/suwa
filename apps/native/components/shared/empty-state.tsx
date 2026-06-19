@@ -4,7 +4,6 @@ import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
-
 interface EmptyStateProps {
   action?: ReactNode;
   description?: string;
@@ -18,7 +17,6 @@ export function EmptyState({
   description,
   action,
 }: EmptyStateProps) {
-  
   return (
     <View className="items-center justify-center rounded-card border-2 border-border border-dashed py-16">
       {Icon && (

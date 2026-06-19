@@ -2,18 +2,11 @@
 
 import "../global.css";
 
-import { useFonts } from 'expo-font';
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import {
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_400Regular_Italic,
-} from "@expo-google-fonts/playfair-display";
-import {
-  Poppins_300Light,
-} from "@expo-google-fonts/poppins";
 import { env } from "@suwa/env/native";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
 import { Redirect, Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -21,7 +14,10 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ErrorDialog, useErrorDialog } from "@/components/design/ui/error-dialog";
+import {
+  ErrorDialog,
+  useErrorDialog,
+} from "@/components/design/ui/error-dialog";
 import { showToast } from "@/components/design/ui/toast";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
 import { orpc, queryClient, setQueryErrorHandler } from "@/utils/orpc";
@@ -227,9 +223,14 @@ function LayoutContent() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    "Poppins": Poppins_300Light,
-    "Playfair Display": PlayfairDisplay_400Regular,
-    "Playfair Display-Italic": PlayfairDisplay_400Regular_Italic,
+    Poppins: require("../assets/fonts/Poppins-Regular.ttf"),
+    "Poppins-Light": require("../assets/fonts/Poppins-Light.ttf"),
+    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
+    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
+    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
+    "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
+    "Playfair Display": require("../assets/fonts/PlayfairDisplay-Regular.ttf"),
+    "Playfair Display-Italic": require("../assets/fonts/PlayfairDisplay-Italic.ttf"),
   });
 
   useEffect(() => {
@@ -242,7 +243,5 @@ export default function RootLayout() {
     return null;
   }
 
-  return (
-          <LayoutContent />
-      );
+  return <LayoutContent />;
 }

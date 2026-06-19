@@ -155,7 +155,7 @@ export function EditMaterialDialog({
   return (
     <Modal.Backdrop isOpen={open} onOpenChange={onOpenChange}>
       <Modal.Container>
-        <Modal.Dialog className="max-h-[85vh] overflow-y-auto sm:max-w-[600px]">
+        <Modal.Dialog className="max-h-[85vh] overflow-y-auto bg-background">
           <Modal.CloseTrigger />
           <Modal.Header>
             <Modal.Heading className="font-medium text-sm">
@@ -184,7 +184,7 @@ export function EditMaterialDialog({
                     <Tabs.Indicator />
                   </Tabs.Tab>
                   <Tabs.Tab id="transcription">
-                    Transcription / Notes
+                    Transcription
                     <Tabs.Indicator />
                   </Tabs.Tab>
                   <Tabs.Tab id="tags">
@@ -333,7 +333,8 @@ export function EditMaterialDialog({
                       isDisabled={!tagInput.trim() || tags.length >= 20}
                       onPress={handleAddTag}
                       size="sm"
-                      variant="outline"
+                      className="size-9"
+                      variant="secondary"
                     >
                       <PlusIcon className="size-4" />
                     </Button>

@@ -20,15 +20,12 @@ import {
   Text,
   View,
 } from "react-native";
-
-import { Button } from "@/components/design/ui/button";
-import { IconButton } from "@/components/design/ui/icon-button";
 import { Screen } from "@/components/design/ui/screen";
 import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
 import { orpc } from "@/utils/orpc";
 
 export default function HospitalDetailScreen() {
-    const router = useRouter();
+  const router = useRouter();
   const { tenantId } = useLocalSearchParams<{ tenantId: string }>();
 
   const detailQuery = useQuery(
@@ -73,7 +70,6 @@ export default function HospitalDetailScreen() {
                     <Text className="font-black font-sans text-2xl text-foreground uppercase leading-tight tracking-tight">
                       {tenant.name}
                     </Text>
-                    
                   </View>
                 </View>
 
@@ -156,8 +152,13 @@ export default function HospitalDetailScreen() {
                   </View>
                   <View className="flex-row flex-wrap gap-1.5">
                     {tenant.services.map((service) => (
-                      <View key={service} className="rounded-full bg-background px-3 py-1">
-                        <Text className="text-xs font-medium text-foreground">{service}</Text>
+                      <View
+                        className="rounded-full bg-background px-3 py-1"
+                        key={service}
+                      >
+                        <Text className="font-medium text-foreground text-xs">
+                          {service}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -192,8 +193,10 @@ export default function HospitalDetailScreen() {
                       <Text className="font-bold font-sans text-foreground text-sm uppercase tracking-tight">
                         {clinic.name}
                       </Text>
-{clinic.specialization && (
-                        <Text className="text-xs font-medium text-muted-foreground">{clinic.specialization}</Text>
+                      {clinic.specialization && (
+                        <Text className="font-medium text-muted-foreground text-xs">
+                          {clinic.specialization}
+                        </Text>
                       )}
                       {clinic.schedule && (
                         <View className="flex-row items-start gap-1.5">
@@ -260,8 +263,13 @@ export default function HospitalDetailScreen() {
                       )}
                       <View className="flex-row flex-wrap gap-1">
                         {doc.profile.specialties.slice(0, 3).map((s) => (
-                          <View key={s} className="rounded-full bg-background px-2 py-0.5">
-                            <Text className="text-[10px] font-medium text-foreground">{s}</Text>
+                          <View
+                            className="rounded-full bg-background px-2 py-0.5"
+                            key={s}
+                          >
+                            <Text className="font-medium text-[10px] text-foreground">
+                              {s}
+                            </Text>
                           </View>
                         ))}
                       </View>
@@ -283,7 +291,7 @@ export default function HospitalDetailScreen() {
       <ScreenBottomBar
         returnAction={{
           href: "/map",
-          icon: <ArrowLeft className="text-foreground" size={24} />
+          icon: <ArrowLeft className="text-foreground" size={24} />,
         }}
       />
     </>

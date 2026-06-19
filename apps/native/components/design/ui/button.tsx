@@ -2,7 +2,7 @@
 
 import * as Haptics from "expo-haptics";
 import { type Href, Link } from "expo-router";
-import { useRef, type ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
@@ -61,7 +61,9 @@ export function Button({
   const textStyles = isPrimary ? "text-primary-foreground" : "text-foreground";
 
   const handlePress = () => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress?.();
   };
@@ -72,7 +74,7 @@ export function Button({
     >
       {icon && iconPlacement === "left" ? icon : null}
       <Text
-        className={`font-sans font-medium ${size === "sm" ? "text-caption" : "text-body"} ${textStyles}`}
+        className={`font-medium font-sans ${size === "sm" ? "text-caption" : "text-body"} ${textStyles}`}
       >
         {children}
       </Text>

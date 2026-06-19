@@ -7,7 +7,6 @@ import { doctorRouter } from "./doctor";
 import { doctorFilesRouter } from "./doctor-files";
 import { doctorMaterialsRouter } from "./doctor-materials";
 
-
 import { hubChannelsRouter } from "./hub-channels";
 import { hubUploadRouter } from "./hub-upload";
 import { liveKitRouter } from "./livekit";
@@ -29,7 +28,6 @@ export const appRouter = {
   ...liveKitRouter,
   ...patientRouter,
   ...sessionAttendanceRouter,
-
 
   ...stressHubRouter,
   ...tenantRouter,

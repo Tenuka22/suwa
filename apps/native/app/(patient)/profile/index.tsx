@@ -1,16 +1,18 @@
 "use client";
 
-import { useClerk } from "@clerk/expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Stack } from "expo-router";
-import { ArrowLeft,  Key, LogOut, Save } from "lucide-react-native";
+import { Stack, useRouter } from "expo-router";
+import { BookOpen, Home, Key, MessageCircle, User } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 import { Button } from "@/components/design/ui/button";
-import { ErrorDialog, useErrorDialog } from "@/components/design/ui/error-dialog";
+import {
+  ErrorDialog,
+  useErrorDialog,
+} from "@/components/design/ui/error-dialog";
 import { Input } from "@/components/design/ui/input";
-import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
+import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
 import { showToast } from "@/components/design/ui/toast";
 import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
@@ -24,22 +26,21 @@ import {
 import { useErrorHandler } from "@/utils/use-error-handler";
 
 export default function ProfileScreen() {
-  
+  const router = useRouter();
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
-  const [initialAlias, setInitialAlias] = useState("");
-  const [initialEmail, setInitialEmail] = useState("");
-  const [initialPhone, setInitialPhone] = useState("");
-  const [initialFullName, setInitialFullName] = useState("");
-  const [initialAddress, setInitialAddress] = useState("");
+  const [_initialAlias, setInitialAlias] = useState("");
+  const [_initialEmail, setInitialEmail] = useState("");
+  const [_initialPhone, setInitialPhone] = useState("");
+  const [_initialFullName, setInitialFullName] = useState("");
+  const [_initialAddress, setInitialAddress] = useState("");
   const [hasKey, setHasKey] = useState<boolean | null>(null);
 
-  const { signOut } = useClerk();
   const { handleError } = useErrorHandler();
-  const { showError, dialogProps } = useErrorDialog();
+  const { dialogProps } = useErrorDialog();
 
   const profileQuery = useQuery(orpc.getPatientProfile.queryOptions());
 
@@ -60,7 +61,7 @@ export default function ProfileScreen() {
 
     if (data._securedData) {
       getStoredSecret().then(async (secret) => {
-        if (!secret || !data._securedData) {
+        if (!(secret && data._securedData)) {
           return;
         }
 
@@ -136,22 +137,40 @@ export default function ProfileScreen() {
     );
   }
 
-  const changed =
-    alias !== initialAlias ||
-    email !== initialEmail ||
-    phone !== initialPhone ||
-    fullName !== initialFullName ||
-    address !== initialAddress;
-
-  const showPersonalFields = hasKey === true || profileQuery.data === null || !profileQuery.data?._securedData;
+  const showPersonalFields =
+    hasKey === true ||
+    profileQuery.data === null ||
+    !profileQuery.data?._securedData;
 
   return (
-    <>
+    <ScreenTabBar
+      tabs={[
+        {
+          icon: <Home className="text-foreground" size={20} />,
+          label: "Home",
+          onPress: () => router.push("/(patient)"),
+        },
+        {
+          icon: <MessageCircle className="text-foreground" size={20} />,
+          label: "Doctors",
+          onPress: () => router.push("/(patient)/doctors"),
+        },
+        {
+          icon: <BookOpen className="text-foreground" size={20} />,
+          label: "Health",
+          onPress: () => router.push("/(patient)/health-hub"),
+        },
+        {
+          active: true,
+          icon: <User className="text-primary-foreground" size={20} />,
+          label: "Profile",
+          onPress: () => router.push("/(patient)/profile"),
+        },
+      ]}
+    >
       <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-background">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView showsVerticalScrollIndicator={false}>
           <View className="gap-8 px-8 pt-20">
             <View className="gap-6">
               <Text className="font-serif text-display text-foreground leading-none">
@@ -220,34 +239,14 @@ export default function ProfileScreen() {
               )}
             </View>
 
+            <Button onPress={handleSave} size="lg">
+              Save Profile
+            </Button>
           </View>
         </ScrollView>
       </View>
 
-
       <ErrorDialog {...dialogProps} />
-      <ScreenBottomBar
-        leftActions={[
-          {
-            icon: <Save className={changed ? "text-foreground" : "text-foreground-muted"} size={20} />,
-            label: "Save",
-            onPress: handleSave,
-          },
-          {
-            icon: <LogOut className={"text-foreground"} size={20} />,
-            label: "Exit",
-            onPress: () =>
-              showError("Sign Out", "Are you sure?", [
-                { label: "Cancel", variant: "secondary", onPress: () => { return; } },
-                { label: "Sign Out", onPress: () => signOut() },
-              ]),
-          },
-        ]}
-        returnAction={{
-          href: "/(patient)",
-          icon: <ArrowLeft className="text-foreground" size={24} />,
-        }}
-      />
-    </>
+    </ScreenTabBar>
   );
 }

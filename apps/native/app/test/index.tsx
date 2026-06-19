@@ -42,8 +42,6 @@ export default function TestIndexScreen() {
           </Button>
         </Card>
 
-
-
         {wearablePackages.map((item) => (
           <Card className="gap-4" key={item.route}>
             <View className="gap-1">
