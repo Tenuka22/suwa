@@ -30,7 +30,7 @@ export function Input({
         </Text>
       ) : null}
       <View
-        className={`flex-row items-center rounded-sm border-2 bg-background-elevated px-4 ${error ? "border-destructive" : "border-input"} ${inputContainerClassName ?? ""}`.trim()}
+        className={`flex-row items-center rounded-xl border-2 bg-background-elevated px-4 ${error ? "border-destructive" : "border-input"} ${inputContainerClassName ?? ""}`.trim()}
       >
         {leftIcon && <View className="mr-2">{leftIcon}</View>}
         <TextInput

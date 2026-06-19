@@ -9,12 +9,10 @@ import {
   Flower2,
   Heart,
   Home,
-  Library,
   MessageCircle,
   Search,
   Shield,
   ShieldCheck,
-  SquarePlus,
   User,
 } from "lucide-react-native";
 import { Image, Pressable, Text, View } from "react-native";
@@ -48,7 +46,7 @@ export default function HomeScreen() {
               />
             </View>
             <View className="flex flex-col">
-              <Text className="font-sans font-light text-title text-foreground-muted">
+              <Text className="font-sans text-title text-foreground-muted">
                 Welcome
               </Text>
               <Text className="font-sans text-subtitle text-primary">

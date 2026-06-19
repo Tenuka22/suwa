@@ -2,8 +2,8 @@
 
 import * as Haptics from "expo-haptics";
 import { type Href, Link } from "expo-router";
-import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useRef, type ReactNode } from "react";
+import { Animated, Pressable, Text, View } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type ButtonSize = "sm" | "default" | "lg";
@@ -34,6 +34,16 @@ export function Button({
   variant = "primary",
 }: ButtonProps) {
   const isPrimary = variant === "primary";
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const animateScale = (toValue: number) => {
+    Animated.spring(scaleAnim, {
+      toValue,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
 
   const sizeStyles = {
     sm: "px-4 py-2",
@@ -75,6 +85,9 @@ export function Button({
       className={`flex-row items-center rounded-full border-2 ${sizeStyles[size]} ${variantStyles[variant]} ${disabled ? "opacity-60" : ""} ${className ?? ""}`.trim()}
       disabled={disabled}
       onPress={handlePress}
+      onPressIn={() => animateScale(0.96)}
+      onPressOut={() => animateScale(1)}
+      style={{ transform: [{ scale: scaleAnim }] }}
     >
       {content}
     </Pressable>

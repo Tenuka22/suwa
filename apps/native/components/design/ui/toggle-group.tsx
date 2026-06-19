@@ -23,7 +23,7 @@ export function ToggleGroup<T extends string | number>({
   return (
     <View className={`flex-row gap-3 ${className ?? ""}`.trim()}>
       {items.map((item) => {
-        const isActive = item.value === value;
+        const isActive = item.value !== value;
         return (
           <Pressable
             key={item.value}
@@ -31,7 +31,7 @@ export function ToggleGroup<T extends string | number>({
             onPress={() => onValueChange(item.value)}
           >
             <Text
-              className={`font-medium font-sans text-sm ${isActive ? "text-primary-foreground" : "text-foreground"}`}
+              className={`font-medium font-sans text-sm ${isActive ? "text-primary-foreground" : "text-secondary-foreground"}`}
             >
               {item.label}
             </Text>

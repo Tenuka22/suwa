@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Poppins:wght@400;500;600;700&display=swap");
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css";
@@ -10,210 +9,210 @@
    ============================================================ */
 
 @theme {
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      BACKGROUNDS
      Layered surfaces from app-level to elevated cards.
   ---------------------------------------------------------- */
-  --color-background: #faf7f2;
-  /* App-level canvas — warm cream        */
-  --color-background-elevated: #ffffff;
-  /* Cards, sheets, modals                 */
-  --color-background-subtle: #ecede2;
-  /* Banners, tags, section separators     */
-  --color-background-overlay: #f4f1eb;
-  /* Hover states, skeleton loaders        */
+    --color-background: #faf7f2;
+    /* App-level canvas — warm cream        */
+    --color-background-elevated: #ffffff;
+    /* Cards, sheets, modals                 */
+    --color-background-subtle: #ecede2;
+    /* Banners, tags, section separators     */
+    --color-background-overlay: #f4f1eb;
+    /* Hover states, skeleton loaders        */
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      FOREGROUND (text & icons placed on the above backgrounds)
   ---------------------------------------------------------- */
-  --color-foreground: #2d3e35;
-  /* Body text on --background            */
-  --color-foreground-secondary: #4e5752;
-  /* Subtext, descriptions                */
-  --color-foreground-muted: #7f8a83;
-  /* Hints, captions, timestamps          */
-  --color-foreground-placeholder: #8e9a94;
-  /* Input placeholders                   */
-  --color-foreground-on-subtle: #424d46;
-  /* Text sitting on --background-subtle  */
+    --color-foreground: #2d3e35;
+    /* Body text on --background            */
+    --color-foreground-secondary: #4e5752;
+    /* Subtext, descriptions                */
+    --color-foreground-muted: #7f8a83;
+    /* Hints, captions, timestamps          */
+    --color-foreground-placeholder: #8e9a94;
+    /* Input placeholders                   */
+    --color-foreground-on-subtle: #424d46;
+    /* Text sitting on --background-subtle  */
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      PRIMARY  (brand dark forest green)
      Main CTA buttons, navigation active states, logo.
   ---------------------------------------------------------- */
-  --color-primary: #2d3e35;
-  --color-primary-foreground: #faf7f2;
-  /* Text / icons on primary surface      */
-  --color-primary-hover: #3b5145;
-  /* Darkened for press / hover            */
-  --color-primary-subtle: #e2eae5;
-  /* Light green tint — chips, badges      */
-  --color-primary-subtle-foreground: #5f7267;
-  /* Icons on primary-subtle         */
+    --color-primary: #2d3e35;
+    --color-primary-foreground: #faf7f2;
+    /* Text / icons on primary surface      */
+    --color-primary-hover: #3b5145;
+    /* Darkened for press / hover            */
+    --color-primary-subtle: #e2eae5;
+    /* Light green tint — chips, badges      */
+    --color-primary-subtle-foreground: #5f7267;
+    /* Icons on primary-subtle         */
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      SECONDARY  (mid-tone sage green)
      Icon backgrounds, secondary badges, active tabs.
   ---------------------------------------------------------- */
-  --color-secondary: #5f7267;
-  --color-secondary-foreground: #ffffff;
-  --color-secondary-hover: #4e5f56;
+    --color-secondary: #5f7267;
+    --color-secondary-foreground: #ffffff;
+    --color-secondary-hover: #4e5f56;
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      ACCENT  (warm terracotta / amber)
      Highlight words ("Always.", "ours."), decorative rules,
      notification dots, progress indicators.
   ---------------------------------------------------------- */
-  --color-accent: #c58a5b;
-  --color-accent-foreground: #ffffff;
-  --color-accent-hover: #b37848;
-  --color-accent-subtle: #f5ecd8;
-  /* Beige tint surface — icon backgrounds  */
-  --color-accent-subtle-foreground: #c58a5b;
+    --color-accent: #c58a5b;
+    --color-accent-foreground: #ffffff;
+    --color-accent-hover: #b37848;
+    --color-accent-subtle: #f5ecd8;
+    /* Beige tint surface — icon backgrounds  */
+    --color-accent-subtle-foreground: #c58a5b;
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      MUTED
      Disabled states, read-only fields, de-emphasised surfaces.
   ---------------------------------------------------------- */
-  --color-muted: #ecede2;
-  --color-muted-foreground: #7f8a83;
+    --color-muted: #ecede2;
+    --color-muted-foreground: #7f8a83;
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      SURFACE TINTS
      Category icon backgrounds — each has a bg + icon pair.
      Usage: bg on the circle, foreground on the icon inside.
   ---------------------------------------------------------- */
 
-  /* Consultation — sage green */
-  --color-tint-green: #e2eae5;
-  --color-tint-green-foreground: #5f7267;
+    /* Consultation — sage green */
+    --color-tint-green: #e2eae5;
+    --color-tint-green-foreground: #5f7267;
 
-  /* Health Library — warm beige */
-  --color-tint-beige: #f5ecd8;
-  --color-tint-beige-foreground: #c58a5b;
+    /* Health Library — warm beige */
+    --color-tint-beige: #f5ecd8;
+    --color-tint-beige-foreground: #c58a5b;
 
-  /* Wellness Tools — soft lavender */
-  --color-tint-purple: #ece6f2;
-  --color-tint-purple-foreground: #9e8cb2;
+    /* Wellness Tools — soft lavender */
+    --color-tint-purple: #ece6f2;
+    --color-tint-purple-foreground: #9e8cb2;
 
-  /* Privacy Center — muted yellow */
-  --color-tint-yellow: #f7efcb;
-  --color-tint-yellow-foreground: #c3af5a;
+    /* Privacy Center — muted yellow */
+    --color-tint-yellow: #f7efcb;
+    --color-tint-yellow-foreground: #c3af5a;
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      BORDER, INPUT & RING
   ---------------------------------------------------------- */
-  --color-border: #e2ddd5;
-  /* Dividers, card outlines, separators   */
-  --color-input: #e2ddd5;
-  /* Input field border                    */
-  --color-ring: #5f7267;
-  /* Focus ring (keyboard / a11y)          */
+    --color-border: #e2ddd5;
+    /* Dividers, card outlines, separators   */
+    --color-input: #e2ddd5;
+    /* Input field border                    */
+    --color-ring: #5f7267;
+    /* Focus ring (keyboard / a11y)          */
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      TYPOGRAPHY
      Two-family system: serif for display, sans for UI.
   ---------------------------------------------------------- */
 
-  /* Tailwind shorthand aliases */
-  --font-sans: "Poppins";
-  --font-serif: "Playfair Display";
+    /* Tailwind shorthand aliases */
+    --font-sans: "Poppins";
+    --font-serif: "Playfair Display";
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      TYPE SCALE
      Derived from the design's visible hierarchy.
   ---------------------------------------------------------- */
-  --text-display: 96px;
-  /* "Suwa" brand wordmark                  */
-  --text-sub-display: 34px;
-  /* "Suwa" brand sub wordmark                  */
-  --text-hero: 28px;
-  /* "Health is personal." hero heading      */
-  --text-title: 20px;
-  /* Section / card titles                   */
-  --text-subtitle: 17px;
-  /* "Welcome Guest", feature labels         */
-  --text-body: 15px;
-  /* Descriptions, body copy                 */
-  --text-caption: 13px;
-  /* Hints, placeholders, timestamps         */
-  --text-micro: 11px;
-  /* Tab bar labels                          */
+    --text-display: 96px;
+    /* "Suwa" brand wordmark                  */
+    --text-sub-display: 34px;
+    /* "Suwa" brand sub wordmark                  */
+    --text-hero: 28px;
+    /* "Health is personal." hero heading      */
+    --text-title: 20px;
+    /* Section / card titles                   */
+    --text-subtitle: 17px;
+    /* "Welcome Guest", feature labels         */
+    --text-body: 15px;
+    /* Descriptions, body copy                 */
+    --text-caption: 13px;
+    /* Hints, placeholders, timestamps         */
+    --text-micro: 11px;
+    /* Tab bar labels                          */
 
-  --leading-tight: 1.15;
-  --leading-snug: 1.3;
-  --leading-normal: 1.4;
-  --leading-relaxed: 1.6;
+    --leading-tight: 1.15;
+    --leading-snug: 1.3;
+    --leading-normal: 1.4;
+    --leading-relaxed: 1.6;
 
-  --tracking-tight: -0.02em;
-  --tracking-normal: 0em;
-  --tracking-wide: 0.02em;
-  --tracking-widest: 0.08em;
-  /* ALL-CAPS micro labels                  */
+    --tracking-tight: -0.02em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.02em;
+    --tracking-widest: 0.08em;
+    /* ALL-CAPS micro labels                  */
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      SPACING
      Consistent 4 px base grid — named by their role, not px.
   ---------------------------------------------------------- */
-  --spacing-px: 1px;
-  --spacing-xxs: 4px;
-  --spacing-xs: 6px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 20px;
-  --spacing-xxl: 24px;
-  --spacing-huge: 32px;
-  --spacing-giant: 48px;
+    --spacing-px: 1px;
+    --spacing-xxs: 4px;
+    --spacing-xs: 6px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    --spacing-xxl: 24px;
+    --spacing-huge: 32px;
+    --spacing-giant: 48px;
 
-  /* Keep original space- variables for backward compatibility if needed */
-  --space-px: 1px;
-  --space-1: 4px;
-  --space-1-5: 6px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
+    /* Keep original space- variables for backward compatibility if needed */
+    --space-px: 1px;
+    --space-1: 4px;
+    --space-1-5: 6px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      BORDER RADIUS
      Rounded-first system — pill for CTAs, device for mockups.
   ---------------------------------------------------------- */
-  --radius-xs: 6px;
-  /* Small chips, tags, micro elements      */
-  --radius-sm: 10px;
-  /* Input fields, search bar               */
-  --radius-md: 12px;
-  /* Quick-action cards                     */
-  --radius-lg: 16px;
-  /* Main content cards                     */
-  --radius-xl: 20px;
-  /* Bottom sheets, large panels            */
-  --radius-2xl: 24px;
-  /* Modal surfaces                         */
-  --radius-full: 9999px;
-  /* Pills — primary CTA button, icon rings */
-  --radius-device: 48px;
-  /* Phone frame in splash screen           */
+    --radius-xs: 6px;
+    /* Small chips, tags, micro elements      */
+    --radius-sm: 10px;
+    /* Input fields, search bar               */
+    --radius-md: 12px;
+    /* Quick-action cards                     */
+    --radius-lg: 16px;
+    /* Main content cards                     */
+    --radius-xl: 20px;
+    /* Bottom sheets, large panels            */
+    --radius-2xl: 24px;
+    /* Modal surfaces                         */
+    --radius-full: 9999px;
+    /* Pills — primary CTA button, icon rings */
+    --radius-device: 48px;
+    /* Phone frame in splash screen           */
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      SHADOWS
      Minimal elevation — only where depth is earned.
   ---------------------------------------------------------- */
-  --shadow-sm: 0 1px 3px 0 rgb(45 62 53 / 0.06);
-  --shadow-md: 0 4px 12px 0 rgb(45 62 53 / 0.08);
-  --shadow-lg: 0 8px 24px 0 rgb(45 62 53 / 0.1);
+    --shadow-sm: 0 1px 3px 0 rgb(45 62 53 / 0.06);
+    --shadow-md: 0 4px 12px 0 rgb(45 62 53 / 0.08);
+    --shadow-lg: 0 8px 24px 0 rgb(45 62 53 / 0.1);
 
-  /* ----------------------------------------------------------
+    /* ----------------------------------------------------------
      TRANSITIONS
   ---------------------------------------------------------- */
-  --duration-fast: 120ms;
-  --duration-normal: 200ms;
-  --duration-slow: 350ms;
-  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 120ms;
+    --duration-normal: 200ms;
+    --duration-slow: 350ms;
+    --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================================
@@ -221,43 +220,43 @@
    ============================================================ */
 
 @layer base {
-  html {
-    font-family: var(--font-sans);
-    font-size: var(--text-body);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    line-height: var(--leading-normal);
-  }
+    html {
+        font-family: var(--font-sans);
+        font-size: var(--text-body);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        line-height: var(--leading-normal);
+    }
 
-  body {
-    font-family: var(--font-sans);
-    color: var(--color-foreground);
-    background-color: var(--color-background);
-  }
+    body {
+        font-family: var(--font-sans);
+        color: var(--color-foreground);
+        background-color: var(--color-background);
+    }
 
-  /* Headings use the serif display face */
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-serif);
-    line-height: var(--leading-tight);
-    color: var(--color-foreground);
-    letter-spacing: var(--tracking-tight);
-  }
+    /* Headings use the serif display face */
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-serif);
+        line-height: var(--leading-tight);
+        color: var(--color-foreground);
+        letter-spacing: var(--tracking-tight);
+    }
 
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-sans);
-    font-weight: 600;
-    line-height: var(--leading-snug);
-    color: var(--color-foreground);
-  }
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-sans);
+        font-weight: 600;
+        line-height: var(--leading-snug);
+        color: var(--color-foreground);
+    }
 
-  /* Italic serif for the accent phrase — e.g. "Privacy is ours." */
-  em {
-    font-family: var(--font-serif);
-    font-style: italic;
-    color: var(--color-accent);
-  }
+    /* Italic serif for the accent phrase — e.g. "Privacy is ours." */
+    em {
+        font-family: var(--font-serif);
+        font-style: italic;
+        color: var(--color-accent);
+    }
 }

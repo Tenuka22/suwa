@@ -5,8 +5,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import { ArrowRight } from "lucide-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Image, ScrollView, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Image, ScrollView, Text, View } from "react-native";
 import { z } from "zod";
 import { Button } from "@/components/design/ui/button";
 import { Input } from "@/components/design/ui/input";
@@ -108,7 +108,6 @@ export default function LandingScreen() {
     fullName: "",
     address: "",
   });
-  const fadeAnim = useRef(new Animated.Value(0)).current;
   useQuery(
     orpc.getPatientProfile.queryOptions({
       enabled: isLoaded && isSignedIn,
@@ -135,14 +134,6 @@ export default function LandingScreen() {
     () => (step === "profile" ? "profile" : step === "auth" ? "auth" : "start"),
     [step]
   );
-  useEffect(() => {
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
-  }, [currentFlow, fadeAnim]);
   const submitAuth = async () => {
     setStatusMessage(null);
     const result =
@@ -205,9 +196,6 @@ export default function LandingScreen() {
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
           showsVerticalScrollIndicator={false}
         >
-          <Animated.View
-            style={{ opacity: fadeAnim }}
-          >
           {currentFlow === "start" ? (
             <View className="flex-1 relative">
               <Image
@@ -413,7 +401,6 @@ export default function LandingScreen() {
               </View>
             </View>
           )}
-          </Animated.View>
         </ScrollView>
       </View>
     </>

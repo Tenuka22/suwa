@@ -40,11 +40,18 @@
           }
         }
       ],
-      ["@stripe/stripe-react-native", {}],
+      [
+        "@stripe/stripe-react-native",
+        {}
+      ],
       "react-native-maps",
-      ["expo-location", {}],
+      [
+        "expo-location",
+        {}
+      ],
       "expo-web-browser",
-      "./plugins/with-ios-audio-speaker"
+      "./plugins/with-ios-audio-speaker",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

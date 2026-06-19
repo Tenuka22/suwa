@@ -2,22 +2,15 @@
 
 import "../global.css";
 
+import { useFonts } from 'expo-font';
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import {
   PlayfairDisplay_400Regular,
   PlayfairDisplay_400Regular_Italic,
-  PlayfairDisplay_500Medium,
-  PlayfairDisplay_600SemiBold,
-  PlayfairDisplay_700Bold,
 } from "@expo-google-fonts/playfair-display";
 import {
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
-  Poppins_900Black,
-  useFonts,
+  Poppins_300Light,
 } from "@expo-google-fonts/poppins";
 import { env } from "@suwa/env/native";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -52,7 +45,7 @@ function ClerkApiAuthBridge() {
 function OnboardingCheck() {
   const pathname = usePathname();
   const { isLoaded, isSignedIn } = useAuth();
-  
+
   const patientProfileQuery = useQuery(
     orpc.getPatientProfile.queryOptions({
       enabled: isLoaded && isSignedIn,
@@ -234,16 +227,9 @@ function LayoutContent() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Poppins: Poppins_400Regular,
-    "Poppins-Medium": Poppins_500Medium,
-    "Poppins-SemiBold": Poppins_600SemiBold,
-    "Poppins-Bold": Poppins_700Bold,
-    "Poppins-Black": Poppins_900Black,
+    "Poppins": Poppins_300Light,
     "Playfair Display": PlayfairDisplay_400Regular,
     "Playfair Display-Italic": PlayfairDisplay_400Regular_Italic,
-    "Playfair Display-Medium": PlayfairDisplay_500Medium,
-    "Playfair Display-SemiBold": PlayfairDisplay_600SemiBold,
-    "Playfair Display-Bold": PlayfairDisplay_700Bold,
   });
 
   useEffect(() => {
