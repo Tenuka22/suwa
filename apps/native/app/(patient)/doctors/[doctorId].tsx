@@ -164,10 +164,12 @@ export default function DoctorProfileScreen() {
       <ScreenBottomBar
         leftActions={[
           {
+            active: isSaved,
+            activeClassName: "rounded-full bg-rose-600/70 backdrop-blur-md",
             icon: (
               <Heart
                 className={
-                  isSaved ? "fill-accent text-accent" : "text-foreground"
+                  isSaved ? "fill-white text-white" : "text-foreground"
                 }
                 size={20}
               />
@@ -176,6 +178,8 @@ export default function DoctorProfileScreen() {
             onPress: toggleSave,
           },
           {
+            className: "w-48 rounded-full bg-background-subtle/60 flex-row gap-2",
+            textClassName:"text-sm",
             icon: <Calendar className="text-foreground" size={20} />,
             label: "Schedule",
             onPress: () => router.push(`/doctors/${id}/booking`),

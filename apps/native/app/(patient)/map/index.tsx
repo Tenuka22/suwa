@@ -12,8 +12,9 @@ import {
   Star,
   X,
 } from "lucide-react-native";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Linking,
   Pressable,
@@ -36,8 +37,24 @@ export default function MapScreen() {
   const { location: userLocation, requestLocation } = useUserLocation();
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [isDebouncing, setIsDebouncing] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState<any>(null);
   const [listOpen, setListOpen] = useState(false);
+
+  useEffect(() => {
+    if (!search) {
+      setDebouncedSearch("");
+      setIsDebouncing(false);
+      return;
+    }
+    setIsDebouncing(true);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setIsDebouncing(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const centerOnUserLocation = useCallback(() => {
     if (userLocation) {
@@ -105,16 +122,16 @@ export default function MapScreen() {
   }, [tenants]);
 
   const filteredForList = useMemo(() => {
-    if (!search) {
+    if (!debouncedSearch) {
       return allHospitals;
     }
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     return allHospitals.filter(
       (h: any) =>
         h.name.toLowerCase().includes(q) ||
         (h.address && h.address.toLowerCase().includes(q))
     );
-  }, [allHospitals, search]);
+  }, [allHospitals, debouncedSearch]);
 
   const openMapsNavigation = (hospital: any) => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${hospital.latitude},${hospital.longitude}`;
@@ -150,10 +167,15 @@ export default function MapScreen() {
             />
           </View>
           <Pressable
-            className="size-16 items-center justify-center rounded-xl bg-background-elevated/60 backdrop-blur-[2px] shadow-lg border-input border-2"
+            className={`size-16 items-center justify-center rounded-xl backdrop-blur-[2px] shadow-lg border-input border-2 ${isDebouncing ? "bg-foreground/10" : "bg-background-elevated/60"}`}
+            disabled={isDebouncing && listOpen}
             onPress={handleSearch}
           >
-            <Search className="text-foreground" size={20} />
+            {isDebouncing && listOpen ? (
+              <ActivityIndicator className="text-foreground" size="small" />
+            ) : (
+              <Search className="text-foreground" size={20} />
+            )}
           </Pressable>
         </View>
       </View>
@@ -225,7 +247,8 @@ export default function MapScreen() {
         <ScreenBottomBar
           leftActions={[
             {
-              icon: <ListIcon className="text-foreground" size={20} />,
+              active: listOpen,
+              icon: <ListIcon size={20} />,
               label: "Hospitals",
               onPress: toggleList,
             },

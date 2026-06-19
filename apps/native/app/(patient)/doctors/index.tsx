@@ -296,7 +296,7 @@ export default function DoctorsScreen() {
           visible={filterOpen}
         >
           <View className="flex-1 justify-end bg-black/50">
-            <View className="max-h-[80%] rounded-t-3xl border-2 border-border bg-background pb-8">
+            <View className="max-h-[80%] rounded-t-3xl border-2 border-border bg-background/80 backdrop-blur-[2px] pb-8">
               {/* Modal Header */}
               <View className="flex-row items-center justify-between border-border border-b px-6 py-4">
                 <Text className="font-serif text-foreground text-title">

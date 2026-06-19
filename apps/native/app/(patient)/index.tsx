@@ -108,8 +108,8 @@ export default function HomeScreen() {
         >
           {/* Header */}
           <View className="mt-sm flex-row items-center justify-between">
-            <View className="flex-row items-center gap-md">
-              <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full">
+            <View className="flex-row items-center">
+              <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full -ml-3">
                 <Image
                   resizeMode="contain"
                   source={require("@/assets/images/icon-stripped.png")}

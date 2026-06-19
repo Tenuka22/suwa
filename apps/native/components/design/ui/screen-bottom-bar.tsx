@@ -6,9 +6,12 @@ import { Pressable, Text, View } from "react-native";
 
 interface ScreenBottomBarAction {
   active?: boolean;
+  activeClassName?: string;
+  className?: string;
   icon: ReactNode;
   label: string;
   onPress?: () => void;
+  textClassName?: string;
 }
 
 interface ScreenBottomBarReturnAction {
@@ -32,18 +35,18 @@ export function ScreenBottomBar({
     <View className="absolute right-0 bottom-4 left-0 px-6">
       <View className="flex-row items-center justify-between">
         {hasLeft && (
-          <View className="flex-row gap-2 rounded-full border-2 border-border bg-background-elevated/60 backdrop-blur-[0.4px] shadow-md">
+          <View className="flex-row gap-2 rounded-full border-2 border-border bg-background-elevated/60 backdrop-blur-[0.4px] shadow-md w-auto">
             {leftActions.map((action) => (
               <Pressable
-                className={`items-center justify-center gap-0 py-2 ${action.active ? "rounded-full bg-primary/70 px-4 backdrop-blur-md" : "size-20"}`}
+                className={`items-center justify-center gap-0 py-2 size-20 ${action.active ? action.activeClassName ?? "rounded-full bg-primary/70 px-4 backdrop-blur-md" : action.className ?? "size-20"}`}
                 key={action.label}
                 onPress={action.onPress}
               >
-                <View className="h-8 w-8 items-center justify-center">
+                <View className={`h-8 w-8 items-center justify-center ${action.active ? "text-primary-foreground" : "text-foreground"}`}>
                   {action.icon}
                 </View>
                 <Text
-                  className={`font-medium font-sans text-[10px] ${action.active ? "text-primary-foreground" : "text-foreground"}`}
+                  className={action.textClassName ?? `font-medium font-sans text-[10px] ${action.active ? "text-primary-foreground" : "text-foreground"}`}
                 >
                   {action.label}
                 </Text>
