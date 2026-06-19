@@ -96,7 +96,7 @@ export default function MapScreen() {
   }, []);
 
   const tenantsQuery = useQuery(
-    orpc.listTenants.queryOptions({ input: { page: 1, pageSize: 50 } })
+    orpc.listTenants.queryOptions({ input: {} })
   );
   const tenants = tenantsQuery.data?.tenants ?? [];
 
@@ -156,9 +156,11 @@ export default function MapScreen() {
         <View className="flex-row items-center gap-2">
           <View className="flex-1">
             <Input
-              className="pr-4 py-4"
+              className="py-4 pr-4"
               inputContainerClassName="rounded-full bg-background-elevated/80 backdrop-blur-[2px]"
-              leftIcon={<MapPin className="text-foreground-placeholder" size={20} />}
+              leftIcon={
+                <MapPin className="text-foreground-placeholder" size={20} />
+              }
               onChangeText={setSearch}
               onSubmitEditing={handleSearch}
               placeholder="Search hospitals..."
@@ -167,7 +169,7 @@ export default function MapScreen() {
             />
           </View>
           <Pressable
-            className={`size-16 items-center justify-center rounded-xl backdrop-blur-[2px] shadow-lg border-input border-2 ${isDebouncing ? "bg-foreground/10" : "bg-background-elevated/60"}`}
+            className={`size-16 items-center justify-center rounded-xl border-2 border-input shadow-lg backdrop-blur-[2px] ${isDebouncing ? "bg-foreground/10" : "bg-background-elevated/60"}`}
             disabled={isDebouncing && listOpen}
             onPress={handleSearch}
           >
@@ -183,7 +185,7 @@ export default function MapScreen() {
       {/* Selected Hospital Card */}
       {selectedHospital && (
         <View className="absolute right-lg bottom-8 left-lg">
-          <View className="gap-lg rounded-3xl bg-background-elevated/50 backdrop-blur-[2px] p-lg shadow-xl">
+          <View className="gap-lg rounded-3xl bg-background-elevated/50 p-lg shadow-xl backdrop-blur-[2px]">
             <View className="flex-row items-start justify-between">
               <View className="flex-1 gap-xxs">
                 <Text className="font-serif text-primary text-title">
@@ -267,9 +269,8 @@ export default function MapScreen() {
 
       {/* Hospital List Panel */}
       {listOpen && (
-        <View className="absolute top-28 right-lg border-2 border-input left-lg h-auto max-h-[70%] rounded-2xl bg-background-elevated/80 backdrop-blur-[2px] shadow-xl">
-
-          <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
+        <View className="absolute top-28 right-lg left-lg h-auto max-h-[70%] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
+          <View className="flex-row items-center justify-between border-border border-b px-4 py-3">
             <Pressable
               className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
               onPress={() => setListOpen(false)}
@@ -286,8 +287,8 @@ export default function MapScreen() {
             className="px-2"
             contentContainerClassName="py-2 gap-2"
             data={filteredForList}
-            keyExtractor={(item: any) => item.name}
             keyboardShouldPersistTaps="handled"
+            keyExtractor={(item: any) => item.name}
             ListEmptyComponent={
               <View className="items-center justify-center py-12">
                 <Building2 className="text-foreground-muted" size={32} />

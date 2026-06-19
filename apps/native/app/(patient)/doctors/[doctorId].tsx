@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   BookOpen,
   Calendar,
+  Film,
   GraduationCap,
   Heart,
   MapPin,
@@ -178,8 +179,19 @@ export default function DoctorProfileScreen() {
             onPress: toggleSave,
           },
           {
-            className: "w-48 rounded-full bg-background-subtle/60 flex-row gap-2",
-            textClassName:"text-sm",
+            className: "rounded-full bg-background-subtle/60",
+            textClassName: "font-medium font-sans text-[10px] text-foreground",
+            icon: <Film className="text-foreground" size={20} />,
+            label: "Videos",
+            onPress: () =>
+              router.push({
+                pathname: "/(patient)/materials",
+              } as any),
+          },
+          {
+            className:
+              "w-48 rounded-full bg-background-subtle/60 flex-row gap-2",
+            textClassName: "text-sm",
             icon: <Calendar className="text-foreground" size={20} />,
             label: "Schedule",
             onPress: () => router.push(`/doctors/${id}/booking`),

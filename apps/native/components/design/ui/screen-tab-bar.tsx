@@ -23,7 +23,7 @@ export function ScreenTabBar({ children, tabs }: ScreenTabBarProps) {
       </ScrollView>
 
       <View className="absolute right-0 bottom-4 left-0 flex-row justify-center">
-        <View className="flex-row gap-1 rounded-full border-2 border-border bg-background-elevated/60 backdrop-blur-[0.4px] shadow-md p-1">
+        <View className="flex-row gap-1 rounded-full border-2 border-border bg-background-elevated/60 p-1 shadow-md backdrop-blur-[0.4px]">
           {tabs.map((tab) => (
             <Pressable
               className={`size-20 items-center justify-center gap-0 px-4 py-2 ${tab.active ? "rounded-full bg-primary/70 backdrop-blur-md" : ""}`}

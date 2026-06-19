@@ -1,14 +1,12 @@
-import { Button, Card, Chip, Separator } from "@heroui/react";
+import { Avatar, Button, Chip, Separator } from "@heroui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
-  ArrowRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
   InboxIcon,
+  ListChecksIcon,
   ShieldIcon,
-  StethoscopeIcon,
-  TrendingUpIcon,
   UserRoundIcon,
 } from "lucide-react";
 import {
@@ -20,8 +18,26 @@ import {
   YAxis,
 } from "recharts";
 
-import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
+import { BodyText, PageTitle } from "@/components/typography";
 import { orpc } from "@/utils/orpc";
+
+function StatItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof ShieldIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="size-4 shrink-0 text-foreground/50" />
+      <span className="font-medium text-sm tabular-nums">{value}</span>
+      <span className="text-foreground/60 text-sm">{label}</span>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/admin/")({
   loaderDeps: () => ({}),
@@ -35,172 +51,44 @@ function AdminDashboardRoute() {
   const stats = Route.useLoaderData();
   const sessionsByDay = stats?.sessionsByDay ?? [];
 
+  const pendingDoctors = stats?.pendingDoctors ?? 0;
+  const approvedDoctors = stats?.approvedDoctors ?? 0;
+  const totalSessions = stats?.totalSessions ?? 0;
+  const totalPatients = stats?.totalPatients ?? 0;
+
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <Card.Content>
-          <div className="flex items-start gap-4">
-            <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
-              <ShieldIcon className="size-8" />
+    <div className="flex flex-col gap-4">
+      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
+
+      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
+        <div className="flex items-center gap-5">
+          <Avatar className="size-16" size="lg">
+            <Avatar.Fallback className="font-light text-lg">
+              <ShieldIcon className="size-6" />
+            </Avatar.Fallback>
+          </Avatar>
+
+          <div className="flex-1 pb-2">
+            <div className="flex items-center gap-3">
+              <h1 className="font-light text-2xl tracking-tight">
+                Admin console
+              </h1>
+              <Chip color="accent" variant="soft">
+                <div className="flex items-center justify-center">
+                  <ShieldIcon className="size-3" />
+                </div>
+                Dashboard
+              </Chip>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap gap-2">
-                <Chip variant="secondary">Admin console</Chip>
-                <Chip color="default" variant="soft">
-                  Live overview
-                </Chip>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <h1 className="font-semibold text-lg tracking-tight">
-                  Welcome back
-                </h1>
-                <p className="max-w-2xl text-muted-foreground text-sm">
-                  Monitor platform activity, manage doctor registrations, and
-                  oversee all sessions from one unified dashboard.
-                </p>
-              </div>
-            </div>
+            <BodyText className="max-w-2xl">
+              Monitor platform activity, manage doctor registrations, and
+              oversee all sessions from one unified dashboard.
+            </BodyText>
           </div>
-        </Card.Content>
-      </Card>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          description="Awaiting review or approval"
-          icon={<InboxIcon className="size-5" />}
-          title="Pending doctors"
-          trend="Review"
-          value={String(stats?.pendingDoctors ?? 0)}
-        />
-        <MetricCard
-          description="Successfully onboarded physicians"
-          icon={<CheckCircle2Icon className="size-5" />}
-          title="Approved doctors"
-          trend="Active"
-          value={String(stats?.approvedDoctors ?? 0)}
-        />
-        <MetricCard
-          description="All consultations across the platform"
-          icon={<CalendarDaysIcon className="size-5" />}
-          title="Total sessions"
-          trend="All time"
-          value={String(stats?.totalSessions ?? 0)}
-        />
-        <MetricCard
-          description="Registered patients on the platform"
-          icon={<UserRoundIcon className="size-5" />}
-          title="Total patients"
-          value={String(stats?.totalPatients ?? 0)}
-        />
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <Card className="rounded-3xl border-border/60">
-          <Card.Header>
-            <SectionHeader
-              action={
-                <Chip className="gap-1" color="default" variant="soft">
-                  <TrendingUpIcon className="size-3" />
-                  Session trend
-                </Chip>
-              }
-              description="Daily session volume over the last seven days"
-              title="Platform activity"
-            />
-          </Card.Header>
-
-          <Separator />
-
-          <Card.Content>
-            {sessionsByDay.length > 0 ? (
-              <div className="h-[360px] w-full">
-                <AreaChart
-                  accessibilityLayer
-                  data={sessionsByDay}
-                  margin={{ left: 8, right: 8 }}
-                >
-                  <CartesianGrid vertical={false} />
-
-                  <XAxis
-                    axisLine={false}
-                    dataKey="day"
-                    tickFormatter={(value: string) => {
-                      const date = new Date(value);
-                      return format(date, "MMM d");
-                    }}
-                    tickLine={false}
-                    tickMargin={10}
-                  />
-
-                  <YAxis
-                    axisLine={false}
-                    tickFormatter={(value: number) => value.toString()}
-                    tickLine={false}
-                    tickMargin={10}
-                  />
-
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (!(active && payload?.length)) {
-                        return null;
-                      }
-                      const value = Number(payload[0].value);
-                      return (
-                        <div className="rounded-lg border bg-background px-3 py-1.5 shadow-sm">
-                          <p className="text-sm">{`${value} session${value === 1 ? "" : "s"}`}</p>
-                        </div>
-                      );
-                    }}
-                    cursor={false}
-                  />
-
-                  <Area
-                    dataKey="count"
-                    fill="var(--primary)"
-                    fillOpacity={0.15}
-                    stroke="var(--primary)"
-                    strokeWidth={2}
-                    type="monotone"
-                  />
-                </AreaChart>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
-                  <TrendingUpIcon className="size-6" />
-                </div>
-                <div className="flex flex-col items-center gap-1 text-center">
-                  <p className="font-medium text-sm">No activity data yet</p>
-                  <p className="max-w-sm text-muted-foreground text-xs">
-                    Session activity will appear once patients start booking.
-                  </p>
-                </div>
-              </div>
-            )}
-          </Card.Content>
-        </Card>
-
-        <Card className="rounded-3xl border-border/60">
-          <Card.Header>
-            <SectionHeader
-              action={
-                <Chip className="gap-1" color="default" variant="soft">
-                  <StethoscopeIcon className="size-3" />
-                  Quick actions
-                </Chip>
-              }
-              description="Manage platform operations"
-              title="Admin tools"
-            />
-          </Card.Header>
-
-          <Separator />
-
-          <Card.Content className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 pb-2">
             <Button
-              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
               onPress={() =>
                 navigate({
                   to: "/admin/doc-requests",
@@ -210,37 +98,134 @@ function AdminDashboardRoute() {
               size="sm"
               variant="outline"
             >
-              Review doctor requests
-              <ArrowRightIcon className="size-4" />
+              <InboxIcon className="size-4" />
+              Requests
             </Button>
-
             <Button
-              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
               onPress={() =>
-                navigate({
-                  to: "/admin/doctors",
-                  search: { page: 1, query: "" },
-                })
+                navigate({ to: "/admin/sessions", search: { page: 1 } })
               }
               size="sm"
-              variant="outline"
             >
-              Manage approved doctors
-              <ArrowRightIcon className="size-4" />
+              <ListChecksIcon className="size-4" />
+              All sessions
             </Button>
-
-            <Button
-              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
-              onPress={() => navigate({ to: "/admin/session" })}
-              size="sm"
-              variant="outline"
-            >
-              Create test session
-              <ArrowRightIcon className="size-4" />
-            </Button>
-          </Card.Content>
-        </Card>
+          </div>
+        </div>
       </div>
+
+      <Separator />
+
+      <section className="flex flex-col gap-2 px-6">
+        <PageTitle>Overview</PageTitle>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <StatItem
+            icon={InboxIcon}
+            label="pending doctors"
+            value={pendingDoctors.toString()}
+          />
+          <StatItem
+            icon={CheckCircle2Icon}
+            label="approved doctors"
+            value={approvedDoctors.toString()}
+          />
+          <StatItem
+            icon={CalendarDaysIcon}
+            label="total sessions"
+            value={totalSessions.toString()}
+          />
+          <StatItem
+            icon={UserRoundIcon}
+            label="total patients"
+            value={totalPatients.toString()}
+          />
+          {pendingDoctors > 0 && (
+            <Chip color="warning" variant="soft">
+              <div className="flex items-center justify-center">
+                <InboxIcon className="size-3" />
+              </div>
+              {pendingDoctors} awaiting review
+            </Chip>
+          )}
+        </div>
+      </section>
+
+      <Separator />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <PageTitle>Platform activity</PageTitle>
+          <p className="font-light text-foreground/60 text-sm">
+            Daily session volume over the last seven days
+          </p>
+        </div>
+
+        {sessionsByDay.length > 0 ? (
+          <div className="h-[340px] w-full">
+            <AreaChart
+              accessibilityLayer
+              data={sessionsByDay}
+              height={340}
+              margin={{ left: 8, right: 8 }}
+              width="100%"
+            >
+              <CartesianGrid vertical={false} />
+
+              <XAxis
+                axisLine={false}
+                dataKey="day"
+                tickFormatter={(value: string) => {
+                  const date = new Date(value);
+                  if (Number.isNaN(date.getTime())) return value;
+                  return format(date, "MMM d");
+                }}
+                tickLine={false}
+                tickMargin={10}
+              />
+
+              <YAxis
+                axisLine={false}
+                tickFormatter={(value: number) => value.toString()}
+                tickLine={false}
+                tickMargin={10}
+              />
+
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!(active && payload?.length)) {
+                    return null;
+                  }
+                  const value = Number(payload[0].value);
+                  return (
+                    <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
+                      <p className="text-sm">{`${value} session${value === 1 ? "" : "s"}`}</p>
+                    </div>
+                  );
+                }}
+                cursor={false}
+              />
+
+              <Area
+                dataKey="count"
+                fill="var(--primary)"
+                fillOpacity={0.15}
+                stroke="var(--primary)"
+                strokeWidth={2}
+                type="monotone"
+              />
+            </AreaChart>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+            <p className="font-light text-sm">No activity data yet</p>
+            <p className="max-w-xs font-light text-foreground/60 text-sm">
+              Session activity will appear once patients start booking.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <Separator />
     </div>
   );
 }

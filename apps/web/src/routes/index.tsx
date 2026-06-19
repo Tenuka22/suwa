@@ -16,7 +16,7 @@ function HomeRoute() {
   return (
     <div className="size-full flex-1">
       <header className="sticky top-0 z-50 border-border/40 border-b bg-background/20 backdrop-blur-xl">
-        <div className="flex h-16 max-w-7xl items-center justify-between px-8">
+        <div className="flex h-16 items-center justify-between px-8">
           <img className="size-12" src="/Logo.png" />
           <nav className="hidden items-center gap-2 sm:flex">
             {user.isLoaded && user.user && (

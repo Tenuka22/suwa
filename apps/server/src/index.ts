@@ -133,6 +133,43 @@ app.get("/seed", async (c) => {
   }
 });
 
+app.get("/materials/:id/file", async (c) => {
+  try {
+    const { createDb } = await import("@suwa/db");
+    const { doctorHubMaterials } = await import("@suwa/db");
+    const { eq } = await import("drizzle-orm");
+    const db = createDb();
+    const [material] = await db
+      .select()
+      .from(doctorHubMaterials)
+      .where(eq(doctorHubMaterials.id, c.req.param("id")))
+      .limit(1);
+
+    if (!material?.fileKey) {
+      return c.text("Material file not found", 404);
+    }
+
+    const fileData = await env.DOCTOR_MATERIALS_KV.get(
+      material.fileKey,
+      "arrayBuffer"
+    );
+
+    if (!fileData) {
+      return c.text("File data not found in storage", 404);
+    }
+
+    return c.body(fileData, 200, {
+      "Content-Type": material.mimeType ?? "application/octet-stream",
+      "Content-Disposition": `inline; filename="${material.fileName ?? "file"}"`,
+      "Content-Length": fileData.byteLength.toString(),
+      "Accept-Ranges": "bytes",
+    });
+  } catch (error) {
+    console.error("File stream error:", error);
+    return c.text("Failed to stream file", 500);
+  }
+});
+
 app.get("/", (c) => c.text("OK"));
 
 export default {

@@ -5,6 +5,7 @@ import { Stack, useRouter } from "expo-router";
 import {
   Bell,
   BookOpen,
+  Film,
   Flower2,
   Heart,
   Home,
@@ -17,8 +18,8 @@ import {
   ShieldCheck,
   User,
 } from "lucide-react-native";
-import { useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { FlatList, Image, Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
@@ -74,6 +75,14 @@ export default function HomeScreen() {
     }
   }
 
+  const { data: featuredVideos } = useQuery(
+    orpc.listPublicMaterials.queryOptions({
+      input: { page: 1, pageSize: 10 },
+    })
+  );
+
+  const carouselRef = useRef<FlatList>(null);
+
   return (
     <ScreenTabBar
       tabs={[
@@ -109,7 +118,7 @@ export default function HomeScreen() {
           {/* Header */}
           <View className="mt-sm flex-row items-center justify-between">
             <View className="flex-row items-center">
-              <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full -ml-3">
+              <View className="-ml-3 h-14 w-14 items-center justify-center overflow-hidden rounded-full">
                 <Image
                   resizeMode="contain"
                   source={require("@/assets/images/icon-stripped.png")}
@@ -226,6 +235,71 @@ export default function HomeScreen() {
               iconBgColor="bg-tint-beige"
               onPress={() => router.push("/(patient)/map")}
               title="Doctor Map"
+            />
+          </View>
+
+          {/* Video Recommendations Carousel */}
+          {featuredVideos && featuredVideos.length > 0 && (
+            <View className="gap-md">
+              <View className="flex-row items-center justify-between">
+                <Text className="font-serif text-primary text-title">
+                  Recommended Videos
+                </Text>
+                <Pressable
+                  onPress={() => router.push("/(patient)/materials" as any)}
+                >
+                  <Text className="font-sans text-accent text-caption">
+                    See all
+                  </Text>
+                </Pressable>
+              </View>
+              <FlatList
+                contentContainerClassName="gap-md"
+                data={featuredVideos}
+                horizontal
+                keyExtractor={(item: any) => item.id}
+                ref={carouselRef}
+                renderItem={({ item }: { item: any }) => (
+                  <Pressable
+                    className="w-52"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(patient)/materials/[materialId]",
+                        params: { materialId: item.id },
+                      })
+                    }
+                  >
+                    <View className="h-28 items-center justify-center rounded-xl bg-background-subtle">
+                      <Film className="text-foreground-muted" size={28} />
+                    </View>
+                    <View className="mt-2 gap-0.5">
+                      <Text
+                        className="font-sans text-caption text-primary"
+                        numberOfLines={1}
+                      >
+                        {item.title}
+                      </Text>
+                      {item.doctorName && (
+                        <Text className="font-sans text-foreground-muted text-micro">
+                          {item.doctorName}
+                        </Text>
+                      )}
+                    </View>
+                  </Pressable>
+                )}
+                showsHorizontalScrollIndicator={false}
+              />
+            </View>
+          )}
+
+          {/* Video Hub Card */}
+          <View className="flex-row gap-xl">
+            <Card
+              description="Watch health tips & doctor videos"
+              icon={<Film className="text-tint-purple-foreground" size={24} />}
+              iconBgColor="bg-tint-purple"
+              onPress={() => router.push("/(patient)/materials" as any)}
+              title="Video Hub"
             />
           </View>
 

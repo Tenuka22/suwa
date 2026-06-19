@@ -1,14 +1,33 @@
 import { useUser } from "@clerk/tanstack-react-start";
-import { Button, Card, Chip, Input } from "@heroui/react";
+import { Button, Chip, Input, Separator } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Copy, ShieldIcon, Video } from "lucide-react";
+import { Copy, ShieldIcon, VideoIcon } from "lucide-react";
 import { useState } from "react";
 import { VideoRoomWeb } from "@/components/livekit/video-room";
+import { BodyText, PageTitle } from "@/components/typography";
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/admin/session")({
+export const Route = createFileRoute("/admin/sessions")({
   component: AdminSessionPage,
 });
+
+function StatItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof ShieldIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="size-4 shrink-0 text-foreground/50" />
+      <span className="font-medium text-sm tabular-nums">{value}</span>
+      <span className="text-foreground/60 text-sm">{label}</span>
+    </div>
+  );
+}
 
 function AdminSessionPage() {
   const { user } = useUser();
@@ -34,20 +53,14 @@ function AdminSessionPage() {
 
   if (!isAdmin) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center">
-        <Card className="w-full max-w-md rounded-3xl">
-          <Card.Header className="items-center text-center">
-            <div className="rounded-2xl border bg-muted/40 p-4">
-              <ShieldIcon className="size-6" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <h2 className="font-medium text-sm">Unauthorized</h2>
-              <p className="text-muted-foreground text-sm">
-                You do not have admin access.
-              </p>
-            </div>
-          </Card.Header>
-        </Card>
+      <div className="flex flex-col items-center justify-center gap-4 py-16">
+        <div className="rounded-full border border-border border-dashed bg-foreground/5 p-4">
+          <ShieldIcon className="size-6 text-foreground/40" />
+        </div>
+        <p className="font-light text-sm">Unauthorized</p>
+        <p className="max-w-xs font-light text-foreground/60 text-sm">
+          You do not have admin access.
+        </p>
       </div>
     );
   }
@@ -104,43 +117,64 @@ function AdminSessionPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <Card.Content>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-2">
-              <Chip variant="secondary">Admin console</Chip>
-              <Chip color="default" variant="soft">
+    <div className="flex flex-col gap-4">
+      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
+
+      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
+        <div className="flex items-center gap-5">
+          <Chip
+            className="size-16 rounded-full bg-accent/10 flex items-center justify-center"
+            variant="tertiary"
+          >
+            <ShieldIcon className="size-6 text-accent" />
+          </Chip>
+
+          <div className="flex-1 pb-2">
+            <div className="flex items-center gap-3">
+              <h1 className="font-light text-2xl tracking-tight">
                 Test session
+              </h1>
+              <Chip color="accent" variant="soft">
+                <div className="flex items-center justify-center">
+                  <VideoIcon className="size-3" />
+                </div>
+                Video testing
               </Chip>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <h1 className="font-semibold text-lg tracking-tight">
-                Test session
-              </h1>
-
-              <p className="max-w-2xl text-muted-foreground text-sm">
-                Generate a test session ID and share it with the mobile app. The
-                desktop browser acts as the doctor in the video call.
-              </p>
-            </div>
+            <BodyText className="max-w-2xl">
+              Generate a test session ID and share it with the mobile app. The
+              desktop browser acts as the doctor in the video call.
+            </BodyText>
           </div>
-        </Card.Content>
-      </Card>
+        </div>
+      </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="rounded-3xl border-border/60">
-          <Card.Header>
-            <div className="flex flex-col gap-1">
-              <h2 className="font-medium text-sm">Step 1: Generate session</h2>
-              <p className="text-muted-foreground text-sm">
-                Create a new session ID to share with the mobile app.
-              </p>
-            </div>
-          </Card.Header>
+      <Separator />
 
-          <Card.Content className="flex flex-col gap-4">
+      <section className="flex flex-col gap-2 px-6">
+        <PageTitle>Overview</PageTitle>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <StatItem
+            icon={ShieldIcon}
+            label="current role"
+            value={selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <div className="flex flex-col gap-6 px-6">
+        <section className="flex flex-col gap-3">
+          <div>
+            <PageTitle>Step 1: Generate session</PageTitle>
+            <p className="font-light text-foreground/60 text-sm">
+              Create a new session ID to share with the mobile app.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
             <Button
               isDisabled={isCreating}
               onPress={handleCreateSession}
@@ -150,7 +184,7 @@ function AdminSessionPage() {
             </Button>
 
             {generatedSessionId ? (
-              <div className="flex items-center gap-2 rounded-2xl border bg-muted/40 p-3">
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-foreground/5 px-3 py-2">
                 <code className="flex-1 break-all font-mono text-xs">
                   {generatedSessionId}
                 </code>
@@ -164,21 +198,21 @@ function AdminSessionPage() {
                 ) : null}
               </div>
             ) : null}
-          </Card.Content>
-        </Card>
+          </div>
+        </section>
 
-        <Card className="rounded-3xl border-border/60">
-          <Card.Header>
-            <div className="flex flex-col gap-1">
-              <h2 className="font-medium text-sm">Step 2: Join session</h2>
-              <p className="text-muted-foreground text-sm">
-                Enter a session ID and join the video call as a patient, doctor,
-                or admin.
-              </p>
-            </div>
-          </Card.Header>
+        <Separator />
 
-          <Card.Content className="flex flex-col gap-4">
+        <section className="flex flex-col gap-3">
+          <div>
+            <PageTitle>Step 2: Join session</PageTitle>
+            <p className="font-light text-foreground/60 text-sm">
+              Enter a session ID and join the video call as a patient, doctor,
+              or admin.
+            </p>
+          </div>
+
+          <div className="flex max-w-sm flex-col gap-4">
             <Input
               onChange={(e) => setSessionId(e.target.value)}
               placeholder="Paste or type session ID..."
@@ -186,7 +220,7 @@ function AdminSessionPage() {
             />
 
             <div className="flex flex-wrap gap-2">
-              <p className="w-full text-muted-foreground text-xs">Join as</p>
+              <p className="w-full text-foreground/60 text-xs">Join as</p>
               {(["patient", "doctor", "admin"] as const).map((role) => (
                 <Button
                   key={role}
@@ -200,7 +234,7 @@ function AdminSessionPage() {
             </div>
 
             <Button isDisabled={!sessionId} onPress={handleJoin} size="sm">
-              <Video className="mr-2 size-4" />
+              <VideoIcon className="mr-2 size-4" />
               Join as{" "}
               {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
             </Button>
@@ -217,10 +251,10 @@ function AdminSessionPage() {
               size="sm"
               variant="secondary"
             >
-              🚀 Mock Simulation (Save Credits)
+              Mock Simulation (Save Credits)
             </Button>
-          </Card.Content>
-        </Card>
+          </div>
+        </section>
       </div>
     </div>
   );

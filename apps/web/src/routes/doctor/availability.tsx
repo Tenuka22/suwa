@@ -384,7 +384,7 @@ function DoctorAvailabilityRoute() {
             <Chip color="accent" variant="soft">
               <CalendarDaysIcon className="size-3" />
               {isTenantMode
-                ? currentAffiliation?.tenantName ?? "Hospital"
+                ? (currentAffiliation?.tenantName ?? "Hospital")
                 : "Schedule overview"}
             </Chip>
           </div>
@@ -580,7 +580,7 @@ function DoctorAvailabilityRoute() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 justify-center">
+                  <div className="flex items-center justify-center gap-2">
                     <Switch
                       aria-label={`${dayName} availability`}
                       isSelected={isDayAvailable}
@@ -747,9 +747,8 @@ function DoctorAvailabilityRoute() {
                     </div>
                   )}
                   {!isTenantMode &&
-                    tenantWindowsByDay.filter(
-                      (w) => w.dayOfWeek === dayOfWeek
-                    ).length > 0 && (
+                    tenantWindowsByDay.filter((w) => w.dayOfWeek === dayOfWeek)
+                      .length > 0 && (
                       <div className="flex flex-col gap-2 border-border border-t pt-2">
                         <p className="font-light text-foreground/60 text-xs">
                           Tenant reservations
@@ -780,7 +779,6 @@ function DoctorAvailabilityRoute() {
             );
           })}
         </div>
-
       </section>
     </div>
   );

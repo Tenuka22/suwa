@@ -385,7 +385,7 @@ function DoctorSessionsRoute() {
                         <p className="font-light text-sm leading-tight">
                           {session.patientId.slice(0, 12)}...
                         </p>
-                        <p className="font-light text-foreground/60 text-[10px]">
+                        <p className="font-light text-[10px] text-foreground/60">
                           ID: {session.id.slice(0, 8)}...
                         </p>
                       </div>
@@ -479,7 +479,7 @@ function DoctorSessionsRoute() {
                       <p className="font-light text-sm leading-tight">
                         {session.patientId.slice(0, 12)}...
                       </p>
-                      <p className="font-light text-foreground/60 text-[10px]">
+                      <p className="font-light text-[10px] text-foreground/60">
                         ID: {session.id.slice(0, 8)}...
                       </p>
                     </div>
@@ -492,9 +492,7 @@ function DoctorSessionsRoute() {
                     <div>
                       <span className="text-foreground/60">Date</span>
                       <p className="font-medium">
-                        {isValidStart
-                          ? format(start, "MMM d, yyyy")
-                          : "--"}
+                        {isValidStart ? format(start, "MMM d, yyyy") : "--"}
                       </p>
                     </div>
                     <div>

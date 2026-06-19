@@ -1,4 +1,5 @@
 import { UserButton, useUser } from "@clerk/tanstack-react-start";
+import type { Selection } from "@heroui/react";
 import {
   Header,
   Label,
@@ -7,7 +8,6 @@ import {
   Surface,
   Tooltip,
 } from "@heroui/react";
-import type { Selection } from "@heroui/react";
 import { APP_DISPLAY_NAME } from "@suwa/app-info";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -87,7 +87,7 @@ export function DoctorSidebar({ collapsed }: DoctorSidebarProps) {
         navigate({ to: key as string });
       }
     },
-    [navigate],
+    [navigate]
   );
 
   const selectedKeys = useMemo(() => {

@@ -388,8 +388,7 @@ function DoctorDashboardRoute() {
                           {format(start, "EEE, MMM d")}
                         </p>
                         <p className="text-foreground/60 text-xs">
-                          {format(start, "h:mm a")} -{" "}
-                          {format(end, "h:mm a")}
+                          {format(start, "h:mm a")} - {format(end, "h:mm a")}
                         </p>
                       </div>
                       <SessionStatusBadge status={s.status} />
@@ -508,8 +507,7 @@ function DoctorDashboardRoute() {
             <div className="grid gap-3 sm:grid-cols-2">
               {filteredSessions
                 .filter(
-                  (s) =>
-                    s.status === "requested" || s.status === "rescheduled"
+                  (s) => s.status === "requested" || s.status === "rescheduled"
                 )
                 .map((s) => {
                   const start = new Date(s.startAt);
@@ -528,8 +526,7 @@ function DoctorDashboardRoute() {
                           {format(start, "EEE, MMM d")}
                         </p>
                         <p className="text-foreground/60 text-xs">
-                          {format(start, "h:mm a")} -{" "}
-                          {format(end, "h:mm a")}
+                          {format(start, "h:mm a")} - {format(end, "h:mm a")}
                         </p>
                       </div>
                       <SessionStatusBadge status={s.status} />
@@ -574,8 +571,7 @@ function DoctorDashboardRoute() {
                             {format(start, "EEE, MMM d")}
                           </p>
                           <p className="text-foreground/60 text-xs">
-                            {format(start, "h:mm a")} -{" "}
-                            {format(end, "h:mm a")}
+                            {format(start, "h:mm a")} - {format(end, "h:mm a")}
                           </p>
                         </div>
                         <SessionStatusBadge status={s.status} />

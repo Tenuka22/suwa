@@ -376,7 +376,7 @@ function DoctorPlansRoute() {
                     <span className="font-light text-sm">{plan.name}</span>
                     {plan.isDefault && (
                       <Chip
-                        className="border-primary/20 bg-primary/10 text-primary text-[10px]"
+                        className="border-primary/20 bg-primary/10 text-[10px] text-primary"
                         variant="tertiary"
                       >
                         Default
