@@ -1,10 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Poppins:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
 
-/* ============================================================
-   SUWA DESIGN SYSTEM — TOKEN FILE
-   ============================================================ */
-
-:root {
+@theme {
   --color-background: #faf7f2;
   --color-background-elevated: #ffffff;
   --color-background-subtle: #ecede2;
@@ -35,12 +31,28 @@
   --color-muted: #ecede2;
   --color-muted-foreground: #7f8a83;
 
+  --color-tint-green: #e2eae5;
+  --color-tint-green-foreground: #5f7267;
+  --color-tint-beige: #f5ecd8;
+  --color-tint-beige-foreground: #c58a5b;
+  --color-tint-purple: #ece6f2;
+  --color-tint-purple-foreground: #9e8cb2;
+  --color-tint-yellow: #f7efcb;
+  --color-tint-yellow-foreground: #c3af5a;
+
   --color-border: #e2ddd5;
   --color-input: #e2ddd5;
   --color-ring: #5f7267;
 
-  --font-sans: "Poppins", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-sans: "Poppins-Light", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+
+  --font-poppins: "Poppins", system-ui, sans-serif;
+  --font-poppins-light: "Poppins-Light", system-ui, sans-serif;
+  --font-poppins-medium: "Poppins-Medium", system-ui, sans-serif;
+  --font-poppins-semibold: "Poppins-SemiBold", system-ui, sans-serif;
+  --font-poppins-bold: "Poppins-Bold", system-ui, sans-serif;
+  --font-poppins-black: "Poppins-Black", system-ui, sans-serif;
 
   --text-display: 96px;
   --text-sub-display: 34px;
@@ -72,6 +84,17 @@
   --spacing-huge: 32px;
   --spacing-giant: 48px;
 
+  --space-px: 1px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 12px;
@@ -91,44 +114,40 @@
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ============================================================
-   GLOBAL STYLES
-   ============================================================ */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-html {
-  font-family: var(--font-sans);
-  font-size: var(--text-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: var(--leading-normal);
-}
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-foreground);
+    background-color: var(--color-background);
+  }
 
-body {
-  font-family: var(--font-sans);
-  color: var(--color-foreground);
-  background-color: var(--color-background);
-}
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    line-height: var(--leading-tight);
+    color: var(--color-foreground);
+    letter-spacing: var(--tracking-tight);
+  }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-serif);
-  line-height: var(--leading-tight);
-  color: var(--color-foreground);
-  letter-spacing: var(--tracking-tight);
-}
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: var(--leading-snug);
+    color: var(--color-foreground);
+  }
 
-h4,
-h5,
-h6 {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  line-height: var(--leading-snug);
-  color: var(--color-foreground);
-}
-
-em {
-  font-family: var(--font-serif);
-  font-style: italic;
-  color: var(--color-accent);
+  em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--color-accent);
+  }
 }

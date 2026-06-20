@@ -53,6 +53,7 @@ export const server = await Worker("server", {
     },
   },
   compatibilityFlags: ["no_handle_cross_request_promise_resolution"],
+  domains: [{ domainName: "api.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
   bindings: {
     DB: db,
     CHAT_MESSAGES_KV: chatMessagesKv,
@@ -89,6 +90,7 @@ export const server = await Worker("server", {
 
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
+  domains: [{ domainName: "app.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
   bindings: {
     VITE_SERVER_URL: server.url!,
     VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
@@ -105,10 +107,23 @@ export const web = await TanStackStart("web", {
   },
 });
 
+export const landingPage = await TanStackStart("landing-page", {
+  cwd: "../../apps/landing-page",
+  bindings: {},
+  domains: [{ domainName: "suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
+  observability: {
+    enabled: true,
+    traces: {
+      enabled: true,
+    },
+  },
+});
+
 export const mobileWeb = await Website("mobile-web", {
   cwd: "../../apps/native",
+  domains: [{ domainName: "m.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
   build: {
-    command: "npx expo export --platform web",
+    command: "bunx expo export --platform web",
     env: {
       ...(process.env.NODE_ENV === "production"
         ? { ENV_FILE: ".env.production" }
@@ -124,6 +139,7 @@ export const mobileWeb = await Website("mobile-web", {
 
 console.log(`Server -> ${server.url}`);
 console.log(`Web -> ${web.url}`);
+console.log(`Landing Page -> ${landingPage.url}`);
 console.log(`Mobile Web -> ${mobileWeb.url}`);
 
 await app.finalize();
