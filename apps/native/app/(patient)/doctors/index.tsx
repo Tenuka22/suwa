@@ -3,32 +3,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
-  BookOpen,
   ChevronLeft,
   ChevronRight,
-  Home,
   ListRestart,
-  MessageCircle,
   Search,
   SlidersHorizontal,
   Stethoscope,
-  User,
   X,
 } from "lucide-react-native";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
-
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
 import { Screen } from "@/components/design/ui/screen";
-import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
+import { Skeleton } from "@/components/design/ui/skeleton";
 import {
   consultationModeLabels,
   focusAreaLabels,
@@ -131,8 +120,10 @@ export default function DoctorsScreen() {
   function renderDoctorList() {
     if (doctorsQuery.isPending) {
       return (
-        <View className="items-center py-huge">
-          <ActivityIndicator color="#2d3e35" />
+        <View className="gap-md">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
         </View>
       );
     }
@@ -168,45 +159,23 @@ export default function DoctorsScreen() {
   }
 
   return (
-    <ScreenTabBar
-      tabs={[
-        {
-          icon: <Home className="text-foreground" size={20} />,
-          label: "Home",
-          onPress: () => router.push("/(patient)"),
-        },
-        {
-          active: true,
-          icon: <MessageCircle className="text-primary-foreground" size={20} />,
-          label: "Doctors",
-          onPress: () => router.push("/(patient)/doctors"),
-        },
-        {
-          icon: <BookOpen className="text-foreground" size={20} />,
-          label: "Health",
-          onPress: () => router.push("/(patient)/health-hub"),
-        },
-        {
-          icon: <User className="text-foreground" size={20} />,
-          label: "Profile",
-          onPress: () => router.push("/(patient)/profile"),
-        },
-      ]}
-    >
+    <PatientTabScaffold activeTab="doctors">
       <View className="flex-1 bg-background">
-        <Stack.Screen options={{ headerShown: false }} />
+        <Stack.Screen options={{ animation: "fade", headerShown: false }} />
 
         <Screen
           contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
           scrollClassName="flex-1 bg-background"
         >
           {/* Header */}
-          <View>
-            <Text className="font-serif text-hero text-primary leading-tight">
+          <View className="relative overflow-hidden rounded-[32px] bg-primary px-xl py-xxl">
+            <View className="absolute -top-12 -right-8 h-36 w-36 rounded-full bg-accent/25" />
+            <Text className="max-w-64 font-serif text-[34px] text-primary-foreground leading-tight">
               Clinicians
             </Text>
-            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
-              Private Care
+            <Text className="mt-xs font-sans text-caption text-primary-foreground/70">
+              Find a trusted professional who fits the way you want to be cared
+              for.
             </Text>
           </View>
 
@@ -296,7 +265,8 @@ export default function DoctorsScreen() {
           visible={filterOpen}
         >
           <View className="flex-1 justify-end bg-black/50">
-            <View className="max-h-[80%] rounded-t-3xl border-2 border-border bg-background/80 pb-8 backdrop-blur-[2px]">
+            <View className="max-h-[82%] rounded-t-[32px] bg-background pb-8">
+              <View className="mt-sm h-1.5 w-12 self-center rounded-full bg-border" />
               {/* Modal Header */}
               <View className="flex-row items-center justify-between border-border border-b px-6 py-4">
                 <Text className="font-serif text-foreground text-title">
@@ -373,6 +343,6 @@ export default function DoctorsScreen() {
           </View>
         </Modal>
       </View>
-    </ScreenTabBar>
+    </PatientTabScaffold>
   );
 }

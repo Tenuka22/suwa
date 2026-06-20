@@ -9,6 +9,7 @@ interface InputProps extends React.ComponentProps<typeof TextInput> {
   inputContainerClassName?: string;
   label?: string;
   leftIcon?: ReactNode;
+  optional?: boolean;
   rightIcon?: ReactNode;
 }
 
@@ -19,21 +20,30 @@ export function Input({
   inputContainerClassName,
   className,
   leftIcon,
+  optional,
   rightIcon,
   ...props
 }: InputProps) {
   return (
     <View className={`gap-2 ${containerClassName ?? ""}`.trim()}>
       {label ? (
-        <Text className="font-medium font-sans text-caption text-foreground">
-          {label}
-        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="font-poppins-medium text-caption text-foreground">
+            {label}
+          </Text>
+          {optional ? (
+            <Text className="font-sans text-foreground-muted text-micro">
+              Optional
+            </Text>
+          ) : null}
+        </View>
       ) : null}
       <View
         className={`flex-row items-center rounded-xl border-2 bg-background-elevated px-4 ${error ? "border-destructive" : "border-input"} ${inputContainerClassName ?? ""}`.trim()}
       >
         {leftIcon && <View className="mr-2">{leftIcon}</View>}
         <TextInput
+          accessibilityLabel={props.accessibilityLabel ?? label}
           className={`flex-1 py-4 font-sans text-body text-foreground outline-none placeholder:text-foreground-placeholder ${className ?? ""}`.trim()}
           {...props}
         />

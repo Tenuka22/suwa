@@ -3,24 +3,20 @@
 import { useUser } from "@clerk/expo";
 import { consumeEventIterator } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import {
   Activity,
   BarChart3,
-  BookOpen,
   Brain,
-  Home,
-  MessageCircle,
   Play,
   Square,
   TrendingDown,
   TrendingUp,
-  User,
 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Screen } from "@/components/design/ui/screen";
-import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
 import { vibrate } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 import {
@@ -56,7 +52,6 @@ function generateMockSample(): number[] {
 }
 
 export default function HealthHubScreen() {
-  const router = useRouter();
   const { user } = useUser();
   const userId = user?.id;
 
@@ -254,33 +249,9 @@ export default function HealthHubScreen() {
   }
 
   return (
-    <ScreenTabBar
-      tabs={[
-        {
-          icon: <Home className="text-foreground" size={20} />,
-          label: "Home",
-          onPress: () => router.push("/(patient)"),
-        },
-        {
-          icon: <MessageCircle className="text-foreground" size={20} />,
-          label: "Doctors",
-          onPress: () => router.push("/(patient)/doctors"),
-        },
-        {
-          active: true,
-          icon: <BookOpen className="text-primary-foreground" size={20} />,
-          label: "Health",
-          onPress: () => router.push("/(patient)/health-hub"),
-        },
-        {
-          icon: <User className="text-foreground" size={20} />,
-          label: "Profile",
-          onPress: () => router.push("/(patient)/profile"),
-        },
-      ]}
-    >
+    <PatientTabScaffold activeTab="health">
       <View className="flex-1 bg-background">
-        <Stack.Screen options={{ headerShown: false }} />
+        <Stack.Screen options={{ animation: "fade", headerShown: false }} />
         <Screen
           contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
           scrollClassName="flex-1 bg-background"
@@ -458,6 +429,6 @@ export default function HealthHubScreen() {
           </Pressable>
         </Screen>
       </View>
-    </ScreenTabBar>
+    </PatientTabScaffold>
   );
 }

@@ -3,15 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
-  BookOpen,
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Home,
   ListRestart,
-  MessageCircle,
   SlidersHorizontal,
-  User,
   X,
 } from "lucide-react-native";
 import { useMemo, useState } from "react";
@@ -23,10 +19,9 @@ import {
   Text,
   View,
 } from "react-native";
-
+import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Card } from "@/components/design/ui/card";
 import { Screen } from "@/components/design/ui/screen";
-import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
 import { orpc } from "@/utils/orpc";
 
 const sessionStatusLabels: Record<string, string> = {
@@ -112,31 +107,7 @@ export default function AppointmentsScreen() {
   }
 
   return (
-    <ScreenTabBar
-      tabs={[
-        {
-          icon: <Home className="text-foreground" size={20} />,
-          label: "Home",
-          onPress: () => router.push("/(patient)"),
-        },
-        {
-          active: true,
-          icon: <MessageCircle className="text-primary-foreground" size={20} />,
-          label: "Doctors",
-          onPress: () => router.push("/(patient)/doctors"),
-        },
-        {
-          icon: <BookOpen className="text-foreground" size={20} />,
-          label: "Health",
-          onPress: () => router.push("/(patient)/health-hub"),
-        },
-        {
-          icon: <User className="text-foreground" size={20} />,
-          label: "Profile",
-          onPress: () => router.push("/(patient)/profile"),
-        },
-      ]}
-    >
+    <PatientTabScaffold activeTab="doctors">
       <View className="flex-1 bg-background">
         <Stack.Screen options={{ headerShown: false }} />
         <Screen
@@ -333,6 +304,6 @@ export default function AppointmentsScreen() {
           </View>
         </Modal>
       </View>
-    </ScreenTabBar>
+    </PatientTabScaffold>
   );
 }

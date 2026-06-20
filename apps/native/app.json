@@ -18,7 +18,7 @@
         "backgroundImage": "./assets/images/Logo.png",
         "monochromeImage": "./assets/images/Logo.png"
       },
-      "predictiveBackGestureEnabled": false,
+      "predictiveBackGestureEnabled": true,
       "package": "com.anonymous.mybettertapp",
       "newArchEnabled": true
     },

@@ -5,29 +5,125 @@ import { Stack, useRouter } from "expo-router";
 import {
   Bell,
   BookOpen,
+  ChevronRight,
   Film,
   Flower2,
-  Heart,
-  Home,
+  HeartPulse,
   MapPin,
   MessageCircle,
   Mic,
   MicOff,
   Search,
-  Shield,
   ShieldCheck,
-  User,
+  Sparkles,
 } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
-import { FlatList, Image, Pressable, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
+
+import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 
 import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
-import { Screen } from "@/components/design/ui/screen";
-import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
+import { Reveal } from "@/components/design/ui/reveal";
+import { Skeleton } from "@/components/design/ui/skeleton";
 import { showToast, ToastContainer } from "@/components/design/ui/toast";
 import { orpc } from "@/utils/orpc";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
+
+interface FeatureCardProps {
+  description: string;
+  icon: ReactNode;
+  iconBackground: string;
+  onPress: () => void;
+  title: string;
+}
+
+function FeatureCard({
+  description,
+  icon,
+  iconBackground,
+  onPress,
+  title,
+}: FeatureCardProps) {
+  return (
+    <Card
+      className="min-h-44"
+      description={description}
+      icon={icon}
+      iconBgColor={iconBackground}
+      onPress={onPress}
+      title={title}
+    />
+  );
+}
+
+function VoiceOrb({
+  isListening,
+  onPress,
+}: {
+  isListening: boolean;
+  onPress: () => void;
+}) {
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    if (!isListening) {
+      pulse.value = withTiming(1, {
+        duration: 140,
+        easing: Easing.out(Easing.quad),
+        reduceMotion: ReduceMotion.System,
+      });
+      return;
+    }
+
+    pulse.value = withRepeat(
+      withTiming(1.14, {
+        duration: 720,
+        easing: Easing.inOut(Easing.sin),
+        reduceMotion: ReduceMotion.System,
+      }),
+      -1,
+      true
+    );
+    return () => cancelAnimation(pulse);
+  }, [isListening, pulse]);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
+
+  return (
+    <Pressable accessibilityLabel="Use voice search" onPress={onPress}>
+      <View className="h-11 w-11 items-center justify-center">
+        {isListening ? (
+          <Animated.View
+            className="absolute h-11 w-11 rounded-full bg-accent/20"
+            style={pulseStyle}
+          />
+        ) : null}
+        <View
+          className={`h-10 w-10 items-center justify-center rounded-full ${isListening ? "bg-accent" : "bg-primary"}`}
+        >
+          {isListening ? (
+            <MicOff color="#fffdf9" size={17} />
+          ) : (
+            <Mic color="#fffdf9" size={17} />
+          )}
+        </View>
+      </View>
+    </Pressable>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -41,6 +137,11 @@ export default function HomeScreen() {
     startListening,
     stopListening,
   } = useSpeechToText();
+  const { data: featuredVideos, isPending: videosPending } = useQuery(
+    orpc.listPublicMaterials.queryOptions({
+      input: { page: 1, pageSize: 10 },
+    })
+  );
 
   useEffect(() => {
     if (isListening && transcript) {
@@ -51,272 +152,267 @@ export default function HomeScreen() {
   useEffect(() => {
     if (speechError) {
       showToast({
-        type: "warning",
-        title: "Speech Recognition",
         message: speechError,
+        title: "Speech recognition",
+        type: "warning",
       });
     }
   }, [speechError]);
 
-  function handleSubmit() {
-    const text = input.trim();
-    if (!text) {
+  const handleSubmit = () => {
+    const message = input.trim();
+    if (!message) {
       return;
     }
-    router.push({ pathname: "/(patient)/ai", params: { message: text } });
-  }
+    router.push({ pathname: "/(patient)/ai", params: { message } });
+  };
 
-  function toggleMic() {
+  const toggleMic = () => {
     if (isListening) {
       stopListening();
-    } else {
-      setInput("");
-      startListening();
+      return;
     }
-  }
-
-  const { data: featuredVideos } = useQuery(
-    orpc.listPublicMaterials.queryOptions({
-      input: { page: 1, pageSize: 10 },
-    })
-  );
-
-  const carouselRef = useRef<FlatList>(null);
+    setInput("");
+    startListening();
+  };
 
   return (
-    <ScreenTabBar
-      tabs={[
-        {
-          active: true,
-          icon: <Home className="text-primary-foreground" size={20} />,
-          label: "Home",
-          onPress: () => router.push("/(patient)"),
-        },
-        {
-          icon: <MessageCircle className="text-foreground" size={20} />,
-          label: "Doctors",
-          onPress: () => router.push("/(patient)/doctors"),
-        },
-        {
-          icon: <BookOpen className="text-foreground" size={20} />,
-          label: "Health",
-          onPress: () => router.push("/(patient)/health-hub"),
-        },
-        {
-          icon: <User className="text-foreground" size={20} />,
-          label: "Profile",
-          onPress: () => router.push("/(patient)/profile"),
-        },
-      ]}
-    >
-      <View className="flex-1 bg-background">
-        <Stack.Screen options={{ headerShown: false }} />
-        <Screen
-          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
-          scrollClassName="flex-1 bg-background"
-        >
-          {/* Header */}
-          <View className="mt-sm flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <View className="-ml-3 h-14 w-14 items-center justify-center overflow-hidden rounded-full">
+    <PatientTabScaffold activeTab="home">
+      <Stack.Screen options={{ animation: "fade", headerShown: false }} />
+      <View className="flex-1 gap-xxl bg-background px-lg pt-12">
+        <Reveal delay={40}>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-md">
+              <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary-subtle">
                 <Image
                   resizeMode="contain"
                   source={require("@/assets/images/icon-stripped.png")}
-                  style={{ width: 32 }}
+                  style={{ height: 34, width: 22 }}
                 />
               </View>
-              <View className="flex flex-col">
-                <Text className="font-sans text-foreground-muted text-title">
+              <View>
+                <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
                   Welcome
                 </Text>
-                <Text className="font-sans text-primary text-subtitle">
-                  {patientName},
+                <Text className="font-poppins-medium text-foreground text-subtitle">
+                  {patientName}
                 </Text>
               </View>
             </View>
-            <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background-elevated shadow-sm">
-              <Bell className="text-primary" size={20} />
+            <Pressable
+              accessibilityLabel="Notifications"
+              accessibilityRole="button"
+              className="relative h-11 w-11 items-center justify-center rounded-full border border-border bg-background-elevated shadow-sm"
+              onPress={() => router.push("/(patient)/appointments")}
+            >
+              <Bell color="#315b4d" size={19} />
+              <View className="absolute top-2 right-2 h-2 w-2 rounded-full border border-background-elevated bg-accent" />
+            </Pressable>
+          </View>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <View className="relative overflow-hidden rounded-[32px] bg-primary px-xl py-xxl shadow-lg">
+            <View className="absolute -top-16 -right-10 h-44 w-44 rounded-full bg-accent/25" />
+            <View className="absolute -right-16 bottom-0 h-36 w-36 rounded-full border border-primary-foreground/15" />
+            <View className="max-w-[84%] gap-md">
+              <View className="self-start rounded-full bg-primary-foreground/10 px-md py-xs">
+                <Text className="font-poppins-medium text-micro text-primary-foreground uppercase tracking-widest">
+                  Your private space
+                </Text>
+              </View>
+              <View>
+                <Text className="font-serif text-[38px] text-primary-foreground leading-[1.08]">
+                  Health is personal.
+                </Text>
+                <Text className="font-serif text-[35px] text-accent-subtle italic leading-[1.08]">
+                  Privacy is ours.
+                </Text>
+              </View>
+              <Text className="font-sans text-caption text-primary-foreground/75 leading-relaxed">
+                Ask anything. Your identity stays yours.
+              </Text>
             </View>
           </View>
+        </Reveal>
 
-          {/* Hero Section */}
-          <View className="my-sm gap-0">
-            <Text className="font-serif text-hero text-primary leading-tight">
-              Health is
-            </Text>
-            <Text className="font-serif text-hero text-primary leading-tight">
-              personal.
-            </Text>
-            <View className="flex-row items-baseline">
-              <Text className="font-serif text-hero text-primary leading-tight">
-                Privacy is{" "}
-              </Text>
-              <Text className="font-serif text-accent text-hero italic leading-tight">
-                ours.
-              </Text>
-            </View>
-          </View>
-
-          {/* Search Bar */}
+        <Reveal delay={200}>
           <Input
             className="bg-transparent"
-            inputContainerClassName={`rounded-full border-0 shadow-sm ${isListening ? "bg-accent/10" : "bg-background-elevated"}`}
-            leftIcon={
-              <Search className="text-foreground-placeholder" size={20} />
-            }
+            inputContainerClassName={`rounded-full border border-border bg-background-elevated pl-lg pr-xs shadow-md ${isListening ? "border-accent" : ""}`}
+            leftIcon={<Search color="#8e9a94" size={19} />}
             onChangeText={setInput}
             onSubmitEditing={handleSubmit}
             placeholder="How can we help you today?"
             returnKeyType="send"
             rightIcon={
               input.trim() ? (
-                <Pressable onPress={handleSubmit}>
+                <Pressable accessibilityLabel="Search" onPress={handleSubmit}>
                   <View className="h-10 w-10 items-center justify-center rounded-full bg-primary">
-                    <Search className="text-primary-foreground" size={18} />
+                    <ChevronRight color="#fffdf9" size={19} />
                   </View>
                 </Pressable>
               ) : (
-                <Pressable onPress={toggleMic}>
-                  <View
-                    className={`h-10 w-10 items-center justify-center rounded-full ${isListening ? "bg-accent" : "bg-primary"}`}
-                  >
-                    {isListening ? (
-                      <MicOff className="text-primary-foreground" size={18} />
-                    ) : (
-                      <Mic className="text-primary-foreground" size={18} />
-                    )}
-                  </View>
-                </Pressable>
+                <VoiceOrb isListening={isListening} onPress={toggleMic} />
               )
             }
             value={input}
           />
+        </Reveal>
 
-          {/* 2x2 Grid */}
-          <View className="gap-xl">
-            <View className="flex-row gap-xl">
-              <Card
+        <Reveal className="gap-md" delay={260}>
+          <View className="flex-row items-end justify-between">
+            <View>
+              <Text className="font-serif text-[26px] text-foreground">
+                Care, your way
+              </Text>
+              <Text className="font-sans text-caption text-foreground-muted">
+                Private support whenever you need it
+              </Text>
+            </View>
+            <Sparkles color="#d78357" size={18} />
+          </View>
+          <View className="gap-md">
+            <View className="flex-row gap-md">
+              <FeatureCard
                 description="Chat anonymously"
-                icon={
-                  <Heart className="text-tint-green-foreground" size={24} />
-                }
-                iconBgColor="bg-tint-green"
-                onPress={() => router.push("/doctors")}
-                title="Start a Consultation"
+                icon={<MessageCircle color="#5f7267" size={23} />}
+                iconBackground="bg-tint-green"
+                onPress={() => router.push("/(patient)/doctors")}
+                title="Start a consultation"
+              />
+              <FeatureCard
+                description="Learn and understand"
+                icon={<BookOpen color="#d78357" size={23} />}
+                iconBackground="bg-accent-subtle"
+                onPress={() => router.push("/(patient)/materials")}
+                title="Health library"
               />
             </View>
-            <View className="flex-row gap-xl">
-              <Card
-                description="Self-care & support"
-                icon={
-                  <Flower2 className="text-tint-purple-foreground" size={24} />
-                }
-                iconBgColor="bg-tint-purple"
-                onPress={() => router.push("/health-hub")}
-                title="Wellness Tools"
+            <View className="flex-row gap-md">
+              <FeatureCard
+                description="Self-care and support"
+                icon={<Flower2 color="#9e8cb2" size={23} />}
+                iconBackground="bg-tint-purple"
+                onPress={() => router.push("/(patient)/health-hub")}
+                title="Wellness tools"
               />
-              <Card
-                description="You're in control"
-                icon={
-                  <Shield className="text-tint-yellow-foreground" size={24} />
-                }
-                iconBgColor="bg-tint-yellow"
-                onPress={() => router.push("/profile")}
-                title="Privacy Center"
+              <FeatureCard
+                description="You are in control"
+                icon={<ShieldCheck color="#c3af5a" size={23} />}
+                iconBackground="bg-tint-yellow"
+                onPress={() => router.push("/(patient)/profile")}
+                title="Privacy center"
               />
             </View>
           </View>
+        </Reveal>
 
-          {/* Doctor Map */}
-          <View className="flex-row gap-xl">
-            <Card
-              description="Find nearby clinics"
-              icon={<MapPin className="text-tint-beige-foreground" size={24} />}
-              iconBgColor="bg-tint-beige"
-              onPress={() => router.push("/(patient)/map")}
-              title="Doctor Map"
-            />
-          </View>
-
-          {/* Video Recommendations Carousel */}
-          {featuredVideos && featuredVideos.length > 0 && (
-            <View className="gap-md">
-              <View className="flex-row items-center justify-between">
-                <Text className="font-serif text-primary text-title">
-                  Recommended Videos
-                </Text>
-                <Pressable
-                  onPress={() => router.push("/(patient)/materials" as any)}
-                >
-                  <Text className="font-sans text-accent text-caption">
-                    See all
-                  </Text>
-                </Pressable>
+        <Reveal delay={340}>
+          <Pressable
+            className="overflow-hidden rounded-3xl bg-accent-subtle px-xl py-lg"
+            onPress={() => router.push("/(patient)/map")}
+          >
+            <View className="absolute -right-4 -bottom-12 h-32 w-32 rounded-full bg-accent/15" />
+            <View className="flex-row items-center gap-lg">
+              <View className="h-14 w-14 items-center justify-center rounded-2xl bg-background-elevated">
+                <MapPin color="#d78357" size={23} />
               </View>
-              <FlatList
-                contentContainerClassName="gap-md"
-                data={featuredVideos}
-                horizontal
-                keyExtractor={(item: any) => item.id}
-                ref={carouselRef}
-                renderItem={({ item }: { item: any }) => (
-                  <Pressable
-                    className="w-52"
-                    onPress={() =>
-                      router.push({
-                        pathname: "/(patient)/materials/[materialId]",
-                        params: { materialId: item.id },
-                      })
-                    }
-                  >
-                    <View className="h-28 items-center justify-center rounded-xl bg-background-subtle">
-                      <Film className="text-foreground-muted" size={28} />
-                    </View>
-                    <View className="mt-2 gap-0.5">
-                      <Text
-                        className="font-sans text-caption text-primary"
-                        numberOfLines={1}
-                      >
-                        {item.title}
-                      </Text>
-                      {item.doctorName && (
-                        <Text className="font-sans text-foreground-muted text-micro">
-                          {item.doctorName}
-                        </Text>
-                      )}
-                    </View>
-                  </Pressable>
-                )}
-                showsHorizontalScrollIndicator={false}
-              />
+              <View className="flex-1 gap-1">
+                <Text className="font-poppins-medium text-foreground text-subtitle">
+                  Care nearby
+                </Text>
+                <Text className="font-sans text-caption text-foreground-secondary">
+                  Find trusted doctors and clinics around you
+                </Text>
+              </View>
+              <ChevronRight color="#d78357" size={20} />
             </View>
-          )}
+          </Pressable>
+        </Reveal>
 
-          {/* Video Hub Card */}
-          <View className="flex-row gap-xl">
-            <Card
-              description="Watch health tips & doctor videos"
-              icon={<Film className="text-tint-purple-foreground" size={24} />}
-              iconBgColor="bg-tint-purple"
-              onPress={() => router.push("/(patient)/materials" as any)}
-              title="Video Hub"
-            />
-          </View>
+        {videosPending ? (
+          <Reveal className="gap-md" delay={400}>
+            <View className="gap-xs">
+              <Skeleton className="h-8 w-40" />
+              <Skeleton className="h-4 w-56" />
+            </View>
+            <View className="flex-row gap-md">
+              <Skeleton className="h-48 w-56" />
+              <Skeleton className="h-48 w-56" />
+            </View>
+          </Reveal>
+        ) : null}
+        {!videosPending && featuredVideos && featuredVideos.length > 0 ? (
+          <Reveal className="gap-md" delay={400}>
+            <View className="flex-row items-center justify-between">
+              <View>
+                <Text className="font-serif text-[26px] text-foreground">
+                  Curated for you
+                </Text>
+                <Text className="font-sans text-caption text-foreground-muted">
+                  A little knowledge for today
+                </Text>
+              </View>
+              <Pressable onPress={() => router.push("/(patient)/materials")}>
+                <Text className="font-poppins-medium text-accent text-caption">
+                  View all
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              contentContainerClassName="gap-md"
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {featuredVideos.slice(0, 6).map((item) => (
+                <Pressable
+                  className="w-56 overflow-hidden rounded-3xl border border-border/60 bg-background-elevated shadow-sm"
+                  key={item.id}
+                  onPress={() =>
+                    router.push({
+                      params: { materialId: item.id },
+                      pathname: "/(patient)/materials/[materialId]",
+                    })
+                  }
+                >
+                  <View className="h-28 items-center justify-center bg-primary-subtle">
+                    <View className="h-12 w-12 items-center justify-center rounded-full bg-background-elevated/90">
+                      <Film color="#315b4d" size={22} />
+                    </View>
+                  </View>
+                  <View className="gap-xs p-md">
+                    <Text
+                      className="font-poppins-medium text-caption text-foreground"
+                      numberOfLines={2}
+                    >
+                      {item.title}
+                    </Text>
+                    {item.doctorName ? (
+                      <Text className="font-sans text-foreground-muted text-micro">
+                        {item.doctorName}
+                      </Text>
+                    ) : null}
+                  </View>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Reveal>
+        ) : null}
 
-          {/* Bottom Banner */}
+        <Reveal className="pb-xl" delay={460}>
           <Card
-            className="border-0 bg-background-subtle"
-            description="No names. No data linked to you. Ever."
-            icon={<ShieldCheck className="text-primary" size={24} />}
-            iconBgColor="bg-primary-subtle"
-            onPress={() => router.push("/profile")}
-            title="100% Anonymous"
+            className="border-0 bg-primary-subtle"
+            description="Your personal details stay encrypted and in your control."
+            icon={<HeartPulse color="#315b4d" size={23} />}
+            iconBgColor="bg-background-elevated"
+            onPress={() => router.push("/(patient)/profile")}
+            title="Private by design"
             variant="banner"
           />
-        </Screen>
-
-        <ToastContainer />
+        </Reveal>
       </View>
-    </ScreenTabBar>
+      <ToastContainer />
+    </PatientTabScaffold>
   );
 }

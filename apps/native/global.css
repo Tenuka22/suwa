@@ -13,19 +13,19 @@
      BACKGROUNDS
      Layered surfaces from app-level to elevated cards.
   ---------------------------------------------------------- */
-  --color-background: #faf7f2;
+  --color-background: #fbf7f0;
   /* App-level canvas — warm cream        */
-  --color-background-elevated: #ffffff;
+  --color-background-elevated: #fffdf9;
   /* Cards, sheets, modals                 */
-  --color-background-subtle: #ecede2;
+  --color-background-subtle: #eef0e8;
   /* Banners, tags, section separators     */
-  --color-background-overlay: #f4f1eb;
+  --color-background-overlay: #f6efe6;
   /* Hover states, skeleton loaders        */
 
   /* ----------------------------------------------------------
      FOREGROUND (text & icons placed on the above backgrounds)
   ---------------------------------------------------------- */
-  --color-foreground: #2d3e35;
+  --color-foreground: #243a31;
   /* Body text on --background            */
   --color-foreground-secondary: #4e5752;
   /* Subtext, descriptions                */
@@ -40,12 +40,12 @@
      PRIMARY  (brand dark forest green)
      Main CTA buttons, navigation active states, logo.
   ---------------------------------------------------------- */
-  --color-primary: #2d3e35;
+  --color-primary: #315b4d;
   --color-primary-foreground: #faf7f2;
   /* Text / icons on primary surface      */
-  --color-primary-hover: #3b5145;
+  --color-primary-hover: #284b40;
   /* Darkened for press / hover            */
-  --color-primary-subtle: #e2eae5;
+  --color-primary-subtle: #e4eee8;
   /* Light green tint — chips, badges      */
   --color-primary-subtle-foreground: #5f7267;
   /* Icons on primary-subtle         */
@@ -54,7 +54,7 @@
      SECONDARY  (mid-tone sage green)
      Icon backgrounds, secondary badges, active tabs.
   ---------------------------------------------------------- */
-  --color-secondary: #5f7267;
+  --color-secondary: #6f8b7d;
   --color-secondary-foreground: #ffffff;
   --color-secondary-hover: #4e5f56;
 
@@ -63,10 +63,10 @@
      Highlight words ("Always.", "ours."), decorative rules,
      notification dots, progress indicators.
   ---------------------------------------------------------- */
-  --color-accent: #c58a5b;
+  --color-accent: #d78357;
   --color-accent-foreground: #ffffff;
   --color-accent-hover: #b37848;
-  --color-accent-subtle: #f5ecd8;
+  --color-accent-subtle: #fbe9dc;
   /* Beige tint surface — icon backgrounds  */
   --color-accent-subtle-foreground: #c58a5b;
 
@@ -102,9 +102,9 @@
   /* ----------------------------------------------------------
      BORDER, INPUT & RING
   ---------------------------------------------------------- */
-  --color-border: #e2ddd5;
+  --color-border: #e9e1d7;
   /* Dividers, card outlines, separators   */
-  --color-input: #e2ddd5;
+  --color-input: #e9e1d7;
   /* Input field border                    */
   --color-ring: #5f7267;
   /* Focus ring (keyboard / a11y)          */
@@ -130,11 +130,11 @@
      TYPE SCALE
      Derived from the design's visible hierarchy.
   ---------------------------------------------------------- */
-  --text-display: 96px;
+  --text-display: 72px;
   /* "Suwa" brand wordmark                  */
   --text-sub-display: 34px;
   /* "Suwa" brand sub wordmark                  */
-  --text-hero: 28px;
+  --text-hero: 36px;
   /* "Health is personal." hero heading      */
   --text-title: 20px;
   /* Section / card titles                   */
@@ -210,9 +210,9 @@
      SHADOWS
      Minimal elevation — only where depth is earned.
   ---------------------------------------------------------- */
-  --shadow-sm: 0 1px 3px 0 rgb(45 62 53 / 0.06);
-  --shadow-md: 0 4px 12px 0 rgb(45 62 53 / 0.08);
-  --shadow-lg: 0 8px 24px 0 rgb(45 62 53 / 0.1);
+  --shadow-sm: 0 2px 8px 0 rgb(36 58 49 / 0.06);
+  --shadow-md: 0 8px 22px 0 rgb(36 58 49 / 0.09);
+  --shadow-lg: 0 16px 42px 0 rgb(36 58 49 / 0.12);
 
   /* ----------------------------------------------------------
      TRANSITIONS

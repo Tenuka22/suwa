@@ -1,6 +1,23 @@
 "use client";
 
-import { Pressable, Text, View } from "react-native";
+import { selectionAsync } from "expo-haptics";
+import { useEffect, useState } from "react";
+import { type LayoutChangeEvent, Pressable, Text, View } from "react-native";
+import Animated, {
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+
+const CONTROL_PADDING = 4;
+const INDICATOR_SPRING = {
+  damping: 22,
+  mass: 0.7,
+  overshootClamping: true,
+  reduceMotion: ReduceMotion.System,
+  stiffness: 260,
+} as const;
 
 interface ToggleGroupItem<T> {
   label: string;
@@ -20,18 +37,63 @@ export function ToggleGroup<T extends string | number>({
   onValueChange,
   className,
 }: ToggleGroupProps<T>) {
+  const [controlWidth, setControlWidth] = useState(0);
+  const activeIndex = Math.max(
+    0,
+    items.findIndex((item) => item.value === value)
+  );
+  const animatedIndex = useSharedValue(activeIndex);
+  const segmentWidth =
+    items.length > 0
+      ? Math.max(0, (controlWidth - CONTROL_PADDING * 2) / items.length)
+      : 0;
+
+  useEffect(() => {
+    animatedIndex.value = withSpring(activeIndex, INDICATOR_SPRING);
+  }, [activeIndex, animatedIndex]);
+
+  const indicatorStyle = useAnimatedStyle(
+    () => ({
+      transform: [{ translateX: animatedIndex.value * segmentWidth }],
+      width: segmentWidth,
+    }),
+    [segmentWidth]
+  );
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setControlWidth(event.nativeEvent.layout.width);
+  };
+
   return (
-    <View className={`flex-row gap-3 ${className ?? ""}`.trim()}>
+    <View
+      className={`relative flex-row rounded-2xl border border-border/70 bg-background-subtle p-1 ${className ?? ""}`.trim()}
+      onLayout={handleLayout}
+    >
+      {segmentWidth > 0 ? (
+        <Animated.View
+          className="absolute top-1 bottom-1 left-1 rounded-xl bg-background-elevated shadow-sm"
+          pointerEvents="none"
+          style={indicatorStyle}
+        />
+      ) : null}
       {items.map((item) => {
-        const isActive = item.value !== value;
+        const isActive = item.value === value;
         return (
           <Pressable
-            className={`rounded-full border-2 px-4 py-2 ${isActive ? "border-primary bg-primary" : "border-border bg-secondary"}`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            className="z-10 min-h-12 flex-1 items-center justify-center rounded-xl px-4 py-3"
             key={item.value}
-            onPress={() => onValueChange(item.value)}
+            onPress={async () => {
+              if (isActive) {
+                return;
+              }
+              onValueChange(item.value);
+              await selectionAsync();
+            }}
           >
             <Text
-              className={`font-medium font-sans text-sm ${isActive ? "text-primary-foreground" : "text-secondary-foreground"}`}
+              className={`font-poppins-medium text-sm ${isActive ? "text-primary" : "text-foreground-muted"}`}
             >
               {item.label}
             </Text>

@@ -50,3 +50,10 @@ coverage
 .cache
 tmp
 temp
+
+# Local/Agent IDE configuration
+.agents
+.claude
+.codex
+.opencode
+.zed

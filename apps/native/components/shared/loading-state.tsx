@@ -10,10 +10,7 @@ export function LoadingState({ message = "Loading..." }: LoadingStateProps) {
   return (
     <View className="items-center justify-center gap-3 py-16">
       <ActivityIndicator className="text-primary" size="large" />
-      <Text
-        className="font-bold font-sans text-muted-foreground"
-        style={{ color: "#ef4444" }}
-      >
+      <Text className="font-poppins-medium text-caption text-muted-foreground">
         {message}
       </Text>
     </View>

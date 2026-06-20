@@ -1,8 +1,10 @@
 "use client";
 
+import { selectionAsync } from "expo-haptics";
 import { type Href, Link } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ScreenBottomBarAction {
   active?: boolean;
@@ -28,22 +30,31 @@ export function ScreenBottomBar({
   leftActions,
   returnAction,
 }: ScreenBottomBarProps) {
+  const insets = useSafeAreaInsets();
   const hasLeft = leftActions && leftActions.length > 0;
   const hasRight = !!returnAction;
 
   return (
-    <View className="absolute right-0 bottom-4 left-0 px-6">
+    <View
+      className="absolute right-0 bottom-0 left-0 border-border/70 border-t bg-background-elevated/95 px-lg pt-sm shadow-lg"
+      style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+    >
       <View className="flex-row items-center justify-between">
         {hasLeft && (
-          <View className="w-auto flex-row gap-2 rounded-full border-2 border-border bg-background-elevated/60 shadow-md backdrop-blur-[0.4px]">
+          <View className="flex-row gap-1 rounded-2xl bg-background-subtle p-1">
             {leftActions.map((action) => (
               <Pressable
-                className={`size-20 items-center justify-center gap-0 py-2 ${action.active ? (action.activeClassName ?? "rounded-full bg-primary/70 px-4 backdrop-blur-md") : (action.className ?? "size-20")}`}
+                className={`min-h-14 min-w-14 items-center justify-center gap-0.5 rounded-xl px-3 py-1 ${action.active ? (action.activeClassName ?? "bg-primary") : (action.className ?? "")}`}
+                hitSlop={6}
                 key={action.label}
-                onPress={action.onPress}
+                onPress={async () => {
+                  action.onPress?.();
+                  await selectionAsync();
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
               >
                 <View
-                  className={`h-8 w-8 items-center justify-center ${action.active ? "text-primary-foreground" : "text-foreground"}`}
+                  className={`h-7 w-7 items-center justify-center ${action.active ? "text-primary-foreground" : "text-foreground"}`}
                 >
                   {action.icon}
                 </View>
@@ -61,8 +72,12 @@ export function ScreenBottomBar({
         )}
 
         {hasRight && (
-          <Link asChild href={returnAction.href as Href}>
-            <Pressable className="size-20 items-center justify-center rounded-full border-2 border-border bg-background-elevated/60 shadow-md backdrop-blur-[0.4]">
+          <Link asChild href={returnAction.href as Href} replace>
+            <Pressable
+              className="h-14 w-14 items-center justify-center rounded-2xl border border-border bg-background-elevated"
+              hitSlop={6}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
               {returnAction.icon}
             </Pressable>
           </Link>

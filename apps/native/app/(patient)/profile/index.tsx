@@ -1,18 +1,19 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
-import { BookOpen, Home, Key, MessageCircle, User } from "lucide-react-native";
+import { Stack } from "expo-router";
+import { Key, ShieldCheck, UserRound } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Button } from "@/components/design/ui/button";
 import {
   ErrorDialog,
   useErrorDialog,
 } from "@/components/design/ui/error-dialog";
 import { Input } from "@/components/design/ui/input";
-import { ScreenTabBar } from "@/components/design/ui/screen-tab-bar";
+import { Skeleton } from "@/components/design/ui/skeleton";
 import { showToast } from "@/components/design/ui/toast";
 import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
@@ -26,7 +27,6 @@ import {
 import { useErrorHandler } from "@/utils/use-error-handler";
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -41,7 +41,6 @@ export default function ProfileScreen() {
 
   const { handleError } = useErrorHandler();
   const { dialogProps } = useErrorDialog();
-
   const profileQuery = useQuery(orpc.getPatientProfile.queryOptions());
 
   useEffect(() => {
@@ -82,18 +81,18 @@ export default function ProfileScreen() {
 
   const updateMutation = useMutation(
     orpc.updatePatientProfile.mutationOptions({
+      onError: (error) => handleError(error),
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: orpc.getPatientProfile.key(),
         });
         showToast({
-          type: "success",
-          title: "Saved",
           message: "Profile updated successfully.",
+          title: "Saved",
+          type: "success",
         });
         vibrate([40, 20, 40]);
       },
-      onError: (err) => handleError(err),
     })
   );
 
@@ -108,31 +107,32 @@ export default function ProfileScreen() {
       const secret = await getStoredSecret();
       if (!secret) {
         showToast({
-          type: "error",
-          title: "No encryption key",
           message: "Generate an encryption key first.",
+          title: "No encryption key",
+          type: "error",
         });
         return;
       }
 
       const _securedData = await encryptData(
-        { email, phone, fullName, address },
+        { address, email, fullName, phone },
         secret
       );
-
       updateMutation.mutate({
-        alias: alias || undefined,
         _securedData,
+        alias: alias || undefined,
       });
-    } catch (err) {
-      handleError(err);
+    } catch (error) {
+      handleError(error);
     }
   };
 
   if (profileQuery.isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator className="text-primary" size="large" />
+      <View className="flex-1 gap-xl bg-background px-lg pt-14">
+        <Skeleton className="h-36 w-full" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-64 w-full" />
       </View>
     );
   }
@@ -143,110 +143,112 @@ export default function ProfileScreen() {
     !profileQuery.data?._securedData;
 
   return (
-    <ScreenTabBar
-      tabs={[
-        {
-          icon: <Home className="text-foreground" size={20} />,
-          label: "Home",
-          onPress: () => router.push("/(patient)"),
-        },
-        {
-          icon: <MessageCircle className="text-foreground" size={20} />,
-          label: "Doctors",
-          onPress: () => router.push("/(patient)/doctors"),
-        },
-        {
-          icon: <BookOpen className="text-foreground" size={20} />,
-          label: "Health",
-          onPress: () => router.push("/(patient)/health-hub"),
-        },
-        {
-          active: true,
-          icon: <User className="text-primary-foreground" size={20} />,
-          label: "Profile",
-          onPress: () => router.push("/(patient)/profile"),
-        },
-      ]}
-    >
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-background">
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="gap-8 px-8 pt-20">
-            <View className="gap-6">
-              <Text className="font-serif text-display text-foreground leading-none">
-                Profile
+    <PatientTabScaffold activeTab="profile">
+      <Stack.Screen options={{ animation: "fade", headerShown: false }} />
+      <View className="flex-1 gap-xxl bg-background px-lg pt-12 pb-xl">
+        <View className="relative overflow-hidden rounded-[32px] bg-primary px-xl py-xxl">
+          <View className="absolute -top-10 -right-8 h-36 w-36 rounded-full bg-accent/25" />
+          <View className="gap-md">
+            <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary-foreground/10">
+              <UserRound color="#fbf7f0" size={22} />
+            </View>
+            <View>
+              <Text className="font-serif text-[34px] text-primary-foreground leading-tight">
+                Your profile
               </Text>
-              <View className="h-1 w-12 bg-accent" />
+              <Text className="mt-xs font-sans text-caption text-primary-foreground/70 leading-relaxed">
+                Choose what Suwa knows. Your personal details stay protected.
+              </Text>
             </View>
-
-            <View className="gap-4">
-              <Input
-                label="Alias"
-                onChangeText={setAlias}
-                placeholder="How should we call you?"
-                value={alias}
-              />
-
-              {hasKey === false && (
-                <View className="gap-4 rounded-xl border-2 border-accent bg-accent-subtle p-6">
-                  <Text className="font-sans font-semibold text-accent text-subtitle">
-                    Encryption Required
-                  </Text>
-                  <Text className="font-sans text-foreground text-sm leading-relaxed">
-                    Generate a local key to secure your personal data.
-                  </Text>
-                  <Button onPress={handleGenerateKey} size="sm">
-                    Generate Key
-                  </Button>
-                </View>
-              )}
-
-              {hasKey === true && (
-                <View className="flex-row items-center gap-2 rounded-full bg-primary-subtle px-4 py-3">
-                  <Key className="text-primary" size={14} />
-                  <Text className="font-medium font-sans text-primary text-xs">
-                    Privacy Shield Active
-                  </Text>
-                </View>
-              )}
-
-              {showPersonalFields && (
-                <View className="gap-4">
-                  <Input
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    label="Email"
-                    onChangeText={setEmail}
-                    value={email}
-                  />
-                  <Input
-                    keyboardType="phone-pad"
-                    label="Phone"
-                    onChangeText={setPhone}
-                    value={phone}
-                  />
-                  <Input
-                    label="Full Name"
-                    onChangeText={setFullName}
-                    value={fullName}
-                  />
-                  <Input
-                    label="Address"
-                    onChangeText={setAddress}
-                    value={address}
-                  />
-                </View>
-              )}
-            </View>
-
-            <Button onPress={handleSave} size="lg">
-              Save Profile
-            </Button>
           </View>
-        </ScrollView>
-      </View>
+        </View>
 
+        <View className="gap-lg">
+          <View className="flex-row items-center gap-sm">
+            <ShieldCheck color="#315b4d" size={19} />
+            <Text className="font-serif text-[24px] text-foreground">
+              Identity and privacy
+            </Text>
+          </View>
+          <Input
+            label="Alias"
+            onChangeText={setAlias}
+            placeholder="How should we call you?"
+            value={alias}
+          />
+
+          {hasKey === false ? (
+            <View className="gap-md rounded-3xl bg-accent-subtle p-lg">
+              <Text className="font-poppins-medium text-accent text-subtitle">
+                Turn on your privacy shield
+              </Text>
+              <Text className="font-sans text-foreground text-sm leading-relaxed">
+                Generate a secure local key before saving personal details.
+              </Text>
+              <Button onPress={handleGenerateKey} size="sm">
+                Generate key
+              </Button>
+            </View>
+          ) : null}
+
+          {hasKey === true ? (
+            <View className="flex-row items-center gap-md rounded-2xl bg-primary-subtle px-lg py-md">
+              <View className="h-9 w-9 items-center justify-center rounded-xl bg-background-elevated">
+                <Key color="#315b4d" size={16} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-poppins-medium text-caption text-primary">
+                  Privacy shield active
+                </Text>
+                <Text className="font-sans text-micro text-primary/70">
+                  Personal details are encrypted locally
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
+          {showPersonalFields ? (
+            <View className="gap-lg">
+              <Input
+                autoCapitalize="none"
+                keyboardType="email-address"
+                label="Email"
+                onChangeText={setEmail}
+                optional
+                value={email}
+              />
+              <Input
+                keyboardType="phone-pad"
+                label="Phone"
+                onChangeText={setPhone}
+                optional
+                value={phone}
+              />
+              <Input
+                label="Full name"
+                onChangeText={setFullName}
+                optional
+                value={fullName}
+              />
+              <Input
+                label="Address"
+                onChangeText={setAddress}
+                optional
+                value={address}
+              />
+            </View>
+          ) : null}
+        </View>
+
+        <Button
+          disabled={updateMutation.isPending}
+          onPress={handleSave}
+          size="lg"
+        >
+          {updateMutation.isPending ? "Saving..." : "Save profile"}
+        </Button>
+      </View>
       <ErrorDialog {...dialogProps} />
-    </ScreenTabBar>
+    </PatientTabScaffold>
   );
 }

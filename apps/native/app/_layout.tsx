@@ -8,9 +8,9 @@ import { env } from "@suwa/env/native";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Redirect, Stack, usePathname } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+import { hideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import * as WebBrowser from "expo-web-browser";
+import { maybeCompleteAuthSession } from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -23,7 +23,7 @@ import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
 import { orpc, queryClient, setQueryErrorHandler } from "@/utils/orpc";
 import { StripePaymentProvider } from "@/utils/stripe";
 
-WebBrowser.maybeCompleteAuthSession();
+maybeCompleteAuthSession();
 
 function ClerkApiAuthBridge() {
   const { getToken } = useAuth();
@@ -38,6 +38,54 @@ function ClerkApiAuthBridge() {
 
   return null;
 }
+
+type OnboardingRedirectPath = "/(patient)" | "/landing" | "/profile";
+
+function getOnboardingRedirect({
+  hasPatientProfile,
+  isProfileLoaded,
+  isSignedIn,
+  needsRepair,
+  pathname,
+}: {
+  hasPatientProfile: boolean;
+  isProfileLoaded: boolean;
+  isSignedIn: boolean | undefined;
+  needsRepair: boolean;
+  pathname: string;
+}): OnboardingRedirectPath | null {
+  const isPublicAuthPath =
+    pathname === "/landing" ||
+    pathname === "/sign-in" ||
+    pathname === "/sign-up";
+
+  if (isSignedIn === false && !isPublicAuthPath) {
+    return "/landing";
+  }
+
+  if (!(isSignedIn && isProfileLoaded)) {
+    return null;
+  }
+
+  if (!hasPatientProfile) {
+    return pathname === "/landing" || pathname === "/profile"
+      ? null
+      : "/landing";
+  }
+
+  const isRepairPath =
+    pathname === "/profile" || pathname.startsWith("/onboarding");
+  if (needsRepair && !isRepairPath) {
+    return "/profile";
+  }
+
+  if (!needsRepair && pathname === "/landing") {
+    return "/(patient)";
+  }
+
+  return null;
+}
+
 function OnboardingCheck() {
   const pathname = usePathname();
   const { isLoaded, isSignedIn } = useAuth();
@@ -82,45 +130,21 @@ function OnboardingCheck() {
     );
   }
 
-  if (
-    isLoaded &&
-    isSignedIn === false &&
-    pathname !== "/landing" &&
-    pathname !== "/sign-in" &&
-    pathname !== "/sign-up"
-  ) {
-    return <Redirect href="/landing" />;
-  }
+  const patientData = patientProfileQuery.data;
+  const hasPatientProfile = Boolean(patientData);
+  const needsRepair = Boolean(
+    patientData && !(patientData.secured && patientData._securedData)
+  );
+  const redirectPath = getOnboardingRedirect({
+    hasPatientProfile,
+    isProfileLoaded,
+    isSignedIn,
+    needsRepair,
+    pathname,
+  });
 
-  if (isLoaded && isSignedIn && isProfileLoaded) {
-    const patientData = patientProfileQuery.data;
-
-    if (!patientData) {
-      if (pathname !== "/landing" && pathname !== "/profile") {
-        return <Redirect href="/landing" />;
-      }
-      return null;
-    }
-
-    if (patientData) {
-      const needsRepair = !(patientData.secured && patientData._securedData);
-      console.log("[OnboardingCheck] patient profile exists", {
-        needsRepair,
-        secured: patientData.secured,
-        hasSecuredData: !!patientData._securedData,
-      });
-      if (
-        needsRepair &&
-        pathname !== "/profile" &&
-        !pathname.startsWith("/onboarding")
-      ) {
-        return <Redirect href="/profile" />;
-      }
-
-      if (!needsRepair && pathname === "/landing") {
-        return <Redirect href="/(patient)" />;
-      }
-    }
+  if (redirectPath) {
+    return <Redirect href={redirectPath} />;
   }
 
   return null;
@@ -167,8 +191,8 @@ function GlobalErrorBoundary({
 
 function LayoutContent() {
   const { dialogProps, showError } = useErrorDialog();
-  const background = "#f4f4f5";
-  const foreground = "#000000";
+  const background = "#fbf7f0";
+  const foreground = "#243a31";
 
   useEffect(() => {
     setQueryErrorHandler((error) => {
@@ -212,7 +236,7 @@ function LayoutContent() {
               </Stack>
               <OnboardingCheck />
             </GlobalErrorBoundary>
-            <StatusBar style="auto" />
+            <StatusBar backgroundColor={background} style="dark" />
           </StripePaymentProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
@@ -235,7 +259,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync().catch(() => {});
+      hideAsync().catch(() => {
+        // The splash screen may already be hidden during web hot reloads.
+      });
     }
   }, [fontsLoaded, fontError]);
 

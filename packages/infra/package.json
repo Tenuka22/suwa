@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development alchemy dev --profile=suwa",
-    "deploy": "NODE_ENV=production alchemy deploy --stage=prod --profile=suwa",
-    "destroy": "alchemy destroy --stage=prod --profile=suwa"
+    "dev": "NODE_ENV=development alchemy dev --profile='suwa'",
+    "deploy": "NODE_ENV=production alchemy deploy --stage=prod --profile='suwa'",
+    "destroy": "alchemy destroy --stage=prod --profile='suwa'"
   },
   "dependencies": {
     "@suwa/db": "workspace:*",
