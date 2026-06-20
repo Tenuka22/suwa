@@ -18,11 +18,14 @@ export function createCoordinatorNode(config: AgentConfig) {
       new SystemMessage(config.systemPrompts.coordinator!),
       ...state.messages,
     ]);
-    const tc = (result as unknown as { tool_calls?: Array<{ name: string; args: Record<string, unknown> }> }).tool_calls;
+    const tc = (
+      result as unknown as {
+        tool_calls?: Array<{ name: string; args: Record<string, unknown> }>;
+      }
+    ).tool_calls;
     const transfer = tc?.find((t) => t.name === "transfer_to_agent");
     const agent =
-      typeof transfer?.args?.agent === "string" &&
-      transfer.args.agent === "db"
+      typeof transfer?.args?.agent === "string" && transfer.args.agent === "db"
         ? transfer.args.agent
         : "coordinator";
     return { messages: [result], activeAgent: agent };
@@ -60,8 +63,12 @@ export function createRouter(_config: AgentConfig) {
     if (transfer) {
       const agent = transfer.args.agent;
       if (typeof agent === "string" && agent === "db") {
-        const userMsg = (state.messages[0]?.content as string)?.toLowerCase() ?? "";
-        const needsDoctor = /doctor|appointment|book|schedule|availability|clinic|search find|profile|specialist/i.test(userMsg);
+        const userMsg =
+          (state.messages[0]?.content as string)?.toLowerCase() ?? "";
+        const needsDoctor =
+          /doctor|appointment|book|schedule|availability|clinic|search find|profile|specialist/i.test(
+            userMsg
+          );
         if (needsDoctor) {
           return agent;
         }

@@ -176,7 +176,9 @@ function AdminDashboardRoute() {
                 dataKey="day"
                 tickFormatter={(value: string) => {
                   const date = new Date(value);
-                  if (Number.isNaN(date.getTime())) return value;
+                  if (Number.isNaN(date.getTime())) {
+                    return value;
+                  }
                   return format(date, "MMM d");
                 }}
                 tickLine={false}

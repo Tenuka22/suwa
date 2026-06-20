@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { orpc } from "@/utils/orpc";
 import * as FileSystem from "expo-file-system";
+import { useEffect, useState } from "react";
+import { orpc } from "@/utils/orpc";
 
 export function useMaterialThumbnail(materialId: string | null) {
   const [uri, setUri] = useState<string | null>(null);
@@ -21,7 +20,9 @@ export function useMaterialThumbnail(materialId: string | null) {
       setLoading(true);
       try {
         const file = await orpc.getHubMaterialFile.call({ id: materialId });
-        if (!active || !file) return;
+        if (!(active && file)) {
+          return;
+        }
 
         const cachePath = `${FileSystem.Paths.cache.uri}thumb-${materialId}.jpg`;
         const cacheFile = new FileSystem.File(cachePath);
@@ -42,7 +43,9 @@ export function useMaterialThumbnail(materialId: string | null) {
           quality: 0.5,
         });
 
-        if (!active) return;
+        if (!active) {
+          return;
+        }
 
         if (result?.uri) {
           setUri(result.uri);
@@ -50,7 +53,9 @@ export function useMaterialThumbnail(materialId: string | null) {
       } catch {
         // ignore
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     };
 

@@ -38,9 +38,7 @@ function MaterialCard({ item }: { item: any }) {
           <View className="h-full w-full items-center justify-center bg-background-subtle">
             <Film
               className={
-                loading
-                  ? "text-primary animate-pulse"
-                  : "text-foreground-muted"
+                loading ? "animate-pulse text-primary" : "text-foreground-muted"
               }
               size={32}
             />

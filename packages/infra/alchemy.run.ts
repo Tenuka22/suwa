@@ -53,7 +53,9 @@ export const server = await Worker("server", {
     },
   },
   compatibilityFlags: ["no_handle_cross_request_promise_resolution"],
-  domains: [{ domainName: "api.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
+  domains: [
+    { domainName: "api.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" },
+  ],
   bindings: {
     DB: db,
     CHAT_MESSAGES_KV: chatMessagesKv,
@@ -90,7 +92,9 @@ export const server = await Worker("server", {
 
 export const web = await TanStackStart("web", {
   cwd: "../../apps/web",
-  domains: [{ domainName: "app.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
+  domains: [
+    { domainName: "app.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" },
+  ],
   bindings: {
     VITE_SERVER_URL: server.url!,
     VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
@@ -110,7 +114,9 @@ export const web = await TanStackStart("web", {
 export const landingPage = await TanStackStart("landing-page", {
   cwd: "../../apps/landing-page",
   bindings: {},
-  domains: [{ domainName: "suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
+  domains: [
+    { domainName: "suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" },
+  ],
   build: {
     command: "bun run build",
   },
@@ -124,7 +130,9 @@ export const landingPage = await TanStackStart("landing-page", {
 
 export const mobileWeb = await Website("mobile-web", {
   cwd: "../../apps/native",
-  domains: [{ domainName: "m.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" }],
+  domains: [
+    { domainName: "m.suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" },
+  ],
   build: {
     command: "bunx expo export --platform web",
     env: {

@@ -1,8 +1,8 @@
 import { ArrowRight, CirclePlay, ShieldCheck } from "lucide-react";
+import { OptimizedImage } from "../../../components/optimized-image";
 import { Button, playCircle, RoundArrow } from "../helpers/button";
 import { SIGN_UP_URL } from "../helpers/sign-up-url";
 import { H1 } from "../helpers/typography";
-import { OptimizedImage } from "../../../components/optimized-image";
 
 export function Hero() {
   return (

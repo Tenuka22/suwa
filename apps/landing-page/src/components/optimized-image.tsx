@@ -18,12 +18,18 @@ const IMAGE_EXT_RE = /\.(png|jpg|jpeg|webp|avif)$/i;
 const STYLE_SUFFIX_RE = /-(?:watercolor)$/i;
 
 function generateSrcSet(baseName: string, ext: string): string {
-  return WIDTHS.map((w) => `${IMG_PATH}/${baseName}-${w}w.${ext} ${w}w`).join(", ");
+  return WIDTHS.map((w) => `${IMG_PATH}/${baseName}-${w}w.${ext} ${w}w`).join(
+    ", "
+  );
 }
 
 function pickBaseName(src: string): string {
   const name: string =
-    src.split("/").pop()?.replace(IMAGE_EXT_RE, "").replace(STYLE_SUFFIX_RE, "") ?? "suwa-hero";
+    src
+      .split("/")
+      .pop()
+      ?.replace(IMAGE_EXT_RE, "")
+      .replace(STYLE_SUFFIX_RE, "") ?? "suwa-hero";
   return name;
 }
 

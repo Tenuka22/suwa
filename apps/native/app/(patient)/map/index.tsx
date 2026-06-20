@@ -95,9 +95,7 @@ export default function MapScreen() {
     setListOpen((prev) => !prev);
   }, []);
 
-  const tenantsQuery = useQuery(
-    orpc.listTenants.queryOptions({ input: {} })
-  );
+  const tenantsQuery = useQuery(orpc.listTenants.queryOptions({ input: {} }));
   const tenants = tenantsQuery.data?.tenants ?? [];
 
   const allHospitals = useMemo(() => {

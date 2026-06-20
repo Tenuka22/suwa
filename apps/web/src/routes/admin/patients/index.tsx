@@ -55,7 +55,7 @@ function AdminPatientsRoute() {
       <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
         <div className="flex items-center gap-5">
           <Chip
-            className="size-16 rounded-full bg-accent/10 flex items-center justify-center"
+            className="flex size-16 items-center justify-center rounded-full bg-accent/10"
             variant="tertiary"
           >
             <UserRoundIcon className="size-6 text-accent" />

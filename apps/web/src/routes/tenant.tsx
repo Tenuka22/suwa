@@ -1,12 +1,14 @@
 import { SignInButton as ClerkSignInButton } from "@clerk/tanstack-react-start";
-import { Breadcrumbs, Card, Separator } from "@heroui/react";
-import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
-import { BuildingIcon } from "lucide-react";
+import { Button, Card, Separator } from "@heroui/react";
 import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/sidebar-context";
+  createFileRoute,
+  Link,
+  Outlet,
+  useLoaderData,
+  useMatches,
+} from "@tanstack/react-router";
+import { BuildingIcon, MenuIcon } from "lucide-react";
+import { useState } from "react";
 
 import { TenantSidebar } from "@/components/tenant-sidebar";
 import { getServerSession } from "@/utils/clerk-auth";
@@ -22,15 +24,21 @@ export const Route = createFileRoute("/tenant")({
 
 function TenantBreadcrumbs() {
   const matches = useMatches();
+
   const breadcrumbs = matches
     .filter((match) => match.routeId !== "__root__")
     .flatMap((match) => {
       const segments = match.pathname.split("/").filter(Boolean);
+
       return segments.map((segment, index) => {
         const href = `/${segments.slice(0, index + 1).join("/")}`;
         const isLast = index === segments.length - 1;
-        const label = segment.charAt(0).toUpperCase() + segment.slice(1);
-        return { href, label, isLast };
+
+        return {
+          href,
+          label: segment.charAt(0).toUpperCase() + segment.slice(1),
+          isLast,
+        };
       });
     })
     .filter(
@@ -43,21 +51,32 @@ function TenantBreadcrumbs() {
   }
 
   return (
-    <Breadcrumbs>
+    <nav
+      aria-label="Breadcrumb"
+      className="flex items-center gap-2 text-muted-foreground text-sm"
+    >
       {breadcrumbs.map((crumb) => (
-        <Breadcrumbs.Item
-          href={crumb.isLast ? undefined : crumb.href}
-          key={crumb.href}
-        >
-          {crumb.label}
-        </Breadcrumbs.Item>
+        <span className="flex items-center gap-2" key={crumb.href}>
+          {crumb.isLast ? (
+            <span className="font-medium text-foreground">{crumb.label}</span>
+          ) : (
+            <Link
+              className="transition-colors hover:text-foreground"
+              to={crumb.href}
+            >
+              {crumb.label}
+            </Link>
+          )}
+          {!crumb.isLast && <span>/</span>}
+        </span>
       ))}
-    </Breadcrumbs>
+    </nav>
   );
 }
 
 function TenantLayoutRoute() {
-  const { session } = Route.useLoaderData();
+  const { session } = useLoaderData({ from: "/tenant" });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   if (!session) {
     return (
@@ -83,20 +102,28 @@ function TenantLayoutRoute() {
   }
 
   return (
-    <SidebarProvider>
-      <TenantSidebar />
-      <SidebarInset>
-        <div className="flex min-h-svh flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 pl-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
-            <SidebarTrigger />
-            <Separator className="h-14" orientation="vertical" />
-            <TenantBreadcrumbs />
-          </header>
-          <div className="flex-1 p-4">
-            <Outlet />
-          </div>
+    <div className="flex min-h-svh">
+      <TenantSidebar collapsed={!sidebarOpen} />
+
+      <main className="flex w-full flex-1 flex-col">
+        <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b bg-background/80 px-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+          <Button
+            isIconOnly
+            onPress={() => setSidebarOpen((v) => !v)}
+            variant="ghost"
+          >
+            <MenuIcon />
+          </Button>
+
+          <Separator className="h-12" orientation="vertical" />
+
+          <TenantBreadcrumbs />
+        </header>
+
+        <div className="flex-1 p-4">
+          <Outlet />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </main>
+    </div>
   );
 }

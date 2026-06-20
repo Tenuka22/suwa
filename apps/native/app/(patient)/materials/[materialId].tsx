@@ -61,7 +61,9 @@ export default function MaterialDetailScreen() {
   );
 
   useEffect(() => {
-    if (!fileQuery.data) return;
+    if (!fileQuery.data) {
+      return;
+    }
 
     const blob = fileQuery.data as Blob;
 
@@ -144,7 +146,7 @@ export default function MaterialDetailScreen() {
         scrollClassName="flex-1 bg-background"
       >
         {/* Video Player */}
-        <View className="overflow-hidden rounded-2xl bg-black min-h-64">
+        <View className="min-h-64 overflow-hidden rounded-2xl bg-black">
           {videoLocalUri ? (
             <Video
               className="aspect-video w-full"

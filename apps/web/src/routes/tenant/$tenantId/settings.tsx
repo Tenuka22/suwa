@@ -1,17 +1,19 @@
 import {
   Button,
-  Card,
   Chip,
   Input,
   Label,
   ListBox,
   Select,
+  Separator,
   Skeleton,
   toast,
 } from "@heroui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { BuildingIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { BodyText, PageTitle } from "@/components/typography";
 import { useGetTenant, useUpdateTenant } from "@/hooks/queries/tenant";
 
 const HOSPITAL_SERVICES = [
@@ -89,28 +91,54 @@ function TenantSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96 w-full" />
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-52 rounded-3xl" />
+        <Skeleton className="h-96 rounded-3xl" />
       </div>
     );
   }
 
+  const tenant = data?.tenant;
+
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div>
-        <h1 className="font-semibold text-lg tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your hospital tenant profile and branding.
-        </p>
+    <div className="flex flex-col gap-4">
+      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
+
+      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
+        <div className="flex items-center gap-5">
+          <div className="flex size-16 items-center justify-center rounded-full bg-accent/10">
+            <BuildingIcon className="size-6 text-accent" />
+          </div>
+
+          <div className="flex-1 pb-2">
+            <div className="flex items-center gap-3">
+              <h1 className="font-light text-2xl tracking-tight">Settings</h1>
+              <Chip color="accent" variant="soft">
+                <div className="flex items-center justify-center">
+                  <SettingsIcon className="size-3" />
+                </div>
+                {tenant?.name ?? "Tenant"}
+              </Chip>
+            </div>
+
+            <BodyText className="max-w-2xl">
+              Manage your hospital tenant profile and branding.
+            </BodyText>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <Card.Header>
-          <Card.Title className="text-base">Hospital Profile</Card.Title>
-          <Card.Description>Edit tenant details and services.</Card.Description>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
+      <Separator />
+
+      <section className="flex flex-col gap-3 px-6">
+        <div>
+          <PageTitle>Hospital Profile</PageTitle>
+          <p className="font-light text-foreground/60 text-sm">
+            Edit tenant details and services.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label>Hospital Name</Label>
@@ -165,50 +193,52 @@ function TenantSettingsPage() {
               value={contactInfo}
             />
           </div>
-        </Card.Content>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <Card.Header>
-          <Card.Title className="text-base">Services Offered</Card.Title>
-          <Card.Description>
+      <Separator />
+
+      <section className="flex flex-col gap-3 px-6">
+        <div>
+          <PageTitle>Services Offered</PageTitle>
+          <p className="font-light text-foreground/60 text-sm">
             Select which services this hospital provides.
-          </Card.Description>
-        </Card.Header>
-        <Card.Content>
-          <div className="flex flex-wrap gap-2">
-            {HOSPITAL_SERVICES.map((service) => (
-              <Chip
-                className="cursor-pointer text-xs transition-colors"
-                color={
-                  selectedServices.includes(service) ? "accent" : "default"
-                }
-                key={service}
-                onClick={() => toggleService(service)}
-                variant={
-                  selectedServices.includes(service) ? "soft" : "secondary"
-                }
-              >
-                {service}
-              </Chip>
-            ))}
-          </div>
-        </Card.Content>
-      </Card>
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 rounded-xl border border-border px-4 py-3">
+          {HOSPITAL_SERVICES.map((service) => (
+            <Chip
+              className="cursor-pointer text-xs transition-colors"
+              color={selectedServices.includes(service) ? "accent" : "default"}
+              key={service}
+              onClick={() => toggleService(service)}
+              variant={
+                selectedServices.includes(service) ? "soft" : "secondary"
+              }
+            >
+              {service}
+            </Chip>
+          ))}
+        </div>
+      </section>
 
       {data?.admins && data.admins.length > 0 && (
-        <Card>
-          <Card.Header>
-            <Card.Title className="text-base">Tenant Admins</Card.Title>
-            <Card.Description>
-              Users who can manage this hospital.
-            </Card.Description>
-          </Card.Header>
-          <Card.Content>
-            <div className="flex flex-col gap-2">
+        <>
+          <Separator />
+
+          <section className="flex flex-col gap-3 px-6">
+            <div>
+              <PageTitle>Tenant Admins</PageTitle>
+              <p className="font-light text-foreground/60 text-sm">
+                Users who can manage this hospital.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 rounded-xl border border-border px-4 py-3">
               {data.admins.map((admin) => (
                 <div
-                  className="flex items-center justify-between rounded-lg border"
+                  className="flex items-center justify-between"
                   key={admin.id}
                 >
                   <span className="text-sm">{admin.userId}</span>
@@ -218,11 +248,13 @@ function TenantSettingsPage() {
                 </div>
               ))}
             </div>
-          </Card.Content>
-        </Card>
+          </section>
+        </>
       )}
 
-      <div className="flex justify-between">
+      <Separator />
+
+      <div className="flex justify-between px-6 pb-4">
         <Button
           onPress={() => navigate({ to: `/tenant/${tenantId}` })}
           variant="outline"

@@ -1,16 +1,18 @@
 import {
   Button,
-  Card,
   Chip,
   Input,
   Label,
   ListBox,
   Select,
+  Separator,
   toast,
 } from "@heroui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { BuildingIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
+import { BodyText, PageTitle } from "@/components/typography";
 import { useCreateTenant } from "@/hooks/queries/tenant";
 
 const HOSPITAL_SERVICES = [
@@ -151,27 +153,48 @@ function TenantCreatePage() {
   };
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div>
-        <h1 className="font-semibold text-lg tracking-tight">
-          Register Hospital
-        </h1>
-        <p className="text-muted-foreground">
-          Select a hospital from our database and configure your tenant profile.
-        </p>
+    <div className="flex flex-col gap-4">
+      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
+
+      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
+        <div className="flex items-center gap-5">
+          <div className="flex size-16 items-center justify-center rounded-full bg-accent/10">
+            <PlusIcon className="size-6 text-accent" />
+          </div>
+
+          <div className="flex-1 pb-2">
+            <div className="flex items-center gap-3">
+              <h1 className="font-light text-2xl tracking-tight">
+                Register Hospital
+              </h1>
+              <Chip color="accent" variant="soft">
+                <div className="flex items-center justify-center">
+                  <BuildingIcon className="size-3" />
+                </div>
+                New tenant
+              </Chip>
+            </div>
+
+            <BodyText className="max-w-2xl">
+              Select a hospital from our database and configure your tenant
+              profile.
+            </BodyText>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <Card.Header>
-          <Card.Title className="text-base">
-            Select Hospital Location
-          </Card.Title>
-          <Card.Description>
+      <Separator />
+
+      <section className="flex flex-col gap-3 px-6">
+        <div>
+          <PageTitle>Select Hospital Location</PageTitle>
+          <p className="font-light text-foreground/60 text-sm">
             Choose from our pre-loaded places database. This is required to
             proceed.
-          </Card.Description>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3">
           {placesData.length ? (
             <>
               <Input
@@ -232,132 +255,130 @@ function TenantCreatePage() {
               {placesLoading ? "Loading..." : "Load Hospital Places"}
             </Button>
           )}
-        </Card.Content>
-      </Card>
+        </div>
+      </section>
 
-      <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-        <Card>
-          <Card.Header>
-            <Card.Title className="text-base">Hospital Details</Card.Title>
-            <Card.Description>
-              Configure your hospital tenant profile.
-            </Card.Description>
-          </Card.Header>
-          <Card.Content className="flex flex-col gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="type">Hospital Type</Label>
-                <Select
-                  id="type"
-                  onSelectionChange={(id) =>
-                    setHospitalType(
-                      String(id) as "PRIVATE_HOSPITAL" | "PUBLIC_HOSPITAL"
-                    )
-                  }
-                  selectedKey={hospitalType}
-                >
-                  <Select.Trigger>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
-                      <ListBox.Item id="PRIVATE_HOSPITAL">
-                        Private Hospital
-                      </ListBox.Item>
-                      <ListBox.Item id="PUBLIC_HOSPITAL">
-                        Public Hospital
-                      </ListBox.Item>
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name">Hospital Name *</Label>
-                <Input
-                  disabled={!selectedPlace}
-                  id="name"
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter hospital name"
-                  value={name}
-                />
-              </div>
-            </div>
+      <Separator />
 
+      <form className="flex flex-col gap-3 px-6" onSubmit={handleSubmit}>
+        <div>
+          <PageTitle>Hospital Details</PageTitle>
+          <p className="font-light text-foreground/60 text-sm">
+            Configure your hospital tenant profile.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="address">Address *</Label>
+              <Label htmlFor="type">Hospital Type</Label>
+              <Select
+                id="type"
+                onSelectionChange={(id) =>
+                  setHospitalType(
+                    String(id) as "PRIVATE_HOSPITAL" | "PUBLIC_HOSPITAL"
+                  )
+                }
+                selectedKey={hospitalType}
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    <ListBox.Item id="PRIVATE_HOSPITAL">
+                      Private Hospital
+                    </ListBox.Item>
+                    <ListBox.Item id="PUBLIC_HOSPITAL">
+                      Public Hospital
+                    </ListBox.Item>
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name">Hospital Name *</Label>
               <Input
                 disabled={!selectedPlace}
-                id="address"
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Full address"
-                value={address}
+                id="name"
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter hospital name"
+                value={name}
               />
             </div>
+          </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  disabled={!selectedPlace}
-                  id="phone"
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Contact phone"
-                  value={phone}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  disabled={!selectedPlace}
-                  id="website"
-                  onChange={(e) => setWebsite(e.target.value)}
-                  placeholder="https://..."
-                  value={website}
-                />
-              </div>
-            </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="address">Address *</Label>
+            <Input
+              disabled={!selectedPlace}
+              id="address"
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Full address"
+              value={address}
+            />
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="contactInfo">Additional Contact Info</Label>
+              <Label htmlFor="phone">Phone</Label>
               <Input
-                id="contactInfo"
-                onChange={(e) => setContactInfo(e.target.value)}
-                placeholder="Email, department contacts, etc."
-                value={contactInfo}
+                disabled={!selectedPlace}
+                id="phone"
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Contact phone"
+                value={phone}
               />
             </div>
-          </Card.Content>
-        </Card>
-
-        <Card>
-          <Card.Header>
-            <Card.Title className="text-base">Services Offered</Card.Title>
-            <Card.Description>
-              Select which services this hospital provides.
-            </Card.Description>
-          </Card.Header>
-          <Card.Content>
-            <div className="flex flex-wrap gap-2">
-              {HOSPITAL_SERVICES.map((service) => (
-                <Chip
-                  className="cursor-pointer text-xs transition-colors"
-                  color={
-                    selectedServices.includes(service) ? "accent" : "default"
-                  }
-                  key={service}
-                  onClick={() => toggleService(service)}
-                  variant={
-                    selectedServices.includes(service) ? "soft" : "secondary"
-                  }
-                >
-                  {service}
-                </Chip>
-              ))}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                disabled={!selectedPlace}
+                id="website"
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://..."
+                value={website}
+              />
             </div>
-          </Card.Content>
-        </Card>
+          </div>
 
-        <div className="flex justify-end gap-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="contactInfo">Additional Contact Info</Label>
+            <Input
+              id="contactInfo"
+              onChange={(e) => setContactInfo(e.target.value)}
+              placeholder="Email, department contacts, etc."
+              value={contactInfo}
+            />
+          </div>
+        </div>
+
+        <Separator />
+
+        <div>
+          <PageTitle>Services Offered</PageTitle>
+          <p className="font-light text-foreground/60 text-sm">
+            Select which services this hospital provides.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 rounded-xl border border-border px-4 py-3">
+          {HOSPITAL_SERVICES.map((service) => (
+            <Chip
+              className="cursor-pointer text-xs transition-colors"
+              color={selectedServices.includes(service) ? "accent" : "default"}
+              key={service}
+              onClick={() => toggleService(service)}
+              variant={
+                selectedServices.includes(service) ? "soft" : "secondary"
+              }
+            >
+              {service}
+            </Chip>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
           <Button onPress={() => navigate({ to: "/tenant" })} variant="outline">
             Cancel
           </Button>

@@ -129,7 +129,9 @@ export async function* runAgentStream(
               };
             }
           }
-          if (node === "tools") continue;
+          if (node === "tools") {
+            continue;
+          }
           const content = typeof msg.content === "string" ? msg.content : "";
           if (content && content !== lastContent) {
             const delta = content.slice(lastContent.length);
