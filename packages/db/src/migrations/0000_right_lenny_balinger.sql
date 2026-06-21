@@ -37,15 +37,6 @@ CREATE TABLE `clinics` (
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `credit_transactions` (
-	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
-	`amount` integer NOT NULL,
-	`type` text NOT NULL,
-	`session_id` text,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `doctor_cashout_requests` (
 	`id` text PRIMARY KEY NOT NULL,
 	`doctor_id` text NOT NULL,
@@ -158,6 +149,7 @@ CREATE TABLE `doctor_plans` (
 	`name` text NOT NULL,
 	`description` text,
 	`credit_cost` integer DEFAULT 1 NOT NULL,
+	`price_cents` integer DEFAULT 1500 NOT NULL,
 	`duration_minutes` integer NOT NULL,
 	`features` text,
 	`is_active` integer DEFAULT true NOT NULL,
@@ -197,6 +189,7 @@ CREATE TABLE `doctor_profiles` (
 	`permanent` integer DEFAULT false NOT NULL,
 	`stripe_account_id` text,
 	`stripe_account_enabled` integer DEFAULT false,
+	`face_embedding` text,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
@@ -222,7 +215,9 @@ CREATE TABLE `doctor_sessions` (
 	`start_at` text NOT NULL,
 	`end_at` text NOT NULL,
 	`status` text DEFAULT 'requested' NOT NULL,
-	`credit_cost` integer NOT NULL,
+	`credit_cost` integer DEFAULT 0 NOT NULL,
+	`amount_cents` integer,
+	`payment_intent_id` text,
 	`doctor_earned_cents` integer,
 	`payout_status` text DEFAULT 'none' NOT NULL,
 	`payout_transfer_id` text,
@@ -242,16 +237,6 @@ CREATE TABLE `doctor_weekly_availability` (
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `guardian_profiles` (
-	`clerk_user_id` text PRIMARY KEY NOT NULL,
-	`email` text,
-	`phone` text,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
-	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
-CREATE UNIQUE INDEX `guardian_email_unique` ON `guardian_profiles` (`email`);--> statement-breakpoint
-CREATE UNIQUE INDEX `guardian_phone_unique` ON `guardian_profiles` (`phone`);--> statement-breakpoint
 CREATE TABLE `hospital_attendance_events` (
 	`id` text PRIMARY KEY NOT NULL,
 	`doctor_id` text NOT NULL,
@@ -292,32 +277,9 @@ CREATE TABLE `hub_upload_sessions` (
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `moonlight_credit_transactions` (
-	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
-	`amount` integer NOT NULL,
-	`type` text NOT NULL,
-	`reason` text NOT NULL,
-	`wellness_action_id` text,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE `moonlight_credits` (
-	`user_id` text PRIMARY KEY NOT NULL,
-	`balance` integer DEFAULT 0 NOT NULL,
-	`total_earned` integer DEFAULT 0 NOT NULL,
-	`consistency_score` integer DEFAULT 0 NOT NULL,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
-	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `patient_profiles` (
 	`user_id` text PRIMARY KEY NOT NULL,
 	`alias` text NOT NULL,
-	`guardian_user_id` text,
-	`guardian_email` text,
-	`guardian_phone` text,
-	`guardian_request_status` text,
 	`is_onboarding_complete` integer DEFAULT false NOT NULL,
 	`_secured_data` text,
 	`secured` integer DEFAULT false NOT NULL,
@@ -360,20 +322,9 @@ CREATE TABLE `session_task_assignments` (
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `sprite_states` (
-	`user_id` text PRIMARY KEY NOT NULL,
-	`health` integer DEFAULT 100 NOT NULL,
-	`mood` text DEFAULT 'idle' NOT NULL,
-	`streak_days` integer DEFAULT 0 NOT NULL,
-	`last_interaction_at` text,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
-	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `stress_download_acknowledgments` (
 	`user_id` text PRIMARY KEY NOT NULL,
 	`patient_acknowledged_at` text,
-	`guardian_acknowledged_at` text,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
@@ -438,13 +389,6 @@ CREATE TABLE `tenants` (
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `user_credits` (
-	`user_id` text PRIMARY KEY NOT NULL,
-	`balance` integer DEFAULT 0 NOT NULL,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
-	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `user_subscriptions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
@@ -456,14 +400,4 @@ CREATE TABLE `user_subscriptions` (
 	`cancel_at_period_end` integer DEFAULT false NOT NULL,
 	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	`updated_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE `wellness_actions` (
-	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
-	`action_type` text NOT NULL,
-	`completed_at` text NOT NULL,
-	`duration_seconds` integer,
-	`credits_earned` integer DEFAULT 0 NOT NULL,
-	`created_at` text DEFAULT 'CURRENT_TIMESTAMP' NOT NULL
 );

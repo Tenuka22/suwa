@@ -11,6 +11,7 @@ export interface ClerkRequestContext {
   chatMessagesKv: KVNamespace;
   clerk: typeof clerkClient;
   db: ReturnType<typeof createDb>;
+  faceEmbeddingsKv: KVNamespace;
   geminiApiKey: string;
   session: null;
 }
@@ -61,6 +62,7 @@ export async function createContext({
     db: createDb(),
     clerk: clerkClient,
     chatMessagesKv: env.CHAT_MESSAGES_KV,
+    faceEmbeddingsKv: env.FACE_EMBEDDINGS_KV,
     ai: context.env.AI,
     geminiApiKey: env.GEMINI_API_KEY,
   };

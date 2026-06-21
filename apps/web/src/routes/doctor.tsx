@@ -35,6 +35,10 @@ export const Route = createFileRoute("/doctor")({
       throw redirect({ to: "/doctor/profile" });
     }
 
+    if (!data?.profile?.hasFaceEmbedding) {
+      throw redirect({ to: "/doctor/profile" });
+    }
+
     return { session };
   },
   loader: ({ context }) => ({ session: context.session }),

@@ -35,6 +35,7 @@ export const doctorProfiles = sqliteTable("doctor_profiles", {
   stripeAccountEnabled: integer("stripe_account_enabled", {
     mode: "boolean",
   }).default(false),
+  faceEmbeddingKvKey: text("face_embedding_kv_key"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
