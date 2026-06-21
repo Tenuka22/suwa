@@ -50,10 +50,6 @@ export const aiRouter = {
         };
 
         await addMessages(kv, input.sessionId, [userMsg]);
-        yield {
-          event: "message.start",
-          data: { sessionId: input.sessionId, agent: "coordinator" },
-        };
 
         let fullResponse = "";
         try {

@@ -1,3 +1,7 @@
+import {
+  generateDoctorEmbedding,
+  storeDoctorEmbedding,
+} from "@suwa/api/routers/chat/helpers/embeddings";
 import type { createDb } from "@suwa/db";
 import {
   doctorCredits,
@@ -11,6 +15,7 @@ import {
   stringifyJsonStringArray,
 } from "@suwa/db";
 import { inArray } from "drizzle-orm";
+
 import { PORTRAIT_SPECS } from "../data-specs/portraits";
 import { DOCTOR_PROFILE_SPECS } from "../data-specs/profiles";
 import {
@@ -108,7 +113,9 @@ async function upsertSingle(
 export async function seedDoctors(
   db: ReturnType<typeof createDb>,
   doctorIds: string[],
-  kv?: DoctorFilesStore
+  kv?: DoctorFilesStore,
+  chatMessagesKv?: KVNamespace,
+  ai?: Ai
 ): Promise<DoctorSeedResult> {
   // ── Step A: Create missing doctor profiles ────────────────────────────
   const existingProfiles = await db
@@ -146,19 +153,37 @@ export async function seedDoctors(
       consultationModes: stringifyJsonStringArray(spec.consultationModes),
       focusAreas: stringifyJsonStringArray(spec.focusAreas),
       approachSteps: stringifyJsonApproachSteps(
-        APPROACH_STEP_TEMPLATES[specIdx]!.map((text) => ({
+        APPROACH_STEP_TEMPLATES[specIdx]?.map((text) => ({
           id: crypto.randomUUID(),
           text,
         }))
       ),
       approach: APPROACH_TEMPLATES[specIdx]!,
-      education: `${QUALIFICATION_SPECS[specIdx]!.abbreviation} in ${QUALIFICATION_SPECS[specIdx]!.field} — ${QUALIFICATION_SPECS[specIdx]!.institution} (${QUALIFICATION_SPECS[specIdx]!.yearRange[1]})`,
+      education: `${QUALIFICATION_SPECS[specIdx]?.abbreviation} in ${QUALIFICATION_SPECS[specIdx]?.field} — ${QUALIFICATION_SPECS[specIdx]?.institution} (${QUALIFICATION_SPECS[specIdx]?.yearRange[1]})`,
       permanent: true,
       stripeAccountEnabled: true,
       createdAt: now,
       updatedAt: now,
     });
     profilesCreated++;
+
+    // Generate and store embedding (mirrors save-profile.ts logic)
+    if (ai && chatMessagesKv) {
+      const profileText = `${spec.displayName} ${spec.headline} ${spec.bio} ${spec.specialties.join(" ")} ${spec.focusAreas.join(" ")} ${APPROACH_TEMPLATES[specIdx]!}`;
+      const context = { ai, chatMessagesKv } as any;
+      const embedding = await generateDoctorEmbedding(
+        userId,
+        profileText,
+        context
+      );
+      if (embedding.length > 0) {
+        await storeDoctorEmbedding(
+          userId,
+          { doctorId: userId, text: profileText, embedding },
+          context
+        );
+      }
+    }
   }
 
   // ── Step B: Education entries ──────────────────────────────────────────

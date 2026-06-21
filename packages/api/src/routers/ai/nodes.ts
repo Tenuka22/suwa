@@ -1,5 +1,8 @@
-import type { BaseMessage } from "@langchain/core/messages";
-import { SystemMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  type BaseMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
 import type { ToolNode } from "@langchain/langgraph/prebuilt";
 import type { CloudflareChatModel } from "./cloudflare-chat-model";
 import type { GraphState } from "./graph";
@@ -11,8 +14,55 @@ export interface AgentConfig {
   tools: ReturnType<typeof import("./tools").createAiTools>;
 }
 
+const GREETING_RESPONSE =
+  "Hello! I'm Suwa, your health guide. How can I help you today? You can ask me about finding a doctor, understanding symptoms, or any health questions you have.";
+
+const TRAILING_NON_LETTERS = /[^a-zA-Z\s]+$/;
+
+function isSimpleGreeting(text: string): boolean {
+  const lower = text.toLowerCase().trim();
+  if (!lower) {
+    return false;
+  }
+  const greetings = [
+    "hello",
+    "hi",
+    "hey",
+    "greetings",
+    "howdy",
+    "good morning",
+    "good afternoon",
+    "good evening",
+  ];
+  const cleaned = lower.replace(TRAILING_NON_LETTERS, "").trimEnd();
+  return greetings.some(
+    (g) =>
+      cleaned === g ||
+      cleaned.startsWith(`${g} `) ||
+      cleaned.startsWith(`${g},`) ||
+      cleaned.startsWith(`${g}!`) ||
+      cleaned.startsWith(`${g}?`)
+  );
+}
+
 export function createCoordinatorNode(config: AgentConfig) {
   return async (state: GraphState) => {
+    const userMessages = state.messages.filter(
+      (m) => (m as BaseMessage)._getType() === "human"
+    );
+    const lastUserMessage = userMessages.at(-1);
+    const lastUserText =
+      lastUserMessage && typeof lastUserMessage.content === "string"
+        ? lastUserMessage.content
+        : "";
+
+    if (isSimpleGreeting(lastUserText)) {
+      return {
+        messages: [new AIMessage(GREETING_RESPONSE)],
+        activeAgent: "coordinator",
+      };
+    }
+
     const llm = config.llm.bindTools([config.tools.transferToAgent]);
     const result = await llm.invoke([
       new SystemMessage(config.systemPrompts.coordinator!),
@@ -51,7 +101,7 @@ export function createDbAgentNode(config: AgentConfig) {
 
 export function createRouter(_config: AgentConfig) {
   return (state: GraphState) => {
-    const last = state.messages[state.messages.length - 1] as BaseMessage & {
+    const last = state.messages.at(-1) as BaseMessage & {
       tool_calls?: Array<{ name: string; args: Record<string, unknown> }>;
       content?: string;
     };
@@ -63,15 +113,7 @@ export function createRouter(_config: AgentConfig) {
     if (transfer) {
       const agent = transfer.args.agent;
       if (typeof agent === "string" && agent === "db") {
-        const userMsg =
-          (state.messages[0]?.content as string)?.toLowerCase() ?? "";
-        const needsDoctor =
-          /doctor|appointment|book|schedule|availability|clinic|search find|profile|specialist/i.test(
-            userMsg
-          );
-        if (needsDoctor) {
-          return agent;
-        }
+        return agent;
       }
     }
     return "__end__";

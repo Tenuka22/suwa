@@ -1,8 +1,8 @@
-import type { ReadAssetFn } from "./hub";
 import { createDb } from "@suwa/db";
 import { seedCashouts } from "./cashouts";
 import { seedChats } from "./chats";
 import { seedDoctors } from "./doctors";
+import type { ReadAssetFn } from "./hub";
 import { seedHub } from "./hub";
 import { seedPatients } from "./patients";
 import { seedSessions } from "./sessions";
@@ -12,6 +12,7 @@ import { saveManifest } from "./unseed";
 import { resolveUsers } from "./users";
 
 export interface SeedEnv {
+  ai?: Ai;
   chatMessagesKv?: KVNamespace;
   doctorMaterialsKv?: KVNamespace;
   modelFeaturesKv?: KVNamespace;
@@ -75,9 +76,11 @@ export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
     doctorIds,
     env?.doctorMaterialsKv
       ? {
-          put: (key, data) => env.doctorMaterialsKv!.put(key, data),
+          put: (key, data) => env.doctorMaterialsKv?.put(key, data),
         }
-      : undefined
+      : undefined,
+    env?.chatMessagesKv,
+    env?.ai
   );
 
   const patientResult = await seedPatients(db, patientIds);
@@ -91,7 +94,7 @@ export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
     doctorIds,
     env?.doctorMaterialsKv
       ? {
-          put: (key, data) => env.doctorMaterialsKv!.put(key, data),
+          put: (key, data) => env.doctorMaterialsKv?.put(key, data),
         }
       : undefined,
     env?.readAsset

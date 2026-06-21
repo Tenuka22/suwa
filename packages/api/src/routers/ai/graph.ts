@@ -15,8 +15,29 @@ import {
 import { createAiTools } from "./tools";
 
 const PROMPTS: Record<string, string> = {
-  coordinator: `You are a friendly, conversational medical assistant. Your ONLY tool is transfer_to_agent — use it ONLY when the user explicitly asks to find a doctor, book an appointment, check a doctor's availability, or view a doctor profile. For ANY other query — greetings, feelings, loneliness, health advice, general questions, or just chatting — respond conversationally and NEVER call transfer_to_agent.`,
-  db: "You are a database assistant. Help users find doctors, view profiles, check availability, and manage appointments. Use your tools to query information.",
+  coordinator: `You are a friendly, conversational medical assistant. Your ONLY tool is transfer_to_agent — call it ONLY when the user is asking about finding a doctor, searching for a specialist, booking an appointment, checking availability, viewing a doctor's profile, or describing symptoms/conditions that need a doctor.
+
+CRITICAL: NEVER call transfer_to_agent for: greetings ("hello", "hi", "hey"), casual chat, feelings, loneliness, general health advice, questions about what you can do, requests to list features, or any meta-questions about yourself. For those, just respond conversationally and end the conversation.
+
+If you are unsure whether to transfer, just respond conversationally instead. It's better to chat than to incorrectly transfer.`,
+  db: `You are a friendly database assistant that helps users find doctors and manage appointments.
+
+CRITICAL RULE: Your response is shown DIRECTLY to the user. Never output instructions, meta-commentary, or internal reasoning. Every word you write is a message to the user.
+
+Always use tools to answer questions — never just describe what tools exist. Follow this pattern:
+1. Understand what the user needs
+2. Call the right tool (search_doctors, get_doctor_profile, check_availability, or get_upcoming_sessions). Use the most specific search query possible.
+3. After receiving tool results, respond with a natural message for the user.
+
+Response guidelines:
+- If search finds doctors → I found [number] [specialty] near you: Dr. Name, Dr. Name...
+- If no results → I couldn't find any doctors matching that. Try a different search term or specialty.
+- If the question isn't doctor-related → Sorry, I can only help with finding doctors and managing appointments.
+- Never explain what you should do — just do it.
+- Never start with Since, I should, We should, Based on, or other reasoning language.
+- Never use quotation marks around your response — just speak naturally.
+
+After you receive tool results, always respond with a descriptive message for the user — never end with silence or only a tool call.`,
 };
 
 const GraphAnnotation = Annotation.Root({
@@ -31,7 +52,7 @@ export type GraphState = typeof GraphAnnotation.State;
 
 function createAgentRouter() {
   return (state: GraphState) => {
-    const last = state.messages[state.messages.length - 1] as BaseMessage & {
+    const last = state.messages.at(-1) as BaseMessage & {
       tool_calls?: Array<{ name: string }>;
     };
     return last?.tool_calls?.length ? "tools" : "__end__";
@@ -90,35 +111,26 @@ export async function* runAgentStream(
 ): AsyncGenerator<StreamEvent> {
   const graph = createGraph(ctx);
   let lastContent = "";
-  let agent = "coordinator";
-  let prevAgent = "";
+  let lastAgent = "";
 
   try {
-    const stream = await graph.stream({
-      messages: [{ role: "user", content: userMessage }],
-    });
+    const stream = await graph.stream(
+      {
+        messages: [{ role: "user", content: userMessage }],
+      },
+      { recursionLimit: 15 }
+    );
 
     for await (const update of stream) {
-      for (const [node, data] of Object.entries(update) as Array<
-        [
-          string,
-          {
-            messages?: Array<{
-              content: string;
-              tool_calls?: Array<{ name: string }>;
-            }>;
-          },
-        ]
-      >) {
-        agent = node;
-        if (node !== "tools" && agent !== prevAgent && prevAgent !== "") {
-          yield {
-            event: "message.start",
-            data: { agent: node },
-          };
-          lastContent = "";
-        }
-        prevAgent = agent;
+      for (const [node, data] of Object.entries(update) as [
+        string,
+        {
+          messages?: Array<{
+            content: string;
+            tool_calls?: Array<{ name: string }>;
+          }>;
+        },
+      ][]) {
         const msgs = data?.messages ?? [];
         for (const msg of msgs) {
           if (msg.tool_calls?.length) {
@@ -133,22 +145,71 @@ export async function* runAgentStream(
             continue;
           }
           const content = typeof msg.content === "string" ? msg.content : "";
-          if (content && content !== lastContent) {
-            const delta = content.slice(lastContent.length);
-            if (delta) {
-              yield {
-                event: "message.token",
-                data: { token: delta, agent: node },
-              };
+          if (content) {
+            if (node !== lastAgent) {
+              lastContent = "";
             }
-            lastContent = content;
+            if (content !== lastContent) {
+              if (!lastContent) {
+                yield {
+                  event: "message.start",
+                  data: { agent: node },
+                };
+              }
+              const delta = content.slice(lastContent.length);
+              if (delta) {
+                yield {
+                  event: "message.token",
+                  data: { token: delta, agent: node },
+                };
+              }
+              lastContent = content;
+              lastAgent = node;
+            }
           }
         }
       }
     }
+
+    if (!lastContent) {
+      const fallbackAgent = lastAgent || "coordinator";
+      yield {
+        event: "message.start",
+        data: { agent: fallbackAgent },
+      };
+      yield {
+        event: "message.token",
+        data: {
+          token:
+            "I wasn't able to find an answer to that. Could you try rephrasing your question?",
+          agent: fallbackAgent,
+        },
+      };
+    }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    yield { event: "message.error", data: { error: msg, agent } };
+    const isRecursion =
+      err instanceof Error && err.name === "GraphRecursionError";
+    if (isRecursion && !lastContent) {
+      const fallbackAgent = lastAgent || "coordinator";
+      yield {
+        event: "message.start",
+        data: { agent: fallbackAgent },
+      };
+      yield {
+        event: "message.token",
+        data: {
+          token:
+            "I wasn't able to find an answer to that. Could you try rephrasing your question?",
+          agent: fallbackAgent,
+        },
+      };
+    } else {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      yield {
+        event: "message.error",
+        data: { error: msg, agent: lastAgent || "coordinator" },
+      };
+    }
     return;
   }
 }

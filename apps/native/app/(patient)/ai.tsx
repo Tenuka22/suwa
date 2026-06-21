@@ -231,9 +231,10 @@ function ChatBubble({ item }: { item: ChatMessage }) {
 
   return (
     <Reveal delay={20}>
-      <View className={`mb-lg max-w-[86%] rounded-3xl p-lg ${bubbleClass}`}>
+      <View className={`mb-lg max-w-[86%] rounded-3xl ${bubbleClass} ${isTool ? "px-3 py-1.5":"p-md"}`}>
         {isUser ? null : (
-          <View className="mb-sm flex-row items-center gap-sm">
+
+          <View className="flex-row items-center gap-sm">
             <View
               className={`h-7 w-7 items-center justify-center rounded-lg ${isTool ? "bg-background-elevated" : "bg-primary-subtle"}`}
             >
@@ -246,11 +247,13 @@ function ChatBubble({ item }: { item: ChatMessage }) {
             </Text>
           </View>
         )}
-        <Text
-          className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
-        >
-          {item.content}
-        </Text>
+        {isTool ? null : (
+          <Text
+            className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
+          >
+            {item.content}
+          </Text>
+        )}
       </View>
     </Reveal>
   );

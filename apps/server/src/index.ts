@@ -113,6 +113,7 @@ app.get("/seed", async (c) => {
     const { join } = await import("node:path");
 
     const env = c.env as {
+      AI: Ai;
       DOCTOR_MATERIALS_KV: KVNamespace;
       CHAT_MESSAGES_KV: KVNamespace;
       MODEL_FEATURES_KV: KVNamespace;
@@ -131,6 +132,7 @@ app.get("/seed", async (c) => {
 
     const { runSeed } = await import("./seed/index");
     const result = await runSeed({
+      ai: env.AI,
       doctorMaterialsKv: env.DOCTOR_MATERIALS_KV,
       chatMessagesKv: env.CHAT_MESSAGES_KV,
       modelFeaturesKv: env.MODEL_FEATURES_KV,
