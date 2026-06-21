@@ -330,11 +330,11 @@ export function FaceCaptureDialog({
               {status !== "loading-model" && !cameraError && (
                 <>
                   <svg
-                    className="pointer-events-none absolute inset-0 size-full"
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="xMidYMid slice"
                     aria-label="Face alignment guide"
+                    className="pointer-events-none absolute inset-0 size-full"
+                    preserveAspectRatio="xMidYMid slice"
                     role="img"
+                    viewBox="0 0 100 100"
                   >
                     <title>Align your face within the oval</title>
                     <ellipse

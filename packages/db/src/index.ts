@@ -6,6 +6,7 @@ import {
   type Clinic as ClinicSchema,
   clinicAttendance as clinicAttendanceTable,
   clinics as clinicsTable,
+  conversations as conversationsTable,
   type DoctorCashoutRequest as DoctorCashoutRequestSchema,
   type DoctorCredit as DoctorCreditSchema,
   type DoctorEducationEntry as DoctorEducationEntrySchema,
@@ -39,6 +40,7 @@ import {
   hospitalAttendanceEvents as hospitalAttendanceEventsTable,
   hospitalAvailabilityOverrides as hospitalAvailabilityOverridesTable,
   hubUploadSessions as hubUploadSessionsTable,
+  messages as messagesTable,
   type PatientProfile as PatientProfileSchema,
   patientProfiles as patientProfilesTable,
   type SessionAttendanceEvent as SessionAttendanceEventSchema,
@@ -106,6 +108,9 @@ export const hospitalAvailabilityOverrides = hospitalAvailabilityOverridesTable;
 export const tenantAuditLogs = tenantAuditLogsTable;
 export const tenantNotifications = tenantNotificationsTable;
 
+export const conversations = conversationsTable;
+export const messages = messagesTable;
+
 export type DoctorProfile = DoctorProfileSchema;
 export type DoctorFile = DoctorFileSchema;
 export type DoctorSession = DoctorSessionSchema;
@@ -170,6 +175,8 @@ export function createDb() {
       hospitalAvailabilityOverrides,
       tenantAuditLogs,
       tenantNotifications,
+      conversations,
+      messages,
     },
   });
 }

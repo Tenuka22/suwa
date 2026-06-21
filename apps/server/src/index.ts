@@ -109,16 +109,32 @@ app.use("/*", async (c, next) => {
 
 app.get("/seed", async (c) => {
   try {
-    const { runSeed } = await import("./seed/index");
+    const { readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+
     const env = c.env as {
       DOCTOR_MATERIALS_KV: KVNamespace;
       CHAT_MESSAGES_KV: KVNamespace;
       MODEL_FEATURES_KV: KVNamespace;
+      SEED_ASSETS_DIR: string;
     };
+
+    const seedAssetsDir = env.SEED_ASSETS_DIR;
+    const readAsset = async (filename: string) => {
+      try {
+        const buf = await readFile(join(seedAssetsDir, filename));
+        return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+      } catch {
+        return null;
+      }
+    };
+
+    const { runSeed } = await import("./seed/index");
     const result = await runSeed({
       doctorMaterialsKv: env.DOCTOR_MATERIALS_KV,
       chatMessagesKv: env.CHAT_MESSAGES_KV,
       modelFeaturesKv: env.MODEL_FEATURES_KV,
+      readAsset,
     });
     return c.json({ success: true, result });
   } catch (error) {
@@ -133,40 +149,25 @@ app.get("/seed", async (c) => {
   }
 });
 
-app.get("/materials/:id/file", async (c) => {
+app.get("/unseed", async (c) => {
   try {
+    const { unseedData } = await import("./seed/unseed");
     const { createDb } = await import("@suwa/db");
-    const { doctorHubMaterials } = await import("@suwa/db");
-    const { eq } = await import("drizzle-orm");
+    const env = c.env as {
+      DOCTOR_MATERIALS_KV: KVNamespace;
+    };
     const db = createDb();
-    const [material] = await db
-      .select()
-      .from(doctorHubMaterials)
-      .where(eq(doctorHubMaterials.id, c.req.param("id")))
-      .limit(1);
-
-    if (!material?.fileKey) {
-      return c.text("Material file not found", 404);
-    }
-
-    const fileData = await env.DOCTOR_MATERIALS_KV.get(
-      material.fileKey,
-      "arrayBuffer"
-    );
-
-    if (!fileData) {
-      return c.text("File data not found in storage", 404);
-    }
-
-    return c.body(fileData, 200, {
-      "Content-Type": material.mimeType ?? "application/octet-stream",
-      "Content-Disposition": `inline; filename="${material.fileName ?? "file"}"`,
-      "Content-Length": fileData.byteLength.toString(),
-      "Accept-Ranges": "bytes",
-    });
+    const result = await unseedData(db, env.DOCTOR_MATERIALS_KV);
+    return c.json({ success: true, result });
   } catch (error) {
-    console.error("File stream error:", error);
-    return c.text("Failed to stream file", 500);
+    console.error("Unseed error:", error);
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Unseed failed",
+      },
+      500
+    );
   }
 });
 

@@ -1,5 +1,6 @@
 import { getDoctorRoute } from "./routes/get-doctor";
 import { getDoctorAvailableSlotsRoute } from "./routes/get-doctor-available-slots";
+import { getMaterialFileRoute } from "./routes/get-material-file";
 import { getTenantDetailRoute } from "./routes/get-tenant-detail";
 import { healthCheckRoute } from "./routes/health-check";
 import { listDoctorsRoute } from "./routes/list-doctors";
@@ -15,6 +16,7 @@ import { privateDataRoute } from "./routes/private-data";
 
 export const publicRouter = {
   getDoctorAvailableSlots: getDoctorAvailableSlotsRoute,
+  getMaterialFile: getMaterialFileRoute,
   healthCheck: healthCheckRoute,
   privateData: privateDataRoute,
   listDoctors: listDoctorsRoute,

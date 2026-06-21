@@ -4,9 +4,20 @@
   "exports": {
     ".": {
       "default": "./src/index.ts"
+    },
+    "./native": {
+      "default": "./src/native.ts"
     }
   },
   "main": "./src/index.ts",
+  "peerDependencies": {
+    "expo-crypto": "*"
+  },
+  "peerDependenciesMeta": {
+    "expo-crypto": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@suwa/config": "workspace:*",
     "typescript": "^6"

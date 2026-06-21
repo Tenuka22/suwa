@@ -355,7 +355,7 @@ export default function AiChatScreen() {
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-row items-center gap-md border-border border-b bg-background-elevated/80 px-lg pt-12 pb-md">
+      <View className="flex-row items-center gap-md border-border border-b bg-background-elevated/80 px-lg py-md">
         <Pressable
           accessibilityLabel="Go back"
           className="h-11 w-11 items-center justify-center rounded-full border border-border bg-background-elevated"

@@ -345,6 +345,14 @@ export type SessionSnapshot = typeof sessionSnapshots.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 
 export type {
+  Conversation,
+  Message,
+  NewConversation,
+  NewMessage,
+} from "./chats";
+export { conversations, messages } from "./chats";
+
+export type {
   NewStressDownloadAcknowledgment,
   StressDownloadAcknowledgment,
 } from "./stress-acknowledgments";

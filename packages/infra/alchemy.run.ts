@@ -1,3 +1,6 @@
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
 import alchemy from "alchemy";
 import {
   Ai,
@@ -59,6 +62,10 @@ export const server = await Worker("server", {
   ],
   bindings: {
     DB: db,
+    SEED_ASSETS_DIR: join(
+      dirname(fileURLToPath(import.meta.url)),
+      "../../apps/server/src/seed-assets"
+    ),
     CHAT_MESSAGES_KV: chatMessagesKv,
     DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,

@@ -6,117 +6,109 @@ import {
   stressPredictions,
 } from "@suwa/db";
 import { inArray } from "drizzle-orm";
+import { PATIENT_PROFILE_SPECS } from "../data-specs/profiles";
 
-export async function seedPatients(db: ReturnType<typeof createDb>) {
-  const existing = await db
+export interface PatientSeedResult {
+  acknowledgments: number;
+  profiles: number;
+  stressPredictions: number;
+}
+
+export async function seedPatients(
+  db: ReturnType<typeof createDb>,
+  patientIds: string[]
+): Promise<PatientSeedResult> {
+  const existingPatients = await db
     .select({ userId: patientProfiles.userId })
     .from(patientProfiles);
 
-  if (existing.length > 0) {
-    return {
-      created: 0,
-      existing: existing.length,
-      userIds: existing.map((p) => p.userId),
-    };
-  }
-
-  const patients: Array<{
-    userId: string;
-    alias: string;
-    isOnboardingComplete: boolean;
-    secured: boolean;
-  }> = [];
-  const count = 8;
-
-  for (let i = 0; i < count; i++) {
-    const userId = crypto.randomUUID();
-    const firstName = faker.person.firstName();
-    const lastName = faker.person.lastName();
-
-    patients.push({
-      userId,
-      alias: faker.helpers.arrayElement([
-        `${firstName}${lastName.charAt(0)}`,
-        `${firstName}_${faker.word.adjective()}`,
-        `${faker.word.adjective()}${faker.word.noun()}`,
-        `${firstName}.${faker.number.int({ min: 1, max: 99 })}`,
-      ]),
-      isOnboardingComplete: faker.datatype.boolean(0.8),
-      secured: faker.datatype.boolean(0.3),
-    });
-  }
-
-  await db.insert(patientProfiles).values(patients);
-
-  return {
-    created: patients.length,
-    existing: 0,
-    userIds: patients.map((p) => p.userId),
-  };
-}
-
-export async function seedPatientRelations(
-  db: ReturnType<typeof createDb>,
-  patientIds: string[]
-) {
-  if (patientIds.length === 0) {
-    return { stress: 0, acknowledgments: 0 };
-  }
-
-  const existingStressPatients = await db
-    .select({ userId: stressPredictions.userId })
-    .from(stressPredictions)
-    .where(inArray(stressPredictions.userId, patientIds));
-
-  const existingStressSet = new Set(
-    existingStressPatients.map((r) => r.userId)
+  // Check for existing stress data to avoid PK conflicts on re-seed
+  const existingAcks = new Set(
+    (
+      await db
+        .select({ userId: stressDownloadAcknowledgments.userId })
+        .from(stressDownloadAcknowledgments)
+        .where(inArray(stressDownloadAcknowledgments.userId, patientIds))
+    ).map((r) => r.userId)
   );
 
+  const existingStressUserIds = new Set(
+    (
+      await db
+        .select({ userId: stressPredictions.userId })
+        .from(stressPredictions)
+        .where(inArray(stressPredictions.userId, patientIds))
+    ).map((r) => r.userId)
+  );
+
+  const count = Math.min(patientIds.length, PATIENT_PROFILE_SPECS.length);
+  let createdCount = 0;
   let stressCount = 0;
   let ackCount = 0;
 
-  for (const userId of patientIds) {
-    // Stress predictions
-    if (!existingStressSet.has(userId)) {
-      const predictionCount = faker.number.int({ min: 1, max: 5 });
+  for (let i = 0; i < count; i++) {
+    const userId = patientIds[i];
+    if (!userId) {
+      continue;
+    }
+    const alias = PATIENT_PROFILE_SPECS[i]?.alias ?? `patient_${i}`;
+    const now = new Date().toISOString();
+    const isExisting = existingPatients.some((p) => p.userId === userId);
+
+    if (!isExisting) {
+      await db.insert(patientProfiles).values({
+        userId,
+        alias,
+        isOnboardingComplete: true,
+        secured: i < 2,
+        createdAt: now,
+        updatedAt: now,
+      });
+      createdCount++;
+    }
+
+    // Stress predictions — skip if user already has them
+    if (!existingStressUserIds.has(userId)) {
+      const predictionCount = 5 + i;
       for (let p = 0; p < predictionCount; p++) {
+        const predDate = new Date();
+        predDate.setDate(predDate.getDate() - (predictionCount - p) * 3);
+        const predClass = faker.helpers.arrayElement([0, 1, 2]);
+        const classLabels = ["low", "moderate", "high"];
+
         await db.insert(stressPredictions).values({
           id: crypto.randomUUID(),
           userId,
-          prediction: faker.helpers.arrayElement(["low", "moderate", "high"]),
-          predictedClass: faker.helpers.arrayElement([0, 1, 2]).toString(),
-          probabilities: JSON.stringify(
-            Array.from({ length: 3 }, () =>
-              faker.number.float({ min: 0, max: 1 })
-            )
-          ),
-          sampleCount: faker.number.int({ min: 100, max: 500 }),
-          createdAt: faker.date.recent({ days: 30 }).toISOString(),
-          updatedAt: faker.date.recent({ days: 7 }).toISOString(),
+          prediction: classLabels[predClass] ?? "moderate",
+          predictedClass: predClass.toString(),
+          probabilities: JSON.stringify([
+            faker.number.float({ min: 0.0, max: 0.4 }),
+            faker.number.float({ min: 0.0, max: 0.6 }),
+            faker.number.float({ min: 0.0, max: 0.8 }),
+          ]),
+          sampleCount: faker.number.int({ min: 200, max: 1000 }),
+          createdAt: predDate.toISOString(),
+          updatedAt: predDate.toISOString(),
         });
+        stressCount++;
       }
-      stressCount += predictionCount;
     }
 
-    // Stress download acknowledgment
-    if (faker.datatype.boolean(0.6)) {
+    // Stress download acknowledgment — skip if already exists (userId is PK)
+    if (!existingAcks.has(userId) && faker.datatype.boolean(0.8)) {
       await db.insert(stressDownloadAcknowledgments).values({
         userId,
         patientAcknowledgedAt: faker.date.recent({ days: 14 }).toISOString(),
+        createdAt: now,
+        updatedAt: now,
       });
       ackCount++;
     }
   }
 
   return {
-    stress: stressCount,
+    profiles: createdCount,
+    stressPredictions: stressCount,
     acknowledgments: ackCount,
   };
-}
-
-export async function getPatientIds(db: ReturnType<typeof createDb>) {
-  const result = await db
-    .select({ userId: patientProfiles.userId })
-    .from(patientProfiles);
-  return result.map((r) => r.userId);
 }

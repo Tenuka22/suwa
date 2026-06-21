@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { createDb } from "@suwa/db";
 import {
   clinicAttendance,
-  clinics,
+  clinics as clinicsTable,
   doctorHospitalAffiliations,
   doctorHospitalInvitations,
   hospitalAttendanceEvents,
@@ -12,208 +12,264 @@ import {
   tenantNotifications,
   tenants,
 } from "@suwa/db";
+import { buildHospitalSpecs, type HospitalSpec } from "../data-specs/hospitals";
 
-const HOSPITAL_TYPES = ["PRIVATE_HOSPITAL", "PUBLIC_HOSPITAL"] as const;
-
-const HOSPITAL_SERVICES = [
-  "EMERGENCY",
-  "THEATRE",
-  "ICU",
-  "OPD",
-  "PHARMACY",
-  "LABORATORY",
-  "RADIOLOGY",
-  "PHYSIOTHERAPY",
-  "CARDIOLOGY",
-  "PEDIATRICS",
-] as const;
-
-const AFFILIATION_STATUSES = ["PENDING", "ACTIVE", "INACTIVE"] as const;
-
-const CLINIC_SPECIALIZATIONS = [
-  "General Psychiatry",
-  "Child and Adolescent Psychiatry",
-  "Geriatric Psychiatry",
-  "Addiction Medicine",
-  "Trauma Recovery",
-  "Anxiety and Mood Disorders",
-  "Eating Disorders",
-  "Neuropsychiatry",
-];
-
-const HOSPITAL_NAMES = [
-  "Metropolitan General Hospital",
-  "St. Mary's Medical Center",
-  "Pacific Neuroscience Institute",
-  "Central Wellness Hospital",
-  "Riverside Psychiatric Hospital",
-];
+export interface TenantSeedResult {
+  affiliations: number;
+  attendanceEvents: number;
+  auditLogs: number;
+  clinics: number;
+  hospitals: number;
+  invitations: number;
+  notifications: number;
+  overrides: number;
+}
 
 export async function seedTenants(
   db: ReturnType<typeof createDb>,
   doctorIds: string[]
-) {
-  const existing = await db.select({ id: tenants.id }).from(tenants);
+): Promise<TenantSeedResult> {
+  // Clean slate for all tenant data
+  await db.delete(clinicAttendance);
+  await db.delete(clinicsTable);
+  await db.delete(tenantAuditLogs);
+  await db.delete(tenantNotifications);
+  await db.delete(hospitalAvailabilityOverrides);
+  await db.delete(hospitalAttendanceEvents);
+  await db.delete(doctorHospitalInvitations);
+  await db.delete(doctorHospitalAffiliations);
+  await db.delete(tenantAdmins);
+  await db.delete(tenants);
 
-  if (existing.length > 0) {
-    return { tenants: 0, clinics: 0 };
-  }
+  const now = new Date().toISOString();
 
-  const tenantRecords: Array<{
-    id: string;
-    name: string;
-    type: (typeof HOSPITAL_TYPES)[number];
-    address: string;
-    contactInfo: string;
-    status: "ACTIVE";
-    services: string;
-    latitude: string;
-    longitude: string;
-    phone: string;
-    website: string;
-    createdBy: string;
-  }> = [];
-  const tenantCount = 3;
-
-  for (let i = 0; i < tenantCount; i++) {
-    const tenantId = crypto.randomUUID();
-    const services = faker.helpers.arrayElements(
-      [...HOSPITAL_SERVICES],
-      faker.number.int({ min: 3, max: 6 })
-    );
-
-    tenantRecords.push({
-      id: tenantId,
-      name: HOSPITAL_NAMES[i] ?? `${faker.company.name()} Hospital`,
-      type: faker.helpers.arrayElement([...HOSPITAL_TYPES]),
-      address: faker.location.streetAddress(),
-      contactInfo: faker.phone.number(),
-      status: "ACTIVE" as const,
-      services: JSON.stringify(services),
-      latitude: faker.location.latitude().toString(),
-      longitude: faker.location.longitude().toString(),
-      phone: faker.phone.number(),
-      website: faker.internet.url(),
-      createdBy: faker.helpers.arrayElement(doctorIds),
+  let placesData: import("../data-specs/hospitals").PlacesDataEntry[] = [];
+  try {
+    const placesModule = await import("../../../map-scraper/places_data.json", {
+      with: { type: "json" },
     });
+    placesData =
+      placesModule.default as import("../data-specs/hospitals").PlacesDataEntry[];
+  } catch {
+    // places_data.json not available in this environment — skip tenant seeding
   }
 
-  await db.insert(tenants).values(tenantRecords);
+  const hospitalSpecs = buildHospitalSpecs(placesData);
+  const count = Math.min(doctorIds.length, hospitalSpecs.length);
+  let clinicCount = 0;
+  let affiliationCount = 0;
+  let invitationCount = 0;
+  let attendanceCount = 0;
+  let overrideCount = 0;
+  let auditCount = 0;
+  let notificationCount = 0;
 
-  const clinicRecords: Array<{
-    id: string;
-    tenantId: string;
-    name: string;
-    specialization: string;
-    schedule: string;
-  }> = [];
-  for (const tenant of tenantRecords) {
-    const clinicCount = faker.number.int({ min: 1, max: 3 });
-    for (let j = 0; j < clinicCount; j++) {
-      clinicRecords.push({
+  for (let i = 0; i < count; i++) {
+    const spec: HospitalSpec = hospitalSpecs[i]!;
+    const tenantId = crypto.randomUUID();
+    const creatorId = doctorIds[i % doctorIds.length]!;
+
+    await db.insert(tenants).values({
+      id: tenantId,
+      name: spec.name,
+      type: spec.type,
+      address: spec.address,
+      contactInfo: spec.phone,
+      logo: null,
+      status: "ACTIVE",
+      services: JSON.stringify(spec.services),
+      latitude: spec.latitude.toString(),
+      longitude: spec.longitude.toString(),
+      phone: spec.phone,
+      website: spec.website,
+      placeDataRef: spec.name,
+      createdBy: creatorId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Clinics
+    for (const clinic of spec.clinics) {
+      await db.insert(clinicsTable).values({
         id: crypto.randomUUID(),
-        tenantId: tenant.id,
-        name: `${tenant.name} - ${faker.helpers.arrayElement(CLINIC_SPECIALIZATIONS)} Clinic`,
-        specialization: faker.helpers.arrayElement(CLINIC_SPECIALIZATIONS),
+        tenantId,
+        name: clinic.name,
+        specialization: clinic.specialization,
         schedule: JSON.stringify({
           weekdays: "9:00 AM - 5:00 PM",
           saturday: "10:00 AM - 2:00 PM",
           sunday: "Closed",
         }),
+        createdAt: now,
+        updatedAt: now,
       });
+      clinicCount++;
     }
 
-    if (doctorIds.length > 0) {
-      const adminDoctorId = faker.helpers.arrayElement(doctorIds);
-      await db.insert(tenantAdmins).values({
-        id: crypto.randomUUID(),
-        tenantId: tenant.id,
-        userId: adminDoctorId,
-      });
-    }
-  }
-
-  await db.insert(clinics).values(clinicRecords);
-
-  for (const doctorId of doctorIds) {
-    const tenant = faker.helpers.arrayElement(tenantRecords);
-    const status = faker.helpers.arrayElement([...AFFILIATION_STATUSES]);
-
-    await db.insert(doctorHospitalAffiliations).values({
+    // Tenant admin (first available doctor)
+    const adminDoc = doctorIds[i % doctorIds.length]!;
+    await db.insert(tenantAdmins).values({
       id: crypto.randomUUID(),
-      doctorId,
-      tenantId: tenant.id,
-      status,
-      availabilityWindows: JSON.stringify([
-        { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" },
-        { dayOfWeek: 2, startTime: "09:00", endTime: "17:00" },
-        { dayOfWeek: 3, startTime: "09:00", endTime: "17:00" },
-      ]),
+      tenantId,
+      userId: adminDoc,
+      createdAt: now,
     });
 
-    if (faker.datatype.boolean(0.7)) {
-      const inviter = faker.helpers.arrayElement(
-        doctorIds.filter((id) => id !== doctorId)
-      );
-      await db.insert(doctorHospitalInvitations).values({
+    // Affiliations for all doctors
+    for (const doctorId of doctorIds) {
+      const affStatus = ["ACTIVE", "ACTIVE", "ACTIVE", "PENDING", "INACTIVE"];
+      await db.insert(doctorHospitalAffiliations).values({
         id: crypto.randomUUID(),
-        tenantId: tenant.id,
         doctorId,
-        invitedBy: inviter,
-        status: faker.helpers.arrayElement([
-          "PENDING",
-          "ACCEPTED",
-          "DECLINED",
-        ] as const),
-        message: faker.helpers.arrayElement([
-          "We would love to have you join our team.",
-          "Your expertise would be valuable at our facility.",
-          "Invitation to collaborate with our medical staff.",
+        tenantId,
+        status: faker.helpers.arrayElement(affStatus) as
+          | "ACTIVE"
+          | "PENDING"
+          | "INACTIVE",
+        availabilityWindows: JSON.stringify([
+          { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" },
+          { dayOfWeek: 2, startTime: "09:00", endTime: "17:00" },
+          { dayOfWeek: 3, startTime: "09:00", endTime: "17:00" },
         ]),
+        createdAt: now,
+        updatedAt: now,
       });
+      affiliationCount++;
+
+      // Invitations
+      if (faker.datatype.boolean(0.6)) {
+        const inviter = faker.helpers.arrayElement(
+          doctorIds.filter((id) => id !== doctorId)
+        )!;
+        await db.insert(doctorHospitalInvitations).values({
+          id: crypto.randomUUID(),
+          tenantId,
+          doctorId,
+          invitedBy: inviter,
+          status: faker.helpers.arrayElement([
+            "PENDING",
+            "ACCEPTED",
+            "DECLINED",
+          ]) as "PENDING" | "ACCEPTED" | "DECLINED",
+          message: faker.helpers.arrayElement([
+            "We would love to have you join our team.",
+            "Your expertise would be valuable at our facility.",
+            "Invitation to collaborate with our medical staff.",
+          ]),
+          createdAt: now,
+          updatedAt: now,
+        });
+        invitationCount++;
+      }
+
+      // Hospital attendance events
+      if (faker.datatype.boolean(0.5)) {
+        await db.insert(hospitalAttendanceEvents).values({
+          id: crypto.randomUUID(),
+          doctorId,
+          tenantId,
+          clinicId: null,
+          timestamp: faker.date.recent({ days: 14 }).toISOString(),
+          eventType: faker.helpers.arrayElement([
+            "CHECKED_IN",
+            "CHECKED_OUT",
+            "RETURNED",
+          ]) as "CHECKED_IN" | "CHECKED_OUT" | "RETURNED",
+          note: null,
+          recordedBy: doctorId,
+          createdAt: now,
+          updatedAt: now,
+        });
+        attendanceCount++;
+      }
+
+      // Availability overrides
+      if (faker.datatype.boolean(0.3)) {
+        const startDate = faker.date.soon({ days: 30 });
+        const endDate = new Date(startDate);
+        endDate.setDate(
+          endDate.getDate() + faker.number.int({ min: 1, max: 5 })
+        );
+        await db.insert(hospitalAvailabilityOverrides).values({
+          id: crypto.randomUUID(),
+          doctorId,
+          tenantId,
+          startAt: startDate.toISOString(),
+          endAt: endDate.toISOString(),
+          reason: faker.helpers.arrayElement([
+            "Vacation",
+            "Conference",
+            "Medical leave",
+            "Training",
+          ]),
+          createdAt: now,
+          updatedAt: now,
+        });
+        overrideCount++;
+      }
     }
 
-    if (faker.datatype.boolean(0.4)) {
-      await db.insert(hospitalAttendanceEvents).values({
+    // Audit logs
+    const logCount = faker.number.int({ min: 2, max: 5 });
+    for (let l = 0; l < logCount; l++) {
+      await db.insert(tenantAuditLogs).values({
         id: crypto.randomUUID(),
-        doctorId,
-        tenantId: tenant.id,
-        timestamp: faker.date.recent({ days: 14 }).toISOString(),
-        eventType: faker.helpers.arrayElement([
-          "CHECKED_IN",
-          "CHECKED_OUT",
-        ] as const),
-        recordedBy: faker.helpers.arrayElement(doctorIds),
+        tenantId,
+        actorId: faker.helpers.arrayElement(doctorIds)!,
+        action: faker.helpers.arrayElement([
+          "update_profile",
+          "invite_doctor",
+          "update_settings",
+          "manage_clinics",
+        ]),
+        entityType: faker.helpers.arrayElement([
+          "tenant",
+          "clinic",
+          "affiliation",
+          "invitation",
+        ]),
+        entityId: crypto.randomUUID(),
+        details: JSON.stringify({ description: faker.lorem.sentence() }),
+        createdAt: now,
       });
+      auditCount++;
     }
 
-    // Hospital availability overrides
-    if (faker.datatype.boolean(0.3)) {
-      const startDate = faker.date.soon({ days: 30 });
-      const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + faker.number.int({ min: 1, max: 5 }));
-      await db.insert(hospitalAvailabilityOverrides).values({
-        id: crypto.randomUUID(),
-        doctorId,
-        tenantId: tenant.id,
-        startAt: startDate.toISOString(),
-        endAt: endDate.toISOString(),
-        reason: faker.helpers.arrayElement([
-          "Vacation",
-          "Conference",
-          "Medical leave",
-          "Training",
-        ]),
-      });
+    // Notifications
+    for (const doctorId of doctorIds) {
+      if (faker.datatype.boolean(0.5)) {
+        await db.insert(tenantNotifications).values({
+          id: crypto.randomUUID(),
+          userId: doctorId,
+          type: faker.helpers.arrayElement([
+            "HOSPITAL_INVITATION",
+            "ATTENDANCE_MARKED",
+            "AFFILIATION_STATUS",
+          ]) as
+            | "HOSPITAL_INVITATION"
+            | "ATTENDANCE_MARKED"
+            | "AFFILIATION_STATUS",
+          title: faker.helpers.arrayElement([
+            "New hospital invitation",
+            "Attendance recorded",
+            "Affiliation updated",
+          ]),
+          message: faker.lorem.sentence(),
+          entityId: tenantId,
+          isRead: faker.datatype.boolean(0.3),
+          createdAt: now,
+        });
+        notificationCount++;
+      }
     }
   }
 
-  // Clinic attendance
-  const clinicIds = (await db.select({ value: clinics.id }).from(clinics)).map(
-    (r) => r.value
-  );
+  // Clinic attendance (use the ids we just created)
+  const clinicIds = (
+    await db.select({ value: clinicsTable.id }).from(clinicsTable)
+  ).map((r) => r.value);
   for (const cid of clinicIds) {
-    const docId = faker.helpers.arrayElement(doctorIds);
+    const docId = faker.helpers.arrayElement(doctorIds)!;
     if (faker.datatype.boolean(0.5)) {
       const rawDate = faker.date.recent({ days: 14 });
       const dateStr = rawDate.toISOString().slice(0, 10);
@@ -229,61 +285,20 @@ export async function seedTenants(
         arrivedAt: arrivedAt.toISOString(),
         leftAt: leftAt.toISOString(),
         recordedBy: docId,
-      });
-    }
-  }
-
-  // Tenant audit logs
-  for (const tenant of tenantRecords) {
-    const logCount = faker.number.int({ min: 0, max: 4 });
-    for (let l = 0; l < logCount; l++) {
-      await db.insert(tenantAuditLogs).values({
-        id: crypto.randomUUID(),
-        tenantId: tenant.id,
-        actorId: faker.helpers.arrayElement(doctorIds),
-        action: faker.helpers.arrayElement([
-          "update_profile",
-          "invite_doctor",
-          "update_settings",
-          "manage_clinics",
-        ]),
-        entityType: faker.helpers.arrayElement([
-          "tenant",
-          "clinic",
-          "affiliation",
-          "invitation",
-        ]),
-        entityId: crypto.randomUUID(),
-        details: JSON.stringify({ description: faker.lorem.sentence() }),
-      });
-    }
-  }
-
-  // Tenant notifications
-  for (const doctorId of doctorIds) {
-    if (faker.datatype.boolean(0.4)) {
-      await db.insert(tenantNotifications).values({
-        id: crypto.randomUUID(),
-        userId: doctorId,
-        type: faker.helpers.arrayElement([
-          "HOSPITAL_INVITATION",
-          "ATTENDANCE_MARKED",
-          "AFFILIATION_STATUS",
-        ] as const),
-        title: faker.helpers.arrayElement([
-          "New hospital invitation",
-          "Attendance recorded",
-          "Affiliation updated",
-        ]),
-        message: faker.lorem.sentence(),
-        entityId: faker.helpers.arrayElement(tenantRecords.map((t) => t.id)),
-        isRead: faker.datatype.boolean(0.3),
+        createdAt: now,
+        updatedAt: now,
       });
     }
   }
 
   return {
-    tenants: tenantRecords.length,
-    clinics: clinicRecords.length,
+    hospitals: count,
+    clinics: clinicCount,
+    affiliations: affiliationCount,
+    invitations: invitationCount,
+    attendanceEvents: attendanceCount,
+    overrides: overrideCount,
+    auditLogs: auditCount,
+    notifications: notificationCount,
   };
 }

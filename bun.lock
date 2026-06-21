@@ -94,6 +94,7 @@
         "@stripe/stripe-react-native": "0.63.0",
         "@suwa/api": "workspace:*",
         "@suwa/app-info": "workspace:*",
+        "@suwa/crypto": "workspace:*",
         "@suwa/env": "workspace:*",
         "@suwa/pricing": "workspace:*",
         "@tanstack/react-query": "^5.90.12",
@@ -298,6 +299,12 @@
         "@suwa/config": "workspace:*",
         "typescript": "^6",
       },
+      "peerDependencies": {
+        "expo-crypto": "*",
+      },
+      "optionalPeers": [
+        "expo-crypto",
+      ],
     },
     "packages/db": {
       "name": "@suwa/db",
