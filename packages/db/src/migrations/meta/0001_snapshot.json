@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c09c5689-b3f5-4ce6-9cb6-b01932ef8058",
-  "prevId": "5ab8bd2c-dfa2-4e06-a81a-fd2a441d49fd",
+  "id": "ba78e4ad-bdea-41cb-9645-5010250b3ab2",
+  "prevId": "efcc8e38-94c9-4574-bf0b-05b7ef2d3702",
   "tables": {
     "conversations": {
       "name": "conversations",
@@ -227,59 +227,6 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "credit_transactions": {
-      "name": "credit_transactions",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "amount": {
-          "name": "amount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "session_id": {
-          "name": "session_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -573,7 +520,9 @@
       "indexes": {
         "doctor_files_file_key_unique": {
           "name": "doctor_files_file_key_unique",
-          "columns": ["file_key"],
+          "columns": [
+            "file_key"
+          ],
           "isUnique": true
         }
       },
@@ -641,7 +590,10 @@
       "indexes": {
         "doctor_hospital_affiliations_doctor_tenant_unique": {
           "name": "doctor_hospital_affiliations_doctor_tenant_unique",
-          "columns": ["doctor_id", "tenant_id"],
+          "columns": [
+            "doctor_id",
+            "tenant_id"
+          ],
           "isUnique": true
         }
       },
@@ -716,7 +668,10 @@
       "indexes": {
         "doctor_hospital_invitations_tenant_doctor_unique": {
           "name": "doctor_hospital_invitations_tenant_doctor_unique",
-          "columns": ["tenant_id", "doctor_id"],
+          "columns": [
+            "tenant_id",
+            "doctor_id"
+          ],
           "isUnique": true
         }
       },
@@ -1009,6 +964,14 @@
           "autoincrement": false,
           "default": 1
         },
+        "price_cents": {
+          "name": "price_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1500
+        },
         "duration_minutes": {
           "name": "duration_minutes",
           "type": "integer",
@@ -1269,6 +1232,13 @@
           "autoincrement": false,
           "default": false
         },
+        "face_embedding_kv_key": {
+          "name": "face_embedding_kv_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
@@ -1364,7 +1334,9 @@
       "indexes": {
         "doctor_schedule_entries_session_id_unique": {
           "name": "doctor_schedule_entries_session_id_unique",
-          "columns": ["session_id"],
+          "columns": [
+            "session_id"
+          ],
           "isUnique": true
         }
       },
@@ -1431,6 +1403,21 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_intent_id": {
+          "name": "payment_intent_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "doctor_earned_cents": {
@@ -1808,123 +1795,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "moonlight_credit_transactions": {
-      "name": "moonlight_credit_transactions",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "amount": {
-          "name": "amount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "reason": {
-          "name": "reason",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "wellness_action_id": {
-          "name": "wellness_action_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "moonlight_credits": {
-      "name": "moonlight_credits",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "balance": {
-          "name": "balance",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "total_earned": {
-          "name": "total_earned",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "consistency_score": {
-          "name": "consistency_score",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "patient_profiles": {
       "name": "patient_profiles",
       "columns": {
@@ -2203,70 +2073,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "sprite_states": {
-      "name": "sprite_states",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "health": {
-          "name": "health",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 100
-        },
-        "mood": {
-          "name": "mood",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'idle'"
-        },
-        "streak_days": {
-          "name": "streak_days",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "last_interaction_at": {
-          "name": "last_interaction_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "stress_download_acknowledgments": {
       "name": "stress_download_acknowledgments",
       "columns": {
@@ -2412,7 +2218,10 @@
       "indexes": {
         "tenant_admins_tenant_user_unique": {
           "name": "tenant_admins_tenant_user_unique",
-          "columns": ["tenant_id", "user_id"],
+          "columns": [
+            "tenant_id",
+            "user_id"
+          ],
           "isUnique": true
         }
       },
@@ -2681,47 +2490,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "user_credits": {
-      "name": "user_credits",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "balance": {
-          "name": "balance",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "user_subscriptions": {
       "name": "user_subscriptions",
       "columns": {
@@ -2793,74 +2561,6 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'CURRENT_TIMESTAMP'"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "wellness_actions": {
-      "name": "wellness_actions",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "action_type": {
-          "name": "action_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "completed_at": {
-          "name": "completed_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "duration_seconds": {
-          "name": "duration_seconds",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "metadata": {
-          "name": "metadata",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "credits_earned": {
-          "name": "credits_earned",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,

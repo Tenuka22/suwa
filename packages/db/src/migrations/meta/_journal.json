@@ -5,36 +5,15 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1781371351264,
-      "tag": "0000_nifty_ares",
+      "when": 1782031372771,
+      "tag": "0000_right_lenny_balinger",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
-      "when": 1781524686614,
-      "tag": "0001_bitter_matthew_murdock",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1781533231889,
-      "tag": "0002_nice_dark_phoenix",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1781541175641,
-      "tag": "0003_grey_epoch",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1781877375480,
-      "tag": "0004_eager_the_fury",
+      "when": 1782033019583,
+      "tag": "0001_clumsy_ezekiel_stane",
       "breakpoints": true
     }
   ]

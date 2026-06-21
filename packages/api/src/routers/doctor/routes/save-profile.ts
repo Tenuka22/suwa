@@ -73,6 +73,7 @@ export const saveDoctorProfileRoute = protectedProcedure
       ),
       approach: input.approach ?? existingProfile?.approach ?? null,
       education: input.education ?? existingProfile?.education ?? null,
+      faceEmbedding: existingProfile?.faceEmbedding ?? null,
       permanent: existingProfile?.permanent ?? false,
       stripeAccountId: existingProfile?.stripeAccountId ?? null,
       stripeAccountEnabled: existingProfile?.stripeAccountEnabled ?? false,

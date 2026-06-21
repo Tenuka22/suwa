@@ -27,6 +27,7 @@ export const doctorProfileRoute = protectedProcedure.handler(
             consultationModes: parseJsonStringArray(profile.consultationModes),
             focusAreas: parseJsonStringArray(profile.focusAreas),
             approachSteps: parseJsonApproachSteps(profile.approachSteps),
+            hasFaceEmbedding: !!profile.faceEmbedding,
           }
         : null,
       role,
