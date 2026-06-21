@@ -12,7 +12,7 @@ export async function generateDoctorEmbedding(
   text: string,
   context: ClerkRequestContext
 ): Promise<number[]> {
-  const response = (await context.env.AI.run("@cf/baai/bge-base-en-v1.5", {
+  const response = (await context.ai.run("@cf/baai/bge-base-en-v1.5", {
     text,
   })) as { result?: { shape: number[]; data?: number[][] } };
 

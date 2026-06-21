@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Chip,
   cn,
@@ -9,6 +10,7 @@ import {
   Input,
   Label,
   Modal,
+  Separator,
   Tabs,
   TextArea,
   TextField,
@@ -29,13 +31,12 @@ import {
   Building,
   ChevronDown,
   ChevronUp,
-  Clock,
-  FileText,
   GripVertical,
-  MapPin,
+  Pen,
   Plus,
   Sparkles,
   Trash2,
+  TriangleAlert,
   User,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -58,7 +59,6 @@ import {
   parseEducationRows,
 } from "@/utils/doctor/profile-utils";
 import { orpc } from "@/utils/orpc";
-import { SummaryBlock, SummaryItem } from "./summary-components";
 
 const doctorProfileFormSchema = z.object({
   displayName: z.preprocess(
@@ -217,20 +217,23 @@ export function DoctorProfileCard() {
       {profile ? (
         <div className="flex flex-col gap-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Chip
-                size="sm"
-                variant={profile.permanent ? "primary" : "secondary"}
-              >
-                {profile.permanent ? "Approved" : "Pending Verification"}
+            {profile.permanent ? (
+              <Chip size="sm" variant="primary">
+                Approved
               </Chip>
-              {profile.permanent ? null : (
-                <p className="text-muted-foreground text-xs">
-                  Your profile is under review. You&apos;ll be notified once
-                  verified.
-                </p>
-              )}
-            </div>
+            ) : (
+              <Alert className="w-full" color="warning">
+                <Alert.Indicator>
+                  <TriangleAlert className="size-4" />
+                </Alert.Indicator>
+                <Alert.Content>
+                  <Alert.Description>
+                    Your profile is under review. You&apos;ll be notified once
+                    verified.
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert>
+            )}
             <Button onPress={() => setOpen(true)} size="sm" variant="outline">
               <Sparkles className="size-4" />
               Edit Profile
@@ -243,22 +246,78 @@ export function DoctorProfileCard() {
                 <Building className="size-4 text-primary" />
                 Practice Details
               </h3>
-              <div className="grid gap-3 rounded-xl border border-border/50 bg-muted/5 p-4">
-                <SummaryItem
-                  icon={<Clock className="size-3.5 text-muted-foreground" />}
-                  label="Experience"
-                  value={experienceLabel}
-                />
-                <SummaryItem
-                  icon={<MapPin className="size-3.5 text-muted-foreground" />}
-                  label="Location"
-                  value={profile?.location ?? "Not set"}
-                />
-                <SummaryItem
-                  icon={<Building className="size-3.5 text-muted-foreground" />}
-                  label="Practice Address"
-                  value={profile?.placeAddress ?? "Not set"}
-                />
+              <div className="flex flex-col rounded-xl border border-border/50 bg-muted/5">
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+                    Experience
+                  </p>
+                  {experienceLabel === "Not set" ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground italic">
+                        Not set
+                      </span>
+                      <Button
+                        onPress={() => setOpen(true)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="font-medium text-foreground/80 text-sm">
+                      {experienceLabel}
+                    </p>
+                  )}
+                </div>
+                <Separator className="border-border/30" />
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+                    Location
+                  </p>
+                  {profile?.location ? (
+                    <p className="font-medium text-foreground/80 text-sm">
+                      {profile.location}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground italic">
+                        Not set
+                      </span>
+                      <Button
+                        onPress={() => setOpen(true)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <Separator className="border-border/30" />
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+                    Practice Address
+                  </p>
+                  {profile?.placeAddress ? (
+                    <p className="font-medium text-foreground/80 text-sm">
+                      {profile.placeAddress}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground italic">
+                        Not set
+                      </span>
+                      <Button
+                        onPress={() => setOpen(true)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex flex-col gap-4">
@@ -266,22 +325,78 @@ export function DoctorProfileCard() {
                 <Award className="size-4 text-primary" />
                 Professional Info
               </h3>
-              <div className="grid gap-3 rounded-xl border border-border/50 bg-muted/5 p-4">
-                <SummaryItem
-                  icon={<FileText className="size-3.5 text-muted-foreground" />}
-                  label="License Number"
-                  value={profile?.licenseNumber ?? "Not set"}
-                />
-                <SummaryItem
-                  icon={<Building className="size-3.5 text-muted-foreground" />}
-                  label="Practice Place Name"
-                  value={profile?.placeName ?? "Not set"}
-                />
-                <SummaryItem
-                  icon={<FileText className="size-3.5 text-muted-foreground" />}
-                  label="Place Description"
-                  value={profile?.placeDescription ?? "No description added"}
-                />
+              <div className="flex flex-col rounded-xl border border-border/50 bg-muted/5">
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+                    License Number
+                  </p>
+                  {profile?.licenseNumber ? (
+                    <p className="font-medium text-foreground/80 text-sm">
+                      {profile.licenseNumber}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground italic">
+                        Not set
+                      </span>
+                      <Button
+                        onPress={() => setOpen(true)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <Separator className="border-border/30" />
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+                    Practice Place Name
+                  </p>
+                  {profile?.placeName ? (
+                    <p className="font-medium text-foreground/80 text-sm">
+                      {profile.placeName}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground italic">
+                        Not set
+                      </span>
+                      <Button
+                        onPress={() => setOpen(true)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <Separator className="border-border/30" />
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+                    Place Description
+                  </p>
+                  {profile?.placeDescription ? (
+                    <p className="font-medium text-foreground/80 text-sm">
+                      {profile.placeDescription}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground italic">
+                        Not set
+                      </span>
+                      <Button
+                        onPress={() => setOpen(true)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -290,39 +405,126 @@ export function DoctorProfileCard() {
             <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
               Biography
             </h3>
-            <p className="rounded-xl border border-border/30 bg-muted/5 px-4 py-3 text-foreground/90 text-sm italic leading-relaxed">
-              &ldquo;
-              {profile?.bio ??
-                "No biography set yet. Use the edit button above to add one."}
-              &rdquo;
-            </p>
+            {profile?.bio ? (
+              <p className="rounded-xl border border-border/30 bg-muted/5 px-4 py-3 text-foreground/90 text-sm italic leading-relaxed">
+                &ldquo;{profile.bio}&rdquo;
+              </p>
+            ) : (
+              <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-border/50 border-dashed px-6 py-10 text-center">
+                <Pen className="size-6 text-muted-foreground/60" />
+                <p className="text-muted-foreground text-sm">
+                  No biography added yet
+                </p>
+                <Button
+                  onPress={() => setOpen(true)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  Add Biography
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <SummaryBlock
-              colorTheme="primary"
-              label="Specialties"
-              labels={specialtyLabels}
-              values={specialties}
-            />
-            <SummaryBlock
-              colorTheme="secondary"
-              label="Languages"
-              labels={languageLabels}
-              values={languages}
-            />
-            <SummaryBlock
-              colorTheme="muted"
-              label="Consultation Modes"
-              labels={consultationModeLabels}
-              values={consultationModes}
-            />
-            <SummaryBlock
-              colorTheme="accent"
-              label="Focus Areas"
-              labels={focusAreaLabels}
-              values={focusAreas}
-            />
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
+                Specialties
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {specialties.length > 0 ? (
+                  specialties.map((value) => (
+                    <Chip key={value} size="sm" variant="secondary">
+                      {specialtyLabels[value] ?? value}
+                    </Chip>
+                  ))
+                ) : (
+                  <Chip
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setOpen(true);
+                    }}
+                    size="sm"
+                    variant="tertiary"
+                  >
+                    <Plus className="size-3" />
+                    Add Specialties
+                  </Chip>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
+                Languages
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {languages.length > 0 ? (
+                  languages.map((value) => (
+                    <Chip key={value} size="sm" variant="secondary">
+                      {languageLabels[value] ?? value}
+                    </Chip>
+                  ))
+                ) : (
+                  <Chip
+                    className="cursor-pointer"
+                    onClick={() => setOpen(true)}
+                    size="sm"
+                    variant="tertiary"
+                  >
+                    <Plus className="size-3" />
+                    Add Languages
+                  </Chip>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
+                Consultation Modes
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {consultationModes.length > 0 ? (
+                  consultationModes.map((value) => (
+                    <Chip key={value} size="sm" variant="secondary">
+                      {consultationModeLabels[value] ?? value}
+                    </Chip>
+                  ))
+                ) : (
+                  <Chip
+                    className="cursor-pointer"
+                    onClick={() => setOpen(true)}
+                    size="sm"
+                    variant="tertiary"
+                  >
+                    <Plus className="size-3" />
+                    Add Consultation Modes
+                  </Chip>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
+                Focus Areas
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {focusAreas.length > 0 ? (
+                  focusAreas.map((value) => (
+                    <Chip key={value} size="sm" variant="secondary">
+                      {focusAreaLabels[value] ?? value}
+                    </Chip>
+                  ))
+                ) : (
+                  <Chip
+                    className="cursor-pointer"
+                    onClick={() => setOpen(true)}
+                    size="sm"
+                    variant="tertiary"
+                  >
+                    <Plus className="size-3" />
+                    Add Focus Areas
+                  </Chip>
+                )}
+              </div>
+            </div>
           </div>
 
           {stepsList.length > 0 && (
@@ -421,41 +623,43 @@ export function DoctorProfileCard() {
                   <Tabs.ListContainer>
                     <Tabs.List
                       aria-label="Profile tabs"
-                      className="*:h-8 *:px-1 *:font-normal *:text-sm *:data-[selected=true]:text-accent-foreground"
+                      className="gap-1 rounded-lg p-1"
                     >
                       <Tabs.Tab
                         className={cn(
+                          "h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]",
                           hasBasicErrors &&
                             "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
                         )}
                         id="basic"
                       >
                         <span>Info</span>
-                        <Tabs.Indicator className="bg-accent" />
                       </Tabs.Tab>
                       <Tabs.Tab
                         className={cn(
+                          "h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]",
                           hasPracticeErrors &&
                             "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
                         )}
                         id="practice"
                       >
                         <span>Practice</span>
-                        <Tabs.Indicator className="bg-accent" />
                       </Tabs.Tab>
                       <Tabs.Tab
                         className={cn(
+                          "h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]",
                           hasSpecialtiesErrors &&
                             "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
                         )}
                         id="specialties"
                       >
                         <span>Specialties</span>
-                        <Tabs.Indicator className="bg-accent" />
                       </Tabs.Tab>
-                      <Tabs.Tab id="experience">
+                      <Tabs.Tab
+                        className="h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]"
+                        id="experience"
+                      >
                         <span>App. & Edu</span>
-                        <Tabs.Indicator className="bg-accent" />
                       </Tabs.Tab>
                     </Tabs.List>
                   </Tabs.ListContainer>

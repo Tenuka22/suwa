@@ -1,17 +1,16 @@
 import { useUser } from "@clerk/tanstack-react-start";
 import { Button, Card, Separator } from "@heroui/react";
-import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ShieldAlert, CheckCircle2, Camera, UserCheck } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Camera, CheckCircle2, ShieldAlert, UserCheck } from "lucide-react";
 import { useState } from "react";
-
-import { FaceCaptureDialog } from "@/components/face-detection";
 import {
   DoctorMaterialsCard,
   DoctorProfileCard,
   DoctorProfileHeader,
   DoctorProfileStats,
 } from "@/components/doctors";
+import { FaceCaptureDialog } from "@/components/face-detection";
 import { PageTitle } from "@/components/typography";
 import { orpc } from "@/utils/orpc";
 
@@ -55,6 +54,7 @@ function DoctorProfileRoute() {
   return (
     <div className="flex flex-col gap-4">
       <DoctorProfileHeader
+        completionPercentage={stats?.completenessPercentage ?? 0}
         doctorId={doctorId}
         isVerified={stats?.isPermanent}
         name={name}
@@ -156,9 +156,9 @@ function DoctorProfileRoute() {
       ) : null}
 
       <FaceCaptureDialog
-        open={faceDialogOpen}
-        onOpenChange={setFaceDialogOpen}
         onFaceCaptured={handleFaceCaptured}
+        onOpenChange={setFaceDialogOpen}
+        open={faceDialogOpen}
       />
     </div>
   );

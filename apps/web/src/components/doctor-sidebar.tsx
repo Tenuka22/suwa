@@ -47,12 +47,14 @@ function NavItem({
 }) {
   const Icon = item.icon;
 
+  const activeClasses =
+    "data-[selected=true]:border-l-3 data-[selected=true]:border-[var(--accent)] data-[selected=true]:bg-[var(--surface-secondary)] data-[selected=true]:text-[var(--accent)]";
   const content = (
     <ListBox.Item
       className={
         collapsed
-          ? "flex justify-center rounded-lg px-0 py-2"
-          : "flex items-center gap-3 rounded-lg px-3 py-2"
+          ? `flex justify-center rounded-lg px-0 py-2 ${activeClasses}`
+          : `flex items-center gap-3 rounded-lg px-3 py-2 ${activeClasses}`
       }
       id={item.id}
       key={item.id}

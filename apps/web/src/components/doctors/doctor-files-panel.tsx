@@ -9,6 +9,7 @@ import {
   ToggleButtonGroup,
   toast,
 } from "@heroui/react";
+import { TriangleAlert, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -52,7 +53,6 @@ function getAcceptForKind(kind: DoctorFileKind): string {
 export function DoctorFilesPanel({
   canManage,
   doctorId,
-  isPermanent,
 }: DoctorFilesPanelProps) {
   const dropzone = useDropzone();
   const filesQuery = useDoctorFiles();
@@ -117,7 +117,13 @@ export function DoctorFilesPanel({
 
   return (
     <div className="flex flex-col gap-6">
-      {canManage ? (
+      {!canManage && (
+        <Chip className="w-fit" color="warning" variant="secondary">
+          <TriangleAlert className="size-3" />
+          Uploads are available once your profile is approved.
+        </Chip>
+      )}
+      <div className={canManage ? "" : "pointer-events-none opacity-50"}>
         <Fieldset className="rounded-2xl border bg-muted/10 p-5">
           <Fieldset.Legend className="sr-only">
             Upload materials
@@ -242,13 +248,7 @@ export function DoctorFilesPanel({
             </div>
           </Fieldset.Group>
         </Fieldset>
-      ) : (
-        <p className="text-muted-foreground text-sm">
-          {isPermanent
-            ? "Uploads are currently unavailable."
-            : "Wait a moment. Your doctor profile needs to be approved before you can add uploads."}
-        </p>
-      )}
+      </div>
 
       {filesQuery.isFetching ? (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -265,11 +265,15 @@ export function DoctorFilesPanel({
           </Alert.Content>
         </Alert>
       ) : files.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-1">
-          <p className="font-medium text-sm">No files uploaded yet</p>
-          <p className="text-muted-foreground text-sm">
-            Upload documents, images, or videos to showcase your credentials.
-          </p>
+        <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-border/50 border-dashed px-6 py-12 text-center">
+          <Upload className="size-8 text-muted-foreground/60" />
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold text-sm">Drag files here</p>
+            <p className="text-muted-foreground text-xs">or</p>
+          </div>
+          <Button size="sm" variant="secondary">
+            Browse files
+          </Button>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

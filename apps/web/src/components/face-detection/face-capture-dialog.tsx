@@ -1,7 +1,13 @@
-import { Button, Modal, ProgressBar, toast } from "@heroui/react";
-import { Camera, CheckCircle2, Loader2, ShieldAlert, XCircle } from "lucide-react";
+import { Button, Modal, ProgressBar, Spinner, toast } from "@heroui/react";
+import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import {
+  Camera,
+  CheckCircle2,
+  Loader2,
+  ShieldAlert,
+  XCircle,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FilesetResolver, FaceLandmarker } from "@mediapipe/tasks-vision";
 
 export type FaceCaptureStatus =
   | "idle"
@@ -15,36 +21,32 @@ export type FaceCaptureStatus =
   | "error";
 
 interface FaceCaptureDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   onFaceCaptured: (embedding: number[]) => Promise<void>;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
 }
 
 const KEY_LANDMARK_INDICES = [
-  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379,
-  378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127,
-  162, 21, 54, 103, 67, 109,
-  33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246,
-  362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384,
-  398,
-  61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0,
-  37, 39, 40, 185,
-  1, 2, 98, 327, 49, 279, 278, 195, 197, 5, 4, 237, 456, 454,
-  46, 53, 52, 65, 55, 70, 63, 105, 66, 107,
-  276, 283, 282, 295, 285, 300, 293, 334, 296, 336,
+  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378,
+  400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21,
+  54, 103, 67, 109, 33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158,
+  159, 160, 161, 246, 362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388,
+  387, 386, 385, 384, 398, 61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291,
+  409, 270, 269, 267, 0, 37, 39, 40, 185, 1, 2, 98, 327, 49, 279, 278, 195, 197,
+  5, 4, 237, 456, 454, 46, 53, 52, 65, 55, 70, 63, 105, 66, 107, 276, 283, 282,
+  295, 285, 300, 293, 334, 296, 336,
 ] as const;
 
-function computeEmbedding(landmarks: { x: number; y: number; z: number }[]): number[] {
+function computeEmbedding(
+  landmarks: { x: number; y: number; z: number }[]
+): number[] {
   const faceLandmarks = KEY_LANDMARK_INDICES.map((i) => landmarks[i]).filter(
     Boolean
   ) as { x: number; y: number; z: number }[];
 
-  const cx =
-    faceLandmarks.reduce((s, p) => s + p.x, 0) / faceLandmarks.length;
-  const cy =
-    faceLandmarks.reduce((s, p) => s + p.y, 0) / faceLandmarks.length;
-  const cz =
-    faceLandmarks.reduce((s, p) => s + p.z, 0) / faceLandmarks.length;
+  const cx = faceLandmarks.reduce((s, p) => s + p.x, 0) / faceLandmarks.length;
+  const cy = faceLandmarks.reduce((s, p) => s + p.y, 0) / faceLandmarks.length;
+  const cz = faceLandmarks.reduce((s, p) => s + p.z, 0) / faceLandmarks.length;
 
   const distances = faceLandmarks.map((p) =>
     Math.sqrt(
@@ -55,7 +57,9 @@ function computeEmbedding(landmarks: { x: number; y: number; z: number }[]): num
   );
   const scale = Math.max(...distances);
 
-  if (scale < 0.001) return [];
+  if (scale < 0.001) {
+    return [];
+  }
 
   return faceLandmarks.flatMap((p) => [
     (p.x - cx) / scale,
@@ -90,53 +94,60 @@ export function FaceCaptureDialog({
     }
   }, []);
 
-  const startDetection = useCallback(
-    async (landmarker: FaceLandmarker) => {
-      const video = videoRef.current;
-      if (!video || video.readyState < 2) return;
+  const startDetection = useCallback(async (landmarker: FaceLandmarker) => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) {
+      return;
+    }
 
-      const detectFrame = () => {
-        const results = landmarker.detectForVideo(video, performance.now());
-        const faces = results.faceLandmarks;
+    const detectFrame = () => {
+      const results = landmarker.detectForVideo(video, performance.now());
+      const faces = results.faceLandmarks;
 
-        if (faces.length > 0) {
-          const firstFace = faces[0];
-          let minY = Infinity,
-            maxY = -Infinity,
-            minX = Infinity,
-            maxX = -Infinity;
-          for (const pt of firstFace) {
-            if (pt.x < minX) minX = pt.x;
-            if (pt.x > maxX) maxX = pt.x;
-            if (pt.y < minY) minY = pt.y;
-            if (pt.y > maxY) maxY = pt.y;
+      if (faces.length > 0) {
+        const firstFace = faces[0];
+        let minY = Number.POSITIVE_INFINITY,
+          maxY = Number.NEGATIVE_INFINITY,
+          minX = Number.POSITIVE_INFINITY,
+          maxX = Number.NEGATIVE_INFINITY;
+        for (const pt of firstFace) {
+          if (pt.x < minX) {
+            minX = pt.x;
           }
-          const faceArea = (maxX - minX) * (maxY - minY);
-          const faceCenterX = (minX + maxX) / 2;
-          const faceCenterY = (minY + maxY) / 2;
-          const isCentered =
-            faceCenterX > 0.25 &&
-            faceCenterX < 0.75 &&
-            faceCenterY > 0.2 &&
-            faceCenterY < 0.8;
-          const isLargeEnough = faceArea > 0.05;
-
-          setHasFace(isCentered && isLargeEnough);
-          setConfidence(Math.min(1, faceArea * 4));
-          setStatus(isCentered && isLargeEnough ? "detected" : "detecting");
-        } else {
-          setHasFace(false);
-          setConfidence(0);
-          setStatus("detecting");
+          if (pt.x > maxX) {
+            maxX = pt.x;
+          }
+          if (pt.y < minY) {
+            minY = pt.y;
+          }
+          if (pt.y > maxY) {
+            maxY = pt.y;
+          }
         }
+        const faceArea = (maxX - minX) * (maxY - minY);
+        const faceCenterX = (minX + maxX) / 2;
+        const faceCenterY = (minY + maxY) / 2;
+        const isCentered =
+          faceCenterX > 0.25 &&
+          faceCenterX < 0.75 &&
+          faceCenterY > 0.2 &&
+          faceCenterY < 0.8;
+        const isLargeEnough = faceArea > 0.05;
 
-        animFrameRef.current = requestAnimationFrame(detectFrame);
-      };
+        setHasFace(isCentered && isLargeEnough);
+        setConfidence(Math.min(1, faceArea * 4));
+        setStatus(isCentered && isLargeEnough ? "detected" : "detecting");
+      } else {
+        setHasFace(false);
+        setConfidence(0);
+        setStatus("detecting");
+      }
 
-      detectFrame();
-    },
-    []
-  );
+      animFrameRef.current = requestAnimationFrame(detectFrame);
+    };
+
+    detectFrame();
+  }, []);
 
   const initCamera = useCallback(async () => {
     stopCamera();
@@ -198,7 +209,9 @@ export function FaceCaptureDialog({
   const captureAndSave = useCallback(async () => {
     const landmarker = landmarkerRef.current;
     const video = videoRef.current;
-    if (!landmarker || !video) return;
+    if (!(landmarker && video)) {
+      return;
+    }
 
     setStatus("capturing");
 
@@ -284,7 +297,7 @@ export function FaceCaptureDialog({
               <ShieldAlert className="size-5" />
             </Modal.Icon>
             <Modal.Heading>Face Verification</Modal.Heading>
-            <p className="text-muted-foreground text-sm font-normal">
+            <p className="font-normal text-muted-foreground text-sm">
               Look directly at the camera with good lighting to verify your
               identity
             </p>
@@ -292,16 +305,16 @@ export function FaceCaptureDialog({
           <Modal.Body>
             <div className="relative overflow-hidden rounded-2xl bg-black">
               <video
-                ref={videoRef}
                 autoPlay
                 className="aspect-[4/3] w-full object-cover"
-                playsInline
                 muted
+                playsInline
+                ref={videoRef}
               />
               {status === "loading-model" && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70">
                   <Loader2 className="size-8 animate-spin text-white" />
-                  <p className="text-white text-sm">
+                  <p className="text-sm text-white">
                     Loading face detection model...
                   </p>
                 </div>
@@ -316,22 +329,34 @@ export function FaceCaptureDialog({
 
               {status !== "loading-model" && !cameraError && (
                 <>
-                  <div
-                    className={[
-                      "pointer-events-none absolute inset-0 rounded-2xl border-4 transition-colors",
-                      hasFace
-                        ? "border-green-400/70"
-                        : "border-yellow-400/50",
-                    ].join(" ")}
-                  />
+                  <svg
+                    className="pointer-events-none absolute inset-0 size-full"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="xMidYMid slice"
+                    aria-label="Face alignment guide"
+                    role="img"
+                  >
+                    <title>Align your face within the oval</title>
+                    <ellipse
+                      cx="50"
+                      cy="45"
+                      fill="none"
+                      opacity={hasFace ? 0.6 : 1}
+                      rx="28"
+                      ry="33"
+                      stroke="var(--accent, #4ade80)"
+                      strokeDasharray="6 4"
+                      strokeWidth="2.5"
+                    />
+                  </svg>
 
                   {status !== "success" && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                       <div className="mb-1 flex items-center justify-between">
                         <span className="text-white text-xs">
                           {hasFace
                             ? "Face detected"
-                            : "Position your face in the oval"}
+                            : "Align your face within the oval"}
                         </span>
                         <span className="text-white/70 text-xs">
                           {hasFace
@@ -341,8 +366,8 @@ export function FaceCaptureDialog({
                       </div>
                       <ProgressBar
                         aria-label="Face detection quality"
-                        value={confidence * 100}
                         size="sm"
+                        value={confidence * 100}
                       >
                         <ProgressBar.Track className="h-1 bg-white/20">
                           <ProgressBar.Fill
@@ -360,10 +385,10 @@ export function FaceCaptureDialog({
               {status === "success" && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-green-900/40">
                   <CheckCircle2 className="size-16 text-green-400" />
-                  <p className="font-semibold text-white text-lg">
+                  <p className="font-semibold text-lg text-white">
                     Face Verified!
                   </p>
-                  <p className="text-white/80 text-sm">
+                  <p className="text-sm text-white/80">
                     Your identity has been confirmed
                   </p>
                 </div>
@@ -372,30 +397,35 @@ export function FaceCaptureDialog({
           </Modal.Body>
           <Modal.Footer className="flex justify-end gap-3">
             {status === "success" ? (
-              <Button variant="primary" onPress={handleClose}>
+              <Button onPress={handleClose} variant="primary">
                 Done
               </Button>
             ) : (
               <>
                 <Button
                   isDisabled={isCapturingOrSaving}
-                  variant="outline"
                   onPress={handleClose}
+                  variant="outline"
                 >
                   Cancel
                 </Button>
                 <Button
                   isDisabled={!hasFace || isCapturingOrSaving}
-                  isPending={isCapturingOrSaving}
-                  variant="primary"
                   onPress={captureAndSave}
+                  variant="primary"
                 >
-                  <Camera className="size-4" />
-                  {status === "capturing"
-                    ? "Analyzing..."
-                    : status === "saving"
-                      ? "Saving..."
-                      : "Capture & Verify"}
+                  {status === "loading-model" ? (
+                    <Spinner className="size-4" />
+                  ) : (
+                    <Camera className="size-4" />
+                  )}
+                  {status === "loading-model"
+                    ? "Loading model..."
+                    : status === "capturing"
+                      ? "Analyzing..."
+                      : status === "saving"
+                        ? "Saving..."
+                        : "Capture & Verify"}
                 </Button>
               </>
             )}

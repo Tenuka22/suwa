@@ -37,7 +37,7 @@ async function generateSuggestions(
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
 
-  const response = await context.env.AI.run(
+  const response = await context.ai.run(
     "@cf/meta/llama-3.1-8b-instruct-fast",
     {
       messages: [
@@ -157,7 +157,7 @@ export async function* streamDoctorSearchAgent(
 
     let response: ReadableStream;
     try {
-      const aiResponse = await context.env.AI.run(
+      const aiResponse = await context.ai.run(
         "@cf/meta/llama-3.1-8b-instruct-fast",
         {
           messages: messages.map(

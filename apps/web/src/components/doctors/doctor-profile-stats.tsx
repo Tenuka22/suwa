@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react";
 import {
   BookOpenIcon,
   FileIcon,
@@ -17,57 +18,57 @@ interface ProfileStats {
   specialtyCount?: number | null;
 }
 
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof UserCircleIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-muted-foreground" />
-      <span className="font-medium text-sm tabular-nums">{value}</span>
-      <span className="text-muted-foreground text-sm">{label}</span>
-    </div>
-  );
-}
-
 export function DoctorProfileStats({ stats }: { stats?: ProfileStats | null }) {
+  const items = [
+    {
+      icon: UserCircleIcon,
+      label: "Profile Completion",
+      value: `${stats?.completenessPercentage ?? 0}%`,
+      success: (stats?.completenessPercentage ?? 0) > 0,
+    },
+    {
+      icon: FileIcon,
+      label: "Files",
+      value: `${stats?.fileCount ?? 0}`,
+      success: false,
+    },
+    {
+      icon: BookOpenIcon,
+      label: "Specialties",
+      value: `${stats?.specialtyCount ?? 0}`,
+      success: false,
+    },
+    {
+      icon: LanguagesIcon,
+      label: "Languages",
+      value: `${stats?.languageCount ?? 0}`,
+      success: false,
+    },
+    {
+      icon: VideoIcon,
+      label: "Hub Videos",
+      value: `${stats?.hubVideoCount ?? 0}`,
+      success: false,
+    },
+    {
+      icon: RadioIcon,
+      label: "Hub Audio",
+      value: `${stats?.hubAudioCount ?? 0}`,
+      success: false,
+    },
+  ];
+
   return (
-    <div className="flex flex-wrap gap-x-6 gap-y-2">
-      <StatItem
-        icon={UserCircleIcon}
-        label={stats?.profileExists ? "in progress" : "not started"}
-        value={`${stats?.completenessPercentage ?? 0}%`}
-      />
-      <StatItem
-        icon={FileIcon}
-        label="files"
-        value={`${stats?.fileCount ?? 0}`}
-      />
-      <StatItem
-        icon={BookOpenIcon}
-        label="specialties"
-        value={`${stats?.specialtyCount ?? 0}`}
-      />
-      <StatItem
-        icon={LanguagesIcon}
-        label="languages"
-        value={`${stats?.languageCount ?? 0}`}
-      />
-      <StatItem
-        icon={VideoIcon}
-        label="hub videos"
-        value={`${stats?.hubVideoCount ?? 0}`}
-      />
-      <StatItem
-        icon={RadioIcon}
-        label="hub audio"
-        value={`${stats?.hubAudioCount ?? 0}`}
-      />
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <Card className="border border-border/50 shadow-none" key={item.label}>
+          <Card.Content className="flex flex-col gap-2 p-4">
+            <item.icon className="size-5 text-muted-foreground" />
+            <p className="font-semibold text-2xl tabular-nums">{item.value}</p>
+            <p className="text-muted-foreground text-xs">{item.label}</p>
+          </Card.Content>
+        </Card>
+      ))}
     </div>
   );
 }
