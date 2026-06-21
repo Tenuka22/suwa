@@ -2,7 +2,6 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ResizeMode, Video } from "expo-av";
-import * as FileSystem from "expo-file-system";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
@@ -14,8 +13,7 @@ import {
   ThumbsUp,
 } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
-
+import { Pressable, Text, View } from "react-native";
 import { Input } from "@/components/design/ui/input";
 import { Screen } from "@/components/design/ui/screen";
 import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
@@ -31,8 +29,45 @@ export default function MaterialDetailScreen() {
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const [videoLocalUri, setVideoLocalUri] = useState<string | null>(null);
+  const [fileLoading, setFileLoading] = useState(true);
   const videoRef = useRef<Video>(null);
   const userId = "patient-demo";
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    console.log(`[materialId] mounting with id=${id}`);
+    let active = true;
+
+    orpc.getMaterialFile.call({ materialId: id }).then((file) => {
+      console.log(`[materialId] file received: size=${file.size} type=${file.type} name=${file.name}`);
+      if (!(active && file)) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (active && typeof reader.result === "string") {
+          console.log(`[materialId] dataUrl ready: length=${reader.result.length}`);
+          setVideoLocalUri(reader.result);
+          setFileLoading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    }).catch((err) => {
+      console.error(`[materialId] error:`, err);
+      if (active) {
+        setFileLoading(false);
+      }
+    });
+
+    return () => {
+      console.log(`[materialId] unmounting`);
+      active = false;
+    };
+  }, [id]);
 
   const materialsQuery = useQuery(
     orpc.listPublicMaterials.queryOptions({
@@ -52,40 +87,6 @@ export default function MaterialDetailScreen() {
       input: { materialId: id ?? "" },
     })
   );
-
-  const fileQuery = useQuery(
-    orpc.getHubMaterialFile.queryOptions({
-      input: { id: id ?? "" },
-      enabled: !!id,
-    })
-  );
-
-  useEffect(() => {
-    if (!fileQuery.data) {
-      return;
-    }
-
-    const blob = fileQuery.data as Blob;
-
-    if (Platform.OS === "web") {
-      const url = URL.createObjectURL(blob);
-      setVideoLocalUri(url);
-      return () => URL.revokeObjectURL(url);
-    }
-
-    const writeFile = async () => {
-      const cacheFile = new FileSystem.File(
-        FileSystem.Paths.cache,
-        `material-${id}`
-      );
-      cacheFile.create({ overwrite: true });
-      const buffer = await blob.arrayBuffer();
-      cacheFile.write(new Uint8Array(buffer));
-      setVideoLocalUri(cacheFile.uri);
-    };
-
-    writeFile().catch(console.error);
-  }, [fileQuery.data, id]);
 
   const toggleLikeMutation = useMutation(
     orpc.toggleLikeMaterial.mutationOptions({

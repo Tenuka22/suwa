@@ -1,8 +1,8 @@
 "use client";
 
+import { env } from "@suwa/env/native";
 import * as FileSystem from "expo-file-system";
 import { useEffect, useState } from "react";
-import { orpc } from "@/utils/orpc";
 
 export function useMaterialThumbnail(materialId: string | null) {
   const [uri, setUri] = useState<string | null>(null);
@@ -19,11 +19,6 @@ export function useMaterialThumbnail(materialId: string | null) {
     const load = async () => {
       setLoading(true);
       try {
-        const file = await orpc.getHubMaterialFile.call({ id: materialId });
-        if (!(active && file)) {
-          return;
-        }
-
         const cachePath = `${FileSystem.Paths.cache.uri}thumb-${materialId}.jpg`;
         const cacheFile = new FileSystem.File(cachePath);
         if (cacheFile.exists) {
@@ -32,13 +27,18 @@ export function useMaterialThumbnail(materialId: string | null) {
           return;
         }
 
-        const blob = file as Blob;
-        const buffer = await blob.arrayBuffer();
-        cacheFile.create({ overwrite: true });
-        cacheFile.write(new Uint8Array(buffer));
+        const downloadPath = `${FileSystem.Paths.cache.uri}raw-${materialId}`;
+        await FileSystem.downloadAsync(
+          `${env.EXPO_PUBLIC_SERVER_URL}/materials/${materialId}/file`,
+          downloadPath
+        );
+
+        if (!active) {
+          return;
+        }
 
         const { getThumbnailAsync } = await import("expo-video-thumbnails");
-        const result = await getThumbnailAsync(cacheFile.uri, {
+        const result = await getThumbnailAsync(downloadPath, {
           time: 0,
           quality: 0.5,
         });

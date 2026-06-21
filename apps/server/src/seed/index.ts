@@ -1,85 +1,123 @@
+import type { ReadAssetFn } from "./hub";
 import { createDb } from "@suwa/db";
 import { seedCashouts } from "./cashouts";
-import { getDoctorIds, seedDoctorRelations, seedDoctors } from "./doctors";
-
+import { seedChats } from "./chats";
+import { seedDoctors } from "./doctors";
 import { seedHub } from "./hub";
-import { seedHubUploads } from "./hub-uploads";
-import { getPatientIds, seedPatientRelations, seedPatients } from "./patients";
+import { seedPatients } from "./patients";
 import { seedSessions } from "./sessions";
 import { seedSubscriptions } from "./subscriptions";
 import { seedTenants } from "./tenants";
+import { saveManifest } from "./unseed";
+import { resolveUsers } from "./users";
 
 export interface SeedEnv {
-  chatMessagesKv: KVNamespace;
-  doctorMaterialsKv: KVNamespace;
-  modelFeaturesKv: KVNamespace;
+  chatMessagesKv?: KVNamespace;
+  doctorMaterialsKv?: KVNamespace;
+  modelFeaturesKv?: KVNamespace;
+  readAsset?: ReadAssetFn;
 }
 
 export interface SeedSummary {
   cashouts: number;
-  doctorRelations: {
-    education: number;
-    plans: number;
-    availability: number;
-    schedule: number;
-    files: number;
+  chats: {
+    conversations: number;
+    messages: number;
   };
-  doctors: { created: number; existing: number };
-  hub: { channels: number; materials: number; playlists: number };
-  hubUploads: number;
-  patientRelations: {
-    stress: number;
+  doctorIds: string[];
+  doctors: {
+    profiles: number;
+    educationEntries: number;
+    plans: number;
+    availabilitySlots: number;
+    scheduleEntries: number;
+    fileRecords: number;
+    credits: number;
+  };
+  hub: {
+    channels: number;
+    materials: number;
+    playlists: number;
+    uploads: number;
+  };
+  patientIds: string[];
+  patients: {
+    profiles: number;
+    stressPredictions: number;
     acknowledgments: number;
   };
-  patients: { created: number; existing: number };
-  sessions: number;
+  sessions: {
+    sessions: number;
+    tasks: number;
+    attendanceEvents: number;
+    snapshots: number;
+  };
   subscriptions: number;
-  tenants: { created: number; clinics: number };
+  tenants: {
+    hospitals: number;
+    clinics: number;
+    affiliations: number;
+    invitations: number;
+    attendanceEvents: number;
+    overrides: number;
+    auditLogs: number;
+    notifications: number;
+  };
 }
 
 export async function runSeed(env?: SeedEnv): Promise<SeedSummary> {
   const db = createDb();
 
-  const doctorsResult = await seedDoctors(db);
-  const patientsResult = await seedPatients(db);
+  const { doctorIds, patientIds } = await resolveUsers(db);
 
-  const doctorIds =
-    doctorsResult.userIds.length > 0
-      ? doctorsResult.userIds
-      : await getDoctorIds(db);
-  const patientIds =
-    patientsResult.userIds.length > 0
-      ? patientsResult.userIds
-      : await getPatientIds(db);
+  const doctorResult = await seedDoctors(
+    db,
+    doctorIds,
+    env?.doctorMaterialsKv
+      ? {
+          put: (key, data) => env.doctorMaterialsKv!.put(key, data),
+        }
+      : undefined
+  );
 
-  const doctorRelationsResult = await seedDoctorRelations(db, doctorIds);
-  const patientRelationsResult = await seedPatientRelations(db, patientIds);
+  const patientResult = await seedPatients(db, patientIds);
+
+  const sessionResult = await seedSessions(db, doctorIds, patientIds);
+
+  const tenantResult = await seedTenants(db, doctorIds);
+
+  const hubResult = await seedHub(
+    db,
+    doctorIds,
+    env?.doctorMaterialsKv
+      ? {
+          put: (key, data) => env.doctorMaterialsKv!.put(key, data),
+        }
+      : undefined,
+    env?.readAsset
+  );
 
   const allIds = [...new Set([...doctorIds, ...patientIds])];
+  const subscriptionResult = await seedSubscriptions(db, allIds);
 
-  const sessionsResult = await seedSessions(db, doctorIds, patientIds);
-  const tenantsResult = await seedTenants(db, doctorIds);
-  const hubResult = await seedHub(db, doctorIds, env?.doctorMaterialsKv);
-  const hubUploadsResult = await seedHubUploads(db, doctorIds);
-  const cashoutsResult = await seedCashouts(db, doctorIds);
-  const subscriptionsResult = await seedSubscriptions(db, allIds);
+  const cashoutResult = await seedCashouts(db, doctorIds);
+
+  const chatResult = await seedChats(db, doctorIds, patientIds);
+
+  if (env?.doctorMaterialsKv) {
+    await saveManifest(env.doctorMaterialsKv, doctorIds, patientIds);
+  }
 
   return {
-    cashouts: cashoutsResult.cashouts,
-    doctorRelations: doctorRelationsResult,
-    doctors: {
-      created: doctorsResult.created,
-      existing: doctorsResult.existing,
-    },
-    patients: {
-      created: patientsResult.created,
-      existing: patientsResult.existing,
-    },
-    patientRelations: patientRelationsResult,
-    sessions: sessionsResult.created,
-    tenants: { created: tenantsResult.tenants, clinics: tenantsResult.clinics },
+    cashouts: cashoutResult.cashouts,
+    chats: chatResult,
+    doctors: doctorResult,
     hub: hubResult,
-    hubUploads: hubUploadsResult.uploadSessions,
-    subscriptions: subscriptionsResult.subscriptions,
+    patients: patientResult,
+    sessions: sessionResult,
+    subscriptions: subscriptionResult.subscriptions,
+    tenants: tenantResult,
+    doctorIds,
+    patientIds,
   };
 }

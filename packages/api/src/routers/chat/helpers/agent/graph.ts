@@ -37,17 +37,14 @@ async function generateSuggestions(
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
 
-  const response = await context.ai.run(
-    "@cf/meta/llama-3.1-8b-instruct-fast",
-    {
-      messages: [
-        {
-          role: "user",
-          content: `You generate follow-up suggestions for a medical assistant chat. Return ONLY a JSON array of objects with 'label', 'value', and 'description' fields. No other text. Example: [{"label":"Find a cardiologist","value":"find cardiologist","description":"Search for heart specialists"}]\n\nBased on this conversation, generate 3-4 follow-up options:\n\n${conversationSummary}`,
-        },
-      ],
-    }
-  );
+  const response = await context.ai.run("@cf/meta/llama-3.1-8b-instruct-fast", {
+    messages: [
+      {
+        role: "user",
+        content: `You generate follow-up suggestions for a medical assistant chat. Return ONLY a JSON array of objects with 'label', 'value', and 'description' fields. No other text. Example: [{"label":"Find a cardiologist","value":"find cardiologist","description":"Search for heart specialists"}]\n\nBased on this conversation, generate 3-4 follow-up options:\n\n${conversationSummary}`,
+      },
+    ],
+  });
 
   const text = (
     (response as Record<string, unknown>).result as

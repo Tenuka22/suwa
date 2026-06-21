@@ -1,0 +1,4 @@
+{
+  "main": "../src/native.ts",
+  "types": "../src/native.ts"
+}
