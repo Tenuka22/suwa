@@ -20,6 +20,7 @@ interface HubMaterialCardProps {
   id: string;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
+  onWatch?: (id: string) => void;
   size?: number | null;
   status: "uploading" | "processing" | "ready" | "failed";
   tags?: string[] | null;
@@ -72,14 +73,26 @@ export function HubMaterialCard({
   tags,
   onDelete,
   onEdit,
+  onWatch,
 }: HubMaterialCardProps) {
   const isVideo = fileType === "video";
   const timeAgo = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
 
+  const handleWatch = () => {
+    if (status === "ready" && onWatch) {
+      onWatch(id);
+    }
+  };
+
   return (
-    <div className="group cursor-pointer">
+    <div className="group">
       {/* Thumbnail */}
-      <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted/20">
+      <button
+        className="relative flex w-full aspect-video items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted/20 cursor-pointer"
+        disabled={status !== "ready"}
+        onClick={handleWatch}
+        type="button"
+      >
         {isVideo ? (
           <FilmIcon className="size-10 text-muted-foreground/40" />
         ) : (
@@ -125,7 +138,7 @@ export function HubMaterialCard({
           <VisibilityIcon visibility={visibility} />
           {visibility.charAt(0).toUpperCase() + visibility.slice(1)}
         </Chip>
-      </div>
+      </button>
 
       {/* Info */}
       <div className="flex gap-3">
@@ -172,6 +185,7 @@ export function HubMaterialCard({
           <Dropdown.Trigger>
             <button
               className="flex size-8 items-center justify-center rounded-full opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+              onClick={(e) => e.stopPropagation()}
               type="button"
             >
               <EllipsisIcon className="size-4" />

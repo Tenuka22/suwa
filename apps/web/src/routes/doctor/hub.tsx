@@ -1,11 +1,10 @@
-import { useUser } from "@clerk/tanstack-react-start";
 import {
-  Avatar,
   Button,
   Chip,
   Input,
   ListBox,
   Select,
+  Separator,
   Skeleton,
   Tabs,
   ToggleButton,
@@ -29,7 +28,9 @@ import {
   EditMaterialDialog,
   HubMaterialCard,
   UploadWizardDialog,
+  WatchMaterialDialog,
 } from "@/components/hub";
+import { PageTitle } from "@/components/typography";
 import {
   useDeleteMaterial,
   useHubChannels,
@@ -56,13 +57,13 @@ type FilterTab = "all" | "videos" | "audio" | "uploading";
 type SortOption = "newest" | "oldest" | "title";
 
 function DoctorHubPage() {
-  const { user } = useUser();
   const { materials: initialMaterials, channels: initialChannels } =
     Route.useLoaderData();
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [watchOpen, setWatchOpen] = useState(false);
   const [editMaterial, setEditMaterial] = useState<{
     id: string;
     title: string;
@@ -72,6 +73,13 @@ function DoctorHubPage() {
     visibility: "public" | "unlisted" | "private";
     channelId?: string | null;
   } | null>(null);
+  const [watchMaterial, setWatchMaterial] = useState<{
+    description?: string | null;
+    fileType: "video" | "audio";
+    id: string;
+    tags?: string[] | null;
+    title: string;
+  } | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [selectedChannel, setSelectedChannel] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,12 +88,6 @@ function DoctorHubPage() {
 
   const { data: materials, isLoading: materialsLoading } = useHubMaterials({
     channelId: selectedChannel === "all" ? undefined : selectedChannel,
-    status:
-      activeTab === "uploading"
-        ? "uploading"
-        : activeTab === "all"
-          ? undefined
-          : undefined,
   });
 
   const { data: channels } = useHubChannels();
@@ -94,7 +96,6 @@ function DoctorHubPage() {
   const allMaterials = materials ?? initialMaterials ?? [];
   const allChannels = channels ?? initialChannels ?? [];
 
-  // Filter materials by tab
   const filteredMaterials = allMaterials.filter((m) => {
     if (activeTab === "videos" && m.fileType !== "video") {
       return false;
@@ -119,7 +120,6 @@ function DoctorHubPage() {
     return true;
   });
 
-  // Sort
   const sortedMaterials = [...filteredMaterials].sort((a, b) => {
     switch (sortBy) {
       case "newest":
@@ -137,14 +137,6 @@ function DoctorHubPage() {
     }
   });
 
-  const name = user?.fullName ?? user?.username ?? "Doctor";
-  const initials = name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
   const totalVideos = allMaterials.filter(
     (m) => m.fileType === "video" && m.status === "ready"
   ).length;
@@ -155,52 +147,31 @@ function DoctorHubPage() {
     (m) => m.status === "uploading" || m.status === "processing"
   ).length;
 
+  const handleWatch = (id: string) => {
+    const m = allMaterials.find((mat) => mat.id === id);
+    if (m && m.status === "ready") {
+      setWatchMaterial({
+        description: m.description,
+        fileType: m.fileType,
+        id: m.id,
+        tags: Array.isArray(m.tags) ? (m.tags as string[]) : null,
+        title: m.title,
+      });
+      setWatchOpen(true);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Channel Header Banner */}
-      <div className="relative h-40 overflow-hidden bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-12 px-6">
-        <div className="flex items-center gap-5">
-          <Avatar size="lg">
-            <Avatar.Image src={user?.imageUrl} />
-            <Avatar.Fallback>{initials}</Avatar.Fallback>
-          </Avatar>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-semibold text-lg tracking-tight">{name}</h1>
-              <Chip className="gap-1" color="accent" variant="soft">
-                <FilmIcon className="size-3" />
-                Doctor Hub
-              </Chip>
-            </div>
-            <div className="flex items-center gap-4 text-muted-foreground text-sm">
-              <span>
-                {allChannels.length}{" "}
-                {allChannels.length === 1 ? "channel" : "channels"}
-              </span>
-              <span>&middot;</span>
-              <span>
-                {totalVideos} {totalVideos === 1 ? "video" : "videos"}
-              </span>
-              <span>&middot;</span>
-              <span>
-                {totalAudio} {totalAudio === 1 ? "audio" : "audio files"}
-              </span>
-              {totalUploading > 0 && (
-                <>
-                  <span>&middot;</span>
-                  <Chip className="gap-1">
-                    <UploadIcon className="size-3" />
-                    {totalUploading} uploading
-                  </Chip>
-                </>
-              )}
-            </div>
+    <div className="flex flex-col gap-4">
+      <section className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <PageTitle>Content Hub</PageTitle>
+            <p className="font-light text-md text-muted-foreground">
+              Manage your video and audio content
+            </p>
           </div>
-
-          <div className="flex items-center gap-2 pb-2">
+          <div className="flex items-center gap-2">
             <Button
               className="gap-2 rounded-full"
               onPress={() => setCreateChannelOpen(true)}
@@ -220,11 +191,43 @@ function DoctorHubPage() {
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Channel Tabs (YouTube-style horizontal scroll) */}
-      {allChannels.length > 0 && (
-        <div className="px-6 pt-4">
+        <div className="flex items-center gap-4 text-muted-foreground text-sm">
+          <span>
+            {allChannels.length}{" "}
+            {allChannels.length === 1 ? "channel" : "channels"}
+          </span>
+          <span>&middot;</span>
+          <span>
+            {totalVideos} {totalVideos === 1 ? "video" : "videos"}
+          </span>
+          <span>&middot;</span>
+          <span>
+            {totalAudio} {totalAudio === 1 ? "audio" : "audio files"}
+          </span>
+          {totalUploading > 0 && (
+            <>
+              <span>&middot;</span>
+              <Chip className="gap-1">
+                <UploadIcon className="size-3" />
+                {totalUploading} uploading
+              </Chip>
+            </>
+          )}
+        </div>
+      </section>
+
+      <Separator />
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <PageTitle>Your materials</PageTitle>
+          <p className="font-light text-md text-muted-foreground">
+            Upload and manage your content
+          </p>
+        </div>
+
+        {allChannels.length > 0 && (
           <ToggleButtonGroup
             className="flex flex-wrap"
             isDetached
@@ -245,11 +248,9 @@ function DoctorHubPage() {
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
-        </div>
-      )}
+        )}
 
-      <div>
-        <div className="flex flex-1 flex-row gap-4 px-6 pt-4 pb-6">
+        <div className="flex flex-1 flex-row gap-4">
           <div className="flex max-w-md flex-1 items-center gap-3">
             <div className="relative flex-1">
               <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -337,7 +338,7 @@ function DoctorHubPage() {
             </div>
           </div>
         </div>
-        {/* Content Grid/List */}
+
         {materialsLoading ? (
           <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -411,6 +412,7 @@ function DoctorHubPage() {
                     setEditOpen(true);
                   }
                 }}
+                onWatch={handleWatch}
                 size={material.size}
                 status={material.status}
                 tags={
@@ -466,6 +468,15 @@ function DoctorHubPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {material.status === "ready" && (
+                    <Button
+                      isIconOnly
+                      onPress={() => handleWatch(material.id)}
+                      variant="ghost"
+                    >
+                      <FilmIcon className="size-4" />
+                    </Button>
+                  )}
                   <Button
                     isIconOnly
                     onPress={() => {
@@ -499,9 +510,8 @@ function DoctorHubPage() {
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Dialogs */}
       <EditMaterialDialog
         material={editMaterial}
         onOpenChange={setEditOpen}
@@ -511,6 +521,11 @@ function DoctorHubPage() {
       <CreateChannelDialog
         onOpenChange={setCreateChannelOpen}
         open={createChannelOpen}
+      />
+      <WatchMaterialDialog
+        material={watchMaterial}
+        onOpenChange={setWatchOpen}
+        open={watchOpen}
       />
     </div>
   );
