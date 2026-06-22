@@ -128,7 +128,7 @@ export function DoctorFilesPanel({
           <Fieldset.Legend className="sr-only">
             Upload materials
           </Fieldset.Legend>
-          <Fieldset.Group className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <Fieldset.Group className="flex flex-col">
             <div className="space-y-4">
               <div>
                 <p className="font-medium text-sm">File type</p>
@@ -152,7 +152,7 @@ export function DoctorFilesPanel({
                 </ToggleButtonGroup>
               </div>
 
-              <div className="rounded-xl border bg-background p-4">
+              <div className="rounded-xl border bg-surface p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-medium text-sm">
@@ -265,15 +265,7 @@ export function DoctorFilesPanel({
           </Alert.Content>
         </Alert>
       ) : files.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-border/50 border-dashed px-6 py-12 text-center">
-          <Upload className="size-8 text-muted-foreground/60" />
-          <div className="flex flex-col gap-1">
-            <p className="font-semibold text-sm">Drag files here</p>
-            <p className="text-muted-foreground text-xs">or</p>
-          </div>
-          <Button size="sm" variant="secondary">
-            Browse files
-          </Button>
+        <div>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

@@ -3,35 +3,48 @@ import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
-const KV_KEY_PREFIX = "face-embedding:";
+const FACE_EMBEDDING_KV_PREFIX = "face-embedding:";
+const FACE_VIDEO_KV_PREFIX = "face-video:";
 
 export const saveFaceEmbeddingRoute = protectedProcedure
   .input(
     z.object({
       embedding: z.array(z.number()),
+      videoBase64: z.string().optional(),
     })
   )
   .handler(async ({ context, input }) => {
     const { userId } = requireAuth(context);
 
-    const embeddingJson = JSON.stringify(input.embedding);
     const timestamp = new Date().toISOString();
-    const kvKey = `${KV_KEY_PREFIX}${userId}`;
+    const embeddingKvKey = `${FACE_EMBEDDING_KV_PREFIX}${userId}`;
 
-    await context.faceEmbeddingsKv.put(kvKey, embeddingJson);
+    await context.faceEmbeddingsKv.put(
+      embeddingKvKey,
+      JSON.stringify(input.embedding)
+    );
+
+    if (input.videoBase64) {
+      const videoKvKey = `${FACE_VIDEO_KV_PREFIX}${userId}`;
+      const videoBytes = Uint8Array.from(atob(input.videoBase64), (c) =>
+        c.charCodeAt(0)
+      );
+      await context.faceVideosKv.put(videoKvKey, videoBytes, {
+        metadata: { mimeType: "video/webm" },
+      });
+    }
 
     await context.db
       .insert(doctorProfiles)
       .values({
         userId,
-        faceEmbeddingKvKey: kvKey,
-        permanent: false,
+        faceEmbeddingKvKey: embeddingKvKey,
         createdAt: timestamp,
         updatedAt: timestamp,
       })
       .onConflictDoUpdate({
         target: doctorProfiles.userId,
-        set: { faceEmbeddingKvKey: kvKey, updatedAt: timestamp },
+        set: { faceEmbeddingKvKey: embeddingKvKey, updatedAt: timestamp },
       });
 
     return { ok: true };

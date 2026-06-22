@@ -3,7 +3,7 @@ import { Button, Card, Separator } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Camera, CheckCircle2, ShieldAlert, UserCheck } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   DoctorMaterialsCard,
   DoctorProfileCard,
@@ -11,6 +11,8 @@ import {
   DoctorProfileStats,
 } from "@/components/doctors";
 import { FaceCaptureDialog } from "@/components/face-detection";
+import { useDoctorFiles } from "@/hooks/doctor/use-doctor-files";
+import { useDoctorMaterialPreviewUrl } from "@/hooks/doctor/use-doctor-material-preview";
 import { PageTitle } from "@/components/typography";
 import { orpc } from "@/utils/orpc";
 
@@ -32,9 +34,18 @@ function DoctorProfileRoute() {
   const { stats, profileData } = Route.useLoaderData();
   const [faceDialogOpen, setFaceDialogOpen] = useState(false);
   const canManageFiles = profileData?.profile?.permanent ?? false;
-  const name = user.user?.fullName ?? user.user?.username ?? "Doctor";
+  const isPending = !canManageFiles && !!profileData?.profile;
+  const dbName = profileData?.profile?.displayName;
+  const name = dbName ?? user.user?.fullName ?? user.user?.username ?? "Doctor";
   const doctorId = user.user?.id ?? "";
   const hasFace = profileData?.profile?.hasFaceEmbedding ?? false;
+
+  const doctorFilesQuery = useDoctorFiles();
+  const portraitFile = useMemo(
+    () => (doctorFilesQuery.data ?? []).find((f) => f.fileKind === "portrait"),
+    [doctorFilesQuery.data]
+  );
+  const portraitUrl = useDoctorMaterialPreviewUrl(portraitFile?.id ?? "");
 
   const saveFaceMutation = useMutation(
     orpc.saveFaceEmbedding.mutationOptions({
@@ -46,8 +57,11 @@ function DoctorProfileRoute() {
     })
   );
 
-  const handleFaceCaptured = async (embedding: number[]) => {
-    await saveFaceMutation.mutateAsync({ embedding });
+  const handleFaceCaptured = async (result: {
+    embedding: number[];
+    videoBase64?: string;
+  }) => {
+    await saveFaceMutation.mutateAsync(result);
     setFaceDialogOpen(false);
   };
 
@@ -56,28 +70,16 @@ function DoctorProfileRoute() {
       <DoctorProfileHeader
         completionPercentage={stats?.completenessPercentage ?? 0}
         doctorId={doctorId}
+        isPending={isPending}
         isVerified={stats?.isPermanent}
         name={name}
+        portraitUrl={portraitUrl}
       />
-
-      <Separator />
-
-      <section className="flex flex-col gap-2">
-        <PageTitle>Face Verification</PageTitle>
-        <p className="font-light text-muted-foreground text-sm">
-          Complete face verification to access the platform. This is mandatory
-          before proceeding.
-        </p>
         <Card
-          className={cn(
-            "mt-2 border-2",
-            hasFace
-              ? "border-green-500/30 bg-green-500/5"
-              : "border-amber-500/30 bg-amber-500/5"
-          )}
+          className="w-full"
         >
-          <Card.Content className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
+          <Card.Content className="flex items-center justify-between flex-row">
+            <div className="flex items-center gap-2">
               {hasFace ? (
                 <div className="flex size-10 items-center justify-center rounded-full bg-green-500/20">
                   <CheckCircle2 className="size-5 text-green-500" />
@@ -87,7 +89,7 @@ function DoctorProfileRoute() {
                   <ShieldAlert className="size-5 text-amber-500" />
                 </div>
               )}
-              <div className="pb-4">
+              <div>
                 <p className="font-medium text-sm">
                   {hasFace
                     ? "Face verification completed"
@@ -114,21 +116,16 @@ function DoctorProfileRoute() {
             </Button>
           </Card.Content>
         </Card>
-      </section>
+
+
+        <DoctorProfileStats stats={stats} />
 
       <Separator />
 
       <section className="flex flex-col gap-2">
-        <PageTitle>Overview</PageTitle>
-        <DoctorProfileStats stats={stats} />
-      </section>
-
-      <Separator />
-
-      <section className="flex flex-col gap-3">
         <div>
           <PageTitle>Profile information</PageTitle>
-          <p className="font-light text-muted-foreground text-sm">
+          <p className="font-light text-muted-foreground text-md">
             Your professional details visible to patients
           </p>
         </div>
@@ -162,8 +159,4 @@ function DoctorProfileRoute() {
       />
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined | null)[]): string {
-  return classes.filter(Boolean).join(" ");
 }

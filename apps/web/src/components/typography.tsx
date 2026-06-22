@@ -11,7 +11,7 @@ type HeadingProps = ComponentProps<"h1">;
 export function PageTitle({ className, children, ...props }: HeadingProps) {
   return (
     <h1
-      className={cn("font-light text-xl tracking-tight", className)}
+      className={cn("font-normal text-xl tracking-tight", className)}
       {...props}
     >
       {children}

@@ -177,6 +177,7 @@ export function paginateItems<T>(
   nextPage: number | null;
   firstItem: T | null;
   lastItem: T | null;
+  totalCount: number;
 } {
   const start = (page - 1) * pageSize;
   const pagedItems = items.slice(start, start + pageSize);
@@ -187,6 +188,7 @@ export function paginateItems<T>(
     nextPage: start + pageSize < items.length ? page + 1 : null,
     firstItem: pagedItems[0] ?? null,
     lastItem: pagedItems.at(-1) ?? null,
+    totalCount: items.length,
   };
 }
 

@@ -1,5 +1,5 @@
 import { doctorProfiles } from "@suwa/db";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import {
   getDoctorWithClerkInfo,
@@ -7,6 +7,36 @@ import {
   requireAdmin,
 } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+
+const OPTIONAL_FIELDS = [
+  "displayName",
+  "headline",
+  "bio",
+  "licenseNumber",
+  "location",
+  "placeName",
+  "education",
+  "specialties",
+  "languages",
+  "consultationModes",
+  "focusAreas",
+  "approach",
+  "experienceStartYear",
+] as const;
+
+function computeCompleteness(profile: Record<string, unknown>): number {
+  let filled = 0;
+  for (const field of OPTIONAL_FIELDS) {
+    const value = profile[field];
+    if (value !== null && value !== undefined && value !== "") {
+      const strVal = String(value);
+      if (strVal !== "[]" && strVal !== "null" && strVal.length > 0) {
+        filled++;
+      }
+    }
+  }
+  return Math.round((filled / OPTIONAL_FIELDS.length) * 100);
+}
 
 export const adminPendingDoctorsRoute = protectedProcedure
   .input(
@@ -26,13 +56,20 @@ export const adminPendingDoctorsRoute = protectedProcedure
         nextPage: null,
         firstUserId: null,
         lastUserId: null,
+        totalCount: 0,
       };
     }
 
     const rows = await context.db
       .select()
       .from(doctorProfiles)
-      .where(eq(doctorProfiles.permanent, false));
+      .where(
+        and(
+          eq(doctorProfiles.permanent, false),
+          isNotNull(doctorProfiles.displayName),
+          isNotNull(doctorProfiles.faceEmbeddingKvKey)
+        )
+      );
 
     const items = await Promise.all(
       rows.map(async (profile) => {
@@ -44,6 +81,9 @@ export const adminPendingDoctorsRoute = protectedProcedure
         const q = input.query.toLowerCase();
         return {
           ...info,
+          displayName: profile.displayName,
+          specialties: profile.specialties,
+          completeness: computeCompleteness(profile as Record<string, unknown>),
           matchesQuery:
             !q ||
             info.name.toLowerCase().includes(q) ||
@@ -52,7 +92,9 @@ export const adminPendingDoctorsRoute = protectedProcedure
       })
     );
 
-    const filteredItems = items.filter((item) => item.matchesQuery);
+    const filteredItems = items.filter(
+      (item) => item.matchesQuery && item.completeness >= 15
+    );
     const {
       items: pagedItems,
       page,
@@ -60,6 +102,7 @@ export const adminPendingDoctorsRoute = protectedProcedure
       nextPage,
       firstItem,
       lastItem,
+      totalCount,
     } = paginateItems(filteredItems, input.page, 10);
 
     return {
@@ -69,5 +112,6 @@ export const adminPendingDoctorsRoute = protectedProcedure
       nextPage,
       firstUserId: firstItem?.userId ?? null,
       lastUserId: lastItem?.userId ?? null,
+      totalCount,
     };
   });

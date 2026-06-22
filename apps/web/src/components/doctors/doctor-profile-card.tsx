@@ -1,6 +1,7 @@
 import {
   Alert,
   Button,
+  Card,
   Chip,
   cn,
   Description,
@@ -32,15 +33,19 @@ import {
   ChevronDown,
   ChevronUp,
   GripVertical,
+  Languages,
+  Monitor,
   Pen,
   Plus,
   Sparkles,
+
+  Target,
   Trash2,
   TriangleAlert,
   User,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldPath, type UseFormRegister } from "react-hook-form";
 import { z } from "zod";
 import {
   consultationModeLabels,
@@ -61,45 +66,18 @@ import {
 import { orpc } from "@/utils/orpc";
 
 const doctorProfileFormSchema = z.object({
-  displayName: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().min(2).max(100).optional()
-  ),
-  headline: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().min(2).max(140).optional()
-  ),
+  displayName: z.preprocess(emptyToUndefined, z.string().trim().min(2).max(100).optional()),
+  headline: z.preprocess(emptyToUndefined, z.string().trim().min(2).max(140).optional()),
   bio: z.preprocess(emptyToUndefined, z.string().trim().max(500).optional()),
-  licenseNumber: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().max(64).optional()
-  ),
-  location: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().max(120).optional()
-  ),
-  placeName: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().max(120).optional()
-  ),
-  placeAddress: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().max(240).optional()
-  ),
-  placeDescription: z.preprocess(
-    emptyToUndefined,
-    z.string().trim().max(500).optional()
-  ),
-  experienceStartYear: z.preprocess(
-    emptyToUndefined,
-    z.coerce.number().int().min(1900).max(2100).optional()
-  ),
+  licenseNumber: z.preprocess(emptyToUndefined, z.string().trim().max(64).optional()),
+  location: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),
+  placeName: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),
+  placeAddress: z.preprocess(emptyToUndefined, z.string().trim().max(240).optional()),
+  placeDescription: z.preprocess(emptyToUndefined, z.string().trim().max(500).optional()),
+  experienceStartYear: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1900).max(2100).optional()),
   specialties: z.array(z.enum(doctorSpecialtyValues)).max(5).default([]),
   languages: z.array(z.enum(doctorLanguageValues)).max(8).default([]),
-  consultationModes: z
-    .array(z.enum(doctorConsultationModeValues))
-    .max(3)
-    .default([]),
+  consultationModes: z.array(z.enum(doctorConsultationModeValues)).max(3).default([]),
   focusAreas: z.array(z.enum(doctorFocusAreaValues)).max(10).default([]),
 });
 
@@ -113,7 +91,6 @@ export function DoctorProfileCard() {
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null);
 
   const doctorProfileQuery = useQuery(orpc.doctorProfile.queryOptions());
-
   const saveDoctorProfile = useMutation(
     orpc.saveDoctorProfile.mutationOptions({
       onSuccess: async () => {
@@ -128,36 +105,15 @@ export function DoctorProfileCard() {
   );
 
   const profile = doctorProfileQuery.data?.profile;
-  const form = useForm<
-    DoctorProfileFormInput,
-    undefined,
-    DoctorProfileFormValues
-  >({
+  const form = useForm<DoctorProfileFormInput, undefined, DoctorProfileFormValues>({
     resolver: zodResolver(doctorProfileFormSchema),
     defaultValues: getDoctorProfileFormValues(profile ?? null),
   });
 
   const errors = form.formState.errors;
-
-  const hasBasicErrors = !!(
-    errors.displayName ||
-    errors.headline ||
-    errors.licenseNumber ||
-    errors.bio ||
-    errors.location ||
-    errors.experienceStartYear
-  );
-  const hasPracticeErrors = !!(
-    errors.placeName ||
-    errors.placeAddress ||
-    errors.placeDescription
-  );
-  const hasSpecialtiesErrors = !!(
-    errors.specialties ||
-    errors.languages ||
-    errors.consultationModes ||
-    errors.focusAreas
-  );
+  const hasBasicErrors = !!(errors.displayName || errors.headline || errors.licenseNumber || errors.bio || errors.location || errors.experienceStartYear);
+  const hasPracticeErrors = !!(errors.placeName || errors.placeAddress || errors.placeDescription);
+  const hasSpecialtiesErrors = !!(errors.specialties || errors.languages || errors.consultationModes || errors.focusAreas);
 
   useEffect(() => {
     form.reset(getDoctorProfileFormValues(profile ?? null));
@@ -192,759 +148,222 @@ export function DoctorProfileCard() {
 
   const specialties = (profile?.specialties ?? []) as DoctorSpecialty[];
   const languages = (profile?.languages ?? []) as DoctorLanguage[];
-  const consultationModes = (profile?.consultationModes ??
-    []) as DoctorConsultationMode[];
+  const consultationModes = (profile?.consultationModes ?? []) as DoctorConsultationMode[];
   const focusAreas = (profile?.focusAreas ?? []) as DoctorFocusArea[];
 
   const experienceLabel = useMemo(() => {
-    if (profile?.experienceStartYear) {
-      return `${profile.experienceStartYear} onward`;
-    }
+    if (profile?.experienceStartYear) return `${profile.experienceStartYear} onward`;
     return "Not set";
   }, [profile?.experienceStartYear]);
 
-  const stepsList = useMemo(
-    () => parseApproachSteps(profile?.approachSteps ?? null),
-    [profile?.approachSteps]
-  );
-  const parsedEducation = useMemo(
-    () => parseEducationRows(profile?.education ?? null),
-    [profile?.education]
-  );
+  const stepsList = useMemo(() => parseApproachSteps(profile?.approachSteps ?? null), [profile?.approachSteps]);
+  const parsedEducation = useMemo(() => parseEducationRows(profile?.education ?? null), [profile?.education]);
+
+  const register = form.register;
 
   return (
     <>
       {profile ? (
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             {profile.permanent ? (
-              <Chip size="sm" variant="primary">
-                Approved
-              </Chip>
+              <Chip variant="primary">Approved</Chip>
             ) : (
               <Alert className="w-full" color="warning">
-                <Alert.Indicator>
-                  <TriangleAlert className="size-4" />
-                </Alert.Indicator>
+                <Alert.Indicator><TriangleAlert className="size-4" /></Alert.Indicator>
                 <Alert.Content>
-                  <Alert.Description>
-                    Your profile is under review. You&apos;ll be notified once
-                    verified.
-                  </Alert.Description>
+                  <Alert.Description>Your profile is under review. You&apos;ll be notified once verified.</Alert.Description>
                 </Alert.Content>
               </Alert>
             )}
-            <Button onPress={() => setOpen(true)} size="sm" variant="outline">
-              <Sparkles className="size-4" />
+            <Button onPress={() => setOpen(true)} variant="primary" size="sm">
+              <Sparkles className="size-3.5" />
               Edit Profile
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="flex flex-col gap-4">
-              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-                <Building className="size-4 text-primary" />
-                Practice Details
-              </h3>
-              <div className="flex flex-col rounded-xl border border-border/50 bg-muted/5">
-                <div className="flex flex-col gap-2 px-4 py-3">
-                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-                    Experience
-                  </p>
-                  {experienceLabel === "Not set" ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground italic">
-                        Not set
-                      </span>
-                      <Button
-                        onPress={() => setOpen(true)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="font-medium text-foreground/80 text-sm">
-                      {experienceLabel}
-                    </p>
-                  )}
-                </div>
-                <Separator className="border-border/30" />
-                <div className="flex flex-col gap-2 px-4 py-3">
-                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-                    Location
-                  </p>
-                  {profile?.location ? (
-                    <p className="font-medium text-foreground/80 text-sm">
-                      {profile.location}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground italic">
-                        Not set
-                      </span>
-                      <Button
-                        onPress={() => setOpen(true)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <Separator className="border-border/30" />
-                <div className="flex flex-col gap-2 px-4 py-3">
-                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-                    Practice Address
-                  </p>
-                  {profile?.placeAddress ? (
-                    <p className="font-medium text-foreground/80 text-sm">
-                      {profile.placeAddress}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground italic">
-                        Not set
-                      </span>
-                      <Button
-                        onPress={() => setOpen(true)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-                <Award className="size-4 text-primary" />
-                Professional Info
-              </h3>
-              <div className="flex flex-col rounded-xl border border-border/50 bg-muted/5">
-                <div className="flex flex-col gap-2 px-4 py-3">
-                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-                    License Number
-                  </p>
-                  {profile?.licenseNumber ? (
-                    <p className="font-medium text-foreground/80 text-sm">
-                      {profile.licenseNumber}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground italic">
-                        Not set
-                      </span>
-                      <Button
-                        onPress={() => setOpen(true)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <Separator className="border-border/30" />
-                <div className="flex flex-col gap-2 px-4 py-3">
-                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-                    Practice Place Name
-                  </p>
-                  {profile?.placeName ? (
-                    <p className="font-medium text-foreground/80 text-sm">
-                      {profile.placeName}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground italic">
-                        Not set
-                      </span>
-                      <Button
-                        onPress={() => setOpen(true)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <Separator className="border-border/30" />
-                <div className="flex flex-col gap-2 px-4 py-3">
-                  <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-                    Place Description
-                  </p>
-                  {profile?.placeDescription ? (
-                    <p className="font-medium text-foreground/80 text-sm">
-                      {profile.placeDescription}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground italic">
-                        Not set
-                      </span>
-                      <Button
-                        onPress={() => setOpen(true)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <ProfileInfoCard
+              icon={<Building className="size-3.5 text-primary" />}
+              title="Practice Details"
+            >
+              <ProfileField label="Experience" onAdd={() => setOpen(true)} value={experienceLabel !== "Not set" ? experienceLabel : null} />
+              <Separator />
+              <ProfileField label="Location" onAdd={() => setOpen(true)} value={profile?.location ?? null} />
+              <Separator />
+              <ProfileField label="Practice Address" onAdd={() => setOpen(true)} value={profile?.placeAddress ?? null} />
+            </ProfileInfoCard>
+
+            <ProfileInfoCard
+              icon={<Award className="size-3.5 text-primary" />}
+              title="Professional Info"
+            >
+              <ProfileField label="License Number" onAdd={() => setOpen(true)} value={profile?.licenseNumber ?? null} />
+              <Separator />
+              <ProfileField label="Practice Place Name" onAdd={() => setOpen(true)} value={profile?.placeName ?? null} />
+              <Separator />
+              <ProfileField label="Place Description" onAdd={() => setOpen(true)} value={profile?.placeDescription ?? null} />
+            </ProfileInfoCard>
           </div>
 
           <div className="flex flex-col gap-2">
-            <h3 className="font-semibold text-foreground/80 text-sm tracking-tight">
-              Biography
-            </h3>
+            <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">Biography</p>
             {profile?.bio ? (
-              <p className="rounded-xl border border-border/30 bg-muted/5 px-4 py-3 text-foreground/90 text-sm italic leading-relaxed">
-                &ldquo;{profile.bio}&rdquo;
-              </p>
+              <Card>
+                <Card.Content>
+                  <p className="text-foreground/80 text-sm italic leading-relaxed">&ldquo;{profile.bio}&rdquo;</p>
+                </Card.Content>
+              </Card>
             ) : (
-              <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-border/50 border-dashed px-6 py-10 text-center">
-                <Pen className="size-6 text-muted-foreground/60" />
-                <p className="text-muted-foreground text-sm">
-                  No biography added yet
-                </p>
-                <Button
-                  onPress={() => setOpen(true)}
-                  size="sm"
-                  variant="secondary"
-                >
-                  Add Biography
-                </Button>
-              </div>
+              <Card>
+                <Card.Content className="flex flex-col items-center gap-3 py-10 text-center">
+                  <Pen className="size-5 text-muted-foreground/60" />
+                  <p className="text-muted-foreground text-sm">No biography added yet</p>
+                  <Button onPress={() => setOpen(true)} variant="secondary">Add Biography</Button>
+                </Card.Content>
+              </Card>
             )}
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
-                Specialties
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {specialties.length > 0 ? (
-                  specialties.map((value) => (
-                    <Chip key={value} size="sm" variant="secondary">
-                      {specialtyLabels[value] ?? value}
-                    </Chip>
-                  ))
-                ) : (
-                  <Chip
-                    className="cursor-pointer"
-                    onClick={() => {
-                      setOpen(true);
-                    }}
-                    size="sm"
-                    variant="tertiary"
-                  >
-                    <Plus className="size-3" />
-                    Add Specialties
-                  </Chip>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
-                Languages
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {languages.length > 0 ? (
-                  languages.map((value) => (
-                    <Chip key={value} size="sm" variant="secondary">
-                      {languageLabels[value] ?? value}
-                    </Chip>
-                  ))
-                ) : (
-                  <Chip
-                    className="cursor-pointer"
-                    onClick={() => setOpen(true)}
-                    size="sm"
-                    variant="tertiary"
-                  >
-                    <Plus className="size-3" />
-                    Add Languages
-                  </Chip>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
-                Consultation Modes
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {consultationModes.length > 0 ? (
-                  consultationModes.map((value) => (
-                    <Chip key={value} size="sm" variant="secondary">
-                      {consultationModeLabels[value] ?? value}
-                    </Chip>
-                  ))
-                ) : (
-                  <Chip
-                    className="cursor-pointer"
-                    onClick={() => setOpen(true)}
-                    size="sm"
-                    variant="tertiary"
-                  >
-                    <Plus className="size-3" />
-                    Add Consultation Modes
-                  </Chip>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">
-                Focus Areas
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {focusAreas.length > 0 ? (
-                  focusAreas.map((value) => (
-                    <Chip key={value} size="sm" variant="secondary">
-                      {focusAreaLabels[value] ?? value}
-                    </Chip>
-                  ))
-                ) : (
-                  <Chip
-                    className="cursor-pointer"
-                    onClick={() => setOpen(true)}
-                    size="sm"
-                    variant="tertiary"
-                  >
-                    <Plus className="size-3" />
-                    Add Focus Areas
-                  </Chip>
-                )}
-              </div>
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TagCard icon={<Award className="size-3.5 text-primary" />} title="Specialties" items={specialties} labelMap={specialtyLabels} onAdd={() => setOpen(true)} />
+            <TagCard icon={<Languages className="size-3.5 text-primary" />} title="Languages" items={languages} labelMap={languageLabels} onAdd={() => setOpen(true)} />
+            <TagCard icon={<Monitor className="size-3.5 text-primary" />} title="Consultation Modes" items={consultationModes} labelMap={consultationModeLabels} onAdd={() => setOpen(true)} />
+            <TagCard icon={<Target className="size-3.5 text-primary" />} title="Focus Areas" items={focusAreas} labelMap={focusAreaLabels} onAdd={() => setOpen(true)} />
           </div>
 
           {stepsList.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-                <Sparkles className="size-4 text-primary" />
-                Therapeutic Approach
-              </h3>
+            <div className="flex flex-col gap-2">
+              <p className="flex items-center gap-1.5 font-semibold text-foreground/80 text-xs uppercase tracking-wider">
+                <Sparkles className="size-3.5 text-primary" />Therapeutic Approach
+              </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {stepsList.map((step, idx) => (
-                  <div
-                    className="relative rounded-xl border border-border/50 bg-muted/5 p-4 transition-all hover:bg-muted/15"
-                    key={step.id}
-                  >
-                    <span className="absolute top-2.5 right-3 rounded-full bg-muted/60 px-2 font-mono text-[10px] text-muted-foreground/40 uppercase tracking-wider">
-                      Step {idx + 1}
-                    </span>
-                    <p className="font-medium text-foreground/80 text-sm leading-relaxed">
-                      {step.text}
-                    </p>
-                  </div>
+                  <Card key={step.id}>
+                    <Card.Content className="gap-1">
+                      <p className="font-mono text-[10px] text-muted-foreground/50 uppercase tracking-wider">Step {idx + 1}</p>
+                      <p className="text-foreground/80 text-sm leading-relaxed">{step.text}</p>
+                    </Card.Content>
+                  </Card>
                 ))}
               </div>
             </div>
           )}
 
           {parsedEducation.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h3 className="flex items-center gap-2 font-semibold text-foreground/80 text-sm tracking-tight">
-                <Award className="size-4 text-primary" />
-                Education & Credentials
-              </h3>
-              <div className="divide-y divide-border/30 overflow-hidden rounded-xl border border-border/40 bg-muted/5">
-                {parsedEducation.map((edu) => (
-                  <div
-                    className="flex items-center justify-between px-4 py-3 text-sm transition-all hover:bg-muted/10"
-                    key={edu.id}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <p className="font-semibold text-foreground/80">
-                        {edu.degree}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {edu.institution}
-                      </p>
+            <div className="flex flex-col gap-2">
+              <p className="flex items-center gap-1.5 font-semibold text-foreground/80 text-xs uppercase tracking-wider">
+                <Award className="size-3.5 text-primary" />Education &amp; Credentials
+              </p>
+              <Card>
+                <Card.Content className="gap-0 p-0">
+                  {parsedEducation.map((edu, idx) => (
+                    <div key={edu.id}>
+                      {idx > 0 && <Separator />}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <div className="flex flex-col gap-0.5">
+                          <p className="font-semibold text-foreground/80 text-sm">{edu.degree}</p>
+                          <p className="text-muted-foreground text-xs">{edu.institution}</p>
+                        </div>
+                        {edu.year && <Chip variant="tertiary">{edu.year}</Chip>}
+                      </div>
                     </div>
-                    {edu.year && (
-                      <span className="rounded-full border bg-muted px-2 font-mono font-semibold text-muted-foreground text-xs">
-                        {edu.year}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </Card.Content>
+              </Card>
             </div>
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-6 rounded-xl border border-dashed px-6 py-16 text-center">
-          <div className="rounded-full bg-muted/30 p-4">
-            <User className="size-8 text-muted-foreground/60" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="font-semibold text-lg">No professional profile yet</p>
-            <p className="max-w-md text-muted-foreground text-sm">
-              Create your professional profile to appear in patient searches.
-              After submission, an admin will review and verify your information
-              before you can start using the platform.
-            </p>
-          </div>
-          <Button onPress={() => setOpen(true)}>
-            <Sparkles className="size-4" />
-            Create Profile
-          </Button>
-        </div>
+        <Card>
+          <Card.Content className="flex flex-col items-center gap-5 py-16 text-center">
+            <div className="rounded-full bg-muted/30 p-4">
+              <User className="size-7 text-muted-foreground/60" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="font-semibold text-base">No professional profile yet</p>
+              <p className="max-w-sm text-muted-foreground text-sm">
+                Create your professional profile to appear in patient searches. An admin will review your information before you can start using the platform.
+              </p>
+            </div>
+            <Button onPress={() => setOpen(true)}>
+              <Sparkles className="size-3.5" />
+              Create Profile
+            </Button>
+          </Card.Content>
+        </Card>
       )}
 
       <Modal.Backdrop isOpen={open} onOpenChange={setOpen}>
         <Modal.Container>
-          <Modal.Dialog className="flex flex-col gap-6 overflow-y-auto bg-background">
+          <Modal.Dialog className="flex flex-col gap-5 overflow-y-auto bg-background">
             <Modal.CloseTrigger />
             <Modal.Header>
               <Modal.Heading>Edit Doctor Profile</Modal.Heading>
-              <p className="font-light text-muted-foreground text-sm">
-                Build a stronger public profile with structured practice and
-                background details.
-              </p>
+              <p className="text-muted-foreground text-sm">Build a stronger public profile with structured practice and background details.</p>
             </Modal.Header>
             <Modal.Body>
-              <Form
-                className="flex flex-col gap-6"
-                onSubmit={submitProfile}
-                validationBehavior="aria"
-              >
+              <Form className="flex flex-col gap-5" onSubmit={submitProfile} validationBehavior="aria">
                 <Tabs defaultSelectedKey="basic">
                   <Tabs.ListContainer>
-                    <Tabs.List
-                      aria-label="Profile tabs"
-                      className="gap-1 rounded-lg p-1"
-                    >
-                      <Tabs.Tab
-                        className={cn(
-                          "h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]",
-                          hasBasicErrors &&
-                            "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
-                        )}
-                        id="basic"
-                      >
-                        <span>Info</span>
-                      </Tabs.Tab>
-                      <Tabs.Tab
-                        className={cn(
-                          "h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]",
-                          hasPracticeErrors &&
-                            "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
-                        )}
-                        id="practice"
-                      >
-                        <span>Practice</span>
-                      </Tabs.Tab>
-                      <Tabs.Tab
-                        className={cn(
-                          "h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]",
-                          hasSpecialtiesErrors &&
-                            "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70"
-                        )}
-                        id="specialties"
-                      >
-                        <span>Specialties</span>
-                      </Tabs.Tab>
-                      <Tabs.Tab
-                        className="h-8 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]"
-                        id="experience"
-                      >
-                        <span>App. & Edu</span>
-                      </Tabs.Tab>
+                    <Tabs.List aria-label="Profile tabs" className="gap-1 rounded-lg p-1">
+                      <Tabs.Tab className={cn("h-7 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]", hasBasicErrors && "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70")} id="basic">Info</Tabs.Tab>
+                      <Tabs.Tab className={cn("h-7 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]", hasPracticeErrors && "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70")} id="practice">Practice</Tabs.Tab>
+                      <Tabs.Tab className={cn("h-7 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]", hasSpecialtiesErrors && "data-[selected=false]:ring-2 data-[selected=false]:ring-red-500/70")} id="specialties">Specialties</Tabs.Tab>
+                      <Tabs.Tab className="h-7 rounded-md px-3 font-normal text-sm transition-colors data-[selected=false]:bg-[var(--surface-secondary)] data-[selected=true]:bg-[var(--accent)] data-[selected=true]:text-[var(--accent-foreground)]" id="experience">App. &amp; Edu</Tabs.Tab>
                     </Tabs.List>
                   </Tabs.ListContainer>
 
-                  <Tabs.Panel
-                    className="flex flex-col gap-5 outline-none focus:outline-none"
-                    id="basic"
-                  >
+                  <Tabs.Panel className="flex flex-col gap-4 outline-none" id="basic">
                     <Fieldset>
                       <Fieldset.Legend>Basic Information</Fieldset.Legend>
                       <Fieldset.Group>
-                        <TextField
-                          isInvalid={!!errors.displayName}
-                          name="displayName"
-                        >
-                          <Label>Display name</Label>
-                          <Input
-                            placeholder="e.g. Dr. Alex Mercer"
-                            {...form.register("displayName")}
-                          />
-                          <FieldError>
-                            {errors.displayName?.message as string}
-                          </FieldError>
-                        </TextField>
-                        <TextField
-                          isInvalid={!!errors.headline}
-                          name="headline"
-                        >
-                          <Label>Headline</Label>
-                          <Input
-                            placeholder="e.g. Clinical Psychologist specializing in anxiety and trauma relief"
-                            {...form.register("headline")}
-                          />
-                          <FieldError>
-                            {errors.headline?.message as string}
-                          </FieldError>
-                        </TextField>
-                        <TextField
-                          isInvalid={!!errors.licenseNumber}
-                          name="licenseNumber"
-                        >
-                          <Label>License number</Label>
-                          <Input
-                            placeholder="e.g. PSY-CA-987654"
-                            {...form.register("licenseNumber")}
-                          />
-                          <FieldError>
-                            {errors.licenseNumber?.message as string}
-                          </FieldError>
-                        </TextField>
+                        <ProfileInputField name="displayName" label="Display name" placeholder="e.g. Dr. Alex Mercer" error={errors.displayName} register={register} />
+                        <ProfileInputField name="headline" label="Headline" placeholder="e.g. Clinical Psychologist specializing in anxiety and trauma relief" error={errors.headline} register={register} />
+                        <ProfileInputField name="licenseNumber" label="License number" placeholder="e.g. PSY-CA-987654" error={errors.licenseNumber} register={register} />
                       </Fieldset.Group>
                     </Fieldset>
-
                     <Fieldset>
-                      <Fieldset.Legend>Bio & Experience</Fieldset.Legend>
+                      <Fieldset.Legend>Bio &amp; Experience</Fieldset.Legend>
                       <Fieldset.Group>
-                        <TextField isInvalid={!!errors.bio} name="bio">
-                          <Label>Bio</Label>
-                          <TextArea
-                            className="min-h-[120px]"
-                            placeholder="Write a welcoming description of your practice, therapeutic style, and values..."
-                            {...form.register("bio")}
-                          />
-                          <FieldError>
-                            {errors.bio?.message as string}
-                          </FieldError>
-                        </TextField>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <TextField
-                            isInvalid={!!errors.location}
-                            name="location"
-                          >
-                            <Label>Location</Label>
-                            <Input
-                              placeholder="e.g. San Francisco, CA (or Remote)"
-                              {...form.register("location")}
-                            />
-                            <FieldError>
-                              {errors.location?.message as string}
-                            </FieldError>
-                          </TextField>
-                          <TextField
-                            isInvalid={!!errors.experienceStartYear}
-                            name="experienceStartYear"
-                          >
-                            <Label>Experience start year</Label>
-                            <Input
-                              min={1900}
-                              placeholder="e.g. 2018"
-                              type="number"
-                              {...form.register("experienceStartYear")}
-                            />
-                            <FieldError>
-                              {errors.experienceStartYear?.message as string}
-                            </FieldError>
-                          </TextField>
+                        <ProfileTextAreaField name="bio" label="Bio" placeholder="Write a welcoming description of your practice, therapeutic style, and values..." error={errors.bio} register={register} />
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <ProfileInputField name="location" label="Location" placeholder="e.g. San Francisco, CA" error={errors.location} register={register} />
+                          <ProfileInputField name="experienceStartYear" label="Experience start year" placeholder="e.g. 2018" type="number" min={1900} error={errors.experienceStartYear} register={register} />
                         </div>
                       </Fieldset.Group>
                     </Fieldset>
                   </Tabs.Panel>
 
-                  <Tabs.Panel
-                    className="flex flex-col gap-5 outline-none focus:outline-none"
-                    id="practice"
-                  >
+                  <Tabs.Panel className="flex flex-col gap-4 outline-none" id="practice">
                     <Fieldset>
                       <Fieldset.Legend>Practice Details</Fieldset.Legend>
                       <Fieldset.Group>
-                        <TextField
-                          isInvalid={!!errors.placeName}
-                          name="placeName"
-                        >
-                          <Label>Practice / place name</Label>
-                          <Input
-                            placeholder="e.g. Serenity Healing Center"
-                            {...form.register("placeName")}
-                          />
-                          <FieldError>
-                            {errors.placeName?.message as string}
-                          </FieldError>
-                        </TextField>
-                        <TextField
-                          isInvalid={!!errors.placeAddress}
-                          name="placeAddress"
-                        >
-                          <Label>Place address</Label>
-                          <Input
-                            placeholder="e.g. 456 Peaceful Valley Rd, Suite A"
-                            {...form.register("placeAddress")}
-                          />
-                          <FieldError>
-                            {errors.placeAddress?.message as string}
-                          </FieldError>
-                        </TextField>
-                        <TextField
-                          isInvalid={!!errors.placeDescription}
-                          name="placeDescription"
-                        >
-                          <Label>Place description</Label>
-                          <TextArea
-                            className="min-h-[100px]"
-                            placeholder="Describe your physical clinic space or office environment..."
-                            {...form.register("placeDescription")}
-                          />
-                          <FieldError>
-                            {errors.placeDescription?.message as string}
-                          </FieldError>
-                        </TextField>
+                        <ProfileInputField name="placeName" label="Practice / place name" placeholder="e.g. Serenity Healing Center" error={errors.placeName} register={register} />
+                        <ProfileInputField name="placeAddress" label="Place address" placeholder="e.g. 456 Peaceful Valley Rd, Suite A" error={errors.placeAddress} register={register} />
+                        <ProfileTextAreaField name="placeDescription" label="Place description" placeholder="Describe your physical clinic space or office environment..." error={errors.placeDescription} register={register} />
                       </Fieldset.Group>
                     </Fieldset>
                   </Tabs.Panel>
 
-                  <Tabs.Panel
-                    className="flex flex-col gap-6 outline-none focus:outline-none"
-                    id="specialties"
-                  >
-                    <Fieldset>
-                      <Fieldset.Legend>
-                        Specialties (Select up to 5)
-                      </Fieldset.Legend>
-                      <Fieldset.Group>
-                        <ToggleButtonGroup
-                          className="flex flex-wrap pt-4"
-                          isDetached
-                          onSelectionChange={(keys) =>
-                            form.setValue("specialties", [...keys] as never, {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                            })
-                          }
-                          selectedKeys={
-                            new Set(form.watch("specialties") ?? [])
-                          }
-                          selectionMode="multiple"
-                        >
-                          {doctorSpecialtyValues.map((value) => (
-                            <ToggleButton id={value} key={value}>
-                              {specialtyLabels[value]}
-                            </ToggleButton>
-                          ))}
-                        </ToggleButtonGroup>
-                      </Fieldset.Group>
-                    </Fieldset>
-
-                    <Fieldset>
-                      <Fieldset.Legend>
-                        Languages (Select up to 8)
-                      </Fieldset.Legend>
-                      <Fieldset.Group>
-                        <ToggleButtonGroup
-                          className="flex flex-wrap pt-4"
-                          isDetached
-                          onSelectionChange={(keys) =>
-                            form.setValue("languages", [...keys] as never, {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                            })
-                          }
-                          selectedKeys={new Set(form.watch("languages") ?? [])}
-                          selectionMode="multiple"
-                        >
-                          {doctorLanguageValues.map((value) => (
-                            <ToggleButton id={value} key={value}>
-                              {languageLabels[value]}
-                            </ToggleButton>
-                          ))}
-                        </ToggleButtonGroup>
-                      </Fieldset.Group>
-                    </Fieldset>
-
-                    <Fieldset>
-                      <Fieldset.Legend>
-                        Consultation modes (Select up to 3)
-                      </Fieldset.Legend>
-                      <Fieldset.Group>
-                        <ToggleButtonGroup
-                          className="flex flex-wrap pt-4"
-                          isDetached
-                          onSelectionChange={(keys) =>
-                            form.setValue(
-                              "consultationModes",
-                              [...keys] as never,
-                              {
-                                shouldDirty: true,
-                                shouldTouch: true,
-                              }
-                            )
-                          }
-                          selectedKeys={
-                            new Set(form.watch("consultationModes") ?? [])
-                          }
-                          selectionMode="multiple"
-                        >
-                          {doctorConsultationModeValues.map((value) => (
-                            <ToggleButton id={value} key={value}>
-                              {consultationModeLabels[value]}
-                            </ToggleButton>
-                          ))}
-                        </ToggleButtonGroup>
-                      </Fieldset.Group>
-                    </Fieldset>
-
-                    <Fieldset>
-                      <Fieldset.Legend>
-                        Focus areas (Select up to 10)
-                      </Fieldset.Legend>
-                      <Fieldset.Group>
-                        <ToggleButtonGroup
-                          className="flex flex-wrap pt-4"
-                          isDetached
-                          onSelectionChange={(keys) =>
-                            form.setValue("focusAreas", [...keys] as never, {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                            })
-                          }
-                          selectedKeys={new Set(form.watch("focusAreas") ?? [])}
-                          selectionMode="multiple"
-                        >
-                          {doctorFocusAreaValues.map((value) => (
-                            <ToggleButton id={value} key={value}>
-                              {focusAreaLabels[value]}
-                            </ToggleButton>
-                          ))}
-                        </ToggleButtonGroup>
-                      </Fieldset.Group>
-                    </Fieldset>
+                  <Tabs.Panel className="flex flex-col gap-5 outline-none" id="specialties">
+                    <MultiSelectField label="Specialties" description="Select up to 5" options={doctorSpecialtyValues} selectedKeys={new Set(form.watch("specialties") ?? [])} onSelectionChange={(keys) => form.setValue("specialties", [...keys] as never, { shouldDirty: true, shouldTouch: true })} labelMap={specialtyLabels} />
+                    <MultiSelectField label="Languages" description="Select up to 8" options={doctorLanguageValues} selectedKeys={new Set(form.watch("languages") ?? [])} onSelectionChange={(keys) => form.setValue("languages", [...keys] as never, { shouldDirty: true, shouldTouch: true })} labelMap={languageLabels} />
+                    <MultiSelectField label="Consultation Modes" description="Select up to 3" options={doctorConsultationModeValues} selectedKeys={new Set(form.watch("consultationModes") ?? [])} onSelectionChange={(keys) => form.setValue("consultationModes", [...keys] as never, { shouldDirty: true, shouldTouch: true })} labelMap={consultationModeLabels} />
+                    <MultiSelectField label="Focus Areas" description="Select up to 10" options={doctorFocusAreaValues} selectedKeys={new Set(form.watch("focusAreas") ?? [])} onSelectionChange={(keys) => form.setValue("focusAreas", [...keys] as never, { shouldDirty: true, shouldTouch: true })} labelMap={focusAreaLabels} />
                   </Tabs.Panel>
 
-                  <Tabs.Panel
-                    className="flex flex-col gap-6 outline-none focus:outline-none"
-                    id="experience"
-                  >
+                  <Tabs.Panel className="flex flex-col gap-5 outline-none" id="experience">
                     <StructuredListEditor
-                      description="Drag steps to reorder them. Describe your care path in chronological, patient-friendly terms."
+                      description="Drag steps to reorder. Describe your care path in chronological, patient-friendly terms."
                       draggedIndex={draggedStepIndex}
                       emptyLabel="Add your first approach step to help patients understand your style."
                       items={approachSteps}
-                      label="Approach steps"
+                      label="Approach Steps"
                       onChange={setApproachSteps}
                       onDragStart={setDraggedStepIndex}
                       onDropIndex={(fromIndex, toIndex) => {
-                        if (fromIndex === toIndex) {
-                          return;
-                        }
+                        if (fromIndex === toIndex) return;
                         const next = [...approachSteps];
                         const [item] = next.splice(fromIndex, 1);
                         next.splice(toIndex, 0, item);
@@ -952,23 +371,15 @@ export function DoctorProfileCard() {
                         setDraggedStepIndex(null);
                       }}
                     />
-
-                    <EducationTableEditor
-                      rows={educationRows}
-                      setRows={setEducationRows}
-                    />
+                    <EducationTableEditor rows={educationRows} setRows={setEducationRows} />
                   </Tabs.Panel>
                 </Tabs>
 
-                <div className="flex justify-end gap-3">
-                  <Button onPress={() => setOpen(false)} variant="outline">
-                    Cancel
-                  </Button>
-                  <Button
-                    isDisabled={saveDoctorProfile.isPending}
-                    type="submit"
-                  >
-                    {saveDoctorProfile.isPending ? "Saving..." : "Save profile"}
+                <Separator />
+                <div className="flex justify-end gap-2">
+                  <Button onPress={() => setOpen(false)} variant="outline">Cancel</Button>
+                  <Button isDisabled={saveDoctorProfile.isPending} type="submit">
+                    {saveDoctorProfile.isPending ? "Saving\u2026" : "Save Profile"}
                   </Button>
                 </div>
               </Form>
@@ -977,6 +388,131 @@ export function DoctorProfileCard() {
         </Modal.Container>
       </Modal.Backdrop>
     </>
+  );
+}
+
+function ProfileInfoCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <Card>
+      <Card.Header className="gap-1.5">
+        {icon}
+        <Card.Title>{title}</Card.Title>
+      </Card.Header>
+      <Separator />
+      <Card.Content className="flex flex-col gap-0 p-0">{children}</Card.Content>
+    </Card>
+  );
+}
+
+function ProfileField({ label, value, onAdd }: { label: string; value: string | null; onAdd: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="flex flex-col gap-0.5">
+        <p className="font-medium text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+        {value ? <p className="text-foreground/80 text-sm">{value}</p> : <p className="text-muted-foreground/60 text-sm italic">Not set</p>}
+      </div>
+      {!value && <Button onPress={onAdd} variant="ghost"><Plus className="size-3" />Add</Button>}
+    </div>
+  );
+}
+
+function TagCard({ icon, title, items, labelMap, onAdd }: { icon: React.ReactNode; title: string; items: string[]; labelMap: Record<string, string>; onAdd: () => void }) {
+  return (
+    <Card>
+      <Card.Header className="gap-1.5">
+        {icon}
+        <Card.Title>{title}</Card.Title>
+      </Card.Header>
+      <Separator />
+      <Card.Content className="px-4 py-3">
+        <div className="flex flex-wrap gap-1.5">
+          {items.length > 0 ? (
+            items.map((value) => <Chip key={value} variant="secondary">{labelMap[value] ?? value}</Chip>)
+          ) : (
+            <Chip className="cursor-pointer" onClick={onAdd} variant="primary"><Plus className="size-3" />Add {title}</Chip>
+          )}
+        </div>
+      </Card.Content>
+    </Card>
+  );
+}
+
+function ProfileInputField<N extends FieldPath<DoctorProfileFormInput>>({
+  name,
+  label,
+  placeholder,
+  type = "text",
+  error,
+  register,
+  min,
+}: {
+  name: N;
+  label: string;
+  placeholder: string;
+  type?: string;
+  error?: { message?: string };
+  register: UseFormRegister<DoctorProfileFormInput>;
+  min?: number;
+}) {
+  const inputProps = { ...register(name), min, placeholder, type };
+  return (
+    <TextField isInvalid={!!error} name={name}>
+      <Label>{label}</Label>
+      <Input {...inputProps} />
+      <FieldError>{error?.message as string}</FieldError>
+    </TextField>
+  );
+}
+
+function ProfileTextAreaField<N extends FieldPath<DoctorProfileFormInput>>({
+  name,
+  label,
+  placeholder,
+  error,
+  register,
+}: {
+  name: N;
+  label: string;
+  placeholder: string;
+  error?: { message?: string };
+  register: UseFormRegister<DoctorProfileFormInput>;
+}) {
+  return (
+    <TextField isInvalid={!!error} name={name}>
+      <Label>{label}</Label>
+      <TextArea className="min-h-[100px]" placeholder={placeholder} {...register(name)} />
+      <FieldError>{error?.message as string}</FieldError>
+    </TextField>
+  );
+}
+
+function MultiSelectField({
+  label,
+  description,
+  options,
+  selectedKeys,
+  onSelectionChange,
+  labelMap,
+}: {
+  label: string;
+  description: string;
+  options: readonly string[];
+  selectedKeys: "all" | Set<string | number>;
+  onSelectionChange: (keys: "all" | Set<string | number>) => void;
+  labelMap: Record<string, string>;
+}) {
+  return (
+    <Fieldset>
+      <Fieldset.Legend>{label}</Fieldset.Legend>
+      <Description>{description}</Description>
+      <Fieldset.Group>
+        <ToggleButtonGroup className="flex flex-wrap gap-1.5 pt-2" isDetached onSelectionChange={onSelectionChange} selectedKeys={selectedKeys} selectionMode="multiple">
+          {options.map((value) => (
+            <ToggleButton id={value} key={value}>{labelMap[value]}</ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      </Fieldset.Group>
+    </Fieldset>
   );
 }
 
@@ -999,13 +535,10 @@ function StructuredListEditor({
   onDropIndex: (fromIndex: number, toIndex: number) => void;
   onChange: (items: ApproachStep[]) => void;
 }) {
-  const addItem = () =>
-    onChange([...items, { id: crypto.randomUUID(), text: "" }]);
+  const addItem = () => onChange([...items, { id: crypto.randomUUID(), text: "" }]);
   const moveItem = (index: number, delta: number) => {
     const nextIndex = index + delta;
-    if (nextIndex < 0 || nextIndex >= items.length) {
-      return;
-    }
+    if (nextIndex < 0 || nextIndex >= items.length) return;
     const next = [...items];
     const [item] = next.splice(index, 1);
     next.splice(nextIndex, 0, item);
@@ -1016,197 +549,71 @@ function StructuredListEditor({
     <Fieldset>
       <Fieldset.Legend>{label}</Fieldset.Legend>
       <Description>{description}</Description>
-      <Fieldset.Group className="flex flex-col gap-3">
-        {items.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{emptyLabel}</p>
-        ) : null}
+      <Fieldset.Group className="flex flex-col gap-2">
+        {items.length === 0 && <p className="text-muted-foreground text-sm">{emptyLabel}</p>}
         {items.map((item, index) => (
-          <div
-            className={cn(
-              "flex items-start gap-3 rounded-lg border bg-muted/10",
-              draggedIndex === index && "border-primary bg-primary/5"
-            )}
-            draggable
-            key={item.id}
-            onDragOver={(event) => event.preventDefault()}
-            onDragStart={() => onDragStart(index)}
-            onDrop={() => {
-              if (draggedIndex !== null) {
-                onDropIndex(draggedIndex, index);
-              }
-            }}
-          >
-            <GripVertical className="size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing" />
-            <div className="flex-1">
-              <p className="text-muted-foreground text-xs uppercase tracking-wider">
-                Step {index + 1}
-              </p>
-              <TextArea
-                className="min-h-[70px]"
-                onChange={(event) => {
-                  const next = [...items];
-                  next[index] = { ...item, text: event.target.value };
-                  onChange(next);
-                }}
-                placeholder="e.g. Initial Consultation - Understanding your goals and assessing therapeutic options."
-                value={item.text}
-              />
-            </div>
-            <div className="flex flex-col justify-center gap-1.5">
-              <Button
-                className="size-8"
-                isDisabled={index === 0}
-                isIconOnly
-                onPress={() => moveItem(index, -1)}
-                size="sm"
-                variant="outline"
-              >
-                <ChevronUp className="size-4" />
-              </Button>
-              <Button
-                className="size-8"
-                isDisabled={index === items.length - 1}
-                isIconOnly
-                onPress={() => moveItem(index, 1)}
-                size="sm"
-                variant="outline"
-              >
-                <ChevronDown className="size-4" />
-              </Button>
-              <Button
-                className="size-8 border-rose-200 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 dark:border-rose-900/50"
-                isIconOnly
-                onPress={() =>
-                  onChange(items.filter((_, current) => current !== index))
-                }
-                size="sm"
-                variant="outline"
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          </div>
+          <Card className={cn(draggedIndex === index && "ring-2 ring-primary/50")} key={item.id}>
+            <Card.Content className="flex flex-row items-start gap-2 p-3">
+              <div className="mt-1 cursor-grab active:cursor-grabbing" draggable onDragOver={(e) => e.preventDefault()} onDragStart={() => onDragStart(index)} onDrop={() => { if (draggedIndex !== null) onDropIndex(draggedIndex, index); }}>
+                <GripVertical className="size-4 text-muted-foreground/50" />
+              </div>
+              <div className="flex flex-1 flex-col gap-1">
+                <p className="font-mono text-[10px] text-muted-foreground/50 uppercase tracking-wider">Step {index + 1}</p>
+                <TextArea
+                  className="min-h-[64px]"
+                  onChange={(e) => {
+                    const next = [...items];
+                    next[index] = { ...item, text: e.target.value };
+                    onChange(next);
+                  }}
+                  placeholder="e.g. Initial Consultation \u2014 Understanding your goals and assessing therapeutic options."
+                  value={item.text}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button isDisabled={index === 0} isIconOnly onPress={() => moveItem(index, -1)} variant="outline"><ChevronUp className="size-3.5" /></Button>
+                <Button isDisabled={index === items.length - 1} isIconOnly onPress={() => moveItem(index, 1)} variant="outline"><ChevronDown className="size-3.5" /></Button>
+                <Button isIconOnly onPress={() => onChange(items.filter((_, i) => i !== index))} variant="outline"><Trash2 className="size-3.5 text-rose-500" /></Button>
+              </div>
+            </Card.Content>
+          </Card>
         ))}
-        <Button
-          className="w-full sm:w-auto"
-          onPress={addItem}
-          variant="outline"
-        >
-          <Plus className="size-4" />
-          Add step
-        </Button>
+        <Button onPress={addItem} variant="outline"><Plus className="size-3.5" />Add Step</Button>
       </Fieldset.Group>
     </Fieldset>
   );
 }
 
-function EducationTableEditor({
-  rows,
-  setRows,
-}: {
-  rows: EducationRow[];
-  setRows: (rows: EducationRow[]) => void;
-}) {
-  const addRow = () =>
-    setRows([
-      ...rows,
-      { id: crypto.randomUUID(), institution: "", degree: "", year: "" },
-    ]);
+function EducationTableEditor({ rows, setRows }: { rows: EducationRow[]; setRows: (rows: EducationRow[]) => void }) {
+  const addRow = () => setRows([...rows, { id: crypto.randomUUID(), institution: "", degree: "", year: "" }]);
 
   return (
     <Fieldset>
-      <Fieldset.Legend>Education & Degrees</Fieldset.Legend>
-      <Description>
-        Add your academic credentials and training programs so patients can
-        easily verify your background.
-      </Description>
-      <Fieldset.Group className="flex flex-col gap-3">
-        {rows.length === 0 ? (
-          <p className="text-center text-muted-foreground text-sm">
-            No education history added yet.
-          </p>
-        ) : null}
+      <Fieldset.Legend>Education &amp; Degrees</Fieldset.Legend>
+      <Description>Add your academic credentials and training programs.</Description>
+      <Fieldset.Group className="flex flex-col gap-2">
+        {rows.length === 0 && <p className="text-center text-muted-foreground text-sm">No education history added yet.</p>}
         {rows.map((row, index) => (
-          <div
-            className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/5 p-4"
-            key={row.id}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-                Entry {index + 1}
-              </p>
-              <Button
-                className="h-7 border-rose-200 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 dark:border-rose-900/50"
-                onPress={() =>
-                  setRows(rows.filter((_, current) => current !== index))
-                }
-                size="sm"
-                variant="outline"
-              >
-                <Trash2 className="size-3.5" />
-                Remove
-              </Button>
-            </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              <Input
-                onChange={(event) =>
-                  updateEducationRow(
-                    rows,
-                    setRows,
-                    index,
-                    "institution",
-                    event.target.value
-                  )
-                }
-                placeholder="Institution (e.g. Stanford)"
-                value={row.institution}
-              />
-              <Input
-                onChange={(event) =>
-                  updateEducationRow(
-                    rows,
-                    setRows,
-                    index,
-                    "degree",
-                    event.target.value
-                  )
-                }
-                placeholder="Degree (e.g. M.Sc. Counseling)"
-                value={row.degree}
-              />
-              <Input
-                onChange={(event) =>
-                  updateEducationRow(
-                    rows,
-                    setRows,
-                    index,
-                    "year",
-                    event.target.value
-                  )
-                }
-                placeholder="Year (e.g. 2018)"
-                type="number"
-                value={row.year}
-              />
-            </div>
-          </div>
+          <Card key={row.id}>
+            <Card.Header className="justify-between">
+              <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Entry {index + 1}</p>
+              <Button onPress={() => setRows(rows.filter((_, i) => i !== index))} variant="outline"><Trash2 className="size-3.5 text-rose-500" />Remove</Button>
+            </Card.Header>
+            <Separator />
+            <Card.Content className="grid gap-2 md:grid-cols-3">
+              <Input onChange={(e) => updateEducationRow(rows, setRows, index, "institution", e.target.value)} placeholder="Institution (e.g. Stanford)" value={row.institution} />
+              <Input onChange={(e) => updateEducationRow(rows, setRows, index, "degree", e.target.value)} placeholder="Degree (e.g. M.Sc. Counseling)" value={row.degree} />
+              <Input onChange={(e) => updateEducationRow(rows, setRows, index, "year", e.target.value)} placeholder="Year (e.g. 2018)" type="number" value={row.year} />
+            </Card.Content>
+          </Card>
         ))}
-        <Button className="w-full sm:w-auto" onPress={addRow} variant="outline">
-          <Plus className="size-4" />
-          Add Education Row
-        </Button>
+        <Button onPress={addRow} variant="outline"><Plus className="size-3.5" />Add Education</Button>
       </Fieldset.Group>
     </Fieldset>
   );
 }
 
-function updateEducationRow(
-  rows: EducationRow[],
-  setRows: (rows: EducationRow[]) => void,
-  index: number,
-  key: keyof Pick<EducationRow, "institution" | "degree" | "year">,
-  value: string
-) {
+function updateEducationRow(rows: EducationRow[], setRows: (rows: EducationRow[]) => void, index: number, key: keyof Pick<EducationRow, "institution" | "degree" | "year">, value: string) {
   const next = [...rows];
   next[index] = { ...next[index], [key]: value };
   setRows(next);
@@ -1216,23 +623,21 @@ function emptyToUndefined(value: unknown) {
   return typeof value === "string" && value.trim() === "" ? undefined : value;
 }
 
-function getDoctorProfileFormValues(
-  profile: {
-    bio: string | null;
-    displayName: string | null;
-    experienceStartYear: number | null;
-    headline: string | null;
-    licenseNumber: string | null;
-    location: string | null;
-    placeAddress: string | null;
-    placeDescription: string | null;
-    placeName: string | null;
-    specialties: string[];
-    languages: string[];
-    consultationModes: string[];
-    focusAreas: string[];
-  } | null
-): DoctorProfileFormValues {
+function getDoctorProfileFormValues(profile: {
+  bio: string | null;
+  displayName: string | null;
+  experienceStartYear: number | null;
+  headline: string | null;
+  licenseNumber: string | null;
+  location: string | null;
+  placeAddress: string | null;
+  placeDescription: string | null;
+  placeName: string | null;
+  specialties: string[];
+  languages: string[];
+  consultationModes: string[];
+  focusAreas: string[];
+} | null): DoctorProfileFormValues {
   return {
     displayName: profile?.displayName ?? "",
     headline: profile?.headline ?? "",
@@ -1245,8 +650,7 @@ function getDoctorProfileFormValues(
     experienceStartYear: profile?.experienceStartYear ?? undefined,
     specialties: (profile?.specialties ?? []) as DoctorSpecialty[],
     languages: (profile?.languages ?? []) as DoctorLanguage[],
-    consultationModes: (profile?.consultationModes ??
-      []) as DoctorConsultationMode[],
+    consultationModes: (profile?.consultationModes ?? []) as DoctorConsultationMode[],
     focusAreas: (profile?.focusAreas ?? []) as DoctorFocusArea[],
   };
 }

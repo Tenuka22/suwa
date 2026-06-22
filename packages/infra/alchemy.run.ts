@@ -34,6 +34,7 @@ const doctorMaterialsKv = await KVNamespace("doctor-materials");
 const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
 const faceEmbeddingsKv = await KVNamespace("face-embeddings");
+const faceVideosKv = await KVNamespace("face-videos");
 
 // const redis = await UpstashRedis(
 //   process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
@@ -70,6 +71,7 @@ export const server = await Worker("server", {
     DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
     FACE_EMBEDDINGS_KV: faceEmbeddingsKv,
+    FACE_VIDEOS_KV: faceVideosKv,
     AI: aiBinding,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     UPSTASH_REDIS_REST_URL:

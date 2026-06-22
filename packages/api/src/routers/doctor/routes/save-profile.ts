@@ -73,13 +73,40 @@ export const saveDoctorProfileRoute = protectedProcedure
       ),
       approach: input.approach ?? existingProfile?.approach ?? null,
       education: input.education ?? existingProfile?.education ?? null,
-      faceEmbedding: existingProfile?.faceEmbedding ?? null,
       permanent: existingProfile?.permanent ?? false,
+      faceEmbeddingKvKey: existingProfile?.faceEmbeddingKvKey ?? null,
       stripeAccountId: existingProfile?.stripeAccountId ?? null,
       stripeAccountEnabled: existingProfile?.stripeAccountEnabled ?? false,
       createdAt: existingProfile?.createdAt ?? timestamp,
       updatedAt: timestamp,
     };
+
+    const OPTIONAL_FIELDS = [
+      "displayName", "headline", "bio", "licenseNumber", "location",
+      "placeName", "education", "specialties", "languages",
+      "consultationModes", "focusAreas", "approach", "experienceStartYear",
+    ] as const;
+    let filled = 0;
+    for (const field of OPTIONAL_FIELDS) {
+      const value = profile[field] as string | null | undefined;
+      if (value !== null && value !== undefined && value !== "") {
+        const strVal = String(value);
+        if (strVal !== "[]" && strVal !== "null" && strVal.length > 0) {
+          filled++;
+        }
+      }
+    }
+    const completeness = Math.round((filled / OPTIONAL_FIELDS.length) * 100);
+    const hasDisplayName = !!profile.displayName;
+    const hasFaceEmbedding = !!profile.faceEmbeddingKvKey;
+    const meetsRequirements = hasDisplayName && completeness >= 15 && hasFaceEmbedding;
+
+    if (meetsRequirements && existingProfile?.permanent !== true) {
+      await context.db
+        .update(doctorProfiles)
+        .set({ permanent: false, updatedAt: timestamp })
+        .where(eq(doctorProfiles.userId, userId));
+    }
 
     await context.db.insert(doctorProfiles).values(profile).onConflictDoUpdate({
       target: doctorProfiles.userId,

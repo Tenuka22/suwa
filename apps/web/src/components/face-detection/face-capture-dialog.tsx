@@ -20,8 +20,13 @@ export type FaceCaptureStatus =
   | "success"
   | "error";
 
+interface FaceCaptureResult {
+  embedding: number[];
+  videoBase64?: string;
+}
+
 interface FaceCaptureDialogProps {
-  onFaceCaptured: (embedding: number[]) => Promise<void>;
+  onFaceCaptured: (result: FaceCaptureResult) => Promise<void>;
   onOpenChange: (open: boolean) => void;
   open: boolean;
 }
@@ -82,6 +87,8 @@ export function FaceCaptureDialog({
   const streamRef = useRef<MediaStream | null>(null);
   const landmarkerRef = useRef<FaceLandmarker | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const videoChunksRef = useRef<Blob[]>([]);
 
   const stopCamera = useCallback(() => {
     if (animFrameRef.current !== null) {
@@ -209,6 +216,7 @@ export function FaceCaptureDialog({
   const captureAndSave = useCallback(async () => {
     const landmarker = landmarkerRef.current;
     const video = videoRef.current;
+    const stream = streamRef.current;
     if (!(landmarker && video)) {
       return;
     }
@@ -216,6 +224,29 @@ export function FaceCaptureDialog({
     setStatus("capturing");
 
     try {
+      videoChunksRef.current = [];
+
+      let mediaRecorder: MediaRecorder | null = null;
+      if (stream) {
+        mediaRecorder = new MediaRecorder(stream, {
+          mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+            ? "video/webm;codecs=vp9"
+            : "video/webm",
+        });
+        mediaRecorderRef.current = mediaRecorder;
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            videoChunksRef.current.push(event.data);
+          }
+        };
+        mediaRecorder.start();
+        setTimeout(() => {
+          if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+          }
+        }, 3500);
+      }
+
       const NUM_FRAMES = 8;
       const allEmbeddings: number[][] = [];
 
@@ -239,6 +270,7 @@ export function FaceCaptureDialog({
         toast.danger(
           `Only detected face in ${allEmbeddings.length}/${NUM_FRAMES} frames. Please hold still and try again.`
         );
+        mediaRecorderRef.current?.stop();
         setStatus("detected");
         return;
       }
@@ -254,13 +286,37 @@ export function FaceCaptureDialog({
         averaged[j] /= allEmbeddings.length;
       }
 
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        await new Promise<void>((resolve) => {
+          mediaRecorder!.onstop = () => resolve();
+          mediaRecorder!.stop();
+        });
+      }
+
+      let videoBase64: string | undefined;
+      if (videoChunksRef.current.length > 0) {
+        const videoBlob = new Blob(videoChunksRef.current, {
+          type: "video/webm",
+        });
+        const buffer = await videoBlob.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        videoBase64 = btoa(binary);
+      }
+
+      mediaRecorderRef.current = null;
+
       setStatus("saving");
-      await onFaceCaptured(averaged);
+      await onFaceCaptured({ embedding: averaged, videoBase64 });
       setStatus("success");
     } catch (err) {
       toast.danger(
         `Failed to process face: ${err instanceof Error ? err.message : "Unknown error"}`
       );
+      mediaRecorderRef.current = null;
       setStatus("detected");
     }
   }, [onFaceCaptured]);
@@ -329,26 +385,6 @@ export function FaceCaptureDialog({
 
               {status !== "loading-model" && !cameraError && (
                 <>
-                  <svg
-                    aria-label="Face alignment guide"
-                    className="pointer-events-none absolute inset-0 size-full"
-                    preserveAspectRatio="xMidYMid slice"
-                    role="img"
-                    viewBox="0 0 100 100"
-                  >
-                    <title>Align your face within the oval</title>
-                    <ellipse
-                      cx="50"
-                      cy="45"
-                      fill="none"
-                      opacity={hasFace ? 0.6 : 1}
-                      rx="28"
-                      ry="33"
-                      stroke="var(--accent, #4ade80)"
-                      strokeDasharray="6 4"
-                      strokeWidth="2.5"
-                    />
-                  </svg>
 
                   {status !== "success" && (
                     <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-4">

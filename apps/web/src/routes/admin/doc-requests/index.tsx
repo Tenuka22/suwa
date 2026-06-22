@@ -8,9 +8,12 @@ import {
   SearchIcon,
   StethoscopeIcon,
   UserCheckIcon,
+  EyeIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { z } from "zod";
 
+import { ApprovalModal } from "@/components/admin/approval-modal";
 import { BodyText, PageTitle } from "@/components/typography";
 import { useApproveDoctor } from "@/hooks/queries/admin";
 import { orpc } from "@/utils/orpc";
@@ -53,14 +56,40 @@ export const Route = createFileRoute("/admin/doc-requests/")({
   component: AdminDocRequestsRoute,
 });
 
+interface PendingDoctor {
+  userId: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  imageUrl: string | null;
+  bio: string | null;
+  displayName: string | null;
+  completeness: number;
+  permanent: boolean;
+}
+
 function AdminDocRequestsRoute() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const data = Route.useLoaderData();
   const approveDoctor = useApproveDoctor();
+  const [selectedDoctor, setSelectedDoctor] = useState<PendingDoctor | null>(
+    null
+  );
 
-  const rows = data?.items ?? [];
-  const pendingCount = rows.length;
+  const rows = (data?.items ?? []) as PendingDoctor[];
+  const pendingCount = data?.totalCount ?? rows.length;
+
+  const handleApprove = (userId: string) => {
+    approveDoctor.mutate(
+      { userId },
+      {
+        onSuccess: () => {
+          setSelectedDoctor(null);
+        },
+      }
+    );
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -179,70 +208,61 @@ function AdminDocRequestsRoute() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {rows.map(
-              (doctor: {
-                userId: string;
-                name: string;
-                email: string | null;
-                phone: string | null;
-                role: string;
-                permanent: boolean;
-              }) => (
-                <div
-                  className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3 md:flex-row md:items-center md:justify-between"
-                  key={doctor.userId}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-full border border-border border-dashed bg-foreground/5 p-3">
-                      <UserCheckIcon className="size-4 text-foreground/50" />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <p className="font-light text-sm">{doctor.name}</p>
-                      <div className="flex flex-wrap gap-3">
-                        {doctor.email ? (
-                          <p className="text-foreground/60 text-xs">
-                            {doctor.email}
-                          </p>
-                        ) : null}
-                        {doctor.phone ? (
-                          <p className="text-foreground/60 text-xs">
-                            {doctor.phone}
-                          </p>
-                        ) : null}
-                      </div>
-                      <Chip
-                        className="mt-1"
-                        color={doctor.permanent ? "success" : "warning"}
-                        variant="soft"
-                      >
-                        <div className="flex items-center justify-center">
-                          <Clock3Icon className="size-3" />
-                        </div>
-                        {doctor.permanent ? "Approved" : "Pending"}
-                      </Chip>
-                    </div>
+            {rows.map((doctor: PendingDoctor) => (
+              <div
+                className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3 md:flex-row md:items-center md:justify-between"
+                key={doctor.userId}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="rounded-full border border-border border-dashed bg-foreground/5 p-3">
+                    <UserCheckIcon className="size-4 text-foreground/50" />
                   </div>
 
-                  <Button
-                    isDisabled={approveDoctor.isPending}
-                    onPress={() => {
-                      approveDoctor.mutate({ userId: doctor.userId });
-                    }}
-                    size="sm"
-                  >
-                    {approveDoctor.isPending ? "Approving..." : "Approve"}
-                  </Button>
+                  <div className="flex flex-col gap-1">
+                    <p className="font-light text-sm">{doctor.name}</p>
+                    <div className="flex flex-wrap gap-3">
+                      {doctor.email ? (
+                        <p className="text-foreground/60 text-xs">
+                          {doctor.email}
+                        </p>
+                      ) : null}
+                      {doctor.phone ? (
+                        <p className="text-foreground/60 text-xs">
+                          {doctor.phone}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Chip
+                      className="mt-1"
+                      color={doctor.permanent ? "success" : "warning"}
+                      variant="soft"
+                    >
+                      <div className="flex items-center justify-center">
+                        <Clock3Icon className="size-3" />
+                      </div>
+                      {doctor.permanent ? "Approved" : "Pending"}
+                    </Chip>
+                  </div>
                 </div>
-              )
-            )}
+
+                <Button
+                  onPress={() => setSelectedDoctor(doctor)}
+                  size="sm"
+                  variant="primary"
+                >
+                  <EyeIcon className="size-4" />
+                  View Request
+                </Button>
+              </div>
+            ))}
           </div>
         )}
 
         {rows.length > 0 ? (
           <div className="flex items-center justify-between pt-4">
             <p className="text-foreground/60 text-sm">
-              Page {data?.page ?? search.page} &middot; {totalCount} total
+              Page {data?.page ?? search.page} &middot;{" "}
+              {data?.totalCount ?? 0} total
             </p>
             <div className="flex gap-2">
               <Button
@@ -283,6 +303,20 @@ function AdminDocRequestsRoute() {
           </div>
         ) : null}
       </section>
+
+      {selectedDoctor && (
+        <ApprovalModal
+          doctor={selectedDoctor}
+          isApproving={approveDoctor.isPending}
+          onApprove={handleApprove}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedDoctor(null);
+            }
+          }}
+          open={!!selectedDoctor}
+        />
+      )}
     </div>
   );
 }

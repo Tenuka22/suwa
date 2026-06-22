@@ -3,6 +3,7 @@ import { adminApprovedDoctorsRoute } from "./routes/approved-doctors";
 import { adminCreateTestSessionRoute } from "./routes/create-test-session";
 import { adminDoctorEducationEntriesRoute } from "./routes/doctor-education-entries";
 import { adminDoctorScheduleEntriesRoute } from "./routes/doctor-schedule-entries";
+import { adminGetFaceVideoRoute } from "./routes/get-face-video";
 
 import { adminPatientsRoute } from "./routes/patients";
 import { adminPendingDoctorsRoute } from "./routes/pending-doctors";
@@ -14,6 +15,7 @@ export const adminRouter = {
   stats: adminStatsRoute,
   pendingDoctors: adminPendingDoctorsRoute,
   approveDoctor: adminApproveDoctorRoute,
+  getFaceVideo: adminGetFaceVideoRoute,
   approvedDoctors: adminApprovedDoctorsRoute,
   createTestSession: adminCreateTestSessionRoute,
   doctorScheduleEntries: adminDoctorScheduleEntriesRoute,

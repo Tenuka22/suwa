@@ -7,6 +7,7 @@ interface FallbackEnv {
   DB: D1Database;
   DOCTOR_MATERIALS_KV: KVNamespace;
   FACE_EMBEDDINGS_KV: KVNamespace;
+  FACE_VIDEOS_KV: KVNamespace;
   GEMINI_API_KEY: string;
   LIVEKIT_API_KEY: string;
   LIVEKIT_API_SECRET: string;
