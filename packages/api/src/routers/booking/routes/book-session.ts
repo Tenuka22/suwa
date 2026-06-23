@@ -1,4 +1,5 @@
 import { doctorPlans, doctorSessions } from "@suwa/db";
+import { TAX_RATE } from "@suwa/pricing";
 import { and, eq, gt, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
@@ -78,7 +79,8 @@ export const bookSessionRoute = protectedProcedure
 
     const now = new Date().toISOString();
     const sessionId = crypto.randomUUID();
-    const amountCents = plan.priceCents;
+    const amountCents =
+      plan.priceCents + Math.round(plan.priceCents * TAX_RATE);
 
     // Create Stripe PaymentIntent with manual capture (hold, don't charge yet)
     const paymentIntent = await createHoldPaymentIntent({

@@ -38,8 +38,7 @@ function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
   );
 
   const pendingSessions = sessions.filter(
-    (session) =>
-      session.status === "requested" || session.status === "rescheduled"
+    (session) => session.status === "requested"
   );
 
   if (!sessions) {

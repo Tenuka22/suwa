@@ -79,3 +79,79 @@ export async function decryptUserData(
     return null;
   }
 }
+
+export async function generateKeyPair(): Promise<{
+  publicKey: string;
+  privateKey: string;
+}> {
+  const keyPair = await crypto.subtle.generateKey(
+    { name: "ECDH", namedCurve: "P-256" },
+    true,
+    ["deriveKey", "deriveBits"]
+  );
+
+  const publicKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+  const privateKeyJwk = await crypto.subtle.exportKey(
+    "jwk",
+    keyPair.privateKey
+  );
+
+  return {
+    publicKey: JSON.stringify(publicKeyJwk),
+    privateKey: JSON.stringify(privateKeyJwk),
+  };
+}
+
+export async function deriveSharedKey(
+  privateKeyJwkStr: string,
+  publicKeyJwkStr: string
+): Promise<string> {
+  const privateKeyJwk = JSON.parse(privateKeyJwkStr) as JsonWebKey;
+  const publicKeyJwk = JSON.parse(publicKeyJwkStr) as JsonWebKey;
+
+  const privateKey = await crypto.subtle.importKey(
+    "jwk",
+    privateKeyJwk,
+    { name: "ECDH", namedCurve: "P-256" },
+    false,
+    ["deriveBits"]
+  );
+
+  const publicKey = await crypto.subtle.importKey(
+    "jwk",
+    publicKeyJwk,
+    { name: "ECDH", namedCurve: "P-256" },
+    true,
+    []
+  );
+
+  const sharedBits = await crypto.subtle.deriveBits(
+    { name: "ECDH", public: publicKey },
+    privateKey,
+    256
+  );
+
+  const hkdfKey = await crypto.subtle.importKey(
+    "raw",
+    sharedBits,
+    { name: "HKDF" },
+    false,
+    ["deriveKey"]
+  );
+
+  const aesKey = await crypto.subtle.deriveKey(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: new Uint8Array(32),
+      info: new TextEncoder().encode("session-key-v1"),
+    },
+    hkdfKey,
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+
+  const rawKey = await crypto.subtle.exportKey("raw", aesKey);
+  return bufferToBase64(new Uint8Array(rawKey));
+}

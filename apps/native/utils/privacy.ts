@@ -6,7 +6,9 @@ import { Platform } from "react-native";
 // biome-ignore lint/performance/noBarrelFile: compatibility re-exports for existing consumers
 export {
   decryptUserData as decryptData,
+  deriveSharedKey,
   encryptUserData as encryptData,
+  generateKeyPair,
   generateUserSecret,
 } from "@suwa/crypto/native";
 

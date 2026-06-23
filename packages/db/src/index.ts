@@ -44,11 +44,13 @@ import {
   type PatientProfile as PatientProfileSchema,
   patientProfiles as patientProfilesTable,
   type SessionAttendanceEvent as SessionAttendanceEventSchema,
+  type SessionSharedData as SessionSharedDataSchema,
   type SessionSnapshot as SessionSnapshotSchema,
   type SessionTaskAssignment as SessionTaskAssignmentSchema,
   type StressDownloadAcknowledgment as StressDownloadAcknowledgmentSchema,
   type StressPrediction as StressPredictionSchema,
   sessionAttendanceEvents as sessionAttendanceEventsTable,
+  sessionSharedData as sessionSharedDataTable,
   sessionSnapshots as sessionSnapshotsTable,
   sessionTaskAssignments as sessionTaskAssignmentsTable,
   stressDownloadAcknowledgments as stressDownloadAcknowledgmentsTable,
@@ -92,6 +94,7 @@ export const doctorWeeklyAvailability = doctorWeeklyAvailabilityTable;
 export const doctorCredits = doctorCreditsTable;
 export const doctorCashoutRequests = doctorCashoutRequestsTable;
 export const sessionAttendanceEvents = sessionAttendanceEventsTable;
+export const sessionSharedData = sessionSharedDataTable;
 export const sessionSnapshots = sessionSnapshotsTable;
 export const sessionTaskAssignments = sessionTaskAssignmentsTable;
 export const stressPredictions = stressPredictionsTable;
@@ -127,6 +130,7 @@ export type DoctorWeeklyAvailability = DoctorWeeklyAvailabilitySchema;
 export type DoctorCredit = DoctorCreditSchema;
 export type DoctorCashoutRequest = DoctorCashoutRequestSchema;
 export type SessionAttendanceEvent = SessionAttendanceEventSchema;
+export type SessionSharedData = SessionSharedDataSchema;
 export type SessionSnapshot = SessionSnapshotSchema;
 export type SessionTaskAssignment = SessionTaskAssignmentSchema;
 export type StressPrediction = StressPredictionSchema;
@@ -157,6 +161,7 @@ export function createDb() {
       doctorCredits,
       doctorCashoutRequests,
       sessionAttendanceEvents,
+      sessionSharedData,
       sessionSnapshots,
       sessionTaskAssignments,
       stressPredictions,

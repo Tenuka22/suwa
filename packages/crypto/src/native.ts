@@ -5,6 +5,8 @@ import {
   aesEncryptAsync,
 } from "expo-crypto";
 
+export { deriveSharedKey, generateKeyPair } from "./index";
+
 function uint8ArrayToBase64(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) {

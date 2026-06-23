@@ -1,4 +1,5 @@
 import { doctorSessions } from "@suwa/db";
+import { TAX_RATE } from "@suwa/pricing";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
@@ -48,14 +49,24 @@ export const respondSessionRoute = protectedProcedure
         session.paymentIntentId &&
         session.paymentIntentId.startsWith("pi_")
       ) {
-        await capturePaymentIntent(session.paymentIntentId);
+        try {
+          await capturePaymentIntent(session.paymentIntentId);
+        } catch {
+          throw new Error(
+            "Payment capture failed. The session could not be approved."
+          );
+        }
       }
+
+      const doctorEarnedCents = Math.round(
+        (session.amountCents ?? 0) / (1 + TAX_RATE)
+      );
 
       await context.db
         .update(doctorSessions)
         .set({
           status: "approved",
-          doctorEarnedCents: session.amountCents ?? 0,
+          doctorEarnedCents,
           updatedAt: now,
         })
         .where(eq(doctorSessions.id, input.sessionId));
