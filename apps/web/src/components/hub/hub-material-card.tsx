@@ -88,7 +88,7 @@ export function HubMaterialCard({
     <div className="group">
       {/* Thumbnail */}
       <button
-        className="relative flex w-full aspect-video items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted/20 cursor-pointer"
+        className="relative flex aspect-video w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted/20"
         disabled={status !== "ready"}
         onClick={handleWatch}
         type="button"

@@ -41,30 +41,37 @@ export default function MaterialDetailScreen() {
     console.log(`[materialId] mounting with id=${id}`);
     let active = true;
 
-    orpc.getMaterialFile.call({ materialId: id }).then((file) => {
-      console.log(`[materialId] file received: size=${file.size} type=${file.type} name=${file.name}`);
-      if (!(active && file)) {
-        return;
-      }
+    orpc.getMaterialFile
+      .call({ materialId: id })
+      .then((file) => {
+        console.log(
+          `[materialId] file received: size=${file.size} type=${file.type} name=${file.name}`
+        );
+        if (!(active && file)) {
+          return;
+        }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (active && typeof reader.result === "string") {
-          console.log(`[materialId] dataUrl ready: length=${reader.result.length}`);
-          setVideoLocalUri(reader.result);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (active && typeof reader.result === "string") {
+            console.log(
+              `[materialId] dataUrl ready: length=${reader.result.length}`
+            );
+            setVideoLocalUri(reader.result);
+            setFileLoading(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      })
+      .catch((err) => {
+        console.error("[materialId] error:", err);
+        if (active) {
           setFileLoading(false);
         }
-      };
-      reader.readAsDataURL(file);
-    }).catch((err) => {
-      console.error(`[materialId] error:`, err);
-      if (active) {
-        setFileLoading(false);
-      }
-    });
+      });
 
     return () => {
-      console.log(`[materialId] unmounting`);
+      console.log("[materialId] unmounting");
       active = false;
     };
   }, [id]);

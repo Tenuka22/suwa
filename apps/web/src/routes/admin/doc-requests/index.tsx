@@ -4,11 +4,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3Icon,
+  EyeIcon,
   InboxIcon,
   SearchIcon,
   StethoscopeIcon,
   UserCheckIcon,
-  EyeIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
@@ -57,15 +57,15 @@ export const Route = createFileRoute("/admin/doc-requests/")({
 });
 
 interface PendingDoctor {
-  userId: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  imageUrl: string | null;
   bio: string | null;
-  displayName: string | null;
   completeness: number;
+  displayName: string | null;
+  email: string | null;
+  imageUrl: string | null;
+  name: string;
   permanent: boolean;
+  phone: string | null;
+  userId: string;
 }
 
 function AdminDocRequestsRoute() {
@@ -261,8 +261,8 @@ function AdminDocRequestsRoute() {
         {rows.length > 0 ? (
           <div className="flex items-center justify-between pt-4">
             <p className="text-foreground/60 text-sm">
-              Page {data?.page ?? search.page} &middot;{" "}
-              {data?.totalCount ?? 0} total
+              Page {data?.page ?? search.page} &middot; {data?.totalCount ?? 0}{" "}
+              total
             </p>
             <div className="flex gap-2">
               <Button

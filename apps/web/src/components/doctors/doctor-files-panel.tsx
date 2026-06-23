@@ -9,7 +9,7 @@ import {
   ToggleButtonGroup,
   toast,
 } from "@heroui/react";
-import { TriangleAlert, Upload } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -265,8 +265,7 @@ export function DoctorFilesPanel({
           </Alert.Content>
         </Alert>
       ) : files.length === 0 ? (
-        <div>
-        </div>
+        <div />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {files.map((file) => (

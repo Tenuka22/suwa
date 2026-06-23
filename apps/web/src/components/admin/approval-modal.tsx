@@ -5,15 +5,15 @@ import { useEffect, useState } from "react";
 import { orpc } from "@/utils/orpc";
 
 interface PendingDoctor {
-  userId: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  imageUrl: string | null;
   bio: string | null;
-  displayName: string | null;
   completeness: number;
+  displayName: string | null;
+  email: string | null;
+  imageUrl: string | null;
+  name: string;
   permanent: boolean;
+  phone: string | null;
+  userId: string;
 }
 
 interface ApprovalModalProps {

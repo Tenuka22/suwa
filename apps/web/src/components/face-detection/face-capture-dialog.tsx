@@ -385,7 +385,6 @@ export function FaceCaptureDialog({
 
               {status !== "loading-model" && !cameraError && (
                 <>
-
                   {status !== "success" && (
                     <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                       <div className="mb-1 flex items-center justify-between">

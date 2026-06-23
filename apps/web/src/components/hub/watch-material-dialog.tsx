@@ -199,8 +199,8 @@ export function WatchMaterialDialog({
             <DialogBody
               error={error}
               fileUrl={fileUrl}
-              isVideo={isVideo}
               isLoading={isLoading}
+              isVideo={isVideo}
               material={material}
             />
           </Modal.Body>

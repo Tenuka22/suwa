@@ -1,25 +1,15 @@
-import {
-  Button,
-  Chip,
-  cn,
-  Input,
-  Label,
-  Modal,
-  Separator,
-  TextArea,
-} from "@heroui/react";
+import { Button, Chip, Input, Label, Modal, Separator, TextArea } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  CheckIcon,
-  ClockIcon,
-  CoinsIcon,
-  PackageIcon,
-  PlusIcon,
-  StarIcon,
-} from "lucide-react";
+import { CoinsIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
+import {
+  DoctorPlanCard,
+  DoctorPlansChart,
+  DoctorPlansStats,
+  EmptyState,
+} from "@/components/doctors";
 import { BodyText, PageTitle } from "@/components/typography";
 import { notify } from "@/lib/notify";
 import { orpc } from "@/utils/orpc";
@@ -114,10 +104,11 @@ function CreatePlanDialog() {
                     Plan name <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    className={cn(
-                      hasNameError &&
-                        "border-destructive/70 ring-destructive/30"
-                    )}
+                    className={
+                      hasNameError
+                        ? "border-destructive/70 ring-destructive/30"
+                        : ""
+                    }
                     id="plan-name"
                     onChange={(e) => setName(e.target.value)}
                     value={name}
@@ -144,10 +135,11 @@ function CreatePlanDialog() {
                       Price (cents) <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      className={cn(
-                        hasPriceError &&
-                          "border-destructive/70 ring-destructive/30"
-                      )}
+                      className={
+                        hasPriceError
+                          ? "border-destructive/70 ring-destructive/30"
+                          : ""
+                      }
                       id="price-cents"
                       min="100"
                       onChange={(e) => setPriceCents(e.target.value)}
@@ -163,14 +155,14 @@ function CreatePlanDialog() {
 
                   <div className="grid gap-2">
                     <Label htmlFor="duration">
-                      Duration minutes{" "}
-                      <span className="text-destructive">*</span>
+                      Duration minutes <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      className={cn(
-                        hasDurationError &&
-                          "border-destructive/70 ring-destructive/30"
-                      )}
+                      className={
+                        hasDurationError
+                          ? "border-destructive/70 ring-destructive/30"
+                          : ""
+                      }
                       id="duration"
                       min="60"
                       onChange={(e) => setDurationMinutes(e.target.value)}
@@ -216,24 +208,6 @@ function CreatePlanDialog() {
   );
 }
 
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof PackageIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-foreground/50" />
-      <span className="font-medium text-sm tabular-nums">{value}</span>
-      <span className="text-foreground/60 text-sm">{label}</span>
-    </div>
-  );
-}
-
 export const Route = createFileRoute("/doctor/plans")({
   loaderDeps: () => ({}),
   loader: async ({ context }) => {
@@ -267,57 +241,70 @@ function DoctorPlansRoute() {
     return { ...plan, parsedFeatures };
   });
 
+  const chartData = parsedPlans.map((plan) => ({
+    name: plan.name,
+    price: plan.priceCents / 100,
+    duration: plan.durationMinutes,
+  }));
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <h1 className="font-light text-2xl tracking-tight">
-              Session plans
-            </h1>
-            <Chip color="accent" variant="soft">
-              <CoinsIcon className="size-3" />
-              Plans dashboard
-            </Chip>
-          </div>
-
-          <BodyText className="max-w-2xl">
-            Manage your session offerings and pricing at a glance. Review plan
-            details, compare pricing, and see which plan is the default for new
-            patients.
-          </BodyText>
+      <div>
+        <div className="flex items-center gap-3">
+          <PageTitle>Session plans</PageTitle>
+          <Chip color="accent" variant="soft">
+            <CoinsIcon className="size-3" />
+            Plans dashboard
+          </Chip>
         </div>
+        <BodyText className="max-w-2xl">
+          Manage your session offerings and pricing at a glance. Review plan
+          details, compare pricing, and see which plan is the default for new
+          patients.
+        </BodyText>
       </div>
 
       <Separator />
 
-      <section className="flex flex-col gap-2 px-6">
+      <section className="flex flex-col gap-2">
         <PageTitle>Overview</PageTitle>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <StatItem
-            icon={PackageIcon}
-            label="total plans"
-            value={totalPlans.toString()}
-          />
-          <StatItem
-            icon={CoinsIcon}
-            label="avg price"
-            value={`$${(averagePriceCents / 100).toFixed(2)}`}
-          />
-          <StatItem
-            icon={ClockIcon}
-            label="avg minutes"
-            value={averageDurationMinutes.toString()}
-          />
-          <StatItem
-            icon={StarIcon}
-            label="default"
-            value={defaultPlanName ?? "None"}
-          />
-        </div>
+        <DoctorPlansStats
+          averageDurationMinutes={averageDurationMinutes}
+          averagePriceCents={averagePriceCents}
+          defaultPlanName={defaultPlanName}
+          totalPlans={totalPlans}
+        />
       </section>
+
+      {parsedPlans.length > 1 && (
+        <>
+          <Separator />
+
+          <section className="flex flex-col gap-3">
+            <div>
+              <PageTitle>Plan comparison</PageTitle>
+              <p className="font-light text-foreground/60 text-sm">
+                Pricing and duration across all plans
+              </p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <DoctorPlansChart
+                data={chartData.map((d) => ({ name: d.name, value: d.price }))}
+                metric="$"
+                title="Price per plan"
+              />
+              <DoctorPlansChart
+                data={chartData.map((d) => ({
+                  name: d.name,
+                  value: d.duration,
+                }))}
+                metric="min"
+                title="Duration per plan"
+              />
+            </div>
+          </section>
+        </>
+      )}
 
       <Separator />
 
@@ -332,111 +319,19 @@ function DoctorPlansRoute() {
           <CreatePlanDialog />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-border px-4 py-3">
-            <p className="font-light text-foreground/60 text-xs uppercase tracking-wider">
-              Total plans
-            </p>
-            <p className="mt-1 font-medium text-2xl tabular-nums">
-              {totalPlans}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border px-4 py-3">
-            <p className="font-light text-foreground/60 text-xs uppercase tracking-wider">
-              Default plan
-            </p>
-            <p className="mt-1 font-medium text-2xl tabular-nums">
-              {defaultPlanName ?? "None"}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section className="flex flex-col gap-3">
-        <div>
-          <PageTitle>Plan comparison</PageTitle>
-          <p className="font-light text-foreground/60 text-sm">
-            A compact comparison of pricing and minutes
-          </p>
-        </div>
-
         {parsedPlans.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {parsedPlans.map((plan) => (
-              <div
-                className={`rounded-xl border border-border px-4 py-3 ${
-                  plan.isDefault ? "ring-1 ring-primary/20" : ""
-                }`}
-                key={plan.id}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-light text-sm">{plan.name}</span>
-                    {plan.isDefault && (
-                      <Chip
-                        className="border-primary/20 bg-primary/10 text-[10px] text-primary"
-                        variant="tertiary"
-                      >
-                        Default
-                      </Chip>
-                    )}
-                  </div>
-                </div>
-
-                {plan.description && (
-                  <p className="mt-1 font-light text-foreground/60 text-xs leading-relaxed">
-                    {plan.description}
-                  </p>
-                )}
-
-                <div className="mt-3 flex items-center gap-4 border-border/50 border-t pt-3">
-                  <div className="flex items-center gap-1.5">
-                    <CoinsIcon className="size-4 text-foreground/50" />
-                    <span className="font-medium text-lg">
-                      ${(plan.priceCents / 100).toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <ClockIcon className="size-4 text-foreground/50" />
-                    <span className="font-medium text-lg">
-                      {plan.durationMinutes}
-                    </span>
-                    <span className="text-foreground/60 text-xs">min</span>
-                  </div>
-                </div>
-
-                {plan.parsedFeatures.length > 0 && (
-                  <div className="mt-3 flex flex-col gap-1.5">
-                    {plan.parsedFeatures.slice(0, 3).map((feature) => (
-                      <div className="flex items-start gap-2" key={feature}>
-                        <CheckIcon className="mt-0.5 size-3 shrink-0 text-emerald-500" />
-                        <span className="text-foreground/60 text-xs">
-                          {feature}
-                        </span>
-                      </div>
-                    ))}
-                    {plan.parsedFeatures.length > 3 && (
-                      <p className="pl-5 text-[10px] text-foreground/60">
-                        +{plan.parsedFeatures.length - 3} more
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
+              <DoctorPlanCard key={plan.id} plan={plan} />
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <p className="font-light text-sm">No plans configured</p>
-            <p className="max-w-xs font-light text-foreground/60 text-sm">
-              Create your first session plan to start offering consultations to
-              patients.
-            </p>
+          <EmptyState
+            description="Create your first session plan to start offering consultations to patients."
+            title="No plans configured"
+          >
             <CreatePlanDialog />
-          </div>
+          </EmptyState>
         )}
       </section>
     </div>

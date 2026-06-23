@@ -11,9 +11,9 @@ import {
   DoctorProfileStats,
 } from "@/components/doctors";
 import { FaceCaptureDialog } from "@/components/face-detection";
+import { PageTitle } from "@/components/typography";
 import { useDoctorFiles } from "@/hooks/doctor/use-doctor-files";
 import { useDoctorMaterialPreviewUrl } from "@/hooks/doctor/use-doctor-material-preview";
-import { PageTitle } from "@/components/typography";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor/profile")({
@@ -75,57 +75,54 @@ function DoctorProfileRoute() {
         name={name}
         portraitUrl={portraitUrl}
       />
-        <Card
-          className="w-full"
-        >
-          <Card.Content className="flex items-center justify-between flex-row">
-            <div className="flex items-center gap-2">
-              {hasFace ? (
-                <div className="flex size-10 items-center justify-center rounded-full bg-green-500/20">
-                  <CheckCircle2 className="size-5 text-green-500" />
-                </div>
-              ) : (
-                <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
-                  <ShieldAlert className="size-5 text-amber-500" />
-                </div>
-              )}
-              <div>
-                <p className="font-medium text-sm">
-                  {hasFace
-                    ? "Face verification completed"
-                    : "Face verification required"}
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  {hasFace
-                    ? "Your identity has been verified. You can access all features."
-                    : "You must complete face verification before using the platform."}
-                </p>
+      <Card className="w-full">
+        <Card.Content className="flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
+            {hasFace ? (
+              <div className="flex size-10 items-center justify-center rounded-full bg-green-500/20">
+                <CheckCircle2 className="size-5 text-green-500" />
               </div>
+            ) : (
+              <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
+                <ShieldAlert className="size-5 text-amber-500" />
+              </div>
+            )}
+            <div>
+              <p className="font-medium text-sm">
+                {hasFace
+                  ? "Face verification completed"
+                  : "Face verification required"}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {hasFace
+                  ? "Your identity has been verified. You can access all features."
+                  : "You must complete face verification before using the platform."}
+              </p>
             </div>
-            <Button
-              onPress={() => setFaceDialogOpen(true)}
-              size="sm"
-              variant={hasFace ? "outline" : "primary"}
-            >
-              {hasFace ? (
-                <UserCheck className="size-4" />
-              ) : (
-                <Camera className="size-4" />
-              )}
-              {hasFace ? "View Again" : "Verify Now"}
-            </Button>
-          </Card.Content>
-        </Card>
+          </div>
+          <Button
+            onPress={() => setFaceDialogOpen(true)}
+            size="sm"
+            variant={hasFace ? "outline" : "primary"}
+          >
+            {hasFace ? (
+              <UserCheck className="size-4" />
+            ) : (
+              <Camera className="size-4" />
+            )}
+            {hasFace ? "View Again" : "Verify Now"}
+          </Button>
+        </Card.Content>
+      </Card>
 
-
-        <DoctorProfileStats stats={stats} />
+      <DoctorProfileStats stats={stats} />
 
       <Separator />
 
       <section className="flex flex-col gap-2">
         <div>
           <PageTitle>Profile information</PageTitle>
-          <p className="font-light text-muted-foreground text-md">
+          <p className="font-light text-md text-muted-foreground">
             Your professional details visible to patients
           </p>
         </div>

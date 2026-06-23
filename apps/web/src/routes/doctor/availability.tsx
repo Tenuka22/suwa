@@ -9,27 +9,14 @@ import {
 } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  CalendarDaysIcon,
-  CheckIcon,
-  Clock3Icon,
-  ClockIcon,
-  InboxIcon,
-  Loader2,
-  Trash2,
-  XIcon,
-} from "lucide-react";
+import { CalendarDaysIcon, CheckIcon, ClockIcon, Loader2, Trash2, XIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
+import {
+  DoctorAvailabilityChart,
+  DoctorAvailabilityStats,
+  EmptyState,
+} from "@/components/doctors";
 import { BodyText, PageTitle } from "@/components/typography";
 import {
   useListDoctorAffiliations,
@@ -69,24 +56,6 @@ const timeToMinutes = (time: string) => {
 
 const getHoursForSlot = (slot: AvailabilitySlot) =>
   (timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime)) / 60;
-
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof CalendarDaysIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-foreground/60" />
-      <span className="font-medium text-sm tabular-nums">{value}</span>
-      <span className="text-foreground/60 text-sm">{label}</span>
-    </div>
-  );
-}
 
 export const Route = createFileRoute("/doctor/availability")({
   loaderDeps: () => ({}),
@@ -361,92 +330,73 @@ function DoctorAvailabilityRoute() {
     .filter((slot) => slot.isAvailable)
     .reduce((acc, slot) => acc + getHoursForSlot(slot), 0);
 
-  const pendingSessions = (availability as any)?.pendingSessions ?? [];
-
   const chartData =
     stats?.hoursByDay.map((d: { day: number; hours: number }) => ({
       day: DAYS[d.day]?.slice(0, 3) ?? "",
       hours: d.hours,
     })) ?? [];
 
+  const hasChartData = chartData.some((d: { hours: number }) => d.hours > 0);
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <h1 className="font-light text-2xl tracking-tight">
-              {isTenantMode
-                ? `Availability at ${currentAffiliation?.tenantName ?? "Hospital"}`
-                : "Weekly availability"}
-            </h1>
-            <Chip color="accent" variant="soft">
-              <CalendarDaysIcon className="size-3" />
-              {isTenantMode
-                ? (currentAffiliation?.tenantName ?? "Hospital")
-                : "Schedule overview"}
-            </Chip>
-          </div>
-
-          <BodyText className="max-w-2xl">
+      <div>
+        <div className="flex items-center gap-3">
+          <PageTitle>
             {isTenantMode
-              ? `Set your working hours for ${currentAffiliation?.tenantName ?? "this hospital"} so the facility knows when you're available.`
-              : "Set your weekly working hours so patients can book sessions that fit your schedule. Days and slots can be individually toggled."}
-          </BodyText>
-
-          {affiliations.length > 0 && (
-            <Select
-              onSelectionChange={(id) => handleTenantChange(id ?? "")}
-              selectedKey={selectedTenantId}
-            >
-              <Select.Trigger className="w-[260px]">
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  <ListBox.Item id="">My general availability</ListBox.Item>
-                  {affiliations.map((aff) => (
-                    <ListBox.Item id={aff.tenantId} key={aff.id}>
-                      {aff.tenantName}
-                    </ListBox.Item>
-                  ))}
-                </ListBox>
-              </Select.Popover>
-            </Select>
-          )}
+              ? `Availability at ${currentAffiliation?.tenantName ?? "Hospital"}`
+              : "Weekly availability"}
+          </PageTitle>
+          <Chip color="accent" variant="soft">
+            <CalendarDaysIcon className="size-3" />
+            {isTenantMode
+              ? (currentAffiliation?.tenantName ?? "Hospital")
+              : "Schedule overview"}
+          </Chip>
         </div>
+
+        <BodyText className="max-w-2xl">
+          {isTenantMode
+            ? `Set your working hours for ${currentAffiliation?.tenantName ?? "this hospital"} so the facility knows when you're available.`
+            : "Set your weekly working hours so patients can book sessions that fit your schedule. Days and slots can be individually toggled."}
+        </BodyText>
+
+        {affiliations.length > 0 && (
+          <Select
+            className="mt-3"
+            onSelectionChange={(id) => handleTenantChange(id ?? "")}
+            selectedKey={selectedTenantId}
+          >
+            <Select.Trigger className="w-[260px]">
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="">My general availability</ListBox.Item>
+                {affiliations.map((aff) => (
+                  <ListBox.Item id={aff.tenantId} key={aff.id}>
+                    {aff.tenantName}
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+        )}
       </div>
 
       <Separator />
 
-      <section className="flex flex-col gap-2 px-6">
+      <section className="flex flex-col gap-2">
         <PageTitle>Overview</PageTitle>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <StatItem
-            icon={CalendarDaysIcon}
-            label="active days"
-            value={`${availableDays.size} of 7`}
-          />
-          <StatItem
-            icon={Clock3Icon}
-            label="weekly hours"
-            value={totalHours.toFixed(1)}
-          />
-          <StatItem
-            icon={ClockIcon}
-            label="total slots"
-            value={slots.filter((s) => s.isAvailable).length.toString()}
-          />
-          <StatItem
-            icon={InboxIcon}
-            label="pending"
-            value={pendingSessions.length.toString()}
-          />
-        </div>
+        <DoctorAvailabilityStats
+          activeDays={availableDays.size}
+          pendingSessions={0}
+          slots={slots.filter((s) => s.isAvailable).length}
+          totalHours={totalHours}
+        />
       </section>
 
-      {chartData.some((d: { hours: number }) => d.hours > 0) && (
+      {hasChartData && (
         <>
           <Separator />
 
@@ -457,63 +407,7 @@ function DoctorAvailabilityRoute() {
                 Available hours per day of the week
               </p>
             </div>
-
-            <div className="h-[300px] w-full">
-              <BarChart
-                accessibilityLayer
-                data={chartData}
-                height={300}
-                margin={{ left: 8, right: 8, top: 20 }}
-                width="100%"
-              >
-                <CartesianGrid vertical={false} />
-
-                <XAxis
-                  axisLine={false}
-                  dataKey="day"
-                  tickLine={false}
-                  tickMargin={10}
-                />
-
-                <YAxis
-                  axisLine={false}
-                  tickFormatter={(value: number) => `${value}h`}
-                  tickLine={false}
-                  tickMargin={10}
-                />
-
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (!(active && payload?.length)) {
-                      return null;
-                    }
-                    return (
-                      <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
-                        <p className="text-sm">{`${Number(payload[0]?.value).toFixed(1)} hours`}</p>
-                      </div>
-                    );
-                  }}
-                  cursor={false}
-                />
-
-                <Bar
-                  dataKey="hours"
-                  fill="var(--primary)"
-                  fillOpacity={0.2}
-                  radius={[6, 6, 0, 0]}
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                >
-                  <LabelList
-                    dataKey="hours"
-                    fill="var(--primary)"
-                    fontSize={11}
-                    offset={4}
-                    position="top"
-                  />
-                </Bar>
-              </BarChart>
-            </div>
+            <DoctorAvailabilityChart data={chartData} />
           </section>
         </>
       )}
@@ -615,14 +509,14 @@ function DoctorAvailabilityRoute() {
                   </div>
                 </div>
 
-                <Separator className="my-3" />
+                <div className="my-3 h-px bg-border" />
 
                 <div className="flex flex-col gap-3">
                   {daySlots.length === 0 ? (
-                    <div className="rounded-lg border border-border border-dashed bg-foreground/5 px-4 py-6 text-center font-light text-foreground/60 text-xs">
-                      No slots yet &mdash; tap &quot;Add Slot&quot; to set your
-                      available hours for {dayName}.
-                    </div>
+                    <EmptyState
+                      description={`Tap "Add Slot" to set your available hours for ${dayName}.`}
+                      title="No slots yet"
+                    />
                   ) : (
                     <div className="flex flex-col gap-3">
                       {daySlots.map((slot, slotOffset) => {

@@ -82,9 +82,19 @@ export const saveDoctorProfileRoute = protectedProcedure
     };
 
     const OPTIONAL_FIELDS = [
-      "displayName", "headline", "bio", "licenseNumber", "location",
-      "placeName", "education", "specialties", "languages",
-      "consultationModes", "focusAreas", "approach", "experienceStartYear",
+      "displayName",
+      "headline",
+      "bio",
+      "licenseNumber",
+      "location",
+      "placeName",
+      "education",
+      "specialties",
+      "languages",
+      "consultationModes",
+      "focusAreas",
+      "approach",
+      "experienceStartYear",
     ] as const;
     let filled = 0;
     for (const field of OPTIONAL_FIELDS) {
@@ -99,7 +109,8 @@ export const saveDoctorProfileRoute = protectedProcedure
     const completeness = Math.round((filled / OPTIONAL_FIELDS.length) * 100);
     const hasDisplayName = !!profile.displayName;
     const hasFaceEmbedding = !!profile.faceEmbeddingKvKey;
-    const meetsRequirements = hasDisplayName && completeness >= 15 && hasFaceEmbedding;
+    const meetsRequirements =
+      hasDisplayName && completeness >= 15 && hasFaceEmbedding;
 
     if (meetsRequirements && existingProfile?.permanent !== true) {
       await context.db

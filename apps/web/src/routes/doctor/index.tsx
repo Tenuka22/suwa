@@ -14,23 +14,16 @@ import { format } from "date-fns";
 import {
   ArrowRightIcon,
   CalendarClockIcon,
-  CalendarDaysIcon,
-  Clock3Icon,
-  DollarSignIcon,
-  InboxIcon,
   ListChecksIcon,
   SearchIcon,
 } from "lucide-react";
 import { useState } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
+import {
+  DoctorDashboardStats,
+  DoctorEarningsChart,
+  EmptyState,
+} from "@/components/doctors";
 import { SessionStatusBadge } from "@/components/session-status-badge";
 import { DoctorHospitalAffiliations } from "@/components/tenant/doctor-hospital-affiliations";
 import { BodyText, PageTitle } from "@/components/typography";
@@ -43,24 +36,6 @@ interface SessionItem {
   patientId: string;
   startAt: string;
   status: string;
-}
-
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof CalendarDaysIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-foreground/50" />
-      <span className="font-medium text-sm tabular-nums">{value}</span>
-      <span className="text-foreground/60 text-sm">{label}</span>
-    </div>
-  );
 }
 
 function DashboardSkeleton() {
@@ -159,85 +134,61 @@ function DoctorDashboardRoute() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
+      <div className="flex items-center gap-5">
+        <Avatar className="size-16" size="lg">
+          <Avatar.Fallback className="font-light text-lg">
+            {initials}
+          </Avatar.Fallback>
+        </Avatar>
 
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex items-center gap-5">
-          <Avatar className="size-16" size="lg">
-            <Avatar.Fallback className="font-light text-lg">
-              {initials}
-            </Avatar.Fallback>
-          </Avatar>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-light text-2xl tracking-tight">
-                Welcome back, {name}
-              </h1>
-              <Chip color="accent" variant="soft">
-                <CalendarDaysIcon className="size-3" />
-                Doctor dashboard
-              </Chip>
-            </div>
-
-            <BodyText className="max-w-2xl">
-              Monitor patient requests, manage upcoming appointments, track
-              earnings, and stay on top of your schedule.
-            </BodyText>
+        <div className="flex-1 pb-2">
+          <div className="flex items-center gap-3">
+            <PageTitle>Welcome back, {name}</PageTitle>
+            <Chip color="accent" variant="soft">
+              Doctor dashboard
+            </Chip>
           </div>
 
-          <div className="flex items-center gap-2 pb-2">
-            <Button
-              onPress={() => navigate({ to: "/doctor/availability" })}
-              size="sm"
-              variant="outline"
-            >
-              <CalendarClockIcon className="size-4" />
-              Availability
-            </Button>
-            <Button
-              onPress={() => navigate({ to: "/doctor/sessions" })}
-              size="sm"
-            >
-              <ListChecksIcon className="size-4" />
-              All sessions
-            </Button>
-          </div>
+          <BodyText className="max-w-2xl">
+            Monitor patient requests, manage upcoming appointments, track
+            earnings, and stay on top of your schedule.
+          </BodyText>
+        </div>
+
+        <div className="flex items-center gap-2 pb-2">
+          <Button
+            onPress={() => navigate({ to: "/doctor/availability" })}
+            size="sm"
+            variant="outline"
+          >
+            <CalendarClockIcon className="size-4" />
+            Availability
+          </Button>
+          <Button
+            onPress={() => navigate({ to: "/doctor/sessions" })}
+            size="sm"
+          >
+            <ListChecksIcon className="size-4" />
+            All sessions
+          </Button>
         </div>
       </div>
 
       <Separator />
 
-      <section className="flex flex-col gap-2 px-6">
+      <section className="flex flex-col gap-2">
         <PageTitle>Overview</PageTitle>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <StatItem
-            icon={CalendarDaysIcon}
-            label="total sessions"
-            value={totalSessions.toString()}
-          />
-          <StatItem
-            icon={DollarSignIcon}
-            label="earned"
-            value={`$${totalEarned.toFixed(2)}`}
-          />
-          <StatItem
-            icon={Clock3Icon}
-            label="upcoming"
-            value={upcomingSessions.toString()}
-          />
-          <StatItem
-            icon={InboxIcon}
-            label="pending"
-            value={pendingSessions.length.toString()}
-          />
-          {pendingSessions.length > 0 && (
-            <Chip color="warning" variant="soft">
-              <InboxIcon className="size-3" />
-              {pendingSessions.length} awaiting review
-            </Chip>
-          )}
-        </div>
+        <DoctorDashboardStats
+          earned={totalEarned}
+          pendingSessions={pendingSessions.length}
+          totalSessions={totalSessions}
+          upcomingSessions={upcomingSessions}
+        />
+        {pendingSessions.length > 0 && (
+          <Chip className="self-start" color="warning" variant="soft">
+            {pendingSessions.length} awaiting review
+          </Chip>
+        )}
       </section>
 
       <Separator />
@@ -290,64 +241,13 @@ function DoctorDashboardRoute() {
                 Monthly income over the last six months
               </p>
             </div>
-
             {earningsTrend.length > 0 ? (
-              <div className="h-[340px] w-full">
-                <AreaChart
-                  accessibilityLayer
-                  data={earningsTrend}
-                  height={340}
-                  margin={{ left: 8, right: 8 }}
-                  width="100%"
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    axisLine={false}
-                    dataKey="month"
-                    tickFormatter={(value: string) => {
-                      const [year, month] = value.split("-");
-                      const date = new Date(Number(year), Number(month) - 1);
-                      return format(date, "MMM");
-                    }}
-                    tickLine={false}
-                    tickMargin={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickFormatter={(value: number) => `$${value.toFixed(0)}`}
-                    tickLine={false}
-                    tickMargin={10}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (!(active && payload?.length)) {
-                        return null;
-                      }
-                      return (
-                        <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
-                          <p className="text-sm">{`$${Number(payload[0]?.value).toFixed(2)}`}</p>
-                        </div>
-                      );
-                    }}
-                    cursor={false}
-                  />
-                  <Area
-                    dataKey="earnings"
-                    fill="var(--primary)"
-                    fillOpacity={0.15}
-                    stroke="var(--primary)"
-                    strokeWidth={2}
-                    type="monotone"
-                  />
-                </AreaChart>
-              </div>
+              <DoctorEarningsChart data={earningsTrend} />
             ) : (
-              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                <p className="font-light text-sm">No earnings data yet</p>
-                <p className="max-w-xs font-light text-foreground/60 text-sm">
-                  Earnings analytics will appear once sessions are completed.
-                </p>
-              </div>
+              <EmptyState
+                description="Earnings analytics will appear once sessions are completed."
+                title="No earnings data yet"
+              />
             )}
           </section>
 
@@ -368,13 +268,11 @@ function DoctorDashboardRoute() {
                 <ArrowRightIcon />
               </Button>
             </div>
-
             {pendingSessions.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {pendingSessions.map((s) => {
                   const start = new Date(s.startAt);
                   const end = new Date(s.endAt);
-
                   return (
                     <div
                       className="flex items-start justify-between gap-4 rounded-xl border border-border px-4 py-3"
@@ -397,12 +295,10 @@ function DoctorDashboardRoute() {
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                <p className="font-light text-sm">No pending requests</p>
-                <p className="max-w-xs font-light text-foreground/60 text-sm">
-                  New patient requests will appear here.
-                </p>
-              </div>
+              <EmptyState
+                description="New patient requests will appear here."
+                title="No pending requests"
+              />
             )}
           </section>
 
@@ -423,18 +319,15 @@ function DoctorDashboardRoute() {
                 <ArrowRightIcon />
               </Button>
             </div>
-
             {recentSessions.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {recentSessions.map((s) => {
                   const start = new Date(s.startAt);
                   const end = new Date(s.endAt);
-
                   const sessionValue =
                     s.doctorEarnedCents == null
                       ? "--"
                       : `$${(s.doctorEarnedCents / 100).toFixed(2)}`;
-
                   return (
                     <div
                       className="flex items-start justify-between gap-4 rounded-xl border border-border px-4 py-3"
@@ -462,12 +355,10 @@ function DoctorDashboardRoute() {
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                <p className="font-light text-sm">No recent activity</p>
-                <p className="max-w-xs font-light text-foreground/60 text-sm">
-                  Your recent sessions and earnings will appear here.
-                </p>
-              </div>
+              <EmptyState
+                description="Your recent sessions and earnings will appear here."
+                title="No recent activity"
+              />
             )}
           </section>
         </Tabs.Panel>
@@ -483,7 +374,6 @@ function DoctorDashboardRoute() {
                 value={searchQuery}
               />
             </div>
-
             <ToggleButtonGroup
               isDetached
               onSelectionChange={(keys) => {
@@ -500,7 +390,6 @@ function DoctorDashboardRoute() {
               <ToggleButton id="rescheduled">Rescheduled</ToggleButton>
             </ToggleButtonGroup>
           </div>
-
           {filteredSessions.filter(
             (s) => s.status === "requested" || s.status === "rescheduled"
           ).length > 0 ? (
@@ -512,7 +401,6 @@ function DoctorDashboardRoute() {
                 .map((s) => {
                   const start = new Date(s.startAt);
                   const end = new Date(s.endAt);
-
                   return (
                     <div
                       className="flex items-start justify-between gap-4 rounded-xl border border-border px-4 py-3"
@@ -535,16 +423,14 @@ function DoctorDashboardRoute() {
                 })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-              <p className="font-light text-sm">
-                {searchQuery ? "No results found" : "All caught up"}
-              </p>
-              <p className="max-w-sm font-light text-foreground/60 text-sm">
-                {searchQuery
+            <EmptyState
+              description={
+                searchQuery
                   ? "Try a different search term or clear your filters."
-                  : "All patient requests have been reviewed. New pending requests will appear here."}
-              </p>
-            </div>
+                  : "All patient requests have been reviewed. New pending requests will appear here."
+              }
+              title={searchQuery ? "No results found" : "All caught up"}
+            />
           )}
         </Tabs.Panel>
 
@@ -556,7 +442,6 @@ function DoctorDashboardRoute() {
                 .map((s) => {
                   const start = new Date(s.startAt);
                   const end = new Date(s.endAt);
-
                   return (
                     <div
                       className="rounded-xl border border-border px-4 py-3"
@@ -571,7 +456,7 @@ function DoctorDashboardRoute() {
                             {format(start, "EEE, MMM d")}
                           </p>
                           <p className="text-foreground/60 text-xs">
-                            {format(start, "h:mm a")} - {format(end, "h:mm a")}
+                            {format(start, "h:mm a")} -{format(end, "h:mm a")}
                           </p>
                         </div>
                         <SessionStatusBadge status={s.status} />
@@ -581,13 +466,10 @@ function DoctorDashboardRoute() {
                 })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-              <p className="font-light text-sm">No upcoming sessions</p>
-              <p className="max-w-sm font-light text-foreground/60 text-sm">
-                Confirmed appointments will appear here once patients book
-                sessions with you.
-              </p>
-            </div>
+            <EmptyState
+              description="Confirmed appointments will appear here once patients book sessions with you."
+              title="No upcoming sessions"
+            />
           )}
         </Tabs.Panel>
 
@@ -599,12 +481,10 @@ function DoctorDashboardRoute() {
                 .map((s) => {
                   const start = new Date(s.startAt);
                   const end = new Date(s.endAt);
-
                   const sessionValue =
                     s.doctorEarnedCents == null
                       ? "--"
                       : `$${(s.doctorEarnedCents / 100).toFixed(2)}`;
-
                   return (
                     <div
                       className="flex items-start justify-between gap-4 rounded-xl border border-border px-4 py-3"
@@ -632,13 +512,10 @@ function DoctorDashboardRoute() {
                 })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-              <p className="font-light text-sm">No completed sessions</p>
-              <p className="max-w-sm font-light text-foreground/60 text-sm">
-                Completed sessions will appear here with their earnings
-                breakdown.
-              </p>
-            </div>
+            <EmptyState
+              description="Completed sessions will appear here with their earnings breakdown."
+              title="No completed sessions"
+            />
           )}
         </Tabs.Panel>
       </Tabs>

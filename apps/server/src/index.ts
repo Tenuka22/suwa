@@ -124,7 +124,10 @@ app.get("/seed", async (c) => {
     const readAsset = async (filename: string) => {
       try {
         const buf = await readFile(join(seedAssetsDir, filename));
-        return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+        return buf.buffer.slice(
+          buf.byteOffset,
+          buf.byteOffset + buf.byteLength
+        ) as ArrayBuffer;
       } catch {
         return null;
       }

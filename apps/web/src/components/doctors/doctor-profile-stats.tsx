@@ -63,9 +63,11 @@ export function DoctorProfileStats({ stats }: { stats?: ProfileStats | null }) {
       {items.map((item) => (
         <Card className="border border-border/50 shadow-none" key={item.label}>
           <Card.Content className="flex flex-col gap-2">
-            <div className="flex flex-row gap-2 items-center justify-start">
-            <item.icon className="size-5 text-muted-foreground opacity-60" />
-            <p className="font-semibold text-2xl tabular-nums">{item.value}</p>
+            <div className="flex flex-row items-center justify-start gap-2">
+              <item.icon className="size-5 text-muted-foreground opacity-60" />
+              <p className="font-semibold text-2xl tabular-nums">
+                {item.value}
+              </p>
             </div>
             <p className="text-muted-foreground text-xs">{item.label}</p>
           </Card.Content>

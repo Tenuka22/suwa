@@ -1,4 +1,11 @@
-import { Avatar, Button, Card, Chip, Label, ProgressCircle } from "@heroui/react";
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  Label,
+  ProgressCircle,
+} from "@heroui/react";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import { useState } from "react";
@@ -38,18 +45,18 @@ export function DoctorProfileHeader({
     <Card>
       <Card.Content className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="relative shrink-0">
-          <Avatar
-            size="lg"
-            >
-              {portraitUrl ? (
-                <Avatar.Image src={portraitUrl} />
-              ) : (
-                <Avatar.Image src={`https://api.dicebear.com/9.x/shapes/svg?seed=${name}`} />
-              )}
-              <Avatar.Fallback className="font-semibold text-2xl">
-                {initials}
-              </Avatar.Fallback>
-            </Avatar>
+          <Avatar size="lg">
+            {portraitUrl ? (
+              <Avatar.Image src={portraitUrl} />
+            ) : (
+              <Avatar.Image
+                src={`https://api.dicebear.com/9.x/shapes/svg?seed=${name}`}
+              />
+            )}
+            <Avatar.Fallback className="font-semibold text-2xl">
+              {initials}
+            </Avatar.Fallback>
+          </Avatar>
         </div>
 
         <div className="flex flex-1 flex-col">
@@ -67,7 +74,12 @@ export function DoctorProfileHeader({
             )}
             {isPending ? (
               <Button
-                onPress={() => navigate({ to: "/admin/doc-requests", search: { page: 1, query: "" } })}
+                onPress={() =>
+                  navigate({
+                    to: "/admin/doc-requests",
+                    search: { page: 1, query: "" },
+                  })
+                }
                 size="sm"
                 variant="outline"
               >
@@ -81,7 +93,6 @@ export function DoctorProfileHeader({
             introductory materials.
           </p>
           <div className="flex items-center gap-2 pt-2">
-
             <Chip size="lg">{doctorId}</Chip>
             <Button
               onPress={handleCopyDoctorId}
@@ -94,17 +105,17 @@ export function DoctorProfileHeader({
 
             <div className="flex items-center gap-3">
               <ProgressCircle
-                size="sm"
                 aria-label="Profile completion"
+                size="sm"
                 value={completionPercentage}
               >
-                  <ProgressCircle.Track>
-                    <ProgressCircle.TrackCircle />
-                    <ProgressCircle.FillCircle />
-                  </ProgressCircle.Track>
-                </ProgressCircle>
-              <Label>{ completionPercentage}% Complete</Label>
-              </div>
+                <ProgressCircle.Track>
+                  <ProgressCircle.TrackCircle />
+                  <ProgressCircle.FillCircle />
+                </ProgressCircle.Track>
+              </ProgressCircle>
+              <Label>{completionPercentage}% Complete</Label>
+            </div>
           </div>
         </div>
       </Card.Content>

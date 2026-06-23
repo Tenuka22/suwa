@@ -148,7 +148,7 @@ export function DropzoneFileListItem({
 export function DropzoneRemoveFile({ children }: React.PropsWithChildren) {
   const { removeFile } = useDropzoneContext();
   return (
-    <Button onClick={removeFile} type="button" variant="danger-soft" size="sm">
+    <Button onClick={removeFile} size="sm" type="button" variant="danger-soft">
       {children}
     </Button>
   );
