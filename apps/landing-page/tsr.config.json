@@ -1,4 +1,4 @@
 {
   "target": "react",
-  "routeFileIgnorePattern": "(\\(home\\)|/helpers/|\\.css$)"
+  "routeFileIgnorePattern": "(\\(home\\)|[/\\\\]helpers[/\\\\]|\\.css$)"
 }
