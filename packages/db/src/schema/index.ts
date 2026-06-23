@@ -342,6 +342,16 @@ export type SessionTaskAssignment = typeof sessionTaskAssignments.$inferSelect;
 export type SessionAttendanceEvent =
   typeof sessionAttendanceEvents.$inferSelect;
 export type SessionSnapshot = typeof sessionSnapshots.$inferSelect;
+
+export const sessionSharedData = sqliteTable("session_shared_data", {
+  sessionId: text("session_id").primaryKey(),
+  encryptedData: text("encrypted_data"),
+  patientPublicKey: text("patient_public_key"),
+  doctorPublicKey: text("doctor_public_key"),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
+export type SessionSharedData = typeof sessionSharedData.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 
 export type {

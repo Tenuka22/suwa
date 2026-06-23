@@ -1,15 +1,23 @@
 "use client";
 
 import { useUser } from "@clerk/expo";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
+import { useEffect } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Button } from "@/components/design/ui/button";
 import { Screen } from "@/components/design/ui/screen";
 import { VideoRoom } from "@/components/design/ui/video-room";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
+import {
+  decryptData,
+  deriveSharedKey,
+  encryptData,
+  generateKeyPair,
+  getStoredSecret,
+} from "@/utils/privacy";
 
 export default function AppointmentSessionDetailScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
@@ -39,6 +47,75 @@ export default function AppointmentSessionDetailScreen() {
     }),
     enabled: !!sessionId,
   });
+
+  const doctorKeyQuery = useQuery(
+    orpc.getDoctorPublicKey.queryOptions({
+      input: { sessionId: sessionId ?? "" },
+      enabled: !!sessionId && userRole === "patient",
+      refetchInterval: 5000,
+      meta: { ignoreError: true },
+    })
+  );
+
+  const shareMutation = useMutation(
+    orpc.sharePatientData.mutationOptions({
+      meta: { ignoreError: true },
+    })
+  );
+
+  const profile = profileQuery.data;
+  const hasInfoToShare = profile?.secured && profile?._securedData;
+  const doctorPublicKey = doctorKeyQuery.data?.publicKey;
+
+  useEffect(() => {
+    if (
+      !(hasInfoToShare && sessionId && doctorPublicKey) ||
+      shareMutation.isPending
+    ) {
+      return;
+    }
+
+    getStoredSecret()
+      .then(async (secret) => {
+        if (!(secret && profile?._securedData)) {
+          return;
+        }
+
+        const decrypted = await decryptData(profile._securedData, secret);
+        if (!decrypted) {
+          return;
+        }
+
+        const keyPair = await generateKeyPair();
+        const sessionKey = await deriveSharedKey(
+          keyPair.privateKey,
+          doctorPublicKey
+        );
+        const encrypted = await encryptData(
+          {
+            email: decrypted.email,
+            phone: decrypted.phone,
+            fullName: decrypted.fullName,
+            address: decrypted.address,
+          },
+          sessionKey
+        );
+
+        shareMutation.mutate({
+          sessionId,
+          encryptedData: encrypted,
+          patientPublicKey: keyPair.publicKey,
+        });
+      })
+      .catch(() => undefined);
+  }, [
+    hasInfoToShare,
+    sessionId,
+    doctorPublicKey,
+    shareMutation.isPending,
+    shareMutation.mutate,
+    profile?._securedData,
+  ]);
 
   const timing = useSessionTiming(
     sessionQuery.data?.session.startAt ?? new Date().toISOString(),

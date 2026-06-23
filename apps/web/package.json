@@ -23,6 +23,7 @@
     "@orpc/tanstack-query": "catalog:",
     "@suwa/api": "workspace:*",
     "@suwa/app-info": "workspace:*",
+    "@suwa/crypto": "workspace:*",
     "@suwa/env": "workspace:*",
     "@suwa/pricing": "workspace:*",
     "@tailwindcss/vite": "^4.2.2",

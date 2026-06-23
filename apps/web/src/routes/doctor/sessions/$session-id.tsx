@@ -9,6 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@heroui/react";
+import {
+  decryptUserData,
+  deriveSharedKey,
+  generateKeyPair,
+} from "@suwa/crypto";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Participant } from "livekit-client";
 import {
@@ -18,6 +24,7 @@ import {
   Users as UsersIcon,
   Video,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { VideoRoomWeb } from "@/components/livekit/video-room";
 import { useLiveKitToken } from "@/hooks/queries/doctor";
 import { useLiveKitRoomWeb } from "@/hooks/use-livekit-room";
@@ -99,8 +106,63 @@ function ParticipantCard({
   );
 }
 
+interface SharedPatientInfo {
+  address: string;
+  email: string;
+  fullName: string;
+  phone: string;
+}
+
+function PatientInfoCard({ patientInfo }: { patientInfo: SharedPatientInfo }) {
+  return (
+    <Card className="border-border">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
+            <ShieldCheckIcon className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="font-medium">Patient Info</CardTitle>
+            <CardDescription className="mt-1 text-muted-foreground text-xs">
+              Shared by patient
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3 pt-0">
+        <div className="space-y-2">
+          {patientInfo.fullName && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-muted-foreground">Name</span>
+              <span>{patientInfo.fullName}</span>
+            </div>
+          )}
+          {patientInfo.email && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-muted-foreground">Email</span>
+              <span>{patientInfo.email}</span>
+            </div>
+          )}
+          {patientInfo.phone && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-muted-foreground">Phone</span>
+              <span>{patientInfo.phone}</span>
+            </div>
+          )}
+          {patientInfo.address && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-muted-foreground">Address</span>
+              <span>{patientInfo.address}</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function DoctorSessionDetailRoute() {
-  const { sessionId } = Route.useParams();
+  const { "session-id": sessionId } = Route.useParams();
   const navigate = useNavigate();
   const role = useRole();
   const userRole: "admin" | "doctor" = role === "admin" ? "admin" : "doctor";
@@ -113,6 +175,51 @@ function DoctorSessionDetailRoute() {
     session?.endAt ?? "",
     userRole
   );
+
+  const sharedDataQuery = useQuery(
+    orpc.getSharedPatientData.queryOptions({ input: { sessionId } })
+  );
+  const [patientInfo, setPatientInfo] = useState<SharedPatientInfo | null>(
+    null
+  );
+  const privateKeyRef = useRef<string | null>(null);
+
+  const storeKeyMutation = useMutation(
+    orpc.storeDoctorPublicKey.mutationOptions({
+      meta: { ignoreError: true },
+    })
+  );
+
+  useEffect(() => {
+    generateKeyPair()
+      .then((keyPair) => {
+        privateKeyRef.current = keyPair.privateKey;
+        storeKeyMutation.mutate({
+          sessionId,
+          publicKey: keyPair.publicKey,
+        });
+      })
+      .catch(() => undefined);
+  }, [sessionId, storeKeyMutation.mutate]);
+
+  useEffect(() => {
+    const shared = sharedDataQuery.data;
+    const privateKey = privateKeyRef.current;
+    if (!(shared?.encryptedData && shared?.patientPublicKey && privateKey)) {
+      return;
+    }
+
+    deriveSharedKey(privateKey, shared.patientPublicKey)
+      .then((sessionKey) => decryptUserData(shared.encryptedData, sessionKey))
+      .then((decrypted) => {
+        if (decrypted) {
+          setPatientInfo(decrypted as SharedPatientInfo);
+        }
+      })
+      .catch(() => {
+        setPatientInfo(null);
+      });
+  }, [sharedDataQuery.data]);
 
   if (sessionQuery.isPending) {
     return (
@@ -173,34 +280,7 @@ function DoctorSessionDetailRoute() {
         <div className="flex h-full">
           <div className="min-w-0 flex-1">
             <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between border-b px-6 py-3">
-                <div className="flex items-center gap-3">
-                  <Button
-                    aria-label="Back to sessions"
-                    isIconOnly
-                    onPress={() => navigate({ to: "/doctor/sessions" })}
-                    size="sm"
-                    variant="ghost"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg tracking-tight">
-                        {session.patientId} Session
-                      </span>
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 font-medium text-xs ${getStatusColorClasses(timing.timeStatus)}`}
-                      >
-                        {statusLabel}
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground text-xs">
-                      {sessionId.slice(0, 8)}... &middot;{" "}
-                      {timing.formattedRemaining}
-                    </p>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between px-6 py-3">
                 {timing.timeStatus === "during" && (
                   <Button onPress={handleEndSession} size="sm" variant="ghost">
                     End Session
@@ -357,6 +437,10 @@ function DoctorSessionDetailRoute() {
                   )}
                 </CardContent>
               </Card>
+
+              {patientInfo ? (
+                <PatientInfoCard patientInfo={patientInfo} />
+              ) : null}
 
               <Card className="border-border">
                 <CardHeader className="pb-4">
