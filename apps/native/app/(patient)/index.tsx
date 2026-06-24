@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import {
   Bell,
@@ -19,7 +20,7 @@ import {
 } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -38,6 +39,7 @@ import { Reveal } from "@/components/design/ui/reveal";
 import { Skeleton } from "@/components/design/ui/skeleton";
 import { showToast, ToastContainer } from "@/components/design/ui/toast";
 import { orpc } from "@/utils/orpc";
+import { useMaterialThumbnail } from "@/utils/material-thumbnail";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
 
 interface FeatureCardProps {
@@ -64,6 +66,56 @@ function FeatureCard({
       onPress={onPress}
       title={title}
     />
+  );
+}
+
+function FeaturedMaterialCard({ item }: { item: any }) {
+  const router = useRouter();
+  const { uri, loading } = useMaterialThumbnail(item.id);
+
+  return (
+    <Pressable
+      className="w-56 overflow-hidden rounded-3xl border border-border/60 bg-background-elevated shadow-sm"
+      onPress={() =>
+        router.push({
+          params: { materialId: item.id },
+          pathname: "/(patient)/materials/[materialId]",
+        })
+      }
+    >
+      <View className="h-28 overflow-hidden bg-primary-subtle">
+        {uri ? (
+          <Image
+            className="h-full w-full"
+            contentFit="cover"
+            source={{ uri }}
+            transition={200}
+          />
+        ) : (
+          <View className="flex-1 items-center justify-center">
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-background-elevated/90">
+              <Film
+                className={loading ? "animate-pulse text-primary" : "text-foreground-muted"}
+                size={22}
+              />
+            </View>
+          </View>
+        )}
+      </View>
+      <View className="gap-xs p-md">
+        <Text
+          className="font-poppins-medium text-caption text-foreground"
+          numberOfLines={2}
+        >
+          {item.title}
+        </Text>
+        {item.doctorName ? (
+          <Text className="font-sans text-foreground-muted text-micro">
+            {item.doctorName}
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
   );
 }
 
@@ -366,35 +418,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
             >
               {featuredVideos.slice(0, 6).map((item) => (
-                <Pressable
-                  className="w-56 overflow-hidden rounded-3xl border border-border/60 bg-background-elevated shadow-sm"
-                  key={item.id}
-                  onPress={() =>
-                    router.push({
-                      params: { materialId: item.id },
-                      pathname: "/(patient)/materials/[materialId]",
-                    })
-                  }
-                >
-                  <View className="h-28 items-center justify-center bg-primary-subtle">
-                    <View className="h-12 w-12 items-center justify-center rounded-full bg-background-elevated/90">
-                      <Film color="#315b4d" size={22} />
-                    </View>
-                  </View>
-                  <View className="gap-xs p-md">
-                    <Text
-                      className="font-poppins-medium text-caption text-foreground"
-                      numberOfLines={2}
-                    >
-                      {item.title}
-                    </Text>
-                    {item.doctorName ? (
-                      <Text className="font-sans text-foreground-muted text-micro">
-                        {item.doctorName}
-                      </Text>
-                    ) : null}
-                  </View>
-                </Pressable>
+                <FeaturedMaterialCard key={item.id} item={item} />
               ))}
             </ScrollView>
           </Reveal>
