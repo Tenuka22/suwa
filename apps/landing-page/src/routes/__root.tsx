@@ -4,7 +4,10 @@ import {
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
+import { QueryClientProvider } from "@tanstack/react-query";
 
+import { LenisProvider } from "../components/lenis-provider";
+import { queryClient } from "../utils/orpc";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -17,11 +20,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Suwa — Private health consultations, on your terms." },
+      { title: "Suwa — Anonymous health consultations, on your terms." },
       {
         name: "description",
         content:
-          "Private health consultations with licensed professionals and anonymity built in from the start.",
+          "Anonymous health consultations with licensed professionals and anonymity built in from the start.",
       },
       { name: "theme-color", content: "#faf7f2" },
       { property: "og:image", content: "/logo.png" },
@@ -37,7 +40,11 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        <QueryClientProvider client={queryClient}>
+          <LenisProvider>
+            <Outlet />
+          </LenisProvider>
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>

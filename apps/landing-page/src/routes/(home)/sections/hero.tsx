@@ -1,35 +1,31 @@
 import { ArrowRight, CirclePlay, ShieldCheck } from "lucide-react";
 import { OptimizedImage } from "../../../components/optimized-image";
 import { Button, playCircle, RoundArrow } from "../helpers/button";
-import { SIGN_UP_URL } from "../helpers/sign-up-url";
+import { MOBILE_WEB_URL } from "../helpers/mobile-web-url";
 import { H1 } from "../helpers/typography";
 
 export function Hero() {
   return (
     <section
-      className="page-shell grid h-[550px] grid-cols-[45.5%_54.5%] max-landing-lg:h-auto max-landing-lg:grid-cols-1"
+      className="grid h-[550px] grid-cols-[45.5%_54.5%] max-landing-lg:h-auto max-landing-lg:grid-cols-1"
       id="top"
     >
-      <div className="relative z-[2] pt-[48px] pl-[28px] max-landing-md:pt-[41px] max-landing-lg:pl-0 max-landing-xl:pl-[10px]">
+      <div className="relative  z-[2] pt-[48px] pl-[28px] max-landing-md:pt-[41px] max-landing-lg:px-[26px] max-landing-xl:pl-[10px]">
         <span className="mb-[13px] block font-medium text-[11px] text-accent uppercase tracking-[0.12em] max-landing-md:text-[9px]">
-          A private place to feel heard
+          Hospital operations, made calmer
         </span>
         <H1>
-          Private health consultations with <em>licensed professionals.</em>
+          Manage hospitals, doctors, and <em>patient sessions.</em>
         </H1>
-        <span
-          aria-hidden="true"
-          className="absolute top-[250px] left-[338px] h-[22px] w-[108px] -rotate-[4deg] rounded-[50%] border-t-[3px] border-t-[rgb(189_123_67_/_78%)] max-landing-xl:top-[237px] max-landing-xl:left-[280px] max-landing-lg:hidden"
-        />
-        <p className="mx-0 mt-[24px] mb-0 text-[17px] text-foreground-secondary leading-[1.65] max-landing-md:mt-[27px] max-landing-md:text-[15px]">
-          Ask questions, discuss symptoms, or get guidance without putting your
-          identity on display.
-          <br />
-          Private by design. Human by nature.
-        </p>
+          <p className="mx-0 mt-[24px] mb-0 text-[17px] text-foreground-secondary leading-[1.65] max-landing-md:mt-[27px] max-landing-md:text-[15px]">
+            Suwa gives hospitals a single place to register tenants, invite
+            doctors, manage attendance, and keep care moving.
+            <br />
+            Bring the native experience to your team.
+          </p>
         <div className="mt-[24px] flex items-center gap-[25px] max-landing-md:mt-[27px] max-landing-md:flex-col max-landing-md:items-start max-landing-md:gap-[16px]">
-          <Button href={SIGN_UP_URL} variant="primary">
-            <span>Book a private consultation</span>
+          <Button href={MOBILE_WEB_URL} variant="primary">
+            <span>Open the native app</span>
             <RoundArrow size="sm">
               <ArrowRight aria-hidden="true" size={20} strokeWidth={1.7} />
             </RoundArrow>
@@ -46,13 +42,14 @@ export function Hero() {
         </div>
         <div className="mt-[22px] flex items-center gap-[10px] text-[#273c36] text-[12px] max-landing-md:mt-[24px] max-landing-md:flex-wrap max-landing-md:leading-[1.5]">
           <ShieldCheck aria-hidden="true" size={19} strokeWidth={1.6} />
-          <strong className="font-medium">Private by default</strong>
+          <strong className="font-medium">Built for hospital teams</strong>
           <span
             aria-hidden="true"
             className="mx-[2px] size-[3px] rounded-full bg-accent max-landing-md:hidden"
           />
           <span className="max-landing-md:basis-full max-landing-md:pl-[29px]">
-            No public profile. No judgment. No pressure.
+            Tenants, clinics, schedules, sessions, and notifications in one
+            flow.
           </span>
         </div>
       </div>

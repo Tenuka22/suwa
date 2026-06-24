@@ -18,7 +18,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Participant } from "livekit-client";
 import {
-  ChevronLeft,
   Loader2,
   ShieldCheck as ShieldCheckIcon,
   Users as UsersIcon,
@@ -32,7 +31,7 @@ import { useRole } from "@/hooks/use-role";
 import { useSessionTiming } from "@/hooks/use-session-timing";
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/doctor/sessions/$session-id")({
+export const Route = createFileRoute("/doctor/sessions/$sessionId")({
   component: DoctorSessionDetailRoute,
 });
 
@@ -162,7 +161,7 @@ function PatientInfoCard({ patientInfo }: { patientInfo: SharedPatientInfo }) {
 }
 
 function DoctorSessionDetailRoute() {
-  const { "session-id": sessionId } = Route.useParams();
+  const { sessionId } = Route.useParams();
   const navigate = useNavigate();
   const role = useRole();
   const userRole: "admin" | "doctor" = role === "admin" ? "admin" : "doctor";

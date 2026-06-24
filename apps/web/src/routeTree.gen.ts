@@ -34,7 +34,7 @@ import { Route as TenantTenantIdSettingsRouteImport } from './routes/tenant/$ten
 import { Route as TenantTenantIdInviteRouteImport } from './routes/tenant/$tenantId/invite'
 import { Route as TenantTenantIdDoctorsRouteImport } from './routes/tenant/$tenantId/doctors'
 import { Route as TenantTenantIdAttendanceRouteImport } from './routes/tenant/$tenantId/attendance'
-import { Route as DoctorSessionsSessionIdRouteImport } from './routes/doctor/sessions/$session-id'
+import { Route as DoctorSessionsSessionIdRouteImport } from './routes/doctor/sessions/$sessionId'
 import { Route as DoctorHubMaterialIdRouteImport } from './routes/doctor/hub/$materialId'
 import { Route as AdminDoctorsDoctorIdRouteImport } from './routes/admin/doctors/$doctorId'
 import { Route as TenantTenantIdClinicsIndexRouteImport } from './routes/tenant/$tenantId/clinics/index'
@@ -167,8 +167,8 @@ const TenantTenantIdAttendanceRoute =
     getParentRoute: () => TenantRoute,
   } as any)
 const DoctorSessionsSessionIdRoute = DoctorSessionsSessionIdRouteImport.update({
-  id: '/sessions/$session-id',
-  path: '/sessions/$session-id',
+  id: '/sessions/$sessionId',
+  path: '/sessions/$sessionId',
   getParentRoute: () => DoctorRoute,
 } as any)
 const DoctorHubMaterialIdRoute = DoctorHubMaterialIdRouteImport.update({
@@ -212,7 +212,7 @@ export interface FileRoutesByFullPath {
   '/tenant/': typeof TenantIndexRoute
   '/admin/doctors/$doctorId': typeof AdminDoctorsDoctorIdRoute
   '/doctor/hub/$materialId': typeof DoctorHubMaterialIdRoute
-  '/doctor/sessions/$session-id': typeof DoctorSessionsSessionIdRoute
+  '/doctor/sessions/$sessionId': typeof DoctorSessionsSessionIdRoute
   '/tenant/$tenantId/attendance': typeof TenantTenantIdAttendanceRoute
   '/tenant/$tenantId/doctors': typeof TenantTenantIdDoctorsRoute
   '/tenant/$tenantId/invite': typeof TenantTenantIdInviteRoute
@@ -241,7 +241,7 @@ export interface FileRoutesByTo {
   '/tenant': typeof TenantIndexRoute
   '/admin/doctors/$doctorId': typeof AdminDoctorsDoctorIdRoute
   '/doctor/hub/$materialId': typeof DoctorHubMaterialIdRoute
-  '/doctor/sessions/$session-id': typeof DoctorSessionsSessionIdRoute
+  '/doctor/sessions/$sessionId': typeof DoctorSessionsSessionIdRoute
   '/tenant/$tenantId/attendance': typeof TenantTenantIdAttendanceRoute
   '/tenant/$tenantId/doctors': typeof TenantTenantIdDoctorsRoute
   '/tenant/$tenantId/invite': typeof TenantTenantIdInviteRoute
@@ -274,7 +274,7 @@ export interface FileRoutesById {
   '/tenant/': typeof TenantIndexRoute
   '/admin/doctors/$doctorId': typeof AdminDoctorsDoctorIdRoute
   '/doctor/hub/$materialId': typeof DoctorHubMaterialIdRoute
-  '/doctor/sessions/$session-id': typeof DoctorSessionsSessionIdRoute
+  '/doctor/sessions/$sessionId': typeof DoctorSessionsSessionIdRoute
   '/tenant/$tenantId/attendance': typeof TenantTenantIdAttendanceRoute
   '/tenant/$tenantId/doctors': typeof TenantTenantIdDoctorsRoute
   '/tenant/$tenantId/invite': typeof TenantTenantIdInviteRoute
@@ -308,7 +308,7 @@ export interface FileRouteTypes {
     | '/tenant/'
     | '/admin/doctors/$doctorId'
     | '/doctor/hub/$materialId'
-    | '/doctor/sessions/$session-id'
+    | '/doctor/sessions/$sessionId'
     | '/tenant/$tenantId/attendance'
     | '/tenant/$tenantId/doctors'
     | '/tenant/$tenantId/invite'
@@ -337,7 +337,7 @@ export interface FileRouteTypes {
     | '/tenant'
     | '/admin/doctors/$doctorId'
     | '/doctor/hub/$materialId'
-    | '/doctor/sessions/$session-id'
+    | '/doctor/sessions/$sessionId'
     | '/tenant/$tenantId/attendance'
     | '/tenant/$tenantId/doctors'
     | '/tenant/$tenantId/invite'
@@ -369,7 +369,7 @@ export interface FileRouteTypes {
     | '/tenant/'
     | '/admin/doctors/$doctorId'
     | '/doctor/hub/$materialId'
-    | '/doctor/sessions/$session-id'
+    | '/doctor/sessions/$sessionId'
     | '/tenant/$tenantId/attendance'
     | '/tenant/$tenantId/doctors'
     | '/tenant/$tenantId/invite'
@@ -570,10 +570,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TenantTenantIdAttendanceRouteImport
       parentRoute: typeof TenantRoute
     }
-    '/doctor/sessions/$session-id': {
-      id: '/doctor/sessions/$session-id'
-      path: '/sessions/$session-id'
-      fullPath: '/doctor/sessions/$session-id'
+    '/doctor/sessions/$sessionId': {
+      id: '/doctor/sessions/$sessionId'
+      path: '/sessions/$sessionId'
+      fullPath: '/doctor/sessions/$sessionId'
       preLoaderRoute: typeof DoctorSessionsSessionIdRouteImport
       parentRoute: typeof DoctorRoute
     }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeading, Section } from "../components/ui";
 import { Navbar } from "./(home)/helpers/navbar";
 import { Footer } from "./(home)/sections/footer";
-import { PageHeading, Section } from "./contact/helpers";
 
 export const Route = createFileRoute("/contact")({
   component: () => (

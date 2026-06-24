@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
 export function DoctorPlansChart({
   data,
@@ -41,12 +34,7 @@ export function DoctorPlansChart({
             tickLine={false}
             tickMargin={6}
           />
-          <YAxis
-            axisLine={false}
-            tick={false}
-            tickLine={false}
-            width={0}
-          />
+          <YAxis axisLine={false} tick={false} tickLine={false} width={0} />
           <Tooltip
             content={({ active, payload }) => {
               if (!(active && payload?.length)) {

@@ -28,7 +28,7 @@ const button = cva(
 
 type ButtonVariants = VariantProps<typeof button>;
 
-export function Button({
+export function UiButton({
   variant,
   className,
   children,

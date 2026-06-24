@@ -1,7 +1,7 @@
 "use client";
 
 import { ImpactFeedbackStyle, impactAsync } from "expo-haptics";
-import { type Href, Link } from "expo-router";
+import { type Href, router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, {
@@ -76,6 +76,10 @@ export function Button({
     if (disabled) {
       return;
     }
+    if (href) {
+      router.push(href as Href);
+      return;
+    }
     onPress?.();
     await impactAsync(ImpactFeedbackStyle.Light);
   };
@@ -94,7 +98,7 @@ export function Button({
     </View>
   );
 
-  const button = (
+  return (
     <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ disabled: Boolean(disabled) }}
@@ -116,14 +120,4 @@ export function Button({
       {content}
     </AnimatedPressable>
   );
-
-  if (href) {
-    return (
-      <Link asChild href={href as Href}>
-        {button}
-      </Link>
-    );
-  }
-
-  return button;
 }

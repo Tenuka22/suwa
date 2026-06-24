@@ -1,4 +1,12 @@
-import { Button, Chip, Input, Label, Modal, Separator, TextArea } from "@heroui/react";
+import {
+  Button,
+  Chip,
+  Input,
+  Label,
+  Modal,
+  Separator,
+  TextArea,
+} from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CoinsIcon, PlusIcon } from "lucide-react";
@@ -155,7 +163,8 @@ function CreatePlanDialog() {
 
                   <div className="grid gap-2">
                     <Label htmlFor="duration">
-                      Duration minutes <span className="text-destructive">*</span>
+                      Duration minutes{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       className={

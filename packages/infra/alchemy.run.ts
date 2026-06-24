@@ -18,10 +18,12 @@ config({ path: "./.env" });
 if (process.env.NODE_ENV === "production") {
   config({ path: "../../apps/server/.env.production" });
   config({ path: "../../apps/web/.env.production" });
+  config({ path: "../../apps/landing-page/.env.production" });
   config({ path: "../../apps/native/.env.production" });
 } else {
   config({ path: "../../apps/server/.env" });
   config({ path: "../../apps/web/.env" });
+  config({ path: "../../apps/landing-page/.env" });
 }
 
 const app = await alchemy("suwa");
@@ -124,7 +126,13 @@ export const web = await TanStackStart("web", {
 
 export const landingPage = await TanStackStart("landing-page", {
   cwd: "../../apps/landing-page",
-  bindings: {},
+  bindings: {
+    VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
+    VITE_MOBILE_WEB_URL: alchemy.env.VITE_MOBILE_WEB_URL!,
+    VITE_SERVER_URL: server.url!,
+    VITE_CLERK_PUBLISHABLE_KEY: alchemy.env.CLERK_PUBLISHABLE_KEY!,
+    CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
+  },
   domains: [
     { domainName: "suwa.life", zoneId: "32f35707091cc8835c6734e191cbd6c2" },
   ],
