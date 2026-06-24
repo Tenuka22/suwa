@@ -7,7 +7,8 @@ export function Footer() {
         <div>
           <Wordmark aria-label="Back to Suwa home" href="#top" size="footer" />
           <p className="mx-0 mt-[12px] mb-0 text-[10px] text-foreground-muted">
-            Private, compassionate healthcare—built around you.
+            Hospital operations, doctor workflows, and patient sessions in one
+            place.
           </p>
         </div>
         <nav
@@ -20,7 +21,7 @@ export function Footer() {
           <a href="#faq">FAQ</a>
         </nav>
         <p className="m-0 justify-self-end text-[10px] text-foreground-muted max-landing-lg:col-span-2 max-landing-md:col-auto max-landing-lg:justify-self-start">
-          &copy; 2026 Suwa. Privacy is part of the care.
+          &copy; 2026 Suwa. Built for connected care teams.
         </p>
       </div>
     </footer>

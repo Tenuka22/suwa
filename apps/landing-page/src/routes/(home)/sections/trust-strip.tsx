@@ -7,28 +7,28 @@ import {
 
 const trustItems = [
   {
-    description: "Your identity is never shared. Not even with us.",
+    description: "Hospitals, doctors, and patients stay separated and organized.",
     icon: LockKeyhole,
     theme: "green",
-    title: "Private by default",
+    title: "Structured by design",
   },
   {
-    description: "Licensed. Trusted. Compassionate.",
+    description: "Doctor profiles carry specialties, education, and contact details.",
     icon: BadgeCheck,
     theme: "peach",
-    title: "Verified professionals",
+    title: "Verified doctors",
   },
   {
-    description: "Your concerns are valid. We're here to listen.",
+    description: "Chat, sessions, and attendance give teams a shared source of truth.",
     icon: HeartHandshake,
     theme: "lavender",
-    title: "Judgment-free care",
+    title: "Connected workflows",
   },
   {
-    description: "Your conversations are private and secure.",
+    description: "Operational data stays private and accessible to the right people.",
     icon: ShieldCheck,
     theme: "gold",
-    title: "Secure & confidential",
+    title: "Secure by default",
   },
 ] as const;
 
@@ -42,12 +42,12 @@ const themeStyles = {
 export function TrustStrip() {
   return (
     <section
-      aria-label="Why Suwa is safe"
-      className="page-shell relative z-[4] grid min-h-[112px] max-w-[1335px] grid-cols-4 rounded-xl border border-[rgb(235_229_218_/_72%)] bg-[rgb(255_253_248_/_68%)] p-[23px_32px] shadow-[0_14px_40px_rgb(52_66_59_/_3%)] backdrop-blur-[10px] max-landing-lg:grid-cols-2 max-landing-md:grid-cols-1 max-landing-lg:p-[24px] max-landing-md:p-[12px_19px]"
+      aria-label="Why Suwa is useful"
+      className="page-shell relative z-[4] grid min-h-[112px] max-w-[1335px] grid-cols-4 rounded-xl border border-[rgb(235_229_218_/_72%)] bg-[rgb(255_253_248_/_68%)] p-[23px_32px] shadow-[0_14px_40px_rgb(52_66_59_/_3%)] backdrop-blur-[10px] max-landing-lg:grid-cols-2 max-landing-md:grid-cols-1 max-landing-lg:p-[24px] max-landing-md:p-[12px_19px] gap-3"
     >
       {trustItems.map(({ description, icon: Icon, theme, title }) => (
         <article
-          className="flex min-w-0 items-center gap-[16px] border-border border-r px-[28px] first:pl-0 last:border-r-0 last:pr-0 max-landing-md:border-border max-landing-md:border-r-0 max-landing-md:border-b max-landing-lg:px-[22px] max-landing-md:px-0 max-landing-xl:px-[18px] max-landing-md:[&:first-child]:px-0 max-landing-lg:[&:first-child]:pl-[22px] max-landing-xl:[&:first-child]:pl-0 max-landing-md:[&:last-child]:border-b-0 max-landing-md:[&:last-child]:px-0 max-landing-lg:[&:last-child]:pr-[22px] max-landing-xl:[&:last-child]:pr-0 max-landing-lg:[&:nth-child(-n+2)]:border-border max-landing-lg:[&:nth-child(-n+2)]:border-b max-landing-lg:[&:nth-child(2)]:border-r-0"
+          className="flex min-w-0 items-center gap-[16px] border-border border-r px-[28px] first:pl-0 last:border-r-0 last:pr-0 max-landing-md:border-border max-landing-md:border-r-0 max-landing-md:border-b max-landing-lg:px-[22px] max-landing-md:px-0 max-landing-xl:px-[18px] max-landing-md:[&:first-child]:px-0 max-landing-lg:[&:first-child]:pl-[22px] max-landing-xl:[&:first-child]:pl-0 max-landing-md:[&:last-child]:border-b-0 max-landing-md:[&:last-child]:px-0 max-landing-lg:[&:last-child]:pr-[22px] max-landing-xl:[&:last-child]:pr-0 max-landing-lg:[&:nth-child(-n+2)]:border-border max-landing-lg:[&:nth-child(-n+2)]:border-b max-landing-lg:[&:nth-child(2)]:border-r-0 py-4"
           key={title}
         >
           <span
