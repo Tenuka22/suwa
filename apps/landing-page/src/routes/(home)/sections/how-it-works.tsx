@@ -4,22 +4,25 @@ import { SectionHeading } from "../helpers/section-heading";
 
 const steps = [
   {
-    description: "Set up a hospital profile and core service details.",
+    description:
+      "Begin with a private profile and only share what is needed for care.",
     icon: Sparkles,
     number: "01",
-    title: "Register the hospital",
+    title: "Start anonymously",
   },
   {
-    description: "Add doctors, affiliations, and availability windows.",
+    description:
+      "Choose a doctor and the consultation mode that feels safest first.",
     icon: Stethoscope,
     number: "02",
-    title: "Bring the team in",
+    title: "Choose your care path",
   },
   {
-    description: "Run sessions, attendance, chat, and follow-up from one place.",
+    description:
+      "Move from chat to video or in-person care when trust is established.",
     icon: ShieldCheck,
     number: "03",
-    title: "Operate with clarity",
+    title: "Continue with support",
   },
 ] as const;
 
@@ -32,9 +35,9 @@ export function HowItWorks() {
       >
         <div className="page-shell">
           <SectionHeading
-            description="No spreadsheet drift. No guesswork. Just a calm path from hospital registration to day-to-day operations."
-            eyebrow="Start in under a minute"
-            title="Running a hospital should feel easier."
+            description="No public waiting room. No pressure to explain yourself before you are ready. Just a quieter path into care."
+            eyebrow="A safer first step"
+            title="Getting help should not feel exposing."
           />
           <div className="mx-auto grid max-w-[1000px] grid-cols-3 gap-[18px] max-landing-md:max-w-[410px] max-landing-md:grid-cols-1 max-landing-lg:gap-[12px]">
             {steps.map(({ description, icon: Icon, number, title }) => (

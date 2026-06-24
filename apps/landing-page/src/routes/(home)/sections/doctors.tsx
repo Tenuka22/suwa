@@ -104,7 +104,7 @@ export function Doctors() {
                     {profile.headline ?? "Licensed professional"}
                   </p>
                 </div>
-                <span className="rounded-full bg-[#426156]/12 px-[10px] py-[5px] text-[8px] text-[#426156]">
+                <span className="rounded-full bg-[#426156]/12 px-[10px] py-[5px] text-[8px] text-[#426156] whitespace-nowrap">
                   <BadgeCheck aria-hidden="true" className="inline" size={11} />{' '}
                   Verified
                 </span>

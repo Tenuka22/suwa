@@ -1,9 +1,9 @@
 import { Appear } from "../animations/appear";
 
 const proofItems = [
-  { label: "professional profiles", value: "5" },
-  { label: "ways to connect", value: "3" },
-  { label: "identity details shared", value: "0" },
+  { label: "identity required publicly", value: "0" },
+  { label: "ways to consult", value: "3" },
+  { label: "care roles supported", value: "3" },
   { label: "session length", value: "50 min" },
 ] as const;
 

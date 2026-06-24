@@ -3,19 +3,19 @@ import { StoryLabel } from "../helpers/typography";
 
 const testimonials = [
   {
-    context: "Hospital setup",
+    context: "First consultation",
     quote:
-      "We finally had one place to keep our hospitals, doctors, and schedules in order.",
+      "I could ask for help without feeling like everyone would know my story.",
   },
   {
-    context: "Doctor onboarding",
+    context: "Doctor trust",
     quote:
-      "The profile and affiliation flow made onboarding doctors feel straightforward.",
+      "Seeing doctor details helped me feel safe enough to start privately.",
   },
   {
-    context: "Daily operations",
+    context: "Ongoing care",
     quote:
-      "Attendance, sessions, and notes are easier to follow when everything lives together.",
+      "Starting anonymous made it easier to continue care when I was ready.",
   },
 ] as const;
 
@@ -32,11 +32,11 @@ export function Testimonials() {
               The outcome Suwa is built for
             </span>
             <h2 className="mt-[11px] mb-[13px] font-normal font-serif text-[clamp(38px,4vw,54px)] leading-[1.08] tracking-[-0.04em]">
-              "Finally. This feels organized."
+              "Finally. Asking for help feels safer."
             </h2>
             <p className="m-0 text-[14px] text-foreground-muted leading-[1.75]">
-              Hospitals get a clearer system for doctor operations, patient
-              sessions, and the workflows that support care.
+              People get a private way to begin consultation, while doctors and
+              hospitals provide the trusted care network behind it.
             </p>
           </div>
           <div className="mx-auto grid max-w-[1100px] grid-cols-3 gap-[18px] max-landing-md:max-w-[410px] max-landing-md:grid-cols-1 max-landing-lg:gap-[12px]">
@@ -45,13 +45,13 @@ export function Testimonials() {
                 className="m-0 min-h-[250px] rounded-[22px] border border-border bg-[rgb(255_253_248_/_72%)] p-[32px] max-landing-lg:p-[26px]"
                 key={context}
               >
-                <StoryLabel>Illustrative operations story</StoryLabel>
+                <StoryLabel>Illustrative care story</StoryLabel>
                 <blockquote className="mx-0 my-[26px] mb-[30px] font-serif text-[20px] leading-[1.45]">
                   "{quote}"
                 </blockquote>
                 <figcaption className="flex flex-col gap-[4px] text-[9px] text-foreground-muted uppercase tracking-[0.08em]">
                   <span className="font-medium text-[10px] text-foreground normal-case">
-                    Hospital scenario
+                    Anonymous care scenario
                   </span>
                   {context}
                 </figcaption>

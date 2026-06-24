@@ -4,22 +4,22 @@ import { SectionKicker } from "../helpers/section-heading";
 const faqItems = [
   {
     answer:
-      "Yes. Suwa keeps hospitals, doctors, patients, and attendance data organized with clear role-based flows and operational records.",
-    question: "What does Suwa manage?",
+      "Suwa helps people begin online consultation anonymously, then connect with doctors through chat, video, or in-person care when they are ready.",
+    question: "What problem does Suwa solve?",
   },
   {
     answer:
-      "Tenant profiles, doctor profiles, hospital affiliations, clinics, schedules, and session activity are all part of the platform.",
-    question: "What data can I store?",
+      "Hospitals and clinics provide trusted care infrastructure, doctor affiliation, scheduling, and continuity. They support the experience, but stigma-free consultation is the main goal.",
+    question: "Where do hospitals fit in?",
   },
   {
     answer:
-      "Register a hospital, invite or add doctors, and configure availability. The flow is intentionally short.",
-    question: "How quickly can we start?",
+      "People can start with a private online path and choose how much they share as the consultation continues.",
+    question: "Can patients stay anonymous?",
   },
   {
     answer:
-      "The platform is built for hospital staff, doctors, and patients. It currently includes chat, sessions, and attendance-oriented workflows.",
+      "The platform is built for people who fear stigma, plus the doctors and hospital teams who support safe consultation and follow-up.",
     question: "Who is Suwa for?",
   },
 ] as const;

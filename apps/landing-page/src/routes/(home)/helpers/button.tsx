@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
 
 const button = cva(
-  "inline-flex items-center gap-[--btn-gap] rounded-full font-medium transition-all duration-180 ease-default focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4",
+  "inline-flex cursor-pointer items-center gap-[--btn-gap] rounded-full font-medium transition-all duration-180 ease-default focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4",
   {
     variants: {
       variant: {

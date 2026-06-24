@@ -11,26 +11,30 @@ export function ProblemSolution() {
         id="why-suwa"
       >
         <div className="problem-copy">
-          <SectionKicker>For busy hospital ops</SectionKicker>
-          <H2>Care teams should not have to manage everything in spreadsheets.</H2>
+          <SectionKicker>The stigma Suwa removes</SectionKicker>
+          <H2>
+            Many people delay care because being seen asking for help feels too
+            risky.
+          </H2>
           <p className="m-0 text-[13px] text-foreground-muted leading-[1.8]">
-            Suwa connects hospitals, doctors, and patients with a cleaner path
-            from registration to attendance, sessions, and follow-up.
+            Suwa gives them a quieter first step: anonymous online consultation
+            with doctors, supported by hospital and clinic workflows in the
+            background.
           </p>
         </div>
         <div className="rounded-[22px] border border-border bg-[radial-gradient(circle_at_100%_0,rgb(239_213_185_/_35%),transparent_38%),rgb(255_253_248_/_74%)] px-[36px] py-[34px] shadow-[0_16px_44px_rgb(50_69_61_/_5%)] max-landing-md:px-[24px] max-landing-md:py-[28px]">
           <span className="font-serif text-[22px]">
-            Why Suwa feels different
+            Why anonymous care feels different
           </span>
           <ul className="mt-[25px] mb-0 grid list-none gap-[17px] p-0">
             {[
-              "Register and organize hospitals and clinics",
-              "Invite doctors and manage their hospital affiliations",
-              "Track attendance and availability windows",
-              "Keep sessions, chats, and records in one system",
+              "Start a conversation without public exposure",
+              "Choose chat, video, or in-person care when ready",
+              "Connect with doctors through structured, private sessions",
+              "Hospitals and clinics support trust, safety, and continuity",
             ].map((text) => (
               <li
-                className="grid grid-cols-[25px_1fr] items-start text-[12px] text-foreground-secondary leading-[1.55] gap-4"
+                className="grid grid-cols-[25px_1fr] items-start gap-4 text-[12px] text-foreground-secondary leading-[1.55]"
                 key={text}
               >
                 <span className="box-content rounded-full bg-[#426156] p-[3px] text-white">
