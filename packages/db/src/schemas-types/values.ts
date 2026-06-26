@@ -23,6 +23,24 @@ export const doctorFileKindValues = [
   "other",
 ] as const;
 
+export const patientAgeCategoryValues = [
+  "child",
+  "teen",
+  "adult",
+  "senior",
+] as const;
+
+export const patientProfessionValues = [
+  "student",
+  "teacher",
+  "employed",
+  "self_employed",
+  "unemployed",
+  "retired",
+  "healthcare_worker",
+  "other",
+] as const;
+
 export {
   doctorConsultationModeValues,
   doctorFocusAreaValues,

@@ -26,7 +26,7 @@ interface ToggleGroupItem<T> {
 
 interface ToggleGroupProps<T> {
   className?: string;
-  items: ToggleGroupItem<T>[];
+  items: readonly ToggleGroupItem<T>[];
   onValueChange: (value: T) => void;
   value: T;
 }

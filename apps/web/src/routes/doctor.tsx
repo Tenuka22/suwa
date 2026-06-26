@@ -23,20 +23,14 @@ export const Route = createFileRoute("/doctor")({
       return { session: null };
     }
 
-    if (location.pathname === "/doctor/profile") {
-      return { session };
-    }
+    if (location.pathname !== "/doctor/profile") {
+      const data = await context.queryClient.ensureQueryData(
+        orpc.doctorProfile.queryOptions()
+      );
 
-    const data = await context.queryClient.ensureQueryData(
-      orpc.doctorProfile.queryOptions()
-    );
-
-    if (!data?.profile) {
-      throw redirect({ to: "/doctor/profile" });
-    }
-
-    if (!data?.profile?.hasFaceEmbedding) {
-      throw redirect({ to: "/doctor/profile" });
+      if (!data?.profile || !data.profile.permanent || !data.profile.hasFaceEmbedding) {
+        throw redirect({ to: "/doctor/profile" });
+      }
     }
 
     return { session };

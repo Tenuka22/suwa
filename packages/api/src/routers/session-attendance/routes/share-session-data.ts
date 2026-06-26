@@ -1,7 +1,7 @@
 import { doctorSessions, sessionSharedData } from "@suwa/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { requireAuth } from "../../../hooks";
+import { requireAuth, requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
 export const sharePatientDataRoute = protectedProcedure
@@ -91,12 +91,7 @@ export const storeDoctorPublicKeyRoute = protectedProcedure
     })
   )
   .handler(async ({ context, input }) => {
-    const { userId } = requireAuth(context);
-    const isDoctor = userId.startsWith("doctor_");
-
-    if (!isDoctor) {
-      throw new Error("Only doctors can store their public key");
-    }
+    const { userId } = await requireDoctor(context);
 
     const [session] = await context.db
       .select()

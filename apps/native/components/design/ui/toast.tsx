@@ -35,19 +35,25 @@ export function useToast() {
 export function ToastContainer() {
   const { toasts } = useToast();
 
+  if (toasts.length === 0) {
+    return null;
+  }
+
   return (
-    <View className="absolute top-4 right-4 left-4 z-50">
-      {toasts.map((toast, index) => (
-        <View
-          className={`mb-2 rounded-lg p-4 shadow-lg backdrop-blur-[1px] ${toast.type === "error" ? "bg-rose-700/60" : toast.type === "warning" ? "bg-yellow-700/60" : toast.type === "info" ? "bg-blue-700/60" : "bg-green-700/60"}`}
-          key={index}
-        >
-          {toast.title && (
-            <Text className="mb-1 font-bold text-white">{toast.title}</Text>
-          )}
-          {toast.message && <Text className="text-white">{toast.message}</Text>}
-        </View>
-      ))}
+    <View className="absolute inset-0 z-50" pointerEvents="box-none">
+      <View className="absolute top-4 right-4 left-4 gap-2" pointerEvents="box-none">
+        {toasts.map((toast, index) => (
+          <View
+            className={`rounded-lg p-4 shadow-lg backdrop-blur-[1px] ${toast.type === "error" ? "bg-rose-700/60" : toast.type === "warning" ? "bg-yellow-700/60" : toast.type === "info" ? "bg-blue-700/60" : "bg-green-700/60"}`}
+            key={index}
+          >
+            {toast.title && (
+              <Text className="mb-1 font-bold text-white">{toast.title}</Text>
+            )}
+            {toast.message && <Text className="text-white">{toast.message}</Text>}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }

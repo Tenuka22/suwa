@@ -34,11 +34,40 @@ import { pushDecoratedUrl } from "@/utils/auth";
 import { orpc, queryClient } from "@/utils/orpc";
 import { encryptData, generateUserSecret, storeSecret } from "@/utils/privacy";
 
+const ageCategoryItems = [
+  { label: "Child", value: "child" },
+  { label: "Teen", value: "teen" },
+  { label: "Adult", value: "adult" },
+  { label: "Senior", value: "senior" },
+] satisfies Parameters<typeof ToggleGroup>[0]["items"];
+
+const professionItems = [
+  { label: "Student", value: "student" },
+  { label: "Teacher", value: "teacher" },
+  { label: "Employed", value: "employed" },
+  { label: "Self-employed", value: "self_employed" },
+  { label: "Unemployed", value: "unemployed" },
+  { label: "Retired", value: "retired" },
+  { label: "Healthcare", value: "healthcare_worker" },
+  { label: "Other", value: "other" },
+] satisfies Parameters<typeof ToggleGroup>[0]["items"];
+
 const patientSchema = z.object({
   alias: z.string().min(1, "Alias is required"),
+  ageCategory: z.enum(["child", "teen", "adult", "senior"]),
   email: z.string().email("Valid email required").optional().or(z.literal("")),
   phone: z.string().optional(),
   fullName: z.string().max(200).optional(),
+  profession: z.enum([
+    "student",
+    "teacher",
+    "employed",
+    "self_employed",
+    "unemployed",
+    "retired",
+    "healthcare_worker",
+    "other",
+  ]),
   address: z.string().max(500).optional(),
 });
 
@@ -373,6 +402,27 @@ function ProfileStep({
           placeholder="Choose an alias"
           value={form.alias}
         />
+        <View className="gap-sm">
+          <Text className="font-poppins-medium text-caption text-foreground">
+            Age category
+          </Text>
+          <ToggleGroup
+            items={ageCategoryItems}
+            onValueChange={(value) => onChange("ageCategory", value)}
+            value={form.ageCategory}
+          />
+        </View>
+        <View className="gap-sm">
+          <Text className="font-poppins-medium text-caption text-foreground">
+            Profession
+          </Text>
+          <ToggleGroup
+            className="flex-wrap"
+            items={professionItems}
+            onValueChange={(value) => onChange("profession", value)}
+            value={form.profession}
+          />
+        </View>
         <Input
           autoCapitalize="none"
           keyboardType="email-address"
@@ -479,9 +529,11 @@ export default function LandingScreen() {
   const [patientForm, setPatientForm] = useState<PatientForm>({
     address: "",
     alias: "",
+    ageCategory: "adult",
     email: "",
     fullName: "",
     phone: "",
+    profession: "other",
   });
 
   useEffect(() => {
@@ -606,15 +658,19 @@ export default function LandingScreen() {
     const securedData = await encryptData(
       {
         address: patientForm.address ?? "",
+        ageCategory: patientForm.ageCategory,
         email: patientForm.email ?? "",
         fullName: patientForm.fullName ?? "",
         phone: patientForm.phone ?? "",
+        profession: patientForm.profession,
       },
       secret
     );
     completeOnboarding.mutate({
       _securedData: securedData,
       alias: patientForm.alias,
+      ageCategory: patientForm.ageCategory,
+      profession: patientForm.profession,
     });
   };
 

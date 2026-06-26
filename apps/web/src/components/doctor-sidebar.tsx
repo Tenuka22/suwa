@@ -15,9 +15,6 @@ import {
   ClockIcon,
   HouseIcon,
   LayoutDashboardIcon,
-  PlayCircleIcon,
-  TagsIcon,
-  UserIcon,
 } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
@@ -31,11 +28,8 @@ const mainNav = [
 ];
 
 const doctorNav = [
-  { id: "/doctor/hub", icon: PlayCircleIcon, label: "Hub" },
   { id: "/doctor/sessions", icon: CalendarCheckIcon, label: "Sessions" },
   { id: "/doctor/availability", icon: ClockIcon, label: "Availability" },
-  { id: "/doctor/plans", icon: TagsIcon, label: "Plans" },
-  { id: "/doctor/profile", icon: UserIcon, label: "Profile" },
 ];
 
 function NavItem({

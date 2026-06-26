@@ -1,51 +1,29 @@
-import { useUser } from "@clerk/tanstack-react-start";
-import { Button, Card, Separator } from "@heroui/react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Alert, Button, Card, Chip, Separator } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Camera, CheckCircle2, ShieldAlert, UserCheck } from "lucide-react";
-import { useMemo, useState } from "react";
-import {
-  DoctorMaterialsCard,
-  DoctorProfileCard,
-  DoctorProfileHeader,
-  DoctorProfileStats,
-} from "@/components/doctors";
+import { AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
+
 import { FaceCaptureDialog } from "@/components/face-detection";
-import { PageTitle } from "@/components/typography";
-import { useDoctorFiles } from "@/hooks/doctor/use-doctor-files";
-import { useDoctorMaterialPreviewUrl } from "@/hooks/doctor/use-doctor-material-preview";
+import { DoctorProfileCard } from "@/components/doctors";
+import { BodyText, PageTitle } from "@/components/typography";
 import { orpc } from "@/utils/orpc";
 
+type DoctorProfileState = {
+  hasFaceEmbedding: boolean;
+  permanent: boolean;
+  profileExists: boolean;
+};
+
 export const Route = createFileRoute("/doctor/profile")({
-  loaderDeps: () => ({}),
-  loader: async ({ context }) => {
-    const [stats, profileData] = await Promise.all([
-      context.queryClient.ensureQueryData(orpc.profileStats.queryOptions()),
-      context.queryClient.ensureQueryData(orpc.doctorProfile.queryOptions()),
-    ]);
-    return { stats, profileData };
-  },
-  component: DoctorProfileRoute,
+  component: DoctorProfilePage,
 });
 
-function DoctorProfileRoute() {
-  const user = useUser();
+function DoctorProfilePage() {
   const queryClient = useQueryClient();
-  const { stats, profileData } = Route.useLoaderData();
+  const [state, setState] = useState<DoctorProfileState | null>(null);
+  const [role, setRole] = useState<string>("user");
   const [faceDialogOpen, setFaceDialogOpen] = useState(false);
-  const canManageFiles = profileData?.profile?.permanent ?? false;
-  const isPending = !canManageFiles && !!profileData?.profile;
-  const dbName = profileData?.profile?.displayName;
-  const name = dbName ?? user.user?.fullName ?? user.user?.username ?? "Doctor";
-  const doctorId = user.user?.id ?? "";
-  const hasFace = profileData?.profile?.hasFaceEmbedding ?? false;
-
-  const doctorFilesQuery = useDoctorFiles();
-  const portraitFile = useMemo(
-    () => (doctorFilesQuery.data ?? []).find((f) => f.fileKind === "portrait"),
-    [doctorFilesQuery.data]
-  );
-  const portraitUrl = useDoctorMaterialPreviewUrl(portraitFile?.id ?? "");
 
   const saveFaceMutation = useMutation(
     orpc.saveFaceEmbedding.mutationOptions({
@@ -53,106 +31,156 @@ function DoctorProfileRoute() {
         await queryClient.invalidateQueries({
           queryKey: orpc.doctorProfile.queryKey(),
         });
+        await queryClient.invalidateQueries({
+          queryKey: orpc.profileStats.queryKey(),
+        });
       },
     })
   );
 
-  const handleFaceCaptured = async (result: {
-    embedding: number[];
-    videoBase64?: string;
-  }) => {
-    await saveFaceMutation.mutateAsync(result);
-    setFaceDialogOpen(false);
-  };
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([orpc.doctorProfile.call(), orpc.profileStats.call()])
+      .then(([profile, stats]) => {
+        if (!mounted) return;
+        setState({
+          hasFaceEmbedding: !!profile?.profile?.hasFaceEmbedding,
+          permanent: !!stats?.isPermanent,
+          profileExists: !!stats?.profileExists,
+        });
+        setRole(profile?.role ?? "user");
+      })
+      .catch(() => {
+        if (mounted) setState(null);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const status = !state
+    ? "loading"
+    : !state.profileExists
+      ? "missing"
+      : !state.permanent
+        ? "pending"
+        : !state.hasFaceEmbedding
+          ? "verify"
+          : "accepted";
+
+  console.log("[doctor/profile] access state", {
+    state,
+    status,
+    role,
+  });
 
   return (
     <div className="flex flex-col gap-4">
-      <DoctorProfileHeader
-        completionPercentage={stats?.completenessPercentage ?? 0}
-        doctorId={doctorId}
-        isPending={isPending}
-        isVerified={stats?.isPermanent}
-        name={name}
-        portraitUrl={portraitUrl}
-      />
-      <Card className="w-full">
-        <Card.Content className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            {hasFace ? (
-              <div className="flex size-10 items-center justify-center rounded-full bg-green-500/20">
-                <CheckCircle2 className="size-5 text-green-500" />
-              </div>
+      <div>
+        <PageTitle>Doctor Access</PageTitle>
+        <BodyText className="max-w-2xl">
+          Complete your profile, verify your identity, and request review to
+          unlock the rest of the doctor portal.
+        </BodyText>
+      </div>
+
+      <Card className="rounded-2xl">
+        <Card.Content className="flex flex-col gap-4 px-6 pb-6 pt-0">
+          <div className="flex items-center gap-3">
+            {status === "accepted" ? (
+              <CheckCircle2 className="size-6 text-emerald-500" />
+            ) : status === "verify" ? (
+              <ShieldAlert className="size-6 text-amber-500" />
             ) : (
-              <div className="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
-                <ShieldAlert className="size-5 text-amber-500" />
-              </div>
+              <AlertCircle className="size-6 text-rose-500" />
             )}
             <div>
-              <p className="font-medium text-sm">
-                {hasFace
-                  ? "Face verification completed"
-                  : "Face verification required"}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {hasFace
-                  ? "Your identity has been verified. You can access all features."
-                  : "You must complete face verification before using the platform."}
+              <h2 className="font-medium text-base">
+                {status === "loading"
+                  ? "Checking access..."
+                  : status === "missing"
+                    ? "Profile missing"
+                    : status === "pending"
+                      ? "Awaiting approval"
+                      : status === "verify"
+                        ? "Face verification required"
+                        : "Access approved"}
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                {status === "loading"
+                  ? "Please wait while we check your doctor account."
+                  : status === "missing"
+                    ? "Create your profile and submit it for review."
+                    : status === "pending"
+                      ? "Your profile is submitted and waiting for admin review."
+                      : status === "verify"
+                        ? "Your profile exists, but face verification is still required."
+                        : "You can now use all doctor session features."}
               </p>
             </div>
           </div>
-          <Button
-            onPress={() => setFaceDialogOpen(true)}
-            size="sm"
-            variant={hasFace ? "outline" : "primary"}
-          >
-            {hasFace ? (
-              <UserCheck className="size-4" />
-            ) : (
-              <Camera className="size-4" />
-            )}
-            {hasFace ? "View Again" : "Verify Now"}
-          </Button>
+
+          <div className="flex flex-wrap gap-2">
+            <Chip color={status === "accepted" ? "success" : "default"} variant="soft">
+              {status}
+            </Chip>
+            <Chip color="default" variant="soft">
+              role: {role}
+            </Chip>
+            <Chip color={state?.permanent ? "success" : "warning"} variant="soft">
+              {state?.permanent ? "accepted" : "not accepted"}
+            </Chip>
+            <Chip color={state?.hasFaceEmbedding ? "success" : "warning"} variant="soft">
+              {state?.hasFaceEmbedding ? "face verified" : "face missing"}
+            </Chip>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button onPress={() => setFaceDialogOpen(true)} variant="secondary">
+              {state?.hasFaceEmbedding ? "Update Face Verification" : "Verify Face"}
+            </Button>
+          </div>
         </Card.Content>
       </Card>
 
-      <DoctorProfileStats stats={stats} />
+      {status !== "accepted" ? (
+        <Alert color="warning">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>
+              You cannot access other doctor pages until your profile is verified
+              and approved.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      ) : null}
 
       <Separator />
 
-      <section className="flex flex-col gap-2">
+      <section className="flex flex-col gap-3">
         <div>
-          <PageTitle>Profile information</PageTitle>
-          <p className="font-light text-md text-muted-foreground">
-            Your professional details visible to patients
-          </p>
+          <PageTitle>Profile submission</PageTitle>
+          <BodyText className="max-w-2xl">
+            Fill out your profile to create or update your review request.
+          </BodyText>
         </div>
+
         <DoctorProfileCard />
       </section>
 
-      {user.user ? (
-        <>
-          <Separator />
-          <section className="flex flex-col gap-3">
-            <div>
-              <PageTitle>Introductory materials</PageTitle>
-              <p className="text-muted-foreground text-sm">
-                Upload and manage your introductory photos, videos, and
-                qualifications
-              </p>
-            </div>
-            <DoctorMaterialsCard
-              canManage={canManageFiles}
-              doctorId={user.user.id}
-              isPermanent={profileData?.profile?.permanent ?? false}
-            />
-          </section>
-        </>
-      ) : null}
+      <div className="flex justify-end">
+        <Button onPress={() => window.location.reload()} variant="secondary">
+          Refresh status
+        </Button>
+      </div>
 
       <FaceCaptureDialog
-        onFaceCaptured={handleFaceCaptured}
-        onOpenChange={setFaceDialogOpen}
         open={faceDialogOpen}
+        onOpenChange={setFaceDialogOpen}
+        onFaceCaptured={async (result) => {
+          await saveFaceMutation.mutateAsync(result);
+          setFaceDialogOpen(false);
+        }}
       />
     </div>
   );

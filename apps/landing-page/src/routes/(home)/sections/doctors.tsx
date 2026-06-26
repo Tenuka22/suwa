@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { ArrowRight, BadgeCheck, Stethoscope } from "lucide-react";
 
 import { orpc } from "../../../utils/orpc";
@@ -8,6 +9,7 @@ import { orpc } from "../../../utils/orpc";
 interface LandingDoctor {
   affiliations: Array<{ tenantName: string }>;
   hasAvailability: boolean;
+  portrait?: { id: string } | null;
   profile: {
     displayName: string | null;
     focusAreas: string[];
@@ -16,6 +18,56 @@ interface LandingDoctor {
     specialties: string[];
     userId: string;
   };
+}
+
+function DoctorPortrait({ portraitId, name }: { portraitId: string | null; name: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!portraitId) {
+      setSrc(null);
+      return;
+    }
+
+    let active = true;
+
+    const loadPortrait = async () => {
+      const file = await orpc.getDoctorFile.call({ id: portraitId });
+      if (!active || !file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (active && typeof reader.result === "string") {
+          setSrc(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    loadPortrait().catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, [portraitId]);
+
+  if (!src) {
+    return (
+      <div className="flex h-[88px] w-[88px] items-center justify-center rounded-[24px] bg-primary-subtle text-primary shrink-0">
+        <Stethoscope aria-hidden="true" size={34} />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      alt={name}
+      className="h-[88px] w-[88px] shrink-0 rounded-[24px] object-cover"
+      src={src}
+    />
+  );
 }
 
 function formatList(items: string[]): string {
@@ -32,6 +84,7 @@ export function Doctors() {
   const doctors = ((data?.doctors ?? []) as Array<{
     affiliations: Array<{ tenantName: string }>;
     hasAvailability: boolean;
+    portrait?: { id: string } | null;
     profile: {
       displayName: string | null;
       focusAreas?: string[];
@@ -90,13 +143,17 @@ export function Doctors() {
                   </p>
                 </article>
               )
-            : doctors.map(({ profile, affiliations, hasAvailability }) => (
+            : doctors.map(({ profile, affiliations, hasAvailability, portrait }) => (
             <article
               className="rounded-[22px] border border-border bg-[rgb(255_253_248_/_80%)] p-[22px] shadow-[0_12px_30px_rgb(52_66_59_/_5%)]"
               key={profile.userId}
             >
-              <div className="flex items-start justify-between gap-[12px]">
-                <div>
+              <div className="flex items-start gap-[14px]">
+                <DoctorPortrait
+                  name={profile.displayName ?? "Doctor"}
+                  portraitId={portrait?.id ?? null}
+                />
+                <div className="min-w-0 flex-1">
                   <h3 className="m-0 font-normal font-serif text-[24px] leading-[1.05] tracking-[-0.035em]">
                     {profile.displayName ?? "Doctor"}
                   </h3>

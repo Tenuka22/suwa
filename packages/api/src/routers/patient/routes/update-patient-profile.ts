@@ -19,6 +19,14 @@ export const updatePatientProfileRoute = protectedProcedure
       updateData.alias = input.alias;
     }
 
+    if (input.ageCategory !== undefined) {
+      updateData.ageCategory = input.ageCategory;
+    }
+
+    if (input.profession !== undefined) {
+      updateData.profession = input.profession;
+    }
+
     if (input._securedData !== undefined) {
       updateData._securedData = input._securedData;
       updateData.secured = true;

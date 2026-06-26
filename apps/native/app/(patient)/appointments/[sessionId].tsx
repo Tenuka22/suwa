@@ -97,6 +97,8 @@ export default function AppointmentSessionDetailScreen() {
             phone: decrypted.phone,
             fullName: decrypted.fullName,
             address: decrypted.address,
+            ageCategory: decrypted.ageCategory,
+            profession: decrypted.profession,
           },
           sessionKey
         );

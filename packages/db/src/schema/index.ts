@@ -7,6 +7,8 @@ import {
 
 import {
   doctorFileKindValues,
+  patientAgeCategoryValues,
+  patientProfessionValues,
   scheduleKindValues,
   scheduleNoteValues,
   sessionStatusValues,
@@ -122,6 +124,12 @@ export const doctorScheduleEntries = sqliteTable(
 export const patientProfiles = sqliteTable("patient_profiles", {
   userId: text("user_id").primaryKey(),
   alias: text("alias").notNull(),
+  ageCategory: text("age_category", { enum: patientAgeCategoryValues })
+    .notNull()
+    .default("adult"),
+  profession: text("profession", { enum: patientProfessionValues })
+    .notNull()
+    .default("other"),
   isOnboardingComplete: integer("is_onboarding_complete", {
     mode: "boolean",
   })

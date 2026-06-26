@@ -9,12 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@heroui/react";
-import {
-  decryptUserData,
-  deriveSharedKey,
-  generateKeyPair,
-} from "@suwa/crypto";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Participant } from "livekit-client";
 import {
@@ -23,7 +17,7 @@ import {
   Users as UsersIcon,
   Video,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { VideoRoomWeb } from "@/components/livekit/video-room";
 import { useLiveKitToken } from "@/hooks/queries/doctor";
 import { useLiveKitRoomWeb } from "@/hooks/use-livekit-room";
@@ -105,14 +99,7 @@ function ParticipantCard({
   );
 }
 
-interface SharedPatientInfo {
-  address: string;
-  email: string;
-  fullName: string;
-  phone: string;
-}
-
-function PatientInfoCard({ patientInfo }: { patientInfo: SharedPatientInfo }) {
+function PatientInfoCard() {
   return (
     <Card className="border-border">
       <CardHeader className="pb-4">
@@ -121,40 +108,15 @@ function PatientInfoCard({ patientInfo }: { patientInfo: SharedPatientInfo }) {
             <ShieldCheckIcon className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <CardTitle className="font-medium">Patient Info</CardTitle>
+            <CardTitle className="font-medium">Shared Details</CardTitle>
             <CardDescription className="mt-1 text-muted-foreground text-xs">
-              Shared by patient
+              Anonymous session data shared by the patient
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 pt-0">
-        <div className="space-y-2">
-          {patientInfo.fullName && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-muted-foreground">Name</span>
-              <span>{patientInfo.fullName}</span>
-            </div>
-          )}
-          {patientInfo.email && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-muted-foreground">Email</span>
-              <span>{patientInfo.email}</span>
-            </div>
-          )}
-          {patientInfo.phone && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-muted-foreground">Phone</span>
-              <span>{patientInfo.phone}</span>
-            </div>
-          )}
-          {patientInfo.address && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-muted-foreground">Address</span>
-              <span>{patientInfo.address}</span>
-            </div>
-          )}
-        </div>
+      <CardContent className="pt-0 text-sm text-muted-foreground">
+        The patient has shared confidential details for this session.
       </CardContent>
     </Card>
   );
@@ -168,57 +130,14 @@ function DoctorSessionDetailRoute() {
 
   const sessionQuery = useLiveKitToken({ sessionId });
   const liveKit = useLiveKitRoomWeb();
-  const session = sessionQuery.data?.session;
+  const session = (sessionQuery.data as any)?.session;
   const timing = useSessionTiming(
     session?.startAt ?? "",
     session?.endAt ?? "",
     userRole
   );
 
-  const sharedDataQuery = useQuery(
-    orpc.getSharedPatientData.queryOptions({ input: { sessionId } })
-  );
-  const [patientInfo, setPatientInfo] = useState<SharedPatientInfo | null>(
-    null
-  );
-  const privateKeyRef = useRef<string | null>(null);
-
-  const storeKeyMutation = useMutation(
-    orpc.storeDoctorPublicKey.mutationOptions({
-      meta: { ignoreError: true },
-    })
-  );
-
-  useEffect(() => {
-    generateKeyPair()
-      .then((keyPair) => {
-        privateKeyRef.current = keyPair.privateKey;
-        storeKeyMutation.mutate({
-          sessionId,
-          publicKey: keyPair.publicKey,
-        });
-      })
-      .catch(() => undefined);
-  }, [sessionId, storeKeyMutation.mutate]);
-
-  useEffect(() => {
-    const shared = sharedDataQuery.data;
-    const privateKey = privateKeyRef.current;
-    if (!(shared?.encryptedData && shared?.patientPublicKey && privateKey)) {
-      return;
-    }
-
-    deriveSharedKey(privateKey, shared.patientPublicKey)
-      .then((sessionKey) => decryptUserData(shared.encryptedData, sessionKey))
-      .then((decrypted) => {
-        if (decrypted) {
-          setPatientInfo(decrypted as SharedPatientInfo);
-        }
-      })
-      .catch(() => {
-        setPatientInfo(null);
-      });
-  }, [sharedDataQuery.data]);
+  const hasSharedPatientInfo = false;
 
   if (sessionQuery.isPending) {
     return (
@@ -243,15 +162,6 @@ function DoctorSessionDetailRoute() {
         </Button>
       </div>
     );
-  }
-
-  let statusLabel: string;
-  if (timing.timeStatus === "during") {
-    statusLabel = "LIVE";
-  } else if (timing.timeStatus === "before") {
-    statusLabel = "UPCOMING";
-  } else {
-    statusLabel = "ENDED";
   }
 
   let statusText: string;
@@ -437,8 +347,8 @@ function DoctorSessionDetailRoute() {
                 </CardContent>
               </Card>
 
-              {patientInfo ? (
-                <PatientInfoCard patientInfo={patientInfo} />
+              {hasSharedPatientInfo ? (
+                <PatientInfoCard />
               ) : null}
 
               <Card className="border-border">

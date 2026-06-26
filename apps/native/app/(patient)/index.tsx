@@ -49,6 +49,15 @@ const moodStops = [
   { emoji: "😄", label: "Great", mood: "happy", intensity: 5 },
 ] as const;
 
+const searchPrompts = [
+  "Tell us what you are feeling",
+  "Find a counselor",
+  "Find care for anxiety",
+  "Talk to someone about stress",
+  "Show me doctors near me",
+  "Help me find support",
+] as const;
+
 type MoodValue = (typeof moodStops)[number];
 
 function getGreeting() {
@@ -288,9 +297,11 @@ export default function HomeScreen() {
   const patientName = patientProfileQuery.data?.alias ?? "Guest";
   const [mood, setMood] = useState(3);
   const [input, setInput] = useState("");
+  const [searchPromptIndex, setSearchPromptIndex] = useState(0);
   const {
     error: speechError,
     isListening,
+    isSupported: speechSupported,
     transcript,
     startListening,
     stopListening,
@@ -324,6 +335,14 @@ export default function HomeScreen() {
     }
   }, [patientMoodQuery.data]);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSearchPromptIndex((current) => (current + 1) % searchPrompts.length);
+    }, 3200);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const handleSubmit = () => {
     const message = input.trim();
     if (!message) {
@@ -333,6 +352,14 @@ export default function HomeScreen() {
   };
 
   const toggleMic = () => {
+    if (!speechSupported) {
+      showToast({
+        message: "Your browser does not support speech recognition.",
+        title: "Voice input unavailable",
+        type: "warning",
+      });
+      return;
+    }
     if (isListening) {
       stopListening();
       return;
@@ -414,7 +441,7 @@ export default function HomeScreen() {
             leftIcon={<Search color="#8e9a94" size={19} />}
             onChangeText={setInput}
             onSubmitEditing={handleSubmit}
-            placeholder="How can we help you today?"
+            placeholder={searchPrompts[searchPromptIndex]}
             returnKeyType="send"
             rightIcon={
               input.trim() ? (

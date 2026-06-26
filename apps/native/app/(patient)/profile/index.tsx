@@ -14,6 +14,7 @@ import {
 } from "@/components/design/ui/error-dialog";
 import { Input } from "@/components/design/ui/input";
 import { Skeleton } from "@/components/design/ui/skeleton";
+import { ToggleGroup } from "@/components/design/ui/toggle-group";
 import { showToast } from "@/components/design/ui/toast";
 import { vibrate } from "@/utils/haptics";
 import { orpc, queryClient } from "@/utils/orpc";
@@ -26,8 +27,39 @@ import {
 } from "@/utils/privacy";
 import { useErrorHandler } from "@/utils/use-error-handler";
 
+type AgeCategory = "adult" | "child" | "teen" | "senior";
+type Profession =
+  | "other"
+  | "student"
+  | "teacher"
+  | "employed"
+  | "self_employed"
+  | "unemployed"
+  | "retired"
+  | "healthcare_worker";
+
+const ageCategoryItems: { label: string; value: AgeCategory }[] = [
+  { label: "Children", value: "child" },
+  { label: "Teenagers", value: "teen" },
+  { label: "Adults", value: "adult" },
+  { label: "Seniors", value: "senior" },
+];
+
+const professionItems: { label: string; value: Profession }[] = [
+  { label: "Student", value: "student" },
+  { label: "Teacher", value: "teacher" },
+  { label: "Employed", value: "employed" },
+  { label: "Self-employed", value: "self_employed" },
+  { label: "Unemployed", value: "unemployed" },
+  { label: "Retired", value: "retired" },
+  { label: "Healthcare", value: "healthcare_worker" },
+  { label: "Other", value: "other" },
+];
+
 export default function ProfileScreen() {
   const [alias, setAlias] = useState("");
+  const [ageCategory, setAgeCategory] = useState<AgeCategory>("adult");
+  const [profession, setProfession] = useState<Profession>("other");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
@@ -57,6 +89,8 @@ export default function ProfileScreen() {
 
     setAlias(data.alias ?? "");
     setInitialAlias(data.alias ?? "");
+    setAgeCategory((data.ageCategory as AgeCategory | undefined) ?? "adult");
+    setProfession((data.profession as Profession | undefined) ?? "other");
 
     if (data._securedData) {
       getStoredSecret().then(async (secret) => {
@@ -66,10 +100,13 @@ export default function ProfileScreen() {
 
         const decrypted = await decryptData(data._securedData, secret);
         if (decrypted) {
+          setAgeCategory((decrypted.ageCategory as AgeCategory | undefined) ?? "adult");
+          setProfession((decrypted.profession as Profession | undefined) ?? "other");
           setEmail((decrypted.email as string) ?? "");
           setPhone((decrypted.phone as string) ?? "");
           setFullName((decrypted.fullName as string) ?? "");
           setAddress((decrypted.address as string) ?? "");
+          setInitialAlias(data.alias ?? "");
           setInitialEmail((decrypted.email as string) ?? "");
           setInitialPhone((decrypted.phone as string) ?? "");
           setInitialFullName((decrypted.fullName as string) ?? "");
@@ -115,7 +152,7 @@ export default function ProfileScreen() {
       }
 
       const _securedData = await encryptData(
-        { address, email, fullName, phone },
+        { address, ageCategory, email, fullName, phone, profession },
         secret
       );
       updateMutation.mutate({
@@ -176,6 +213,26 @@ export default function ProfileScreen() {
             placeholder="How should we call you?"
             value={alias}
           />
+          <View className="gap-sm">
+            <Text className="font-poppins-medium text-caption text-foreground">
+              Age category
+            </Text>
+            <ToggleGroup
+              items={ageCategoryItems}
+              onValueChange={setAgeCategory}
+              value={ageCategory}
+            />
+          </View>
+          <View className="gap-sm">
+            <Text className="font-poppins-medium text-caption text-foreground">
+              Profession
+            </Text>
+            <ToggleGroup
+              items={professionItems}
+              onValueChange={setProfession}
+              value={profession}
+            />
+          </View>
 
           {hasKey === false ? (
             <View className="gap-md rounded-3xl bg-accent-subtle p-lg">

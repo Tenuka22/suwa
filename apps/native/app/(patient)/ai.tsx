@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/design/ui/input";
 import { Reveal } from "@/components/design/ui/reveal";
 import { Skeleton } from "@/components/design/ui/skeleton";
+import { showToast } from "@/components/design/ui/toast";
 import { _client, orpc, queryClient } from "@/utils/orpc";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
 
@@ -41,7 +42,13 @@ interface ChatMessage {
   content: string;
   id: string;
   role: "assistant" | "tool_call" | "user";
+  questionCards?: QuestionCard[];
   toolName?: string;
+}
+
+interface QuestionCard {
+  answer: string;
+  title: string;
 }
 
 interface StreamData {
@@ -54,6 +61,154 @@ interface StreamData {
 interface StreamAccumulator {
   content: string;
   messageId: string;
+}
+
+function extractQuestionText(content: string): string {
+  const payload = parseQuestionPayload(content);
+  if (payload) {
+    return payload.question;
+  }
+
+  const trimmed = content.trim();
+  const jsonBlock = trimmed.match(/^```json\s*([\s\S]*?)\s*```$/i);
+  const bracketStart = trimmed.indexOf("[");
+  const prose = jsonBlock
+    ? trimmed.replace(jsonBlock[0], "").trim()
+    : bracketStart >= 0
+      ? trimmed.slice(0, bracketStart).trim()
+      : trimmed;
+  if (prose) {
+    return prose;
+  }
+
+  const cards = parseQuestionCards(content);
+  if (cards?.length) {
+    return `Which of these best matches what you need?`;
+  }
+
+  return "Which option should we use?";
+}
+
+function parseQuestionPayload(content: string): {
+  answers: QuestionCard[];
+  question: string;
+} | null {
+  const trimmed = content.trim();
+  const jsonBlock = trimmed.match(/^```json\s*([\s\S]*?)\s*```$/i);
+  const candidate = jsonBlock?.[1]?.trim() ?? trimmed;
+
+  try {
+    const parsed = JSON.parse(candidate) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null;
+    }
+
+    const record = parsed as Record<string, unknown>;
+    const question = typeof record.question === "string" ? record.question.trim() : "";
+    const answers = Array.isArray(record.answers)
+      ? record.answers
+          .map((item) => {
+            if (!item || typeof item !== "object") {
+              return null;
+            }
+            const answerRecord = item as Record<string, unknown>;
+            const title =
+              typeof answerRecord.title === "string"
+                ? answerRecord.title.trim()
+                : "";
+            const answer =
+              typeof answerRecord.answer === "string"
+                ? answerRecord.answer.trim()
+                : "";
+            return title && answer ? { title, answer } : null;
+          })
+          .filter((item): item is QuestionCard => item !== null)
+      : [];
+
+    return question && answers.length === 4 ? { question, answers } : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseQuestionCards(content: string): QuestionCard[] | null {
+  const payload = parseQuestionPayload(content);
+  if (payload) {
+    return payload.answers;
+  }
+
+  const trimmed = content.trim();
+  const jsonBlock = trimmed.match(/^```json\s*([\s\S]*?)\s*```$/i);
+  const bracketStart = trimmed.indexOf("[");
+  const bracketEnd = trimmed.lastIndexOf("]");
+  const candidate =
+    jsonBlock?.[1]?.trim() ??
+    (bracketStart >= 0 && bracketEnd > bracketStart
+      ? trimmed.slice(bracketStart, bracketEnd + 1)
+      : trimmed);
+
+  try {
+    const parsed = JSON.parse(candidate) as unknown;
+    if (!Array.isArray(parsed)) {
+      throw new Error("Not an array");
+    }
+
+    const cards = parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+
+        const record = item as Record<string, unknown>;
+        const title = typeof record.title === "string" ? record.title.trim() : "";
+        const answer =
+          typeof record.answer === "string"
+            ? record.answer.trim()
+            : typeof record.question === "string"
+              ? record.question.trim()
+              : "";
+
+        if (!title || !answer) {
+          return null;
+        }
+
+        return { title, answer } satisfies QuestionCard;
+      })
+      .filter((card): card is QuestionCard => card !== null);
+
+    return cards.length === 4 ? cards : null;
+  } catch {
+    const objectMatches = candidate.match(/\{[\s\S]*?\}/g);
+    if (!objectMatches || objectMatches.length !== 4) {
+      return null;
+    }
+
+    const cards = objectMatches
+      .map((item) => {
+        try {
+          const record = JSON.parse(item) as Record<string, unknown>;
+          const title =
+            typeof record.title === "string" ? record.title.trim() : "";
+          const answer =
+            typeof record.answer === "string"
+              ? record.answer.trim()
+              : typeof record.question === "string"
+                ? record.question.trim()
+                : "";
+
+          if (!title || !answer) {
+            return null;
+          }
+
+          return { title, answer } satisfies QuestionCard;
+        } catch {
+          return null;
+        }
+      })
+      .filter((card): card is QuestionCard => card !== null);
+
+    return cards.length === 4 ? cards : null;
+  }
 }
 
 const SUGGESTED_PROMPTS = [
@@ -73,15 +228,6 @@ const SUGGESTED_PROMPTS = [
     prompt: "Show me trusted care options nearby",
   },
 ] as const;
-
-const friendlyToolName = (toolName?: string) => {
-  if (!toolName) {
-    return "Checking your options";
-  }
-  return toolName
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
-};
 
 function EmptyConversation({
   onPrompt,
@@ -184,22 +330,19 @@ function applyStreamEvent(
       setMessages((currentMessages) =>
         currentMessages.map((message) =>
           message.id === accumulator.messageId
-            ? { ...message, agent: data.agent, content: accumulator.content }
+            ? {
+                ...message,
+                agent: data.agent,
+                content: accumulator.content,
+                questionCards: parseQuestionCards(accumulator.content) ?? undefined,
+              }
             : message
         )
       );
       break;
     }
     case "message.tool_call": {
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          content: friendlyToolName(data.tool),
-          id: crypto.randomUUID(),
-          role: "tool_call",
-          toolName: data.tool,
-        },
-      ]);
+      // keep tool calls internal; don't surface them as chat messages
       break;
     }
     case "message.error": {
@@ -220,35 +363,34 @@ function applyStreamEvent(
 
 function ChatBubble({ item }: { item: ChatMessage }) {
   const isUser = item.role === "user";
-  const isTool = item.role === "tool_call";
+  const isQuestionCards = !!item.questionCards?.length;
+  const questionText = extractQuestionText(item.content);
   let bubbleClass =
     "self-start rounded-bl-lg border border-border/60 bg-background-elevated";
   if (isUser) {
     bubbleClass = "self-end rounded-br-lg bg-primary";
-  } else if (isTool) {
-    bubbleClass = "self-start border border-accent/30 bg-accent-subtle";
   }
 
   return (
     <Reveal delay={20}>
       <View
-        className={`mb-lg max-w-[86%] rounded-3xl ${bubbleClass} ${isTool ? "px-3 py-1.5" : "p-md"}`}
+        className={`mb-lg max-w-[86%] rounded-3xl ${bubbleClass} p-md`}
       >
         {isUser ? null : (
           <View className="flex-row items-center gap-sm">
-            <View
-              className={`h-7 w-7 items-center justify-center rounded-lg ${isTool ? "bg-background-elevated" : "bg-primary-subtle"}`}
-            >
-              <Sparkles color={isTool ? "#d78357" : "#315b4d"} size={13} />
+            <View className="h-7 w-7 items-center justify-center rounded-lg bg-primary-subtle">
+              <Sparkles color="#315b4d" size={13} />
             </View>
-            <Text
-              className={`font-poppins-medium text-micro uppercase tracking-widest ${isTool ? "text-accent" : "text-primary"}`}
-            >
-              {isTool ? friendlyToolName(item.toolName) : "Suwa"}
+            <Text className="font-poppins-medium text-micro uppercase tracking-widest text-primary">
+              Suwa
             </Text>
           </View>
         )}
-        {isTool ? null : (
+        {isQuestionCards ? (
+          <Text className="font-sans text-body leading-relaxed text-foreground-secondary">
+            {questionText}
+          </Text>
+        ) : (
           <Text
             className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
           >
@@ -269,10 +411,11 @@ export default function AiChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
+  const [pendingChoices, setPendingChoices] = useState<QuestionCard[] | null>(null);
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
   const abortRef = useRef<AbortController | null>(null);
   const hasAutoSent = useRef(false);
-  const { isListening, startListening, stopListening } = useSpeechToText();
+  const { isListening, isSupported, startListening, stopListening } = useSpeechToText();
 
   const createMutation = useMutation(
     orpc.ai.chat.create.mutationOptions({
@@ -302,6 +445,7 @@ export default function AiChatScreen() {
       ...currentMessages,
       { content: text, id: crypto.randomUUID(), role: "user" },
     ]);
+    setPendingChoices(null);
     setStreaming(true);
 
     const abortController = new AbortController();
@@ -317,6 +461,10 @@ export default function AiChatScreen() {
       for await (const event of iterator) {
         const streamEvent = event as { data: StreamData; event: string };
         applyStreamEvent(streamEvent, accumulator, setMessages);
+      }
+      const cards = parseQuestionCards(accumulator.content);
+      if (cards) {
+        setPendingChoices(cards);
       }
       queryClient.invalidateQueries({ queryKey: ["ai"] });
     } catch (error: unknown) {
@@ -338,6 +486,12 @@ export default function AiChatScreen() {
     }
   };
 
+  const chooseCard = (choice: QuestionCard) => {
+    setPendingChoices(null);
+    setInput("");
+    void sendMessage(choice.answer);
+  };
+
   const sendInitialMessage = useEffectEvent((message: string) => {
     sendMessage(message);
   });
@@ -354,6 +508,7 @@ export default function AiChatScreen() {
     setMessages([]);
     setActiveSessionId(null);
     setInput("");
+    setPendingChoices(null);
   };
 
   return (
@@ -363,7 +518,7 @@ export default function AiChatScreen() {
         <Pressable
           accessibilityLabel="Go back"
           className="h-11 w-11 items-center justify-center rounded-full border border-border bg-background-elevated"
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(patient)")}
         >
           <ArrowLeft color="#315b4d" size={20} />
         </Pressable>
@@ -403,6 +558,33 @@ export default function AiChatScreen() {
         renderItem={({ item }) => <ChatBubble item={item} />}
       />
 
+      {pendingChoices?.length ? (
+        <View className="px-lg pb-2">
+          <View className="gap-sm rounded-3xl border border-border/60 bg-background-elevated p-md">
+            <Text className="font-poppins-medium text-micro uppercase tracking-widest text-foreground-muted">
+              Select an answer
+            </Text>
+            <View className="gap-sm">
+              {pendingChoices.map((choice) => (
+                <Pressable
+                  accessibilityRole="button"
+                  className="rounded-2xl border border-border bg-background px-md py-md"
+                  key={choice.title}
+                  onPress={() => chooseCard(choice)}
+                >
+                  <Text className="font-poppins-medium text-caption text-foreground">
+                    {choice.title}
+                  </Text>
+                  <Text className="mt-1 font-sans text-micro text-foreground-muted">
+                    {choice.answer}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+      ) : null}
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
@@ -420,7 +602,21 @@ export default function AiChatScreen() {
                     isListening ? "Stop voice input" : "Start voice input"
                   }
                   hitSlop={8}
-                  onPress={isListening ? stopListening : startListening}
+                  onPress={() => {
+                    if (!isSupported) {
+                      showToast({
+                        message: "Your browser does not support speech recognition.",
+                        title: "Voice input unavailable",
+                        type: "warning",
+                      });
+                      return;
+                    }
+                    if (isListening) {
+                      stopListening();
+                      return;
+                    }
+                    startListening();
+                  }}
                 >
                   {isListening ? (
                     <MicOff color="#d78357" size={20} />

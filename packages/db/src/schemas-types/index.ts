@@ -9,6 +9,8 @@ import {
   doctorFocusAreaValues,
   doctorLanguageValues,
   doctorSpecialtyValues,
+  patientAgeCategoryValues,
+  patientProfessionValues,
   scheduleKindValues,
   scheduleNoteValues,
 } from "./values";
@@ -20,6 +22,8 @@ export const doctorConsultationModeSchema = z.enum(
 );
 export const doctorFocusAreaSchema = z.enum(doctorFocusAreaValues);
 export const doctorFileKindSchema = z.enum(doctorFileKindValues);
+export const patientAgeCategorySchema = z.enum(patientAgeCategoryValues);
+export const patientProfessionSchema = z.enum(patientProfessionValues);
 
 export const scheduleKindSchema = z.enum(scheduleKindValues);
 export const scheduleNoteSchema = z.enum(scheduleNoteValues);
@@ -98,12 +102,16 @@ export type PatientPrivacyData = z.infer<typeof patientPrivacyDataSchema>;
 export const completeOnboardingSchema = z.object({
   mode: onboardingModeSchema,
   alias: z.string().min(1).max(100),
+  ageCategory: patientAgeCategorySchema,
+  profession: patientProfessionSchema,
 
   _securedData: z.string().optional(),
 });
 
 export const updatePatientProfileSchema = z.object({
   alias: z.string().min(1).max(100).optional(),
+  ageCategory: patientAgeCategorySchema.optional(),
+  profession: patientProfessionSchema.optional(),
   _securedData: z.string().optional(),
 });
 
