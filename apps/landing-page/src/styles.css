@@ -145,9 +145,6 @@
   --duration-slow: 350ms;
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
 
-  --breakpoint-landing-xl: 1240px;
-  --breakpoint-landing-lg: 1020px;
-  --breakpoint-landing-md: 700px;
 }
 
 @layer base {

@@ -12,12 +12,12 @@ export function ProofBar() {
     <Appear>
       <section
         aria-label="Suwa by the numbers"
-        className="page-shell grid max-w-[1060px] grid-cols-4 pt-[35px] pb-[21px] max-landing-lg:max-w-[800px] max-landing-md:grid-cols-2 max-landing-md:pt-[28px]"
+        className="page-shell grid max-w-[1060px] grid-cols-4 pt-[35px] pb-[21px] max-xl:max-w-[800px] max-xl:grid-cols-2 max-xl:pt-[28px]"
       >
         {proofItems.map(({ label, value }, i) => (
           <div
-            className={`flex min-w-0 items-center justify-center gap-[11px] border-border border-r last:border-r-0 max-landing-md:min-h-[64px] max-landing-md:justify-start max-landing-md:border-border max-landing-md:border-b max-landing-md:pl-[15px] max-landing-md:[&:nth-child(2)]:border-r-0 max-landing-md:[&:nth-last-child(-n+2)]:border-b-0 ${
-              i >= 2 ? "max-landing-md:border-b-0" : ""
+            className={`flex min-w-0 items-center justify-center gap-[11px] border-border border-r last:border-r-0 max-xl:min-h-[64px] max-xl:justify-start max-xl:border-border max-xl:border-b max-xl:pl-[15px] max-xl:[&:nth-child(2)]:border-r-0 max-xl:[&:nth-last-child(-n+2)]:border-b-0 ${
+              i >= 2 ? "max-xl:border-b-0" : ""
             }`}
             key={label}
           >

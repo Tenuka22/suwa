@@ -42,7 +42,9 @@ import {
   hubUploadSessions as hubUploadSessionsTable,
   messages as messagesTable,
   type PatientProfile as PatientProfileSchema,
+  type PatientMood as PatientMoodSchema,
   patientProfiles as patientProfilesTable,
+  patientMoods as patientMoodsTable,
   type SessionAttendanceEvent as SessionAttendanceEventSchema,
   type SessionSharedData as SessionSharedDataSchema,
   type SessionSnapshot as SessionSnapshotSchema,
@@ -87,6 +89,7 @@ export const doctorHubChannels = doctorHubChannelsTable;
 export const hubUploadSessions = hubUploadSessionsTable;
 export const doctorScheduleEntries = doctorScheduleEntriesTable;
 export const patientProfiles = patientProfilesTable;
+export const patientMoods = patientMoodsTable;
 
 export const doctorPlans = doctorPlansTable;
 export const userSubscriptions = userSubscriptionsTable;
@@ -120,6 +123,7 @@ export type DoctorSession = DoctorSessionSchema;
 export type DoctorScheduleEntry = DoctorScheduleEntrySchema;
 export type DoctorEducationEntry = DoctorEducationEntrySchema;
 export type PatientProfile = PatientProfileSchema;
+export type PatientMood = PatientMoodSchema;
 
 export type DoctorHubChannel = DoctorHubChannelSchema;
 export type DoctorMaterial = DoctorMaterialSchema;
@@ -154,6 +158,7 @@ export function createDb() {
       doctorSessions,
       doctorScheduleEntries,
       patientProfiles,
+      patientMoods,
 
       doctorPlans,
       userSubscriptions,

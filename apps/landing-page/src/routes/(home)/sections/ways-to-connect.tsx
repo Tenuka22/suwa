@@ -31,7 +31,7 @@ export function WaysToConnect() {
   return (
     <Appear>
       <section
-        className="bg-background pt-[92px] pb-[100px] max-landing-md:pt-[72px]"
+        className="bg-background pt-[92px] pb-[100px] max-xl:pt-[72px]"
         id="ways-to-connect"
       >
         <div className="page-shell">
@@ -40,10 +40,10 @@ export function WaysToConnect() {
             eyebrow="Flexible by design"
             title="Choose how you connect."
           />
-          <div className="mx-auto grid max-w-[1000px] grid-cols-3 gap-[18px] max-landing-md:max-w-[410px] max-landing-md:grid-cols-1 max-landing-lg:gap-[12px]">
+          <div className="mx-auto grid max-w-[1000px] grid-cols-3 gap-[18px] max-xl:max-w-[410px] max-xl:grid-cols-1 max-xl:gap-[12px]">
             {connectModes.map(({ description, icon: Icon, title }, i) => (
               <article
-                className="min-h-[220px] rounded-[24px] border border-[rgb(225_224_210_/_80%)] bg-[rgb(255_253_248_/_75%)] p-[36px] max-landing-lg:p-[26px]"
+                className="min-h-[220px] rounded-[24px] border border-[rgb(225_224_210_/_80%)] bg-[rgb(255_253_248_/_75%)] p-[36px] max-xl:p-[26px]"
                 key={title}
               >
                 <span

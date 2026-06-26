@@ -18,12 +18,12 @@ export function Navbar() {
       <header>
         <nav
           aria-label="Main navigation"
-          className="page-shell grid h-[104px] grid-cols-2 landing-lg:grid-cols-[1fr_auto_1fr] items-center max-landing-lg:h-[86px] max-landing-md:h-[76px] max-landing-lg:justify-between"
+          className="page-shell grid h-[104px] grid-cols-2 xl:grid-cols-[1fr_auto_1fr] items-center max-xl:h-[86px] max-xl:justify-between"
         >
           <div className="justify-self-start">
             <Wordmark aria-label="Suwa home" href="#top" />
           </div>
-          <div className="flex items-center justify-center gap-[clamp(24px,3vw,48px)] justify-self-center whitespace-nowrap text-[#172e29] text-[14px] max-landing-lg:hidden">
+          <div className="flex items-center justify-center gap-[clamp(24px,3vw,48px)] justify-self-center whitespace-nowrap text-[#172e29] text-[14px] max-xl:hidden">
             {navLinks.map(({ active, href, label }) => (
               <a
                 className={`relative cursor-pointer pt-[9px] pb-[12px] after:absolute after:inset-x-0 after:bottom-[3px] after:h-px after:bg-accent after:transition-all after:duration-180 after:ease-default ${
@@ -39,7 +39,7 @@ export function Navbar() {
             ))}
           </div>
           <div className="flex items-center justify-end gap-[34px] justify-self-end whitespace-nowrap text-[13px]">
-            <span className="flex items-center gap-[9px] max-landing-xl:hidden">
+            <span className="flex items-center gap-[9px] max-xl:hidden">
               <ShieldCheck aria-hidden="true" size={19} strokeWidth={1.7} />
               Private by design
             </span>

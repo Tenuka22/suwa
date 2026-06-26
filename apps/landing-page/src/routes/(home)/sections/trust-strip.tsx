@@ -47,15 +47,15 @@ export function TrustStrip() {
   return (
     <section
       aria-label="Why Suwa is useful"
-      className="page-shell relative z-[4] grid min-h-[112px] max-w-[1335px] grid-cols-4 gap-3 rounded-xl border border-[rgb(235_229_218_/_72%)] bg-[rgb(255_253_248_/_68%)] p-[23px_32px] shadow-[0_14px_40px_rgb(52_66_59_/_3%)] backdrop-blur-[10px] max-landing-lg:grid-cols-2 max-landing-md:grid-cols-1 max-landing-lg:p-[24px] max-landing-md:p-[12px_19px]"
+      className="page-shell relative z-[4] grid min-h-[112px] max-w-[1335px] grid-cols-4 gap-3 rounded-xl border border-[rgb(235_229_218_/_72%)] bg-[rgb(255_253_248_/_68%)] p-[23px_32px] shadow-[0_14px_40px_rgb(52_66_59_/_3%)] backdrop-blur-[10px] max-xl:grid-cols-1 max-xl:p-[12px_19px]"
     >
       {trustItems.map(({ description, icon: Icon, theme, title }) => (
         <article
-          className="flex min-w-0 items-center gap-[16px] border-border border-r px-[28px] py-4 first:pl-0 last:border-r-0 last:pr-0 max-landing-md:border-border max-landing-md:border-r-0 max-landing-md:border-b max-landing-lg:px-[22px] max-landing-md:px-0 max-landing-xl:px-[18px] max-landing-md:[&:first-child]:px-0 max-landing-lg:[&:first-child]:pl-[22px] max-landing-xl:[&:first-child]:pl-0 max-landing-md:[&:last-child]:border-b-0 max-landing-md:[&:last-child]:px-0 max-landing-lg:[&:last-child]:pr-[22px] max-landing-xl:[&:last-child]:pr-0 max-landing-lg:[&:nth-child(-n+2)]:border-border max-landing-lg:[&:nth-child(-n+2)]:border-b max-landing-lg:[&:nth-child(2)]:border-r-0"
+          className="flex min-w-0 items-center gap-[16px] border-border border-r px-[28px] py-4 first:pl-0 last:border-r-0 last:pr-0 max-xl:border-border max-xl:border-r-0 max-xl:border-b max-xl:px-[18px] max-xl:[&:first-child]:px-0 max-xl:[&:first-child]:pl-0 max-xl:[&:last-child]:border-b-0 max-xl:[&:last-child]:px-0 max-xl:[&:last-child]:pr-0 max-xl:[&:nth-child(-n+2)]:border-border max-xl:[&:nth-child(-n+2)]:border-b max-xl:[&:nth-child(2)]:border-r-0"
           key={title}
         >
           <span
-            className={`grid size-[57px] flex-none place-items-center rounded-full shadow-[inset_0_0_0_6px_rgb(255_255_255_/_32%)] max-landing-xl:size-[50px] ${themeStyles[theme]}`}
+            className={`grid size-[57px] flex-none place-items-center rounded-full shadow-[inset_0_0_0_6px_rgb(255_255_255_/_32%)] max-xl:size-[50px] ${themeStyles[theme]}`}
           >
             <Icon aria-hidden="true" size={27} strokeWidth={1.55} />
           </span>
@@ -63,7 +63,7 @@ export function TrustStrip() {
             <h2 className="m-0 mb-[4px] font-sans font-semibold text-[13px] tracking-[-0.01em]">
               {title}
             </h2>
-            <p className="m-0 max-w-[190px] text-[#4b5753] text-[11.5px] leading-[1.65] max-landing-md:max-w-none">
+            <p className="m-0 max-w-[190px] text-[#4b5753] text-[11.5px] leading-[1.65] max-xl:max-w-none">
               {description}
             </p>
           </div>

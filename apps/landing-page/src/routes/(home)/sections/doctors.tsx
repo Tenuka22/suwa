@@ -43,7 +43,7 @@ export function Doctors() {
   }>) as LandingDoctor[];
 
   return (
-    <section className="page-shell pt-[96px] pb-[110px] max-landing-md:pt-[76px] max-landing-md:pb-[82px]">
+    <section className="page-shell pt-[96px] pb-[110px] max-xl:pt-[76px] max-xl:pb-[82px]">
       <div className="mx-auto max-w-[1120px]">
         <div className="mb-[34px] max-w-[640px]">
           <span className="block font-medium text-[12px] text-accent uppercase tracking-[0.12em]">

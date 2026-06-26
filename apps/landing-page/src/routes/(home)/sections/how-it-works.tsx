@@ -30,7 +30,7 @@ export function HowItWorks() {
   return (
     <Appear>
       <section
-        className="bg-background-subtle pt-[92px] pb-[100px] max-landing-md:pt-[72px]"
+        className="bg-background-subtle pt-[92px] pb-[100px] max-xl:pt-[72px]"
         id="how-it-works"
       >
         <div className="page-shell">
@@ -39,10 +39,10 @@ export function HowItWorks() {
             eyebrow="A safer first step"
             title="Getting help should not feel exposing."
           />
-          <div className="mx-auto grid max-w-[1000px] grid-cols-3 gap-[18px] max-landing-md:max-w-[410px] max-landing-md:grid-cols-1 max-landing-lg:gap-[12px]">
+          <div className="mx-auto grid max-w-[1000px] grid-cols-3 gap-[18px] max-xl:max-w-[410px] max-xl:grid-cols-1 max-xl:gap-[12px]">
             {steps.map(({ description, icon: Icon, number, title }) => (
               <article
-                className="relative min-h-[250px] overflow-hidden rounded-[24px] border border-[rgb(225_224_210_/_80%)] bg-[rgb(255_253_248_/_75%)] p-[36px] max-landing-lg:p-[26px]"
+                className="relative min-h-[250px] overflow-hidden rounded-[24px] border border-[rgb(225_224_210_/_80%)] bg-[rgb(255_253_248_/_75%)] p-[36px] max-xl:p-[26px]"
                 key={number}
               >
                 <span className="absolute top-[24px] right-[26px] font-serif text-[57px] text-[rgb(45_69_61_/_11%)] leading-none">

@@ -133,6 +133,18 @@ export const patientProfiles = sqliteTable("patient_profiles", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+export const patientMoods = sqliteTable("patient_moods", {
+  userId: text("user_id").primaryKey(),
+  mood: text("mood", {
+    enum: ["idle", "happy", "sad", "yawn", "sleep"],
+  })
+    .notNull()
+    .default("idle"),
+  intensity: integer("intensity").notNull().default(3),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 export const doctorEducationEntries = sqliteTable("doctor_education_entries", {
   id: text("id").primaryKey(),
   doctorId: text("doctor_id").notNull(),
@@ -332,6 +344,7 @@ export type DoctorFile = typeof doctorFiles.$inferSelect;
 export type DoctorScheduleEntry = typeof doctorScheduleEntries.$inferSelect;
 export type DoctorEducationEntry = typeof doctorEducationEntries.$inferSelect;
 export type PatientProfile = typeof patientProfiles.$inferSelect;
+export type PatientMood = typeof patientMoods.$inferSelect;
 
 export type DoctorPlan = typeof doctorPlans.$inferSelect;
 export type DoctorWeeklyAvailability =

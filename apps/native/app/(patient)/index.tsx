@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import {
   Bell,
@@ -18,8 +18,8 @@ import {
   Sparkles,
 } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Image, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -39,6 +39,111 @@ import { Skeleton } from "@/components/design/ui/skeleton";
 import { showToast, ToastContainer } from "@/components/design/ui/toast";
 import { orpc } from "@/utils/orpc";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
+
+const moodStops = [
+  { emoji: "😴", label: "Tired", mood: "sleep", intensity: 1 },
+  { emoji: "😞", label: "Low", mood: "sad", intensity: 2 },
+  { emoji: "😐", label: "Okay", mood: "idle", intensity: 3 },
+  { emoji: "🙂", label: "Good", mood: "happy", intensity: 4 },
+  { emoji: "😄", label: "Great", mood: "happy", intensity: 5 },
+] as const;
+
+type MoodValue = (typeof moodStops)[number];
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) {
+    return "Good morning";
+  }
+  if (hour < 18) {
+    return "Good afternoon";
+  }
+  return "Good evening";
+}
+
+function MoodSlider({
+  value,
+  onChange,
+  onCommit,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  onCommit: (mood: MoodValue) => void;
+}) {
+  const activeIndex = Math.max(0, Math.min(moodStops.length - 1, value - 1));
+  const active = moodStops[activeIndex];
+  const [trackWidth, setTrackWidth] = useState(0);
+  const lastIndexRef = useRef(activeIndex);
+
+  useEffect(() => {
+    lastIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
+  const setFromX = (x: number) => {
+    if (!trackWidth) {
+      return;
+    }
+    const ratio = Math.max(0, Math.min(1, x / trackWidth));
+    const nextIndex = Math.round(ratio * (moodStops.length - 1));
+    lastIndexRef.current = nextIndex;
+    onChange(nextIndex + 1);
+  };
+
+  const responder = PanResponder.create({
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderMove: (_, gestureState) => {
+      setFromX(gestureState.moveX);
+    },
+    onPanResponderRelease: () => {
+      onCommit(moodStops[lastIndexRef.current] ?? active);
+    },
+  });
+
+  return (
+    <View className="gap-md rounded-[28px] border border-border bg-background-elevated px-xl py-lg shadow-sm">
+      <View className="flex-row items-end justify-between">
+        <View>
+          <Text className="font-serif text-[24px] text-foreground">How are you feeling?</Text>
+          <Text className="font-sans text-caption text-foreground-muted">
+            Slide to choose your mood for today
+          </Text>
+        </View>
+        <Text className="text-[28px]">{active.emoji}</Text>
+      </View>
+      <View
+        {...responder.panHandlers}
+        className="gap-sm py-md"
+        onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
+      >
+        <View className="relative h-3 rounded-full bg-muted">
+          <View
+            className="h-3 rounded-full bg-primary"
+            style={{ width: `${(activeIndex / (moodStops.length - 1)) * 100}%` }}
+          />
+          <View
+            className="absolute top-[-7px] h-6 w-6 rounded-full border-2 border-background-elevated bg-primary shadow-sm"
+            style={{
+              left: `${(activeIndex / (moodStops.length - 1)) * 100}%`,
+              transform: [{ translateX: -12 }],
+            }}
+          />
+        </View>
+        <View className="flex-row justify-between">
+          {moodStops.map((stop, index) => {
+            return (
+              <View key={stop.label} className="items-center gap-xs">
+                <Text className="text-[18px]">{stop.emoji}</Text>
+                <View
+                  className={`h-4 w-4 rounded-full border ${index === activeIndex ? "border-primary bg-primary" : "border-border bg-background"}`}
+                />
+              </View>
+            );
+          })}
+        </View>
+      </View>
+    </View>
+  );
+}
 
 interface FeatureCardProps {
   description: string;
@@ -128,7 +233,10 @@ function VoiceOrb({
 export default function HomeScreen() {
   const router = useRouter();
   const patientProfileQuery = useQuery(orpc.getPatientProfile.queryOptions());
+  const patientMoodQuery = useQuery(orpc.getPatientMood.queryOptions());
+  const moodMutation = useMutation(orpc.setPatientMood.mutationOptions());
   const patientName = patientProfileQuery.data?.alias ?? "Guest";
+  const [mood, setMood] = useState(3);
   const [input, setInput] = useState("");
   const {
     error: speechError,
@@ -158,6 +266,13 @@ export default function HomeScreen() {
       });
     }
   }, [speechError]);
+
+  useEffect(() => {
+    const savedMood = patientMoodQuery.data;
+    if (savedMood) {
+      setMood(savedMood.intensity);
+    }
+  }, [patientMoodQuery.data]);
 
   const handleSubmit = () => {
     const message = input.trim();
@@ -192,7 +307,7 @@ export default function HomeScreen() {
               </View>
               <View>
                 <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
-                  Welcome
+                  {getGreeting()}
                 </Text>
                 <Text className="font-poppins-medium text-foreground text-subtitle">
                   {patientName}
@@ -211,27 +326,33 @@ export default function HomeScreen() {
           </View>
         </Reveal>
 
+        <Reveal delay={80}>
+          <MoodSlider
+            onChange={setMood}
+            onCommit={(selected) =>
+              moodMutation.mutate({
+                mood: selected.mood,
+                intensity: selected.intensity,
+              })
+            }
+            value={mood}
+          />
+        </Reveal>
+
         <Reveal delay={120}>
-          <View className="relative overflow-hidden rounded-[32px] bg-primary px-xl py-xxl shadow-lg">
+          <View className="relative overflow-hidden rounded-[32px] px-xl bg-primary py-xxl shadow-lg">
             <View className="absolute -top-16 -right-10 h-44 w-44 rounded-full bg-accent/25" />
             <View className="absolute -right-16 bottom-0 h-36 w-36 rounded-full border border-primary-foreground/15" />
             <View className="max-w-[84%] gap-md">
-              <View className="self-start rounded-full bg-primary-foreground/10 px-md py-xs">
-                <Text className="font-poppins-medium text-micro text-primary-foreground uppercase tracking-widest">
-                  Your private space
-                </Text>
-              </View>
               <View>
                 <Text className="font-serif text-[38px] text-primary-foreground leading-[1.08]">
-                  Health is personal.
+                  Your health.
                 </Text>
-                <Text className="font-serif text-[35px] text-accent-subtle italic leading-[1.08]">
-                  Privacy is ours.
+                <Text className="font-serif text-[35px] text-primary-foreground/80 italic leading-[1.08]">
+                  Your privacy.
                 </Text>
               </View>
-              <Text className="font-sans text-caption text-primary-foreground/75 leading-relaxed">
-                Ask anything. Your identity stays yours.
-              </Text>
+
             </View>
           </View>
         </Reveal>

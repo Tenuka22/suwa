@@ -8,7 +8,7 @@ interface H1Props {
 export function H1({ children, className = "" }: H1Props) {
   return (
     <h1
-      className={`font-normal font-serif text-[clamp(49px,3.75vw,58px)] leading-[1.03] tracking-[-0.04em] max-landing-md:text-[clamp(39px,11vw,53px)] max-landing-xl:text-[49px] ${className}`}
+      className={`font-normal font-serif text-[clamp(49px,3.75vw,58px)] leading-[1.03] tracking-[-0.04em] max-xl:text-[clamp(39px,11vw,53px)] xl:text-[49px] ${className}`}
     >
       {children}
     </h1>

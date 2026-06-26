@@ -23,7 +23,7 @@ export function Testimonials() {
   return (
     <Appear>
       <section
-        className="pt-[105px] pb-[112px] max-landing-md:pt-[75px] max-landing-md:pb-[82px]"
+        className="pt-[105px] pb-[112px] max-xl:pt-[75px] max-xl:pb-[82px]"
         id="stories"
       >
         <div className="page-shell">
@@ -39,10 +39,10 @@ export function Testimonials() {
               hospitals provide the trusted care network behind it.
             </p>
           </div>
-          <div className="mx-auto grid max-w-[1100px] grid-cols-3 gap-[18px] max-landing-md:max-w-[410px] max-landing-md:grid-cols-1 max-landing-lg:gap-[12px]">
+          <div className="mx-auto grid max-w-[1100px] grid-cols-3 gap-[18px] max-xl:max-w-[410px] max-xl:grid-cols-1 max-xl:gap-[12px]">
             {testimonials.map(({ context, quote }) => (
               <figure
-                className="m-0 min-h-[250px] rounded-[22px] border border-border bg-[rgb(255_253_248_/_72%)] p-[32px] max-landing-lg:p-[26px]"
+                className="m-0 min-h-[250px] rounded-[22px] border border-border bg-[rgb(255_253_248_/_72%)] p-[32px] max-xl:p-[26px]"
                 key={context}
               >
                 <StoryLabel>Illustrative care story</StoryLabel>

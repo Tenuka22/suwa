@@ -28,7 +28,7 @@ export function Faq() {
   return (
     <Appear>
       <section
-        className="page-shell grid max-w-[1120px] grid-cols-[0.8fr_1.2fr] gap-[110px] border-border border-t pt-[95px] pb-[115px] max-landing-md:grid-cols-1 max-landing-lg:gap-[55px] max-landing-md:gap-[42px] max-landing-md:pt-[72px] max-landing-md:pb-[82px]"
+        className="page-shell grid max-w-[1120px] grid-cols-[0.8fr_1.2fr] gap-[110px] border-border border-t pt-[95px] pb-[115px] max-xl:grid-cols-1 max-xl:gap-[42px] max-xl:pt-[72px] max-xl:pb-[82px]"
         id="faq"
       >
         <div className="max-w-[370px]">

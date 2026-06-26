@@ -75,10 +75,10 @@ function BrandBackdrop() {
       <View className="absolute top-20 -right-3 h-40 w-40 rounded-full border border-accent/30" />
       <View className="absolute bottom-16 -left-28 h-72 w-72 rounded-full bg-primary-subtle/80" />
       <Image
-        className="absolute right-0 bottom-0 left-0 opacity-30"
+        className="absolute right-0 bottom-0 opacity-30"
         resizeMode="contain"
         source={require("@/assets/leaves01.png")}
-        style={{ height: "76%", width: "100%" }}
+        style={{ height: "80%", width: 400 }}
       />
     </View>
   );
@@ -187,7 +187,7 @@ function StartStep({ onStart }: { onStart: () => void }) {
           <View className="flex-row items-center gap-xs rounded-full border border-border bg-background-elevated/80 px-md py-sm">
             <ShieldCheck color="#315b4d" size={15} />
             <Text className="font-poppins-medium text-micro text-primary">
-              Private by design
+              Privacy saved by design
             </Text>
           </View>
         </View>
@@ -199,7 +199,7 @@ function StartStep({ onStart }: { onStart: () => void }) {
             Suwa
           </Text>
         </Reveal>
-        <Reveal className="gap-lg" delay={260}>
+        <Reveal className="gap-xl" delay={260}>
           <View>
             <Text className="font-poppins-light text-[30px] text-foreground leading-tight">
               Your health.
@@ -207,12 +207,8 @@ function StartStep({ onStart }: { onStart: () => void }) {
             <Text className="font-poppins-light text-[30px] text-foreground leading-tight">
               Your privacy.
             </Text>
-            <Text className="font-serif text-[34px] text-accent italic leading-tight">
-              Always.
-            </Text>
           </View>
-          <View className="h-px w-14 bg-accent" />
-          <Text className="max-w-64 font-sans text-caption text-foreground-secondary leading-relaxed">
+          <Text className="max-w-64 font-sans text-sm text-foreground-secondary leading-relaxed">
             Thoughtful care that understands you, without asking you to give up
             who you are.
           </Text>
@@ -228,7 +224,7 @@ function StartStep({ onStart }: { onStart: () => void }) {
           }
           justify="between"
           onPress={onStart}
-          size="lg"
+          size="default"
         >
           Begin your journey
         </Button>

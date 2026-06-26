@@ -107,6 +107,13 @@ export const updatePatientProfileSchema = z.object({
   _securedData: z.string().optional(),
 });
 
+export const patientMoodSchema = z.enum(["idle", "happy", "sad", "yawn", "sleep"]);
+
+export const setPatientMoodSchema = z.object({
+  mood: patientMoodSchema,
+  intensity: z.coerce.number().int().min(1).max(5),
+});
+
 export const cancelSessionSchema = z.object({
   sessionId: z.string().min(1),
 });
