@@ -22,7 +22,7 @@ const team = [
   },
   {
     name: "Sethun Thunder",
-    bio: "Entrepreneur-minded developer with a public GitHub presence.",
+    bio:"Builder obsessed with creating products people remember, where engineering, design, and storytelling come together. Always experimenting, always shipping.",
     avatarSeed: "/sethun.png",
     href: "https://github.com/sethunthunder111",
     note: "GitHub: sethunthunder111",

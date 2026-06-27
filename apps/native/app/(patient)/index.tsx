@@ -8,13 +8,18 @@ import {
   ChevronRight,
   Film,
   Flower2,
+  Frown,
   HeartPulse,
+  Laugh,
   MapPin,
+  Meh,
   MessageCircle,
   Mic,
   MicOff,
+  Moon,
   Search,
   ShieldCheck,
+  Smile,
   Sparkles,
 } from "lucide-react-native";
 import type { ReactNode } from "react";
@@ -42,11 +47,11 @@ import { useMaterialThumbnail } from "@/utils/material-thumbnail";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
 
 const moodStops = [
-  { emoji: "😴", label: "Tired", mood: "sleep", intensity: 1 },
-  { emoji: "😞", label: "Low", mood: "sad", intensity: 2 },
-  { emoji: "😐", label: "Okay", mood: "idle", intensity: 3 },
-  { emoji: "🙂", label: "Good", mood: "happy", intensity: 4 },
-  { emoji: "😄", label: "Great", mood: "happy", intensity: 5 },
+  { icon: Moon, label: "Tired", mood: "sleep", intensity: 1 },
+  { icon: Frown, label: "Low", mood: "sad", intensity: 2 },
+  { icon: Meh, label: "Okay", mood: "idle", intensity: 3 },
+  { icon: Smile, label: "Good", mood: "happy", intensity: 4 },
+  { icon: Laugh, label: "Great", mood: "happy", intensity: 5 },
 ] as const;
 
 const searchPrompts = [
@@ -118,7 +123,10 @@ function MoodSlider({
             Slide to choose your mood for today
           </Text>
         </View>
-        <Text className="text-[28px]">{active.emoji}</Text>
+        {(() => {
+          const ActiveIcon = active.icon;
+          return <ActiveIcon color="#315b4d" size={28} />;
+        })()}
       </View>
       <View
         {...responder.panHandlers}
@@ -138,13 +146,14 @@ function MoodSlider({
             }}
           />
         </View>
-        <View className="flex-row justify-between">
+        <View className="flex-row justify-between pt-2">
           {moodStops.map((stop, index) => {
+            const StopIcon = stop.icon;
             return (
-              <View key={stop.label} className="items-center gap-xs">
-                <Text className="text-[18px]">{stop.emoji}</Text>
-                <View
-                  className={`h-4 w-4 rounded-full border ${index === activeIndex ? "border-primary bg-primary" : "border-border bg-background"}`}
+              <View key={stop.label} className="items-center">
+                <StopIcon
+                  color={index === activeIndex ? "#315b4d" : "#8e9a94"}
+                  size={18}
                 />
               </View>
             );
@@ -398,7 +407,6 @@ export default function HomeScreen() {
               onPress={() => router.push("/(patient)/appointments")}
             >
               <Bell color="#315b4d" size={19} />
-              <View className="absolute top-2 right-2 h-2 w-2 rounded-full border border-background-elevated bg-accent" />
             </Pressable>
           </View>
         </Reveal>
@@ -416,23 +424,6 @@ export default function HomeScreen() {
           />
         </Reveal>
 
-        <Reveal delay={120}>
-          <View className="relative overflow-hidden rounded-[32px] px-xl bg-primary py-xxl shadow-lg">
-            <View className="absolute -top-16 -right-10 h-44 w-44 rounded-full bg-accent/25" />
-            <View className="absolute -right-16 bottom-0 h-36 w-36 rounded-full border border-primary-foreground/15" />
-            <View className="max-w-[84%] gap-md">
-              <View>
-                <Text className="font-serif text-[38px] text-primary-foreground leading-[1.08]">
-                  Your health.
-                </Text>
-                <Text className="font-serif text-[35px] text-primary-foreground/80 italic leading-[1.08]">
-                  Your privacy.
-                </Text>
-              </View>
-
-            </View>
-          </View>
-        </Reveal>
 
         <Reveal delay={200}>
           <Input
@@ -444,15 +435,20 @@ export default function HomeScreen() {
             placeholder={searchPrompts[searchPromptIndex]}
             returnKeyType="send"
             rightIcon={
-              input.trim() ? (
-                <Pressable accessibilityLabel="Search" onPress={handleSubmit}>
-                  <View className="h-10 w-10 items-center justify-center rounded-full bg-primary">
+              <View className="flex-row flex-nowrap items-center gap-2">
+                <View className="shrink-0">
+                  <VoiceOrb isListening={isListening} onPress={toggleMic} />
+                </View>
+                <Pressable
+                  accessibilityLabel="Search"
+                  hitSlop={8}
+                  onPress={handleSubmit}
+                >
+                  <View className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary">
                     <ChevronRight color="#fffdf9" size={19} />
                   </View>
                 </Pressable>
-              ) : (
-                <VoiceOrb isListening={isListening} onPress={toggleMic} />
-              )
+              </View>
             }
             value={input}
           />

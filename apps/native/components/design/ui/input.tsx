@@ -39,15 +39,16 @@ export function Input({
         </View>
       ) : null}
       <View
-        className={`flex-row items-center rounded-xl border-2 bg-background-elevated px-4 ${error ? "border-destructive" : "border-input"} ${inputContainerClassName ?? ""}`.trim()}
+        className={`flex-row items-center gap-2 overflow-hidden rounded-xl border-2 bg-background-elevated px-4 ${error ? "border-destructive" : "border-input"} ${inputContainerClassName ?? ""}`.trim()}
       >
-        {leftIcon && <View className="mr-2">{leftIcon}</View>}
+        {leftIcon && <View className="shrink-0">{leftIcon}</View>}
         <TextInput
           accessibilityLabel={props.accessibilityLabel ?? label}
-          className={`flex-1 py-4 font-sans text-body text-foreground outline-none placeholder:text-foreground-placeholder ${className ?? ""}`.trim()}
+          className={`min-w-0 flex-1 py-4 font-sans text-body text-foreground outline-none placeholder:text-foreground-placeholder ${className ?? ""}`.trim()}
+          numberOfLines={1}
           {...props}
         />
-        {rightIcon && <View className="ml-2">{rightIcon}</View>}
+        {rightIcon && <View className="shrink-0">{rightIcon}</View>}
       </View>
       {error ? (
         <Text className="font-sans text-caption text-destructive">{error}</Text>
