@@ -3,11 +3,6 @@
 import { selectionAsync } from "expo-haptics";
 import type { ReactNode } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import Animated, {
-  Easing,
-  FadeIn,
-  ReduceMotion,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ScreenTab {
@@ -37,42 +32,34 @@ export function ScreenTabBar({ children, tabs }: ScreenTabBarProps) {
       </ScrollView>
 
       <View
-        className="absolute right-0 bottom-0 left-0 border-border/70 border-t bg-background-elevated/95 px-lg pt-sm shadow-lg"
+        className="absolute right-0 bottom-0 left-0 px-lg pt-sm"
         style={{ paddingBottom: Math.max(insets.bottom, 8) }}
       >
-        <View className="flex-row items-center justify-around">
-          {tabs.map((tab) => (
-            <Pressable
-              accessibilityRole="tab"
-              accessibilityState={{ selected: tab.active }}
-              className="min-w-16 items-center justify-center gap-1 px-3 py-1"
-              disabled={tab.active}
-              hitSlop={8}
-              key={tab.label}
-              onPress={async () => {
-                tab.onPress?.();
-                await selectionAsync();
-              }}
-              style={({ pressed }) => ({ opacity: pressed ? 0.55 : 1 })}
-            >
-              <View className="relative h-8 w-12 items-center justify-center rounded-full">
-                {tab.active ? (
-                  <Animated.View
-                    className="absolute inset-0 rounded-full bg-primary-subtle"
-                    entering={FadeIn.duration(220)
-                      .easing(Easing.bezier(0.22, 1, 0.36, 1))
-                      .reduceMotion(ReduceMotion.System)}
-                  />
-                ) : null}
-                <View className="z-10">{tab.icon}</View>
-              </View>
-              <Text
-                className={`font-poppins-medium text-[10px] ${tab.active ? "text-primary" : "text-foreground-muted"}`}
+        <View className="flex-row items-center justify-center">
+          <View className="flex-row gap-1 rounded-2xl bg-background-subtle p-1">
+            {tabs.map((tab) => (
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: tab.active }}
+                className={`min-h-14 min-w-14 items-center justify-center gap-0.5 rounded-xl px-3 py-1 ${tab.active ? "bg-primary/40" : ""}`}
+                disabled={tab.active}
+                hitSlop={8}
+                key={tab.label}
+                onPress={async () => {
+                  tab.onPress?.();
+                  await selectionAsync();
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.55 : 1 })}
               >
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
+                <View className="h-7 w-7 items-center justify-center">{tab.icon}</View>
+                <Text
+                  className={`font-medium font-sans text-[10px] ${tab.active ? "text-foreground" : "text-foreground/60"}`}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
       </View>
     </View>

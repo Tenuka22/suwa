@@ -36,7 +36,7 @@ export function ScreenBottomBar({
 
   return (
     <View
-      className="absolute right-0 bottom-0 left-0 border-border/70 border-t bg-background-elevated/95 px-lg pt-sm shadow-lg"
+      className="absolute right-0 bottom-0 left-0 border-border/70 border-t bg-background-elevated/20 px-lg pt-sm shadow-lg backdrop-blur-[1px]"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
       <View className="flex-row items-center justify-between">

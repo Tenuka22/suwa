@@ -19,8 +19,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Card } from "@/components/design/ui/card";
+import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
 import { Screen } from "@/components/design/ui/screen";
 import { orpc } from "@/utils/orpc";
 
@@ -107,22 +107,21 @@ export default function AppointmentsScreen() {
   }
 
   return (
-    <PatientTabScaffold activeTab="doctors">
-      <View className="flex-1 bg-background">
-        <Stack.Screen options={{ headerShown: false }} />
-        <Screen
-          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
-          scrollClassName="flex-1 bg-background"
-        >
-          {/* Header */}
-          <View className="mt-sm">
-            <Text className="font-serif text-hero text-primary leading-tight">
-              Appointments
-            </Text>
-            <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
-              History
-            </Text>
-          </View>
+    <View className="flex-1 bg-background">
+      <Stack.Screen options={{ headerShown: false }} />
+      <Screen
+        contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+        scrollClassName="flex-1 bg-background"
+      >
+        {/* Header */}
+        <View className="mt-sm">
+          <Text className="font-serif text-hero text-primary leading-tight">
+            Appointments
+          </Text>
+          <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
+            History
+          </Text>
+        </View>
 
           {/* Results Info */}
           <View className="flex-row items-center justify-between border-border border-b pb-xxs">
@@ -218,16 +217,23 @@ export default function AppointmentsScreen() {
               </Pressable>
             </View>
           )}
-        </Screen>
+      </Screen>
 
-        {/* Filter Modal */}
-        <Modal
-          animationType="slide"
-          onRequestClose={() => setFilterOpen(false)}
-          statusBarTranslucent
-          transparent
-          visible={filterOpen}
-        >
+      <ScreenBottomBar
+        returnAction={{
+          href: "/(patient)",
+          icon: <ChevronLeft className="text-foreground" size={24} />,
+        }}
+      />
+
+      {/* Filter Modal */}
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setFilterOpen(false)}
+        statusBarTranslucent
+        transparent
+        visible={filterOpen}
+      >
           <View className="flex-1 justify-end bg-black/50">
             <View className="max-h-[80%] rounded-t-3xl border-2 border-border bg-background pb-8">
               {/* Modal Header */}
@@ -302,8 +308,7 @@ export default function AppointmentsScreen() {
               </View>
             </View>
           </View>
-        </Modal>
-      </View>
-    </PatientTabScaffold>
+      </Modal>
+    </View>
   );
 }
