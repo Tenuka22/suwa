@@ -1,7 +1,15 @@
-import { Button, Card, Chip, Separator, Skeleton } from "@heroui/react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Badge } from "@suwa/ui/components/badge";
+import { buttonVariants } from "@suwa/ui/components/button";
 import {
-  BuildingIcon,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@suwa/ui/components/card";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
   CalendarCheckIcon,
   MapPinIcon,
   PhoneIcon,
@@ -10,7 +18,6 @@ import {
   UsersIcon,
 } from "lucide-react";
 
-import { BodyText, PageTitle } from "@/components/typography";
 import {
   useGetTenant,
   useListTenantAffiliations,
@@ -20,27 +27,8 @@ export const Route = createFileRoute("/tenant/$tenantId/")({
   component: TenantDashboardPage,
 });
 
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof BuildingIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-foreground/50" />
-      <span className="font-medium text-sm tabular-nums">{value}</span>
-      <span className="text-foreground/60 text-sm">{label}</span>
-    </div>
-  );
-}
-
 function TenantDashboardPage() {
   const { tenantId } = Route.useParams();
-  const navigate = useNavigate();
   const { data: tenantData, isLoading: tenantLoading } = useGetTenant(tenantId);
   const { data: affiliationsData, isLoading: affLoading } =
     useListTenantAffiliations(tenantId);
@@ -51,12 +39,18 @@ function TenantDashboardPage() {
 
   if (tenantLoading) {
     return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-52 rounded-3xl" />
-        <Separator />
-        <div className="flex flex-wrap gap-x-6 gap-y-2 px-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton className="h-5 w-40" key={i.toString()} />
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-20" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-12" />
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -65,210 +59,188 @@ function TenantDashboardPage() {
 
   if (!tenant) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16">
-        <div className="rounded-full border border-border border-dashed bg-foreground/5 p-4">
-          <BuildingIcon className="size-6 text-foreground/40" />
-        </div>
-        <p className="font-light text-sm">Hospital not found</p>
-        <p className="max-w-xs font-light text-foreground/60 text-sm">
+      <Card className="flex flex-col items-center justify-center">
+        <CardTitle>Hospital not found</CardTitle>
+        <CardDescription>
           The hospital you're looking for doesn't exist.
-        </p>
-      </div>
+        </CardDescription>
+      </Card>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex items-center gap-5">
-          <div className="flex size-16 items-center justify-center rounded-full bg-accent/10">
-            <BuildingIcon className="size-6 text-accent" />
-          </div>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-light text-2xl tracking-tight">
-                {tenant.name}
-              </h1>
-              <Chip
-                color={
-                  tenant.type === "PRIVATE_HOSPITAL" ? "accent" : "default"
-                }
-                variant="soft"
-              >
-                {tenant.type === "PRIVATE_HOSPITAL" ? "Private" : "Public"}
-              </Chip>
-              <Chip
-                color={
-                  tenant.status === "ACTIVE"
-                    ? "accent"
-                    : tenant.status === "SUSPENDED"
-                      ? "danger"
-                      : "default"
-                }
-                variant={
-                  tenant.status === "ACTIVE"
-                    ? "soft"
-                    : tenant.status === "SUSPENDED"
-                      ? "soft"
-                      : "secondary"
-                }
-              >
-                {tenant.status}
-              </Chip>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <BodyText className="flex items-center gap-1.5">
-                <MapPinIcon className="size-3.5" />
-                {tenant.address}
-              </BodyText>
-              {tenant.phone && (
-                <BodyText className="flex items-center gap-1.5">
-                  <PhoneIcon className="size-3.5" />
-                  {tenant.phone}
-                </BodyText>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 pb-2">
-            <Button
-              onPress={() =>
-                navigate({
-                  to: "/tenant/$tenantId/invite",
-                  params: { tenantId },
-                })
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="font-semibold text-lg tracking-tight">
+            {tenant.name}
+          </h1>
+          <div className="flex items-center gap-3">
+            <Badge
+              variant={
+                tenant.type === "PRIVATE_HOSPITAL" ? "default" : "secondary"
               }
-              size="sm"
-              variant="outline"
             >
-              <UserPlusIcon className="size-4" />
-              Invite Doctor
-            </Button>
-            <Button
-              onPress={() =>
-                navigate({
-                  to: "/tenant/$tenantId/settings",
-                  params: { tenantId },
-                })
+              {tenant.type === "PRIVATE_HOSPITAL" ? "Private" : "Public"}
+            </Badge>
+            <Badge
+              variant={
+                tenant.status === "ACTIVE"
+                  ? "default"
+                  : tenant.status === "SUSPENDED"
+                    ? "destructive"
+                    : "outline"
               }
-              size="sm"
             >
-              Settings
-            </Button>
+              {tenant.status}
+            </Badge>
           </div>
+          <div className="flex flex-wrap items-center gap-4 text-muted-foreground text-sm">
+            <div className="flex items-center gap-1.5">
+              <MapPinIcon className="size-3.5" />
+              {tenant.address}
+            </div>
+            {tenant.phone && (
+              <div className="flex items-center gap-1.5">
+                <PhoneIcon className="size-3.5" />
+                {tenant.phone}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            className={buttonVariants({ size: "sm", variant: "outline" })}
+            params={{ tenantId }}
+            to="/tenant/$tenantId/invite"
+          >
+            <UserPlusIcon className="size-4" />
+            Invite Doctor
+          </Link>
+          <Link
+            className={buttonVariants({ size: "sm" })}
+            params={{ tenantId }}
+            to="/tenant/$tenantId/settings"
+          >
+            Settings
+          </Link>
         </div>
       </div>
 
-      <Separator />
+      {/* Metrics */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardDescription>Active Doctors</CardDescription>
+            <CardTitle className="font-semibold text-2xl">
+              {affLoading ? "..." : activeDoctors.length}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UsersIcon className="size-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
 
-      <section className="flex flex-col gap-2 px-6">
-        <PageTitle>Overview</PageTitle>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <StatItem
-            icon={UsersIcon}
-            label="active doctors"
-            value={affLoading ? "..." : activeDoctors.length.toString()}
-          />
-          <StatItem
-            icon={StethoscopeIcon}
-            label="total affiliations"
-            value={affLoading ? "..." : affiliations.length.toString()}
-          />
-          <StatItem
-            icon={CalendarCheckIcon}
-            label="services"
-            value={(tenant.services?.length ?? 0).toString()}
-          />
-          <StatItem
-            icon={UsersIcon}
-            label="admins"
-            value={(tenantData?.admins?.length ?? 0).toString()}
-          />
-        </div>
-      </section>
+        <Card>
+          <CardHeader>
+            <CardDescription>Total Affiliations</CardDescription>
+            <CardTitle className="font-semibold text-2xl">
+              {affLoading ? "..." : affiliations.length}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StethoscopeIcon className="size-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
 
-      <Separator />
+        <Card>
+          <CardHeader>
+            <CardDescription>Services</CardDescription>
+            <CardTitle className="font-semibold text-2xl">
+              {tenant.services?.length ?? 0}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CalendarCheckIcon className="size-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
 
-      <section className="flex flex-col gap-3 px-6">
-        <div>
-          <PageTitle>Quick actions</PageTitle>
-          <p className="font-light text-foreground/60 text-sm">
-            Navigate to key sections for this hospital.
-          </p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardDescription>Admins</CardDescription>
+            <CardTitle className="font-semibold text-2xl">
+              {tenantData?.admins?.length ?? 0}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UsersIcon className="size-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Link params={{ tenantId }} to="/tenant/$tenantId/doctors">
-            <Card className="cursor-pointer transition-colors hover:border-primary/50">
-              <Card.Header>
-                <div className="flex items-center gap-2">
-                  <UsersIcon className="size-5 text-primary" />
-                  <Card.Title className="text-base">Doctor Roster</Card.Title>
-                </div>
-                <Card.Description>
-                  View affiliated doctors and their status
-                </Card.Description>
-              </Card.Header>
-            </Card>
-          </Link>
-
-          <Link params={{ tenantId }} to="/tenant/$tenantId/attendance">
-            <Card className="cursor-pointer transition-colors hover:border-primary/50">
-              <Card.Header>
-                <div className="flex items-center gap-2">
-                  <CalendarCheckIcon className="size-5 text-primary" />
-                  <Card.Title className="text-base">Attendance</Card.Title>
-                </div>
-                <Card.Description>
-                  Manage doctor attendance logs
-                </Card.Description>
-              </Card.Header>
-            </Card>
-          </Link>
-
-          {tenant.type === "PUBLIC_HOSPITAL" && (
-            <Link params={{ tenantId }} to="/tenant/$tenantId/clinics">
-              <Card className="cursor-pointer transition-colors hover:border-primary/50">
-                <Card.Header>
-                  <div className="flex items-center gap-2">
-                    <StethoscopeIcon className="size-5 text-primary" />
-                    <Card.Title className="text-base">Clinics</Card.Title>
-                  </div>
-                  <Card.Description>
-                    Manage clinics within this hospital
-                  </Card.Description>
-                </Card.Header>
-              </Card>
-            </Link>
-          )}
-        </div>
-      </section>
-
+      {/* Services */}
       {tenant.services && tenant.services.length > 0 && (
-        <>
-          <Separator />
-
-          <section className="flex flex-col gap-3 px-6">
-            <div>
-              <PageTitle>Services Offered</PageTitle>
-              <p className="font-light text-foreground/60 text-sm">
-                Medical services available at this hospital.
-              </p>
-            </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Services Offered</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="flex flex-wrap gap-2">
               {tenant.services.map((service: string) => (
-                <Chip key={service} variant="secondary">
+                <Badge key={service} variant="outline">
                   {service}
-                </Chip>
+                </Badge>
               ))}
             </div>
-          </section>
-        </>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Quick Nav */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link params={{ tenantId }} to="/tenant/$tenantId/doctors">
+          <Card className="cursor-pointer transition-colors hover:border-primary/50">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <UsersIcon className="size-5 text-primary" />
+                <CardTitle className="text-base">Doctor Roster</CardTitle>
+              </div>
+              <CardDescription>
+                View affiliated doctors and their status
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link params={{ tenantId }} to="/tenant/$tenantId/attendance">
+          <Card className="cursor-pointer transition-colors hover:border-primary/50">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CalendarCheckIcon className="size-5 text-primary" />
+                <CardTitle className="text-base">Attendance</CardTitle>
+              </div>
+              <CardDescription>Manage doctor attendance logs</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        {tenant.type === "PUBLIC_HOSPITAL" && (
+          <Link params={{ tenantId }} to="/tenant/$tenantId/clinics">
+            <Card className="cursor-pointer transition-colors hover:border-primary/50">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <StethoscopeIcon className="size-5 text-primary" />
+                  <CardTitle className="text-base">Clinics</CardTitle>
+                </div>
+                <CardDescription>
+                  Manage clinics within this hospital
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

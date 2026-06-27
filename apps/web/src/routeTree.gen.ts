@@ -23,9 +23,11 @@ import { Route as DoctorProfileRouteImport } from './routes/doctor/profile'
 import { Route as DoctorPlansRouteImport } from './routes/doctor/plans'
 import { Route as DoctorHubRouteImport } from './routes/doctor/hub'
 import { Route as DoctorAvailabilityRouteImport } from './routes/doctor/availability'
-import { Route as AdminSessionsRouteImport } from './routes/admin/sessions'
+import { Route as AdminSessionRouteImport } from './routes/admin/session'
+import { Route as AdminChatSettingsRouteImport } from './routes/admin/chat-settings'
 import { Route as TenantTenantIdIndexRouteImport } from './routes/tenant/$tenantId/index'
 import { Route as DoctorSessionsIndexRouteImport } from './routes/doctor/sessions/index'
+import { Route as AdminSessionsIndexRouteImport } from './routes/admin/sessions/index'
 import { Route as AdminPlansIndexRouteImport } from './routes/admin/plans/index'
 import { Route as AdminPatientsIndexRouteImport } from './routes/admin/patients/index'
 import { Route as AdminDoctorsIndexRouteImport } from './routes/admin/doctors/index'
@@ -110,9 +112,14 @@ const DoctorAvailabilityRoute = DoctorAvailabilityRouteImport.update({
   path: '/availability',
   getParentRoute: () => DoctorRoute,
 } as any)
-const AdminSessionsRoute = AdminSessionsRouteImport.update({
-  id: '/sessions',
-  path: '/sessions',
+const AdminSessionRoute = AdminSessionRouteImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChatSettingsRoute = AdminChatSettingsRouteImport.update({
+  id: '/chat-settings',
+  path: '/chat-settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const TenantTenantIdIndexRoute = TenantTenantIdIndexRouteImport.update({
@@ -124,6 +131,11 @@ const DoctorSessionsIndexRoute = DoctorSessionsIndexRouteImport.update({
   id: '/sessions/',
   path: '/sessions/',
   getParentRoute: () => DoctorRoute,
+} as any)
+const AdminSessionsIndexRoute = AdminSessionsIndexRouteImport.update({
+  id: '/sessions/',
+  path: '/sessions/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminPlansIndexRoute = AdminPlansIndexRouteImport.update({
   id: '/plans/',
@@ -201,7 +213,8 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/tenant': typeof TenantRouteWithChildren
-  '/admin/sessions': typeof AdminSessionsRoute
+  '/admin/chat-settings': typeof AdminChatSettingsRoute
+  '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/plans': typeof DoctorPlansRoute
@@ -221,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/admin/doctors/': typeof AdminDoctorsIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
   '/admin/plans/': typeof AdminPlansIndexRoute
+  '/admin/sessions/': typeof AdminSessionsIndexRoute
   '/doctor/sessions/': typeof DoctorSessionsIndexRoute
   '/tenant/$tenantId/': typeof TenantTenantIdIndexRoute
   '/tenant/$tenantId/clinics/': typeof TenantTenantIdClinicsIndexRoute
@@ -230,7 +244,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/admin/sessions': typeof AdminSessionsRoute
+  '/admin/chat-settings': typeof AdminChatSettingsRoute
+  '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/plans': typeof DoctorPlansRoute
@@ -250,6 +265,7 @@ export interface FileRoutesByTo {
   '/admin/doctors': typeof AdminDoctorsIndexRoute
   '/admin/patients': typeof AdminPatientsIndexRoute
   '/admin/plans': typeof AdminPlansIndexRoute
+  '/admin/sessions': typeof AdminSessionsIndexRoute
   '/doctor/sessions': typeof DoctorSessionsIndexRoute
   '/tenant/$tenantId': typeof TenantTenantIdIndexRoute
   '/tenant/$tenantId/clinics': typeof TenantTenantIdClinicsIndexRoute
@@ -263,7 +279,8 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/tenant': typeof TenantRouteWithChildren
-  '/admin/sessions': typeof AdminSessionsRoute
+  '/admin/chat-settings': typeof AdminChatSettingsRoute
+  '/admin/session': typeof AdminSessionRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/plans': typeof DoctorPlansRoute
@@ -283,6 +300,7 @@ export interface FileRoutesById {
   '/admin/doctors/': typeof AdminDoctorsIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
   '/admin/plans/': typeof AdminPlansIndexRoute
+  '/admin/sessions/': typeof AdminSessionsIndexRoute
   '/doctor/sessions/': typeof DoctorSessionsIndexRoute
   '/tenant/$tenantId/': typeof TenantTenantIdIndexRoute
   '/tenant/$tenantId/clinics/': typeof TenantTenantIdClinicsIndexRoute
@@ -297,7 +315,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/tenant'
-    | '/admin/sessions'
+    | '/admin/chat-settings'
+    | '/admin/session'
     | '/doctor/availability'
     | '/doctor/hub'
     | '/doctor/plans'
@@ -317,6 +336,7 @@ export interface FileRouteTypes {
     | '/admin/doctors/'
     | '/admin/patients/'
     | '/admin/plans/'
+    | '/admin/sessions/'
     | '/doctor/sessions/'
     | '/tenant/$tenantId/'
     | '/tenant/$tenantId/clinics/'
@@ -326,7 +346,8 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
-    | '/admin/sessions'
+    | '/admin/chat-settings'
+    | '/admin/session'
     | '/doctor/availability'
     | '/doctor/hub'
     | '/doctor/plans'
@@ -346,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/doctors'
     | '/admin/patients'
     | '/admin/plans'
+    | '/admin/sessions'
     | '/doctor/sessions'
     | '/tenant/$tenantId'
     | '/tenant/$tenantId/clinics'
@@ -358,7 +380,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/tenant'
-    | '/admin/sessions'
+    | '/admin/chat-settings'
+    | '/admin/session'
     | '/doctor/availability'
     | '/doctor/hub'
     | '/doctor/plans'
@@ -378,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin/doctors/'
     | '/admin/patients/'
     | '/admin/plans/'
+    | '/admin/sessions/'
     | '/doctor/sessions/'
     | '/tenant/$tenantId/'
     | '/tenant/$tenantId/clinics/'
@@ -493,11 +517,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorAvailabilityRouteImport
       parentRoute: typeof DoctorRoute
     }
-    '/admin/sessions': {
-      id: '/admin/sessions'
-      path: '/sessions'
-      fullPath: '/admin/sessions'
-      preLoaderRoute: typeof AdminSessionsRouteImport
+    '/admin/session': {
+      id: '/admin/session'
+      path: '/session'
+      fullPath: '/admin/session'
+      preLoaderRoute: typeof AdminSessionRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/chat-settings': {
+      id: '/admin/chat-settings'
+      path: '/chat-settings'
+      fullPath: '/admin/chat-settings'
+      preLoaderRoute: typeof AdminChatSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/tenant/$tenantId/': {
@@ -513,6 +544,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/doctor/sessions/'
       preLoaderRoute: typeof DoctorSessionsIndexRouteImport
       parentRoute: typeof DoctorRoute
+    }
+    '/admin/sessions/': {
+      id: '/admin/sessions/'
+      path: '/sessions'
+      fullPath: '/admin/sessions/'
+      preLoaderRoute: typeof AdminSessionsIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/plans/': {
       id: '/admin/plans/'
@@ -609,23 +647,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
-  AdminSessionsRoute: typeof AdminSessionsRoute
+  AdminChatSettingsRoute: typeof AdminChatSettingsRoute
+  AdminSessionRoute: typeof AdminSessionRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminDoctorsDoctorIdRoute: typeof AdminDoctorsDoctorIdRoute
   AdminDocRequestsIndexRoute: typeof AdminDocRequestsIndexRoute
   AdminDoctorsIndexRoute: typeof AdminDoctorsIndexRoute
   AdminPatientsIndexRoute: typeof AdminPatientsIndexRoute
   AdminPlansIndexRoute: typeof AdminPlansIndexRoute
+  AdminSessionsIndexRoute: typeof AdminSessionsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminSessionsRoute: AdminSessionsRoute,
+  AdminChatSettingsRoute: AdminChatSettingsRoute,
+  AdminSessionRoute: AdminSessionRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminDoctorsDoctorIdRoute: AdminDoctorsDoctorIdRoute,
   AdminDocRequestsIndexRoute: AdminDocRequestsIndexRoute,
   AdminDoctorsIndexRoute: AdminDoctorsIndexRoute,
   AdminPatientsIndexRoute: AdminPatientsIndexRoute,
   AdminPlansIndexRoute: AdminPlansIndexRoute,
+  AdminSessionsIndexRoute: AdminSessionsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

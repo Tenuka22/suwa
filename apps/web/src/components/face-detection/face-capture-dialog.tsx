@@ -1,13 +1,25 @@
-import { Button, Modal, ProgressBar, Spinner, toast } from "@heroui/react";
-import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+"use client";
+
+import { FilesetResolver, FaceLandmarker } from "@mediapipe/tasks-vision";
+import { Button } from "@suwa/ui/components/button";
 import {
-  Camera,
-  CheckCircle2,
-  Loader2,
-  ShieldAlert,
-  XCircle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@suwa/ui/components/dialog";
+import { Progress } from "@suwa/ui/components/progress";
+import {
+  CameraIcon,
+  CheckCircle2Icon,
+  Loader2Icon,
+  ShieldAlertIcon,
+  XCircleIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 export type FaceCaptureStatus =
   | "idle"
@@ -20,44 +32,45 @@ export type FaceCaptureStatus =
   | "success"
   | "error";
 
-interface FaceCaptureResult {
-  embedding: number[];
-  videoBase64?: string;
-}
-
 interface FaceCaptureDialogProps {
-  onFaceCaptured: (result: FaceCaptureResult) => Promise<void>;
-  onOpenChange: (open: boolean) => void;
   open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onFaceCaptured: (embedding: number[]) => Promise<void>;
 }
 
-const KEY_LANDMARK_INDICES = [
-  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378,
-  400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21,
-  54, 103, 67, 109, 33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158,
-  159, 160, 161, 246, 362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388,
-  387, 386, 385, 384, 398, 61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291,
-  409, 270, 269, 267, 0, 37, 39, 40, 185, 1, 2, 98, 327, 49, 279, 278, 195, 197,
-  5, 4, 237, 456, 454, 46, 53, 52, 65, 55, 70, 63, 105, 66, 107, 276, 283, 282,
-  295, 285, 300, 293, 334, 296, 336,
-] as const;
+const KEY_LANDMARK_INDICES: number[] = [
+  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379,
+  378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127,
+  162, 21, 54, 103, 67, 109, 33, 7, 163, 144, 145, 153, 154, 155, 133, 173,
+  157, 158, 159, 160, 161, 246, 362, 382, 381, 380, 374, 373, 390, 249, 263,
+  466, 388, 387, 386, 385, 384, 398, 61, 146, 91, 181, 84, 17, 314, 405,
+  321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185, 1, 2, 98, 327, 49,
+  279, 278, 195, 197, 5, 4, 237, 456, 454, 46, 53, 52, 65, 55, 70, 63, 105,
+  66, 107, 276, 283, 282, 295, 285, 300, 293, 334, 296, 336,
+];
 
 function computeEmbedding(
   landmarks: { x: number; y: number; z: number }[]
 ): number[] {
-  const faceLandmarks = KEY_LANDMARK_INDICES.map((i) => landmarks[i]).filter(
-    Boolean
-  ) as { x: number; y: number; z: number }[];
+  const faceLandmarks = KEY_LANDMARK_INDICES
+    .map((index) => landmarks[index])
+    .filter(
+      (point): point is { x: number; y: number; z: number } => Boolean(point)
+    );
 
-  const cx = faceLandmarks.reduce((s, p) => s + p.x, 0) / faceLandmarks.length;
-  const cy = faceLandmarks.reduce((s, p) => s + p.y, 0) / faceLandmarks.length;
-  const cz = faceLandmarks.reduce((s, p) => s + p.z, 0) / faceLandmarks.length;
+  if (faceLandmarks.length === 0) {
+    return [];
+  }
 
-  const distances = faceLandmarks.map((p) =>
+  const cx = faceLandmarks.reduce((sum, point) => sum + point.x, 0) / faceLandmarks.length;
+  const cy = faceLandmarks.reduce((sum, point) => sum + point.y, 0) / faceLandmarks.length;
+  const cz = faceLandmarks.reduce((sum, point) => sum + point.z, 0) / faceLandmarks.length;
+
+  const distances = faceLandmarks.map((point) =>
     Math.sqrt(
-      (p.x - cx) * (p.x - cx) +
-        (p.y - cy) * (p.y - cy) +
-        (p.z - cz) * (p.z - cz)
+      (point.x - cx) * (point.x - cx) +
+        (point.y - cy) * (point.y - cy) +
+        (point.z - cz) * (point.z - cz)
     )
   );
   const scale = Math.max(...distances);
@@ -66,10 +79,10 @@ function computeEmbedding(
     return [];
   }
 
-  return faceLandmarks.flatMap((p) => [
-    (p.x - cx) / scale,
-    (p.y - cy) / scale,
-    (p.z - cz) / scale,
+  return faceLandmarks.flatMap((point) => [
+    (point.x - cx) / scale,
+    (point.y - cy) / scale,
+    (point.z - cz) / scale,
   ]);
 }
 
@@ -87,16 +100,17 @@ export function FaceCaptureDialog({
   const streamRef = useRef<MediaStream | null>(null);
   const landmarkerRef = useRef<FaceLandmarker | null>(null);
   const animFrameRef = useRef<number | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const videoChunksRef = useRef<Blob[]>([]);
 
   const stopCamera = useCallback(() => {
     if (animFrameRef.current !== null) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
     }
+
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
+      for (const track of streamRef.current.getTracks()) {
+        track.stop();
+      }
       streamRef.current = null;
     }
   }, []);
@@ -113,32 +127,22 @@ export function FaceCaptureDialog({
 
       if (faces.length > 0) {
         const firstFace = faces[0];
-        let minY = Number.POSITIVE_INFINITY,
-          maxY = Number.NEGATIVE_INFINITY,
-          minX = Number.POSITIVE_INFINITY,
-          maxX = Number.NEGATIVE_INFINITY;
-        for (const pt of firstFace) {
-          if (pt.x < minX) {
-            minX = pt.x;
-          }
-          if (pt.x > maxX) {
-            maxX = pt.x;
-          }
-          if (pt.y < minY) {
-            minY = pt.y;
-          }
-          if (pt.y > maxY) {
-            maxY = pt.y;
-          }
+        let minY = Infinity;
+        let maxY = -Infinity;
+        let minX = Infinity;
+        let maxX = -Infinity;
+
+        for (const point of firstFace) {
+          if (point.x < minX) minX = point.x;
+          if (point.x > maxX) maxX = point.x;
+          if (point.y < minY) minY = point.y;
+          if (point.y > maxY) maxY = point.y;
         }
+
         const faceArea = (maxX - minX) * (maxY - minY);
         const faceCenterX = (minX + maxX) / 2;
         const faceCenterY = (minY + maxY) / 2;
-        const isCentered =
-          faceCenterX > 0.25 &&
-          faceCenterX < 0.75 &&
-          faceCenterY > 0.2 &&
-          faceCenterY < 0.8;
+        const isCentered = faceCenterX > 0.25 && faceCenterX < 0.75 && faceCenterY > 0.2 && faceCenterY < 0.8;
         const isLargeEnough = faceArea > 0.05;
 
         setHasFace(isCentered && isLargeEnough);
@@ -170,6 +174,7 @@ export function FaceCaptureDialog({
           height: { ideal: 480 },
         },
       });
+
       streamRef.current = stream;
 
       if (videoRef.current) {
@@ -184,139 +189,87 @@ export function FaceCaptureDialog({
         baseOptions: {
           modelAssetPath:
             "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-          delegate: "GPU",
+          delegate: "CPU",
         },
         runningMode: "VIDEO",
         numFaces: 1,
         outputFaceBlendshapes: false,
         outputFacialTransformationMatrixes: false,
       });
-      landmarkerRef.current = landmarker;
 
+      landmarkerRef.current = landmarker;
       await startDetection(landmarker);
       setStatus("detecting");
-    } catch (err) {
-      if (err instanceof Error) {
-        if (err.name === "NotAllowedError") {
-          setCameraError(
-            "Camera access denied. Please allow camera access and try again."
-          );
-          setStatus("camera-permission");
-        } else {
-          setCameraError(`Camera error: ${err.message}`);
-          setStatus("error");
-        }
-      } else {
-        setCameraError("Unknown camera error occurred.");
-        setStatus("error");
+    } catch (error) {
+      if (error instanceof Error && error.name === "NotAllowedError") {
+        setCameraError("Camera access denied. Please allow camera access and try again.");
+        setStatus("camera-permission");
+        return;
       }
+
+      setCameraError(error instanceof Error ? error.message : "Unknown camera error occurred.");
+      setStatus("error");
     }
   }, [startDetection, stopCamera]);
 
   const captureAndSave = useCallback(async () => {
     const landmarker = landmarkerRef.current;
     const video = videoRef.current;
-    const stream = streamRef.current;
-    if (!(landmarker && video)) {
+
+    if (!landmarker || !video) {
       return;
     }
 
     setStatus("capturing");
 
     try {
-      videoChunksRef.current = [];
+      const embeddings: number[][] = [];
+      const frameCount = 8;
 
-      let mediaRecorder: MediaRecorder | null = null;
-      if (stream) {
-        mediaRecorder = new MediaRecorder(stream, {
-          mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-            ? "video/webm;codecs=vp9"
-            : "video/webm",
-        });
-        mediaRecorderRef.current = mediaRecorder;
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            videoChunksRef.current.push(event.data);
-          }
-        };
-        mediaRecorder.start();
-        setTimeout(() => {
-          if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop();
-          }
-        }, 3500);
-      }
-
-      const NUM_FRAMES = 8;
-      const allEmbeddings: number[][] = [];
-
-      for (let i = 0; i < NUM_FRAMES; i++) {
+      for (let index = 0; index < frameCount; index++) {
         const results = landmarker.detectForVideo(video, performance.now());
         const faces = results.faceLandmarks;
 
         if (faces.length > 0) {
           const embedding = computeEmbedding(faces[0]);
           if (embedding.length > 0) {
-            allEmbeddings.push(embedding);
+            embeddings.push(embedding);
           }
         }
 
-        if (i < NUM_FRAMES - 1) {
-          await new Promise((r) => setTimeout(r, 80));
+        if (index < frameCount - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 80));
         }
       }
 
-      if (allEmbeddings.length < 3) {
-        toast.danger(
-          `Only detected face in ${allEmbeddings.length}/${NUM_FRAMES} frames. Please hold still and try again.`
+      if (embeddings.length < 3) {
+        toast.error(
+          `Only detected a face in ${embeddings.length}/${frameCount} frames. Please hold still and try again.`
         );
-        mediaRecorderRef.current?.stop();
         setStatus("detected");
         return;
       }
 
-      const embeddingLength = allEmbeddings[0].length;
+      const embeddingLength = embeddings[0].length;
       const averaged = new Array(embeddingLength).fill(0);
-      for (const emb of allEmbeddings) {
-        for (let j = 0; j < embeddingLength; j++) {
-          averaged[j] += emb[j];
+
+      for (const embedding of embeddings) {
+        for (let index = 0; index < embeddingLength; index++) {
+          averaged[index] += embedding[index];
         }
       }
-      for (let j = 0; j < embeddingLength; j++) {
-        averaged[j] /= allEmbeddings.length;
-      }
 
-      if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        await new Promise<void>((resolve) => {
-          mediaRecorder!.onstop = () => resolve();
-          mediaRecorder!.stop();
-        });
+      for (let index = 0; index < embeddingLength; index++) {
+        averaged[index] /= embeddings.length;
       }
-
-      let videoBase64: string | undefined;
-      if (videoChunksRef.current.length > 0) {
-        const videoBlob = new Blob(videoChunksRef.current, {
-          type: "video/webm",
-        });
-        const buffer = await videoBlob.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        let binary = "";
-        for (let i = 0; i < bytes.length; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        videoBase64 = btoa(binary);
-      }
-
-      mediaRecorderRef.current = null;
 
       setStatus("saving");
-      await onFaceCaptured({ embedding: averaged, videoBase64 });
+      await onFaceCaptured(averaged);
       setStatus("success");
-    } catch (err) {
-      toast.danger(
-        `Failed to process face: ${err instanceof Error ? err.message : "Unknown error"}`
+    } catch (error) {
+      toast.error(
+        `Failed to process face: ${error instanceof Error ? error.message : "Unknown error"}`
       );
-      mediaRecorderRef.current = null;
       setStatus("detected");
     }
   }, [onFaceCaptured]);
@@ -327,146 +280,117 @@ export function FaceCaptureDialog({
       setHasFace(false);
       setConfidence(0);
       setCameraError(null);
-      setTimeout(() => initCamera(), 100);
-    } else {
-      stopCamera();
-      setStatus("idle");
+      const timer = window.setTimeout(() => {
+        void initCamera();
+      }, 100);
+
+      return () => {
+        window.clearTimeout(timer);
+      };
     }
 
+    stopCamera();
+    setStatus("idle");
     return () => stopCamera();
-  }, [open, initCamera, stopCamera]);
+  }, [initCamera, open, stopCamera]);
 
   const handleClose = () => {
     stopCamera();
     onOpenChange(false);
   };
 
-  const isCapturingOrSaving =
-    status === "capturing" || status === "saving" || status === "loading-model";
+  const isBusy = status === "capturing" || status === "saving" || status === "loading-model";
 
   return (
-    <Modal.Backdrop isOpen={open} onOpenChange={handleClose}>
-      <Modal.Container>
-        <Modal.Dialog className="max-h-[90vh]">
-          <Modal.Header>
-            <Modal.Icon className="bg-primary text-primary-foreground">
-              <ShieldAlert className="size-5" />
-            </Modal.Icon>
-            <Modal.Heading>Face Verification</Modal.Heading>
-            <p className="font-normal text-muted-foreground text-sm">
-              Look directly at the camera with good lighting to verify your
-              identity
-            </p>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="relative overflow-hidden rounded-2xl bg-black">
-              <video
-                autoPlay
-                className="aspect-[4/3] w-full object-cover"
-                muted
-                playsInline
-                ref={videoRef}
-              />
-              {status === "loading-model" && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70">
-                  <Loader2 className="size-8 animate-spin text-white" />
-                  <p className="text-sm text-white">
-                    Loading face detection model...
-                  </p>
-                </div>
-              )}
+    <Dialog onOpenChange={handleClose} open={open}>
+      <DialogContent className="sm:max-w-2xl" showCloseButton={false}>
+        <DialogHeader>
+          <div className="mb-2 flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <ShieldAlertIcon className="size-5" />
+          </div>
+          <DialogTitle>Face Verification</DialogTitle>
+          <DialogDescription>
+            Look directly at the camera with good lighting to verify your identity.
+          </DialogDescription>
+        </DialogHeader>
 
-              {cameraError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70 p-6 text-center">
-                  <XCircle className="size-10 text-red-400" />
-                  <p className="text-red-300 text-sm">{cameraError}</p>
-                </div>
-              )}
+        <div className="relative overflow-hidden rounded-2xl bg-black">
+          <video
+            ref={videoRef}
+            autoPlay
+            className="aspect-[4/3] w-full object-cover"
+            muted
+            playsInline
+          />
 
-              {status !== "loading-model" && !cameraError && (
-                <>
-                  {status !== "success" && (
-                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="text-white text-xs">
-                          {hasFace
-                            ? "Face detected"
-                            : "Align your face within the oval"}
-                        </span>
-                        <span className="text-white/70 text-xs">
-                          {hasFace
-                            ? `Quality: ${Math.round(confidence * 100)}%`
-                            : ""}
-                        </span>
-                      </div>
-                      <ProgressBar
-                        aria-label="Face detection quality"
-                        size="sm"
-                        value={confidence * 100}
-                      >
-                        <ProgressBar.Track className="h-1 bg-white/20">
-                          <ProgressBar.Fill
-                            className={
-                              hasFace ? "bg-green-400" : "bg-yellow-400"
-                            }
-                          />
-                        </ProgressBar.Track>
-                      </ProgressBar>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {status === "success" && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-green-900/40">
-                  <CheckCircle2 className="size-16 text-green-400" />
-                  <p className="font-semibold text-lg text-white">
-                    Face Verified!
-                  </p>
-                  <p className="text-sm text-white/80">
-                    Your identity has been confirmed
-                  </p>
-                </div>
-              )}
+          {status === "loading-model" ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70">
+              <Loader2Icon className="size-8 animate-spin text-white" />
+              <p className="text-white text-sm">Loading face detection model...</p>
             </div>
-          </Modal.Body>
-          <Modal.Footer className="flex justify-end gap-3">
-            {status === "success" ? (
-              <Button onPress={handleClose} variant="primary">
-                Done
+          ) : null}
+
+          {cameraError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70 p-6 text-center">
+              <XCircleIcon className="size-10 text-red-400" />
+              <p className="text-red-300 text-sm">{cameraError}</p>
+            </div>
+          ) : null}
+
+          {!cameraError && status !== "loading-model" ? (
+            <>
+              <div
+                className={
+                  hasFace
+                    ? "pointer-events-none absolute inset-0 rounded-2xl border-4 border-green-400/70"
+                    : "pointer-events-none absolute inset-0 rounded-2xl border-4 border-yellow-400/50"
+                }
+              />
+              {status !== "success" ? (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-white text-xs">
+                      {hasFace ? "Face detected" : "Position your face in the frame"}
+                    </span>
+                    <span className="text-white/70 text-xs">
+                      {hasFace ? `Quality: ${Math.round(confidence * 100)}%` : ""}
+                    </span>
+                  </div>
+                  <Progress aria-label="Face detection quality" value={confidence * 100} />
+                </div>
+              ) : null}
+            </>
+          ) : null}
+
+          {status === "success" ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-emerald-950/40">
+              <CheckCircle2Icon className="size-16 text-emerald-400" />
+              <p className="font-semibold text-white text-lg">Face verified</p>
+              <p className="text-white/80 text-sm">Your identity has been confirmed.</p>
+            </div>
+          ) : null}
+        </div>
+
+        <DialogFooter className="border-t bg-muted/50">
+          {status === "success" ? (
+            <Button onClick={handleClose}>Done</Button>
+          ) : (
+            <>
+              <Button disabled={isBusy} onClick={handleClose} variant="outline">
+                Cancel
               </Button>
-            ) : (
-              <>
-                <Button
-                  isDisabled={isCapturingOrSaving}
-                  onPress={handleClose}
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  isDisabled={!hasFace || isCapturingOrSaving}
-                  onPress={captureAndSave}
-                  variant="primary"
-                >
-                  {status === "loading-model" ? (
-                    <Spinner className="size-4" />
-                  ) : (
-                    <Camera className="size-4" />
-                  )}
-                  {status === "loading-model"
-                    ? "Loading model..."
-                    : status === "capturing"
-                      ? "Analyzing..."
-                      : status === "saving"
-                        ? "Saving..."
-                        : "Capture & Verify"}
-                </Button>
-              </>
-            )}
-          </Modal.Footer>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+              <Button disabled={!hasFace || isBusy} onClick={() => void captureAndSave()}>
+                <CameraIcon className="size-4" />
+                {status === "capturing"
+                  ? "Analyzing..."
+                  : status === "saving"
+                    ? "Saving..."
+                    : "Capture & Verify"}
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

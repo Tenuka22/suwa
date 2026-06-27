@@ -1,4 +1,11 @@
-import { Chip, Dropdown, Separator } from "@heroui/react";
+import { Badge } from "@suwa/ui/components/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@suwa/ui/components/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import {
   ClockIcon,
@@ -20,7 +27,6 @@ interface HubMaterialCardProps {
   id: string;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
-  onWatch?: (id: string) => void;
   size?: number | null;
   status: "uploading" | "processing" | "ready" | "failed";
   tags?: string[] | null;
@@ -73,26 +79,14 @@ export function HubMaterialCard({
   tags,
   onDelete,
   onEdit,
-  onWatch,
 }: HubMaterialCardProps) {
   const isVideo = fileType === "video";
   const timeAgo = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
 
-  const handleWatch = () => {
-    if (status === "ready" && onWatch) {
-      onWatch(id);
-    }
-  };
-
   return (
-    <div className="group">
+    <div className="group cursor-pointer">
       {/* Thumbnail */}
-      <button
-        className="relative flex aspect-video w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted/20"
-        disabled={status !== "ready"}
-        onClick={handleWatch}
-        type="button"
-      >
+      <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted/20">
         {isVideo ? (
           <FilmIcon className="size-10 text-muted-foreground/40" />
         ) : (
@@ -101,44 +95,45 @@ export function HubMaterialCard({
 
         {/* Duration badge */}
         {durationSeconds ? (
-          <Chip
+          <Badge
             className="absolute right-2 bottom-2 border-none bg-black/80 font-medium text-[11px] text-white"
-            variant="tertiary"
+            variant="outline"
           >
             {formatDuration(durationSeconds)}
-          </Chip>
+          </Badge>
         ) : null}
 
         {/* Status overlay */}
         {status !== "ready" && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-            <Chip
+            <Badge
               className="text-xs"
-              color={
-                status === "uploading" || status === "processing"
-                  ? "default"
-                  : status === "failed"
-                    ? "danger"
-                    : "default"
+              variant={
+                status === "uploading"
+                  ? "secondary"
+                  : status === "processing"
+                    ? "secondary"
+                    : status === "failed"
+                      ? "destructive"
+                      : "secondary"
               }
-              variant="soft"
             >
               {status === "uploading" && "Uploading..."}
               {status === "processing" && "Processing..."}
               {status === "failed" && "Failed"}
-            </Chip>
+            </Badge>
           </div>
         )}
 
         {/* Visibility badge */}
-        <Chip
+        <Badge
           className="absolute top-2 right-2 gap-1 bg-background/80 text-[10px] backdrop-blur"
-          variant="tertiary"
+          variant="outline"
         >
           <VisibilityIcon visibility={visibility} />
           {visibility.charAt(0).toUpperCase() + visibility.slice(1)}
-        </Chip>
-      </button>
+        </Badge>
+      </div>
 
       {/* Info */}
       <div className="flex gap-3">
@@ -162,67 +157,50 @@ export function HubMaterialCard({
           {tags && tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {tags.slice(0, 3).map((tag) => (
-                <Chip
-                  className="text-[10px]"
-                  color="default"
-                  key={tag}
-                  variant="soft"
-                >
+                <Badge className="text-[10px]" key={tag} variant="secondary">
                   {tag}
-                </Chip>
+                </Badge>
               ))}
               {tags.length > 3 && (
-                <Chip className="text-[10px]" color="default" variant="soft">
+                <Badge className="text-[10px]" variant="secondary">
                   +{tags.length - 3}
-                </Chip>
+                </Badge>
               )}
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <Dropdown>
-          <Dropdown.Trigger>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
             <button
               className="flex size-8 items-center justify-center rounded-full opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
-              onClick={(e) => e.stopPropagation()}
               type="button"
             >
               <EllipsisIcon className="size-4" />
             </button>
-          </Dropdown.Trigger>
-          <Dropdown.Popover>
-            <Dropdown.Menu
-              onAction={(key) => {
-                if (key === "edit" && onEdit) {
-                  onEdit(id);
-                }
-                if (key === "delete" && onDelete) {
-                  onDelete(id);
-                }
-              }}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {onEdit && (
+              <DropdownMenuItem onClick={() => onEdit(id)}>
+                <PencilIcon className="size-4" />
+                Edit details
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem>
+              <ClockIcon className="size-4" />
+              Change visibility
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => onDelete?.(id)}
             >
-              {onEdit && (
-                <Dropdown.Item id="edit">
-                  <PencilIcon className="size-4" />
-                  Edit details
-                </Dropdown.Item>
-              )}
-              <Dropdown.Item id="visibility">
-                <ClockIcon className="size-4" />
-                Change visibility
-              </Dropdown.Item>
-              <Separator />
-              <Dropdown.Item
-                className="text-destructive focus:text-destructive"
-                id="delete"
-              >
-                <Trash2Icon className="size-4" />
-                Delete
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
+              <Trash2Icon className="size-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

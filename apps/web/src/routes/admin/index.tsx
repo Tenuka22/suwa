@@ -1,43 +1,35 @@
-import { Avatar, Button, Chip, Separator } from "@heroui/react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@suwa/ui/components/chart";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@suwa/ui/components/empty";
+import { Separator } from "@suwa/ui/components/separator";
+import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
+  ArrowRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
   InboxIcon,
-  ListChecksIcon,
   ShieldIcon,
+  StethoscopeIcon,
+  TrendingUpIcon,
   UserRoundIcon,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { BodyText, PageTitle } from "@/components/typography";
+import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { orpc } from "@/utils/orpc";
-
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof ShieldIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-foreground/50" />
-      <span className="font-medium text-sm tabular-nums">{value}</span>
-      <span className="text-foreground/60 text-sm">{label}</span>
-    </div>
-  );
-}
 
 export const Route = createFileRoute("/admin/")({
   loaderDeps: () => ({}),
@@ -47,187 +39,211 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminDashboardRoute() {
-  const navigate = useNavigate();
   const stats = Route.useLoaderData();
   const sessionsByDay = stats?.sessionsByDay ?? [];
 
-  const pendingDoctors = stats?.pendingDoctors ?? 0;
-  const approvedDoctors = stats?.approvedDoctors ?? 0;
-  const totalSessions = stats?.totalSessions ?? 0;
-  const totalPatients = stats?.totalPatients ?? 0;
-
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex items-center gap-5">
-          <Avatar className="size-16" size="lg">
-            <Avatar.Fallback className="font-light text-lg">
-              <ShieldIcon className="size-6" />
-            </Avatar.Fallback>
-          </Avatar>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-light text-2xl tracking-tight">
-                Admin console
-              </h1>
-              <Chip color="accent" variant="soft">
-                <div className="flex items-center justify-center">
-                  <ShieldIcon className="size-3" />
-                </div>
-                Dashboard
-              </Chip>
+    <div className="flex flex-col gap-6">
+      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
+        <CardContent>
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl border bg-muted/40 p-4 text-muted-foreground">
+              <ShieldIcon className="size-8" />
             </div>
 
-            <BodyText className="max-w-2xl">
-              Monitor platform activity, manage doctor registrations, and
-              oversee all sessions from one unified dashboard.
-            </BodyText>
-          </div>
-
-          <div className="flex items-center gap-2 pb-2">
-            <Button
-              onPress={() =>
-                navigate({
-                  to: "/admin/doc-requests",
-                  search: { page: 1, query: "" },
-                })
-              }
-              size="sm"
-              variant="outline"
-            >
-              <InboxIcon className="size-4" />
-              Requests
-            </Button>
-            <Button
-              onPress={() =>
-                navigate({ to: "/admin/sessions", search: { page: 1 } })
-              }
-              size="sm"
-            >
-              <ListChecksIcon className="size-4" />
-              All sessions
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
-      <section className="flex flex-col gap-2 px-6">
-        <PageTitle>Overview</PageTitle>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <StatItem
-            icon={InboxIcon}
-            label="pending doctors"
-            value={pendingDoctors.toString()}
-          />
-          <StatItem
-            icon={CheckCircle2Icon}
-            label="approved doctors"
-            value={approvedDoctors.toString()}
-          />
-          <StatItem
-            icon={CalendarDaysIcon}
-            label="total sessions"
-            value={totalSessions.toString()}
-          />
-          <StatItem
-            icon={UserRoundIcon}
-            label="total patients"
-            value={totalPatients.toString()}
-          />
-          {pendingDoctors > 0 && (
-            <Chip color="warning" variant="soft">
-              <div className="flex items-center justify-center">
-                <InboxIcon className="size-3" />
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">Admin console</Badge>
+                <Badge variant="secondary">Live overview</Badge>
               </div>
-              {pendingDoctors} awaiting review
-            </Chip>
-          )}
-        </div>
+
+              <div className="flex flex-col gap-2">
+                <h1 className="font-semibold text-lg tracking-tight">
+                  Welcome back
+                </h1>
+                <p className="max-w-2xl text-muted-foreground text-sm">
+                  Monitor platform activity, manage doctor registrations, and
+                  oversee all sessions from one unified dashboard.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          description="Awaiting review or approval"
+          icon={<InboxIcon className="size-5" />}
+          title="Pending doctors"
+          trend="Review"
+          value={String(stats?.pendingDoctors ?? 0)}
+        />
+        <MetricCard
+          description="Successfully onboarded physicians"
+          icon={<CheckCircle2Icon className="size-5" />}
+          title="Approved doctors"
+          trend="Active"
+          value={String(stats?.approvedDoctors ?? 0)}
+        />
+        <MetricCard
+          description="All consultations across the platform"
+          icon={<CalendarDaysIcon className="size-5" />}
+          title="Total sessions"
+          trend="All time"
+          value={String(stats?.totalSessions ?? 0)}
+        />
+        <MetricCard
+          description="Registered patients on the platform"
+          icon={<UserRoundIcon className="size-5" />}
+          title="Total patients"
+          value={String(stats?.totalPatients ?? 0)}
+        />
       </section>
 
-      <Separator />
+      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <Card className="rounded-3xl border-border/60">
+          <CardHeader>
+            <SectionHeader
+              action={
+                <Badge className="gap-1" variant="secondary">
+                  <TrendingUpIcon className="size-3" />
+                  Session trend
+                </Badge>
+              }
+              description="Daily session volume over the last seven days"
+              title="Platform activity"
+            />
+          </CardHeader>
 
-      <section className="flex flex-col gap-3">
-        <div>
-          <PageTitle>Platform activity</PageTitle>
-          <p className="font-light text-foreground/60 text-sm">
-            Daily session volume over the last seven days
-          </p>
-        </div>
+          <Separator />
 
-        {sessionsByDay.length > 0 ? (
-          <div className="h-[340px] w-full">
-            <AreaChart
-              accessibilityLayer
-              data={sessionsByDay}
-              height={340}
-              margin={{ left: 8, right: 8 }}
-              width="100%"
-            >
-              <CartesianGrid vertical={false} />
-
-              <XAxis
-                axisLine={false}
-                dataKey="day"
-                tickFormatter={(value: string) => {
-                  const date = new Date(value);
-                  if (Number.isNaN(date.getTime())) {
-                    return value;
-                  }
-                  return format(date, "MMM d");
+          <CardContent>
+            {sessionsByDay.length > 0 ? (
+              <ChartContainer
+                className="h-[360px] w-full"
+                config={{
+                  sessions: {
+                    label: "Sessions",
+                    color: "var(--primary)",
+                  },
                 }}
-                tickLine={false}
-                tickMargin={10}
-              />
+              >
+                <AreaChart
+                  accessibilityLayer
+                  data={sessionsByDay}
+                  margin={{ left: 8, right: 8 }}
+                >
+                  <CartesianGrid vertical={false} />
 
-              <YAxis
-                axisLine={false}
-                tickFormatter={(value: number) => value.toString()}
-                tickLine={false}
-                tickMargin={10}
-              />
+                  <XAxis
+                    axisLine={false}
+                    dataKey="day"
+                    tickFormatter={(value: string) => {
+                      const date = new Date(value);
+                      return format(date, "MMM d");
+                    }}
+                    tickLine={false}
+                    tickMargin={10}
+                  />
 
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (!(active && payload?.length)) {
-                    return null;
-                  }
-                  const value = Number(payload[0].value);
-                  return (
-                    <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
-                      <p className="text-sm">{`${value} session${value === 1 ? "" : "s"}`}</p>
-                    </div>
-                  );
-                }}
-                cursor={false}
-              />
+                  <YAxis
+                    axisLine={false}
+                    tickFormatter={(value: number) => value.toString()}
+                    tickLine={false}
+                    tickMargin={10}
+                  />
 
-              <Area
-                dataKey="count"
-                fill="var(--primary)"
-                fillOpacity={0.15}
-                stroke="var(--primary)"
-                strokeWidth={2}
-                type="monotone"
-              />
-            </AreaChart>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <p className="font-light text-sm">No activity data yet</p>
-            <p className="max-w-xs font-light text-foreground/60 text-sm">
-              Session activity will appear once patients start booking.
-            </p>
-          </div>
-        )}
-      </section>
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value: unknown) =>
+                          `${Number(value)} session${Number(value) === 1 ? "" : "s"}`
+                        }
+                        indicator="line"
+                      />
+                    }
+                    cursor={false}
+                  />
 
-      <Separator />
+                  <Area
+                    dataKey="count"
+                    fill="var(--primary)"
+                    fillOpacity={0.15}
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    type="monotone"
+                  />
+                </AreaChart>
+              </ChartContainer>
+            ) : (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <TrendingUpIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>No activity data yet</EmptyTitle>
+                  <EmptyDescription>
+                    Session activity will appear once patients start booking.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-border/60">
+          <CardHeader>
+            <SectionHeader
+              action={
+                <Badge className="gap-1" variant="secondary">
+                  <StethoscopeIcon className="size-3" />
+                  Quick actions
+                </Badge>
+              }
+              description="Manage platform operations"
+              title="Admin tools"
+            />
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent className="flex flex-col gap-3">
+            <Button
+              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
+              render={
+                <a href="/admin/doc-requests?page=1&query=">
+                  Review doctor requests
+                  <ArrowRightIcon className="size-4" />
+                </a>
+              }
+              variant="outline"
+            />
+
+            <Button
+              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
+              render={
+                <a href="/admin/doctors?page=1&query=">
+                  Manage approved doctors
+                  <ArrowRightIcon className="size-4" />
+                </a>
+              }
+              variant="outline"
+            />
+
+            <Button
+              className="justify-between rounded-2xl border-border/60 px-5 py-6 text-sm transition-colors hover:bg-muted/30"
+              render={
+                <a href="/admin/session">
+                  Create test session
+                  <ArrowRightIcon className="size-4" />
+                </a>
+              }
+              variant="outline"
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -417,8 +417,8 @@ function ProfileStep({
             Profession
           </Text>
           <ToggleGroup
-            className="flex-wrap"
             items={professionItems}
+            numColumns={3}
             onValueChange={(value) => onChange("profession", value)}
             value={form.profession}
           />

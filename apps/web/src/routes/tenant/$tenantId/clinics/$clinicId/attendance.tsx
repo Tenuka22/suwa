@@ -1,30 +1,37 @@
+import { Button } from "@suwa/ui/components/button";
+import { Calendar } from "@suwa/ui/components/calendar";
 import {
-  Button,
-  Calendar,
-  Chip,
-  Label,
-  ListBox,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@suwa/ui/components/card";
+import { Label } from "@suwa/ui/components/label";
+import {
   Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@suwa/ui/components/popover";
+import {
   Select,
-  Separator,
-  toast,
-} from "@heroui/react";
-import { parseDate } from "@internationalized/date";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@suwa/ui/components/select";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowLeftIcon,
-  CalendarDaysIcon,
   CalendarIcon,
   ClockIcon,
   LogInIcon,
   LogOutIcon,
-  StethoscopeIcon,
   UserIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
-import { BodyText, PageTitle } from "@/components/typography";
 import {
   useGetClinicAttendance,
   useListTenantAffiliations,
@@ -67,7 +74,7 @@ function ClinicAttendancePage() {
 
   const handleMarkAttendance = async () => {
     if (!attendanceDoctorId) {
-      toast.danger("Please select a doctor");
+      toast.error("Please select a doctor");
       return;
     }
 
@@ -89,258 +96,209 @@ function ClinicAttendancePage() {
       setArrivedAt("");
       setLeftAt("");
     } catch {
-      toast.danger("Failed to mark attendance");
+      toast.error("Failed to mark attendance");
     }
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex items-center gap-5">
-          <div className="flex size-16 items-center justify-center rounded-full bg-accent/10">
-            <CalendarDaysIcon className="size-6 text-accent" />
-          </div>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-light text-2xl tracking-tight">
-                {clinic?.name
-                  ? `Attendance - ${clinic.name}`
-                  : "Clinic Attendance"}
-              </h1>
-              <Chip color="accent" variant="soft">
-                <div className="flex items-center justify-center">
-                  <StethoscopeIcon className="size-3" />
-                </div>
-                Clinic tracking
-              </Chip>
-            </div>
-
-            <BodyText className="max-w-2xl">
-              Mark and view doctor attendance for this clinic.
-            </BodyText>
-          </div>
-
-          <div className="flex items-center gap-2 pb-2">
-            <Link
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-foreground/5 px-3 py-1.5 font-medium text-sm transition-colors hover:bg-foreground/10"
-              params={{ tenantId }}
-              to="/tenant/$tenantId/clinics"
-            >
-              <ArrowLeftIcon className="size-4" />
-              Back
-            </Link>
-          </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            className="flex items-center gap-1 text-muted-foreground text-sm hover:text-foreground"
+            params={{ tenantId }}
+            to="/tenant/$tenantId/clinics"
+          >
+            <ArrowLeftIcon className="size-4" />
+            Back to Clinics
+          </Link>
         </div>
       </div>
 
-      <Separator />
-
-      <div className="flex flex-wrap items-center gap-2 px-6">
-        <Popover>
-          <Button
-            className="justify-start text-left font-normal"
-            size="sm"
-            variant="outline"
-          >
-            <CalendarIcon className="mr-1 size-3" />
-            {attendanceDate
-              ? format(new Date(attendanceDate), "PPP")
-              : "Pick a date"}
-          </Button>
-          <Popover.Content className="w-auto p-0">
-            <Calendar
-              aria-label="Select date"
-              onChange={(date) => {
-                if (date) {
-                  setAttendanceDate(date.toString());
-                }
-              }}
-              value={
-                attendanceDate
-                  ? parseDate(attendanceDate.split("T")[0]!)
-                  : undefined
-              }
-            >
-              <Calendar.Header>
-                <Calendar.Heading />
-                <Calendar.NavButton slot="previous" />
-                <Calendar.NavButton slot="next" />
-              </Calendar.Header>
-              <Calendar.Grid>
-                <Calendar.GridHeader>
-                  {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                </Calendar.GridHeader>
-                <Calendar.GridBody>
-                  {(date) => <Calendar.Cell date={date} />}
-                </Calendar.GridBody>
-              </Calendar.Grid>
-            </Calendar>
-          </Popover.Content>
-        </Popover>
+      <div>
+        <h1 className="font-semibold text-lg tracking-tight">
+          {clinic?.name ? `Attendance - ${clinic.name}` : "Attendance"}
+        </h1>
+        <p className="text-muted-foreground">
+          Mark and view doctor attendance for this clinic.
+        </p>
       </div>
 
-      <Separator />
-
-      <div className="grid gap-6 px-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
-          <section className="flex flex-col gap-3">
-            <div>
-              <PageTitle>Mark Attendance</PageTitle>
-              <p className="font-light text-foreground/60 text-sm">
-                Record a doctor's arrival and departure for this clinic.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3">
-              <div className="flex flex-col gap-2">
-                <Label>Doctor</Label>
-                <Select
-                  onSelectionChange={(id) =>
-                    setAttendanceDoctorId(String(id) ?? "")
-                  }
-                  placeholder="Select doctor..."
-                  selectedKey={attendanceDoctorId}
-                >
-                  <Select.Trigger className="w-full">
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Mark Attendance</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger
+                      render={
+                        <Button
+                          className="justify-start text-left font-normal"
+                          size="sm"
+                          variant="outline"
+                        />
+                      }
+                    >
+                      <CalendarIcon className="mr-1 size-3" />
+                      {attendanceDate
+                        ? format(new Date(attendanceDate), "PPP")
+                        : "Pick a date"}
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        onSelect={(date) => {
+                          if (date) {
+                            setAttendanceDate(format(date, "yyyy-MM-dd"));
+                          }
+                        }}
+                        selected={
+                          attendanceDate ? new Date(attendanceDate) : undefined
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label>Doctor</Label>
+                  <Select
+                    onValueChange={(v) => setAttendanceDoctorId(v ?? "")}
+                    value={attendanceDoctorId}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select doctor..." />
+                    </SelectTrigger>
+                    <SelectContent>
                       {doctors.length === 0 && (
                         <p className="px-2 py-4 text-center text-muted-foreground text-xs">
                           No active doctors found.
                         </p>
                       )}
                       {doctors.map((d) => (
-                        <ListBox.Item id={d.doctorId} key={d.doctorId}>
+                        <SelectItem key={d.doctorId} value={d.doctorId}>
                           <div className="flex items-center gap-2">
                             <UserIcon className="size-3" />
                             {d.doctorName}
                           </div>
-                        </ListBox.Item>
+                        </SelectItem>
                       ))}
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-2">
-                  <Label>Arrived at</Label>
-                  <Select
-                    onSelectionChange={(id) => setArrivedAt(String(id) ?? "")}
-                    placeholder="--:--"
-                    selectedKey={arrivedAt}
-                  >
-                    <Select.Trigger className="w-full">
-                      <Select.Value />
-                    </Select.Trigger>
-                    <Select.Popover>
-                      <ListBox>
-                        {TIME_OPTIONS.map((t) => (
-                          <ListBox.Item id={t} key={t}>
-                            {t}
-                          </ListBox.Item>
-                        ))}
-                      </ListBox>
-                    </Select.Popover>
+                    </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Label>Scheduled leave</Label>
-                  <Select
-                    onSelectionChange={(id) => setLeftAt(String(id) ?? "")}
-                    placeholder="--:--"
-                    selectedKey={leftAt}
-                  >
-                    <Select.Trigger className="w-full">
-                      <Select.Value />
-                    </Select.Trigger>
-                    <Select.Popover>
-                      <ListBox>
-                        {TIME_OPTIONS.map((t) => (
-                          <ListBox.Item id={t} key={t}>
-                            {t}
-                          </ListBox.Item>
-                        ))}
-                      </ListBox>
-                    </Select.Popover>
-                  </Select>
-                </div>
-              </div>
 
-              <Button
-                isDisabled={markAttendance.isPending || !attendanceDoctorId}
-                onPress={handleMarkAttendance}
-              >
-                {markAttendance.isPending ? "Saving..." : "Save Attendance"}
-              </Button>
-            </div>
-          </section>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-2">
+                    <Label>Arrived at</Label>
+                    <Select
+                      onValueChange={(v) => setArrivedAt(v ?? "")}
+                      value={arrivedAt}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="--:--" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIME_OPTIONS.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label>Scheduled leave</Label>
+                    <Select
+                      onValueChange={(v) => setLeftAt(v ?? "")}
+                      value={leftAt}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="--:--" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIME_OPTIONS.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Button
+                  disabled={markAttendance.isPending || !attendanceDoctorId}
+                  onClick={handleMarkAttendance}
+                >
+                  {markAttendance.isPending ? "Saving..." : "Save Attendance"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <div>
-            <PageTitle>Records</PageTitle>
-            <p className="font-light text-foreground/60 text-sm">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">
+              Records for{" "}
               {attendanceDate
                 ? format(new Date(attendanceDate), "MMM d, yyyy")
-                : "Selected date"}
-            </p>
-          </div>
-
-          {attendanceRecords.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-xl border border-border px-4 py-8 text-center">
-              <div className="rounded-full border border-border border-dashed bg-foreground/5 p-3">
-                <ClockIcon className="size-5 text-foreground/40" />
+                : "selected date"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {attendanceRecords.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8">
+                <ClockIcon className="size-8 text-muted-foreground/30" />
+                <p className="text-muted-foreground text-xs">
+                  No attendance records for this date.
+                </p>
               </div>
-              <p className="font-light text-sm">No records</p>
-              <p className="max-w-xs font-light text-foreground/60 text-xs">
-                No attendance records for this date.
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1.5 rounded-xl border border-border px-4 py-3">
-              {attendanceRecords.map((r) => {
-                const doctor = doctors.find((d) => d.doctorId === r.doctorId);
-                return (
-                  <div
-                    className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-2"
-                    key={r.id}
-                  >
-                    <UserIcon className="size-3 shrink-0 text-muted-foreground" />
-                    <span className="flex-1 font-medium text-xs">
-                      {doctor?.doctorName ?? r.doctorId}
-                    </span>
-                    {r.arrivedAt && (
-                      <span className="flex items-center gap-1 text-[10px] text-green-600">
-                        <LogInIcon className="size-3" />
-                        {new Date(r.arrivedAt).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {attendanceRecords.map((r) => {
+                  const doctor = doctors.find((d) => d.doctorId === r.doctorId);
+                  return (
+                    <div
+                      className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-2"
+                      key={r.id}
+                    >
+                      <UserIcon className="size-3 shrink-0 text-muted-foreground" />
+                      <span className="flex-1 font-medium text-xs">
+                        {doctor?.doctorName ?? r.doctorId}
                       </span>
-                    )}
-                    {r.leftAt && (
-                      <span className="flex items-center gap-1 text-[10px] text-amber-600">
-                        <LogOutIcon className="size-3" />
-                        {new Date(r.leftAt).toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                      {r.arrivedAt && (
+                        <span className="flex items-center gap-1 text-[10px] text-green-600">
+                          <LogInIcon className="size-3" />
+                          {new Date(r.arrivedAt).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
+                        </span>
+                      )}
+                      {r.leftAt && (
+                        <span className="flex items-center gap-1 text-[10px] text-amber-600">
+                          <LogOutIcon className="size-3" />
+                          {new Date(r.leftAt).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

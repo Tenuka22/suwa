@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@heroui/react";
+import { Button } from "@suwa/ui/components/button";
+import { cn } from "@suwa/ui/lib/utils";
 import { createContext, useContext, useMemo, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 
 type DropzoneStatus = "idle" | "dragging";
 
@@ -148,7 +148,7 @@ export function DropzoneFileListItem({
 export function DropzoneRemoveFile({ children }: React.PropsWithChildren) {
   const { removeFile } = useDropzoneContext();
   return (
-    <Button onClick={removeFile} size="sm" type="button" variant="danger-soft">
+    <Button onClick={removeFile} type="button" variant="outline">
       {children}
     </Button>
   );

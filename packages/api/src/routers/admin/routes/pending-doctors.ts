@@ -92,9 +92,7 @@ export const adminPendingDoctorsRoute = protectedProcedure
       })
     );
 
-    const filteredItems = items.filter(
-      (item) => item.matchesQuery && item.completeness >= 15
-    );
+    const filteredItems = items.filter((item) => item.matchesQuery);
     const {
       items: pagedItems,
       page,

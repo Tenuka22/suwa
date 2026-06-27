@@ -1,5 +1,13 @@
-import { Button, Card, Chip, Dropdown } from "@heroui/react";
-import { type ClassValue, clsx } from "clsx";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card } from "@suwa/ui/components/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@suwa/ui/components/dropdown-menu";
+import { cn } from "@suwa/ui/lib/utils";
 import {
   Download,
   FileImage,
@@ -9,11 +17,6 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface DoctorFileItem {
   caption: string | null;
@@ -163,12 +166,12 @@ export function DoctorFileCard({
           </div>
 
           <div className="absolute top-2 left-2">
-            <Chip className="backdrop-blur-sm" color="default" variant="soft">
+            <Badge className="backdrop-blur-sm" variant="secondary">
               <span className="flex items-center gap-1">
                 {getFileIcon(file)}
                 {getFileKindLabel(file.fileKind)}
               </span>
-            </Chip>
+            </Badge>
           </div>
         </div>
 
@@ -191,56 +194,40 @@ export function DoctorFileCard({
                 )}
               </div>
 
-              <Dropdown>
-                <Dropdown.Trigger>
-                  <Button
-                    className="shrink-0"
-                    isIconOnly
-                    size="sm"
-                    variant="ghost"
-                  >
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button className="shrink-0" size="icon" variant="ghost">
                     <MoreVertical className="size-4" />
                   </Button>
-                </Dropdown.Trigger>
-                <Dropdown.Popover>
-                  <Dropdown.Menu
-                    onAction={(key) => {
-                      if (key === "download") {
-                        handleDownload();
-                      }
-                      if (key === "delete") {
-                        onDelete(file.id);
-                      }
-                    }}
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleDownload}>
+                    <Download className="size-4" />
+                    Download
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    disabled={isDeleting}
+                    onClick={() => onDelete(file.id)}
                   >
-                    <Dropdown.Item id="download">
-                      <Download className="size-4" />
-                      Download
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      className="text-destructive"
-                      id="delete"
-                      isDisabled={isDeleting}
-                    >
-                      <Trash2 className="size-4" />
-                      {isDeleting ? "Deleting..." : "Delete"}
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown.Popover>
-              </Dropdown>
+                    <Trash2 className="size-4" />
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Chip variant="tertiary">{formatFileSize(file.size)}</Chip>
-              <Chip variant="tertiary">{file.mimeType || "unknown"}</Chip>
+              <Badge variant="outline">{formatFileSize(file.size)}</Badge>
+
+              <Badge variant="outline">{file.mimeType || "unknown"}</Badge>
+
               {file.isVideo ? (
-                <Chip color="default" variant="soft">
-                  Video
-                </Chip>
+                <Badge variant="secondary">Video</Badge>
               ) : (
-                <Chip color="default" variant="soft">
-                  Image
-                </Chip>
+                <Badge variant="secondary">Image</Badge>
               )}
             </div>
           </div>
@@ -251,10 +238,10 @@ export function DoctorFileCard({
             </p>
 
             <Button
-              isDisabled={isDeleting}
-              onPress={() => onDelete(file.id)}
+              disabled={isDeleting}
+              onClick={() => onDelete(file.id)}
               size="sm"
-              variant="danger"
+              variant="destructive"
             >
               <Trash2 className="size-4" />
               Delete

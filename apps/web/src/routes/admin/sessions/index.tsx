@@ -10,28 +10,30 @@ import {
 } from "@suwa/ui/components/empty";
 import { Separator } from "@suwa/ui/components/separator";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, FileTextIcon } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarDaysIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { z } from "zod";
 
+import { SessionStatusBadge } from "@/components/session-status-badge";
 import { orpc } from "@/utils/orpc";
 
 const searchSchema = z.object({
   page: z.coerce.number().int().positive().catch(1),
 });
 
-export const Route = createFileRoute("/admin/plans/")({
+export const Route = createFileRoute("/admin/sessions/")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context, deps }) => {
     const input = { page: deps.page };
     return context.queryClient.ensureQueryData(
-      orpc.plans.queryOptions({ input })
+      orpc.sessions.queryOptions({ input })
     );
   },
-  component: AdminPlansRoute,
+  component: AdminSessionsRoute,
 });
 
-function AdminPlansRoute() {
+function AdminSessionsRoute() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const data = Route.useLoaderData();
@@ -45,15 +47,17 @@ function AdminPlansRoute() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">Admin console</Badge>
-              <Badge variant="secondary">Plans</Badge>
+              <Badge variant="secondary">Sessions</Badge>
             </div>
+
             <div className="flex flex-col gap-2">
               <h1 className="font-semibold text-lg tracking-tight">
-                Consultation plans
+                All sessions
               </h1>
+
               <p className="max-w-2xl text-muted-foreground text-sm">
-                View all consultation plans across the platform, including
-                pricing, duration, and features.
+                View all sessions across the platform, monitor their status, and
+                track platform activity over time.
               </p>
             </div>
           </div>
@@ -64,14 +68,15 @@ function AdminPlansRoute() {
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <h2 className="font-medium text-sm">All plans</h2>
+              <h2 className="font-medium text-sm">Session history</h2>
               <p className="text-muted-foreground text-sm">
-                Plans ordered by most recently created.
+                All sessions ordered by most recent.
               </p>
             </div>
+
             <Badge className="gap-1" variant="secondary">
-              <FileTextIcon className="size-3" />
-              {rows.length} plan{rows.length === 1 ? "" : "s"}
+              <CalendarDaysIcon className="size-3" />
+              {rows.length} session{rows.length === 1 ? "" : "s"}
             </Badge>
           </div>
         </CardHeader>
@@ -83,62 +88,58 @@ function AdminPlansRoute() {
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
-                  <FileTextIcon />
+                  <CalendarDaysIcon />
                 </EmptyMedia>
-                <EmptyTitle>No plans yet</EmptyTitle>
+                <EmptyTitle>No sessions yet</EmptyTitle>
                 <EmptyDescription>
-                  Plans will appear once doctors create them.
+                  Sessions will appear once patients start booking appointments.
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {rows.map((plan) => (
-                <Card
-                  className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
-                  key={plan.id}
-                >
-                  <CardContent className="flex flex-col gap-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium text-sm">{plan.name}</p>
-                        <p className="text-muted-foreground text-xs">
-                          Doctor: {plan.doctorId.slice(0, 12)}...
-                        </p>
+            <div className="flex flex-col gap-3">
+              {rows.map((session) => {
+                const start = new Date(session.startAt);
+                const end = new Date(session.endAt);
+
+                return (
+                  <Card
+                    className="rounded-2xl border-border/60 transition-colors duration-200 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary"
+                    key={session.id}
+                  >
+                    <CardContent className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="rounded-2xl border bg-muted/40 p-3 text-muted-foreground">
+                          <CalendarDaysIcon className="size-4" />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-sm">
+                              {session.doctorId.slice(0, 12)}...
+                            </p>
+                          </div>
+
+                          <p className="text-muted-foreground text-sm">
+                            {format(start, "EEE, MMM d • h:mm a")}
+                          </p>
+
+                          <div className="flex flex-wrap gap-3 text-muted-foreground text-xs">
+                            <span>
+                              Patient: {session.patientId.slice(0, 12)}...
+                            </span>
+                            <span>Ends at {format(end, "h:mm a")}</span>
+                          </div>
+                        </div>
                       </div>
-                      {plan.isActive ? (
-                        <Badge className="shrink-0" variant="default">
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge className="shrink-0" variant="secondary">
-                          Inactive
-                        </Badge>
-                      )}
-                    </div>
 
-                    {plan.description ? (
-                      <p className="text-muted-foreground text-xs">
-                        {plan.description}
-                      </p>
-                    ) : null}
-
-                    <div className="flex flex-wrap gap-3 text-xs">
-                      <span className="text-muted-foreground">
-                        ${((plan.priceCents ?? 1500) / 100).toFixed(2)}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {plan.durationMinutes} min
-                      </span>
-                      {plan.isDefault ? (
-                        <span className="font-medium text-primary">
-                          Default
-                        </span>
-                      ) : null}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex flex-row items-center justify-between gap-3 md:flex-col md:items-end">
+                        <SessionStatusBadge status={session.status} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
 
@@ -152,7 +153,9 @@ function AdminPlansRoute() {
                   disabled={!data?.prevPage}
                   onClick={() => {
                     navigate({
-                      search: { page: Math.max(1, search.page - 1) },
+                      search: {
+                        page: Math.max(1, search.page - 1),
+                      },
                       replace: true,
                     });
                   }}
@@ -166,7 +169,9 @@ function AdminPlansRoute() {
                   disabled={!data?.nextPage}
                   onClick={() => {
                     navigate({
-                      search: { page: search.page + 1 },
+                      search: {
+                        page: search.page + 1,
+                      },
                       replace: true,
                     });
                   }}

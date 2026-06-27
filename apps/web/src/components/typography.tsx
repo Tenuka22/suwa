@@ -1,17 +1,12 @@
-import { type ClassValue, clsx } from "clsx";
+import { cn } from "@suwa/ui/lib/utils";
 import type { ComponentProps } from "react";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 type HeadingProps = ComponentProps<"h1">;
 
 export function PageTitle({ className, children, ...props }: HeadingProps) {
   return (
     <h1
-      className={cn("font-normal text-xl tracking-tight", className)}
+      className={cn("font-semibold text-lg tracking-tight", className)}
       {...props}
     >
       {children}

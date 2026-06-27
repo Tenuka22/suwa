@@ -1,20 +1,24 @@
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
-  Button,
-  Checkbox,
-  CheckboxGroup,
-  Chip,
-  Description,
-  Input,
-  Label,
-  ListBox,
-  Modal,
-  ProgressBar,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@suwa/ui/components/dialog";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
+import { Progress } from "@suwa/ui/components/progress";
+import {
   Select,
-  TextArea,
-  ToggleButton,
-  ToggleButtonGroup,
-  toast,
-} from "@heroui/react";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@suwa/ui/components/select";
+import { Textarea } from "@suwa/ui/components/textarea";
 import {
   EyeIcon,
   EyeOffIcon,
@@ -26,21 +30,10 @@ import {
   UploadIcon,
   XIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  DropZoneArea,
-  Dropzone,
-  DropzoneDescription,
-  DropzoneFileList,
-  DropzoneFileListItem,
-  DropzoneMessage,
-  DropzoneRemoveFile,
-  DropzoneTrigger,
-  useDropzone,
-} from "@/components/dropzone";
+import { useCallback, useRef, useState } from "react";
+import type { UploadProgress } from "@/hooks/hub/use-chunked-upload";
 import { useChunkedUpload } from "@/hooks/hub/use-chunked-upload";
 import { useHubChannels } from "@/hooks/hub/use-hub";
-import { cn } from "@/lib/utils";
 
 interface UploadWizardDialogProps {
   onOpenChange: (open: boolean) => void;
@@ -66,15 +59,16 @@ const VISIBILITY_OPTIONS = [
     icon: EyeIcon,
     description: "Anyone can discover and view",
   },
-] as const;
+];
 
-type WizardSection = "file" | "details";
+type WizardStep = "select" | "details" | "uploading" | "done";
 
 export function UploadWizardDialog({
   open,
   onOpenChange,
 }: UploadWizardDialogProps) {
-  const [section, setSection] = useState<WizardSection>("file");
+  const [step, setStep] = useState<WizardStep>("select");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -82,65 +76,82 @@ export function UploadWizardDialog({
     "public" | "unlisted" | "private"
   >("private");
   const [channelId, setChannelId] = useState<string>("");
-  const [showErrors, setShowErrors] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
-  const dropzone = useDropzone();
-  const selectedFile = dropzone.file;
-  const hasTitleError = showErrors && !title.trim();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: channels } = useHubChannels();
-  const { progress, startUpload, pauseUpload, resetUpload } =
-    useChunkedUpload();
+  const { progress, startUpload, pauseUpload, resetUpload } = useChunkedUpload({
+    onComplete: () => setStep("done"),
+  });
 
   const reset = useCallback(() => {
-    setSection("file");
-    setShowErrors(false);
+    setStep("select");
+    setSelectedFile(null);
     setTitle("");
     setDescription("");
     setTags("");
     setVisibility("private");
     setChannelId("");
-    dropzone.removeFile();
-    dropzone.setStatus("idle");
     resetUpload();
-  }, [dropzone, resetUpload]);
+  }, [resetUpload]);
 
   const handleClose = useCallback(
-    (nextOpen: boolean) => {
-      if (!nextOpen) {
+    (open: boolean) => {
+      if (!open) {
         reset();
       }
-      onOpenChange(nextOpen);
+      onOpenChange(open);
     },
     [onOpenChange, reset]
   );
 
-  useEffect(() => {
-    if (progress?.status === "done") {
-      handleClose(false);
-      toast.success("Content uploaded successfully");
-    }
-  }, [handleClose, progress?.status]);
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      const isVideo = file.type.startsWith("video/");
+      const isAudio = file.type.startsWith("audio/");
 
-  useEffect(() => {
-    if (progress?.status === "error" && progress.error) {
-      toast.danger(progress.error);
-    }
-  }, [progress?.error, progress?.status]);
+      if (!(isVideo || isAudio)) {
+        return;
+      }
+
+      setSelectedFile(file);
+      if (!title) {
+        setTitle(file.name.replace(/\.[^/.]+$/, ""));
+      }
+      setStep("details");
+    },
+    [title]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFileSelect(file);
+      }
+    },
+    [handleFileSelect]
+  );
 
   const handleStartUpload = useCallback(async () => {
-    setShowErrors(true);
-    if (!(selectedFile && title.trim())) {
+    if (!selectedFile) {
       return;
     }
+
+    const fileType = selectedFile.type.startsWith("video/") ? "video" : "audio";
+
+    setStep("uploading");
     await startUpload(selectedFile, {
+      fileType,
+      title: title.trim() || selectedFile.name,
       channelId: channelId || undefined,
-      fileType: selectedFile.type.startsWith("video/") ? "video" : "audio",
-      title: title.trim(),
       visibility,
     });
-  }, [channelId, selectedFile, startUpload, title, visibility]);
+  }, [selectedFile, title, channelId, visibility, startUpload]);
 
-  const fileSizeLabel = useCallback((bytes: number) => {
+  const formatFileSize = (bytes: number) => {
     if (bytes >= 1_073_741_824) {
       return `${(bytes / 1_073_741_824).toFixed(1)} GB`;
     }
@@ -148,353 +159,303 @@ export function UploadWizardDialog({
       return `${(bytes / 1_048_576).toFixed(1)} MB`;
     }
     return `${(bytes / 1024).toFixed(1)} KB`;
-  }, []);
+  };
 
-  const progressState = useMemo(() => {
-    if (!progress) {
+  const formatProgress = (p: UploadProgress | null) => {
+    if (!p) {
       return { percent: 0, text: "Preparing..." };
     }
-    const percent = Math.round(progress.progress * 100);
+    const percent = Math.round(p.progress * 100);
     const uploadedBytes =
-      (progress.uploadedChunks / progress.totalChunks) *
-      (selectedFile?.size ?? 0);
+      (p.uploadedChunks / p.totalChunks) * (selectedFile?.size ?? 0);
     return {
       percent,
-      text: `${fileSizeLabel(uploadedBytes)} / ${fileSizeLabel(selectedFile?.size ?? 0)} (${percent}%)`,
+      text: `${formatFileSize(uploadedBytes)} / ${formatFileSize(selectedFile?.size ?? 0)} (${percent}%)`,
     };
-  }, [fileSizeLabel, progress, selectedFile?.size]);
+  };
 
   return (
-    <Modal>
-      <Modal.Backdrop isOpen={open} onOpenChange={handleClose} variant="blur">
-        <Modal.Container scroll="inside" size="md">
-          <Modal.Dialog className="flex max-h-[90vh] flex-col overflow-hidden bg-background sm:max-w-[640px]">
-            <Modal.CloseTrigger />
-            <Modal.Header>
-              <div className="space-y-1">
-                <Modal.Heading className="font-semibold text-lg">
-                  {section === "file" ? "Upload content" : "Add details"}
-                </Modal.Heading>
-                <p className="text-light text-muted-foreground text-sm">
-                  {section === "file"
-                    ? "Choose an audio or video file for your hub."
-                    : "Add a clear title, tags, and visibility."}
+    <Dialog onOpenChange={handleClose} open={open}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[560px]">
+        <DialogHeader>
+          <DialogTitle className="font-medium text-sm">
+            {step === "select" && "Upload video or audio"}
+            {step === "details" && "Video details"}
+            {step === "uploading" && "Uploading..."}
+            {step === "done" && "Upload complete!"}
+          </DialogTitle>
+          <DialogDescription>
+            {step === "select" &&
+              "Select a video or audio file to upload to your hub."}
+            {step === "details" && "Add details about your content."}
+            {step === "uploading" &&
+              "Your file is being uploaded. You can pause and resume later if needed."}
+            {step === "done" &&
+              "Your content has been uploaded and is being processed."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Step: Select File */}
+        {step === "select" && (
+          <div
+            className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-colors ${
+              dragOver
+                ? "border-primary bg-primary/5"
+                : "border-border/60 hover:border-primary/50"
+            }`}
+            onDragLeave={() => setDragOver(false)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDrop={handleDrop}
+          >
+            <UploadIcon className="size-12 text-muted-foreground" />
+            <p className="font-medium text-sm">Drag and drop your file here</p>
+            <p className="text-muted-foreground text-sm">
+              Videos and audio files supported
+            </p>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              variant="outline"
+            >
+              Browse files
+            </Button>
+            <input
+              accept="video/*,audio/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleFileSelect(file);
+                }
+              }}
+              ref={fileInputRef}
+              type="file"
+            />
+          </div>
+        )}
+
+        {/* Step: Details */}
+        {step === "details" && selectedFile && (
+          <div className="grid gap-4">
+            <div className="flex items-center gap-3 rounded-lg bg-muted/40 p-3">
+              {selectedFile.type.startsWith("video/") ? (
+                <FileVideoIcon className="size-8 text-primary" />
+              ) : (
+                <FileAudioIcon className="size-8 text-primary" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-sm">
+                  {selectedFile.name}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {formatFileSize(selectedFile.size)} &middot;{" "}
+                  {selectedFile.type}
                 </p>
               </div>
-            </Modal.Header>
-
-            <Modal.Body className="flex flex-1 flex-col gap-6 overflow-y-auto">
-              <ToggleButtonGroup
-                disallowEmptySelection
-                fullWidth
-                onSelectionChange={(keys) =>
-                  setSection((Array.from(keys)[0] as WizardSection) ?? "file")
-                }
-                selectedKeys={new Set([section])}
-                selectionMode="single"
+              <Button
+                className="size-8"
+                onClick={() => {
+                  setSelectedFile(null);
+                  setStep("select");
+                }}
+                size="icon"
+                variant="ghost"
               >
-                <ToggleButton id="file">File</ToggleButton>
-                <ToggleButton id="details" isDisabled={!selectedFile}>
-                  Details
-                </ToggleButton>
-              </ToggleButtonGroup>
+                <XIcon className="size-4" />
+              </Button>
+            </div>
 
-              {section === "file" ? (
-                <Dropzone
-                  accept="video/*,audio/*"
-                  className="border-border/70 bg-muted/10 p-5"
-                  {...dropzone}
-                  setStatus={dropzone.setStatus}
+            <div className="grid gap-2">
+              <Label htmlFor="upload-title">Title</Label>
+              <Input
+                id="upload-title"
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Add a title that describes your content"
+                value={title}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="upload-description">
+                Description{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Textarea
+                id="upload-description"
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Tell viewers about your content..."
+                rows={3}
+                value={description}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="upload-tags">
+                Tags{" "}
+                <span className="text-muted-foreground">
+                  (optional, comma-separated)
+                </span>
+              </Label>
+              <Input
+                id="upload-tags"
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="therapy, anxiety, CBT"
+                value={tags}
+              />
+            </div>
+
+            {channels && channels.length > 0 ? (
+              <div className="grid gap-2">
+                <Label>Channel</Label>
+                <Select
+                  onValueChange={(v) => setChannelId(v ?? "")}
+                  value={channelId}
                 >
-                  <DropzoneDescription>
-                    Drag and drop a video or audio file, or browse your device.
-                  </DropzoneDescription>
-                  <DropzoneMessage />
-                  <DropZoneArea>
-                    <div className="flex flex-col gap-4 pt-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <DropzoneTrigger>Browse files</DropzoneTrigger>
-                        <span className="text-muted-foreground text-sm">
-                          Supported: MP4, MOV, MP3, WAV, and more.
-                        </span>
-                      </div>
-                      <div className="rounded-2xl border bg-background p-4 shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent">
-                            <UploadIcon className="size-5" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">
-                              Drop your file here
-                            </p>
-                            <p className="text-muted-foreground text-sm">
-                              We’ll guide you through title, channel, and
-                              visibility next.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      {selectedFile ? (
-                        <DropzoneFileList>
-                          <DropzoneFileListItem file={selectedFile}>
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-3">
-                                {selectedFile.type.startsWith("video/") ? (
-                                  <FileVideoIcon className="size-8 text-accent" />
-                                ) : (
-                                  <FileAudioIcon className="size-8 text-accent" />
-                                )}
-                                <div className="min-w-0">
-                                  <p className="truncate font-medium text-sm">
-                                    {selectedFile.name}
-                                  </p>
-                                  <p className="text-muted-foreground text-xs">
-                                    {fileSizeLabel(selectedFile.size)} ·{" "}
-                                    {selectedFile.type || "Unknown type"}
-                                  </p>
-                                </div>
-                              </div>
-                              <DropzoneRemoveFile>Remove</DropzoneRemoveFile>
-                            </div>
-                          </DropzoneFileListItem>
-                        </DropzoneFileList>
-                      ) : null}
-                    </div>
-                  </DropZoneArea>
-                </Dropzone>
-              ) : (
-                <div className="grid gap-5">
-                  {selectedFile ? (
-                    <div className="rounded-2xl border bg-muted/10 p-4 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        {selectedFile.type.startsWith("video/") ? (
-                          <FileVideoIcon className="size-8 text-accent" />
-                        ) : (
-                          <FileAudioIcon className="size-8 text-accent" />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-sm">
-                            {selectedFile.name}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {fileSizeLabel(selectedFile.size)} ·{" "}
-                            {selectedFile.type || "Unknown type"}
-                          </p>
-                        </div>
-                        <Button
-                          isIconOnly
-                          onPress={() => {
-                            dropzone.removeFile();
-                            setSection("file");
-                          }}
-                          variant="ghost"
-                        >
-                          <XIcon className="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {channels?.map((ch) => (
+                      <SelectItem key={ch.id} value={ch.id}>
+                        {ch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="upload-title">
-                      Title <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      className={cn(
-                        hasTitleError &&
-                          "border-destructive/70 ring-destructive/30"
-                      )}
-                      id="upload-title"
-                      onChange={(event) => setTitle(event.target.value)}
-                      placeholder="Add a title that describes your content"
-                      value={title}
-                    />
-                    {hasTitleError ? (
-                      <p className="text-destructive text-xs">
-                        Title is required
+            <div className="grid gap-2">
+              <Label>Visibility</Label>
+              <div className="grid gap-2">
+                {VISIBILITY_OPTIONS.map((opt) => (
+                  <button
+                    className={`flex items-center gap-3 rounded-lg border text-left transition-colors ${
+                      visibility === opt.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border/60 hover:border-border"
+                    }`}
+                    key={opt.value}
+                    onClick={() => setVisibility(opt.value)}
+                    type="button"
+                  >
+                    <opt.icon className="size-4 shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm">{opt.label}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {opt.description}
                       </p>
-                    ) : null}
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="upload-description">
-                      Description{" "}
-                      <span className="text-muted-foreground">(optional)</span>
-                    </Label>
-                    <TextArea
-                      id="upload-description"
-                      onChange={(event) => setDescription(event.target.value)}
-                      placeholder="Tell viewers about your content..."
-                      rows={4}
-                      value={description}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="upload-tags">
-                      Tags{" "}
-                      <span className="text-muted-foreground">
-                        (optional, comma-separated)
-                      </span>
-                    </Label>
-                    <Input
-                      id="upload-tags"
-                      onChange={(event) => setTags(event.target.value)}
-                      placeholder="therapy, anxiety, CBT"
-                      value={tags}
-                    />
-                  </div>
-
-                  {channels && channels.length > 0 ? (
-                    <div className="grid gap-2">
-                      <Label>Channel</Label>
-                      <Select
-                        onSelectionChange={(key) =>
-                          setChannelId((key ?? "") as string)
-                        }
-                        selectedKey={channelId}
-                      >
-                        <Select.Trigger>
-                          <Select.Value />
-                        </Select.Trigger>
-                        <Select.Popover>
-                          <ListBox>
-                            {channels.map((channel) => (
-                              <ListBox.Item
-                                id={channel.id}
-                                key={channel.id}
-                                textValue={channel.name}
-                              >
-                                {channel.name}
-                              </ListBox.Item>
-                            ))}
-                          </ListBox>
-                        </Select.Popover>
-                      </Select>
                     </div>
-                  ) : null}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-                  <div className="grid gap-3">
-                    <Label>Visibility</Label>
-                    <CheckboxGroup
-                      onChange={(values) => {
-                        if (values.length > 0) {
-                          setVisibility(values.at(-1) as typeof visibility);
-                        }
-                      }}
-                      value={[visibility]}
-                    >
-                      {VISIBILITY_OPTIONS.map((option) => {
-                        const Icon = option.icon;
-                        return (
-                          <Checkbox
-                            key={option.value}
-                            value={option.value}
-                            variant="secondary"
-                          >
-                            <Checkbox.Content className="group relative flex w-full flex-row items-start justify-start gap-4 rounded-2xl border bg-muted/10 px-5 py-4 shadow-sm transition-all data-[selected=true]:bg-accent/10">
-                              <Checkbox.Control className="absolute top-4 right-4 size-5 rounded-full before:rounded-full">
-                                <Checkbox.Indicator />
-                              </Checkbox.Control>
-                              <Icon className="size-5 shrink-0 text-accent-soft-foreground" />
-                              <div className="flex flex-col gap-1">
-                                <span className="font-medium text-sm">
-                                  {option.label}
-                                </span>
-                                <Description className="text-xs">
-                                  {option.description}
-                                </Description>
-                              </div>
-                            </Checkbox.Content>
-                          </Checkbox>
-                        );
-                      })}
-                    </CheckboxGroup>
-                  </div>
-                </div>
+        {/* Step: Uploading */}
+        {step === "uploading" && progress && (
+          <div className="grid gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <p className="truncate font-medium text-sm">
+                  {progress.fileName}
+                </p>
+                <Badge variant="secondary">
+                  {progress.status === "paused"
+                    ? "Paused"
+                    : progress.status === "error"
+                      ? "Failed"
+                      : progress.status === "completing"
+                        ? "Processing..."
+                        : "Uploading"}
+                </Badge>
+              </div>
+
+              <Progress value={formatProgress(progress).percent} />
+
+              <p className="text-muted-foreground text-sm">
+                {formatProgress(progress).text}
+              </p>
+
+              {progress.status === "error" && progress.error && (
+                <p className="text-destructive text-sm">{progress.error}</p>
               )}
+            </div>
 
-              {progress ? (
-                <div className="grid gap-4 rounded-2xl border bg-muted/10 p-5 shadow-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="truncate font-medium text-sm">
-                      {progress.fileName}
-                    </p>
-                    <Chip variant="tertiary">
-                      {progress.status === "paused"
-                        ? "Paused"
-                        : progress.status === "error"
-                          ? "Failed"
-                          : progress.status === "completing"
-                            ? "Processing"
-                            : "Uploading"}
-                    </Chip>
-                  </div>
-                  <ProgressBar
-                    aria-label="Upload progress"
-                    value={progressState.percent}
-                  >
-                    <ProgressBar.Track>
-                      <ProgressBar.Fill />
-                    </ProgressBar.Track>
-                  </ProgressBar>
-                  <p className="text-muted-foreground text-sm">
-                    {progressState.text}
-                  </p>
-                  {progress.status === "error" && progress.error ? (
-                    <p className="text-destructive text-sm">{progress.error}</p>
-                  ) : null}
-                  <div className="flex items-center gap-2">
-                    {progress.status === "uploading" ? (
-                      <Button
-                        className="gap-2"
-                        onPress={pauseUpload}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <PauseIcon className="size-4" />
-                        Pause
-                      </Button>
-                    ) : null}
-                    {progress.status === "paused" ? (
-                      <Button className="gap-2" size="sm" variant="outline">
-                        <PlayIcon className="size-4" />
-                        Resume
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-            </Modal.Body>
-
-            <Modal.Footer>
-              {section === "file" ? (
+            <div className="flex items-center gap-2">
+              {progress.status === "uploading" && (
                 <Button
-                  className="ml-auto gap-2"
-                  isDisabled={!selectedFile}
-                  onPress={() => setSection("details")}
+                  className="gap-2"
+                  onClick={pauseUpload}
+                  size="sm"
+                  variant="outline"
                 >
-                  Continue
+                  <PauseIcon className="size-4" />
+                  Pause
                 </Button>
-              ) : (
-                <>
-                  <Button onPress={() => setSection("file")} variant="outline">
-                    Back
-                  </Button>
-                  <Button
-                    className="gap-2"
-                    isDisabled={!(title.trim() && selectedFile)}
-                    onPress={handleStartUpload}
-                  >
-                    <UploadIcon className="size-4" />
-                    Upload
-                  </Button>
-                </>
               )}
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+              {progress.status === "paused" && (
+                <Button className="gap-2" size="sm" variant="outline">
+                  <PlayIcon className="size-4" />
+                  Resume
+                </Button>
+              )}
+            </div>
+
+            <p className="text-muted-foreground text-xs">
+              You can close this dialog and resume the upload later from the hub
+              page. Uploads that are interrupted can be continued from where
+              they left off.
+            </p>
+          </div>
+        )}
+
+        {/* Step: Done */}
+        {step === "done" && (
+          <div className="flex flex-col items-center gap-4">
+            <div className="rounded-full bg-primary/10 p-3">
+              <FileVideoIcon className="size-8 text-primary" />
+            </div>
+            <p className="font-medium">
+              Your content has been uploaded successfully!
+            </p>
+            <p className="text-center text-muted-foreground text-sm">
+              It will appear in your hub once processing is complete.
+            </p>
+          </div>
+        )}
+
+        <DialogFooter>
+          {step === "details" && (
+            <>
+              <Button
+                onClick={() => {
+                  setSelectedFile(null);
+                  setStep("select");
+                }}
+                variant="outline"
+              >
+                Back
+              </Button>
+              <Button
+                className="gap-2"
+                disabled={!(title.trim() && selectedFile)}
+                onClick={handleStartUpload}
+              >
+                <UploadIcon className="size-4" />
+                Upload
+              </Button>
+            </>
+          )}
+          {step === "done" && (
+            <Button onClick={() => handleClose(false)}>Done</Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

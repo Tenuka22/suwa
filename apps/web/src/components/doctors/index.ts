@@ -1,20 +1,5 @@
 "use client";
 
-export { DoctorAvailabilityChart } from "./doctor-availability-chart";
-export { DoctorAvailabilityStats } from "./doctor-availability-stats";
-export { DoctorDashboardStats } from "./doctor-dashboard-stats";
-export { DoctorEarningsChart } from "./doctor-earnings-chart";
-export { EmptyState, EmptyStateSkeleton } from "./doctor-empty-state";
 export { DoctorFilesPanel } from "./doctor-files-panel";
-export { DoctorMaterialsCard } from "./doctor-materials-card";
-export { DoctorPlanCard } from "./doctor-plan-card";
-export { DoctorPlansChart } from "./doctor-plans-chart";
-export { DoctorPlansStats } from "./doctor-plans-stats";
 export { DoctorProfileCard } from "./doctor-profile-card";
-export { DoctorProfileHeader } from "./doctor-profile-header";
-export { DoctorProfileStats } from "./doctor-profile-stats";
-export { DoctorSessionCard } from "./doctor-session-card";
-export { DoctorSessionChart } from "./doctor-session-chart";
-export { DoctorSessionStats } from "./doctor-session-stats";
-export { StatCard } from "./stat-card";
 export { SummaryBlock, SummaryItem } from "./summary-components";

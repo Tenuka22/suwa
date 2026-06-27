@@ -1,26 +1,28 @@
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
-  Button,
-  Chip,
-  Input,
-  Label,
-  ListBox,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@suwa/ui/components/card";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
+import {
   Select,
-  Separator,
-  Skeleton,
-  TextArea,
-  toast,
-} from "@heroui/react";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  CheckIcon,
-  SendIcon,
-  StethoscopeIcon,
-  UserPlusIcon,
-  XIcon,
-} from "lucide-react";
+import { CheckIcon, SendIcon, XIcon } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
-import { BodyText, PageTitle } from "@/components/typography";
 import {
   useInviteDoctor,
   useListTenantInvitations,
@@ -42,7 +44,7 @@ function TenantInvitePage() {
 
   const handleInvite = async () => {
     if (!doctorId.trim()) {
-      toast.danger("Please enter a doctor ID");
+      toast.error("Please enter a doctor ID");
       return;
     }
 
@@ -56,7 +58,7 @@ function TenantInvitePage() {
       setDoctorId("");
       setMessage("");
     } catch (error) {
-      toast.danger(
+      toast.error(
         error instanceof Error ? error.message : "Failed to send invitation"
       );
     }
@@ -69,46 +71,23 @@ function TenantInvitePage() {
       : invitations.filter((i) => i.status === filterStatus);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex items-center gap-5">
-          <div className="flex size-16 items-center justify-center rounded-full bg-accent/10">
-            <UserPlusIcon className="size-6 text-accent" />
-          </div>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-light text-2xl tracking-tight">
-                Invite Doctor
-              </h1>
-              <Chip color="accent" variant="soft">
-                <div className="flex items-center justify-center">
-                  <StethoscopeIcon className="size-3" />
-                </div>
-                New affiliation
-              </Chip>
-            </div>
-
-            <BodyText className="max-w-2xl">
-              Send invitations to doctors to join this hospital.
-            </BodyText>
-          </div>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="font-semibold text-lg tracking-tight">Invite Doctor</h1>
+        <p className="text-muted-foreground">
+          Send invitations to doctors to join this hospital.
+        </p>
       </div>
 
-      <Separator />
-
-      <section className="flex flex-col gap-3 px-6">
-        <div>
-          <PageTitle>Send New Invitation</PageTitle>
-          <p className="font-light text-foreground/60 text-sm">
+      {/* Invite Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Send New Invitation</CardTitle>
+          <CardDescription>
             Enter the doctor's user ID to send them an invitation.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3">
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="doctorId">Doctor ID *</Label>
             <Input
@@ -120,7 +99,7 @@ function TenantInvitePage() {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="message">Message (optional)</Label>
-            <TextArea
+            <Textarea
               id="message"
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Add a personal message to the invitation..."
@@ -128,106 +107,90 @@ function TenantInvitePage() {
               value={message}
             />
           </div>
-          <Button isDisabled={inviteDoctor.isPending} onPress={handleInvite}>
+          <Button disabled={inviteDoctor.isPending} onClick={handleInvite}>
             <SendIcon className="size-4" />
             {inviteDoctor.isPending ? "Sending..." : "Send Invitation"}
           </Button>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <Separator />
-
-      <section className="flex flex-col gap-3 px-6">
-        <div className="flex items-start justify-between gap-4">
+      {/* Invitation History */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <PageTitle>Invitation History</PageTitle>
-            <p className="font-light text-foreground/60 text-sm">
+            <CardTitle className="text-base">Invitation History</CardTitle>
+            <CardDescription>
               Track all invitations sent for this hospital.
-            </p>
+            </CardDescription>
           </div>
           <Select
-            className="w-[140px]"
-            onSelectionChange={(id) => setFilterStatus(String(id) ?? "ALL")}
-            selectedKey={filterStatus}
+            onValueChange={(v) => setFilterStatus(v ?? "ALL")}
+            value={filterStatus}
           >
-            <Select.Trigger>
-              <Select.Value />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                <ListBox.Item id="ALL">All</ListBox.Item>
-                <ListBox.Item id="PENDING">Pending</ListBox.Item>
-                <ListBox.Item id="ACCEPTED">Accepted</ListBox.Item>
-                <ListBox.Item id="DECLINED">Declined</ListBox.Item>
-              </ListBox>
-            </Select.Popover>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="ACCEPTED">Accepted</SelectItem>
+              <SelectItem value="DECLINED">Declined</SelectItem>
+            </SelectContent>
           </Select>
-        </div>
-
-        {isLoading ? (
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : filteredInvitations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <div className="rounded-full border border-border border-dashed bg-foreground/5 p-4">
-              <SendIcon className="size-6 text-foreground/40" />
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
             </div>
-            <p className="font-light text-sm">No invitations found</p>
-            <p className="max-w-xs font-light text-foreground/60 text-sm">
-              No invitations match the current filter.
+          ) : filteredInvitations.length === 0 ? (
+            <p className="text-center text-muted-foreground text-sm">
+              No invitations found.
             </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {filteredInvitations.map((inv) => (
-              <div
-                className="flex items-center justify-between rounded-lg border px-4 py-3"
-                key={inv.id}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{inv.doctorName}</p>
-                    <Chip
-                      className="text-[10px]"
-                      color={
-                        inv.status === "ACCEPTED"
-                          ? "accent"
-                          : inv.status === "DECLINED"
-                            ? "danger"
-                            : "default"
-                      }
-                      variant={
-                        inv.status === "ACCEPTED"
-                          ? "soft"
-                          : inv.status === "DECLINED"
-                            ? "soft"
-                            : "secondary"
-                      }
-                    >
-                      {inv.status === "ACCEPTED" ? (
-                        <CheckIcon className="size-3" />
-                      ) : inv.status === "DECLINED" ? (
-                        <XIcon className="size-3" />
-                      ) : null}
-                      {inv.status}
-                    </Chip>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {filteredInvitations.map((inv) => (
+                <div
+                  className="flex items-center justify-between rounded-lg border p-3"
+                  key={inv.id}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">{inv.doctorName}</p>
+                      <Badge
+                        className="text-[10px]"
+                        variant={
+                          inv.status === "ACCEPTED"
+                            ? "default"
+                            : inv.status === "DECLINED"
+                              ? "destructive"
+                              : "outline"
+                        }
+                      >
+                        {inv.status === "ACCEPTED" ? (
+                          <CheckIcon className="size-3" />
+                        ) : inv.status === "DECLINED" ? (
+                          <XIcon className="size-3" />
+                        ) : null}
+                        {inv.status}
+                      </Badge>
+                    </div>
+                    {inv.message && (
+                      <p className="text-muted-foreground text-xs">
+                        "{inv.message}"
+                      </p>
+                    )}
                   </div>
-                  {inv.message && (
-                    <p className="text-muted-foreground text-xs">
-                      "{inv.message}"
-                    </p>
-                  )}
+                  <span className="text-muted-foreground text-xs">
+                    {new Date(inv.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                <span className="text-muted-foreground text-xs">
-                  {new Date(inv.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

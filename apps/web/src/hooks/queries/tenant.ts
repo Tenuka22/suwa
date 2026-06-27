@@ -17,7 +17,7 @@ export function useCreateTenant() {
   return useMutation({
     ...orpc.createTenant.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(orpc.listTenants.queryOptions());
+      queryClient.invalidateQueries({ queryKey: orpc.listTenants.queryKey() });
     },
   });
 }
@@ -28,9 +28,9 @@ export function useUpdateTenant() {
     ...orpc.updateTenant.mutationOptions(),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(
-        orpc.getTenant.queryOptions({ input: { tenantId: variables.id } })
+        { queryKey: orpc.getTenant.queryKey({ input: { tenantId: variables.id } }) }
       );
-      queryClient.invalidateQueries(orpc.listTenants.queryOptions());
+      queryClient.invalidateQueries({ queryKey: orpc.listTenants.queryKey() });
     },
   });
 }
@@ -67,11 +67,11 @@ export function useInviteDoctor() {
   return useMutation({
     ...orpc.inviteDoctor.mutationOptions(),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries(
-        orpc.listTenantInvitations.queryOptions({
+      queryClient.invalidateQueries({
+        queryKey: orpc.listTenantInvitations.queryKey({
           input: { tenantId: variables.tenantId },
-        })
-      );
+        }),
+      });
     },
   });
 }
@@ -81,8 +81,8 @@ export function useRespondInvitation() {
   return useMutation({
     ...orpc.respondInvitation.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(orpc.listDoctorInvitations.queryOptions());
-      queryClient.invalidateQueries(orpc.listDoctorAffiliations.queryOptions());
+      queryClient.invalidateQueries({ queryKey: orpc.listDoctorInvitations.queryKey() });
+      queryClient.invalidateQueries({ queryKey: orpc.listDoctorAffiliations.queryKey() });
     },
   });
 }
@@ -107,7 +107,7 @@ export function useUpdateAffiliationWindows() {
   return useMutation({
     ...orpc.updateAffiliationWindows.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(orpc.listDoctorAffiliations.queryOptions());
+      queryClient.invalidateQueries({ queryKey: orpc.listDoctorAffiliations.queryKey() });
     },
   });
 }
@@ -134,16 +134,16 @@ export function useLogAttendanceEvent() {
   return useMutation({
     ...orpc.logAttendanceEvent.mutationOptions(),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries(
-        orpc.getAttendance.queryOptions({
+      queryClient.invalidateQueries({
+        queryKey: orpc.getAttendance.queryKey({
           input: { tenantId: variables.tenantId },
-        })
-      );
-      queryClient.invalidateQueries(
-        orpc.getDoctorHospitalStatus.queryOptions({
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: orpc.getDoctorHospitalStatus.queryKey({
           input: { tenantId: variables.tenantId, doctorId: variables.doctorId },
-        })
-      );
+        }),
+      });
     },
   });
 }
@@ -167,11 +167,11 @@ export function useCreateClinic() {
   return useMutation({
     ...orpc.createClinic.mutationOptions(),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries(
-        orpc.listClinics.queryOptions({
+      queryClient.invalidateQueries({
+        queryKey: orpc.listClinics.queryKey({
           input: { tenantId: variables.tenantId },
-        })
-      );
+        }),
+      });
     },
   });
 }
@@ -200,7 +200,7 @@ export function useCreateAvailabilityOverride() {
     ...orpc.createAvailabilityOverride.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries(
-        orpc.listAvailabilityOverrides.queryOptions({ input: {} })
+        { queryKey: orpc.listAvailabilityOverrides.queryKey({ input: {} }) }
       );
     },
   });
@@ -235,7 +235,7 @@ export function useMarkNotificationRead() {
   return useMutation({
     ...orpc.markNotificationRead.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(orpc.listNotifications.queryOptions());
+      queryClient.invalidateQueries({ queryKey: orpc.listNotifications.queryKey() });
     },
   });
 }
@@ -245,7 +245,7 @@ export function useMarkAllNotificationsRead() {
   return useMutation({
     ...orpc.markAllNotificationsRead.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries(orpc.listNotifications.queryOptions());
+      queryClient.invalidateQueries({ queryKey: orpc.listNotifications.queryKey() });
     },
   });
 }

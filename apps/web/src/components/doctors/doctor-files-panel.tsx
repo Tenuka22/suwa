@@ -1,16 +1,23 @@
+import { Alert, AlertDescription } from "@suwa/ui/components/alert";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
-  Alert,
-  Button,
-  Chip,
-  Fieldset,
-  Skeleton,
-  TextArea,
-  ToggleButton,
-  ToggleButtonGroup,
-  toast,
-} from "@heroui/react";
-import { TriangleAlert } from "lucide-react";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@suwa/ui/components/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
+import { Textarea } from "@suwa/ui/components/textarea";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import {
   DropZoneArea,
@@ -53,6 +60,7 @@ function getAcceptForKind(kind: DoctorFileKind): string {
 export function DoctorFilesPanel({
   canManage,
   doctorId,
+  isPermanent,
 }: DoctorFilesPanelProps) {
   const dropzone = useDropzone();
   const filesQuery = useDoctorFiles();
@@ -87,7 +95,7 @@ export function DoctorFilesPanel({
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      toast.danger("Pick a file first");
+      toast.error("Pick a file first");
       return;
     }
 
@@ -102,7 +110,7 @@ export function DoctorFilesPanel({
       dropzone.removeFile();
       toast.success("Doctor file uploaded");
     } catch (error) {
-      toast.danger(error instanceof Error ? error.message : "Upload failed");
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     }
   };
 
@@ -111,174 +119,188 @@ export function DoctorFilesPanel({
       await deleteFile.mutateAsync({ id });
       toast.success("Doctor file removed");
     } catch (error) {
-      toast.danger(error instanceof Error ? error.message : "Delete failed");
+      toast.error(error instanceof Error ? error.message : "Delete failed");
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {!canManage && (
-        <Chip className="w-fit" color="warning" variant="secondary">
-          <TriangleAlert className="size-3" />
-          Uploads are available once your profile is approved.
-        </Chip>
-      )}
-      <div className={canManage ? "" : "pointer-events-none opacity-50"}>
-        <Fieldset className="rounded-2xl border bg-muted/10 p-5">
-          <Fieldset.Legend className="sr-only">
-            Upload materials
-          </Fieldset.Legend>
-          <Fieldset.Group className="flex flex-col">
-            <div className="space-y-4">
-              <div>
-                <p className="font-medium text-sm">File type</p>
-                <ToggleButtonGroup
-                  className="mt-2 flex flex-wrap"
-                  isDetached
-                  onSelectionChange={(keys) => {
-                    const key = [...keys][0] as DoctorFileKind | undefined;
-                    if (key) {
-                      setFileKind(key);
-                    }
-                  }}
-                  selectedKeys={new Set([fileKind])}
-                  selectionMode="single"
-                >
-                  {doctorFileKinds.map((kind) => (
-                    <ToggleButton id={kind.value} key={kind.value}>
-                      {kind.label}
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </div>
-
-              <div className="rounded-xl border bg-surface p-4">
-                <div className="flex items-start justify-between gap-3">
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <CardTitle>Doctor materials</CardTitle>
+          <p className="text-muted-foreground text-sm">
+            Public images, qualifications, and intro video content.
+          </p>
+        </div>
+        <Badge variant="outline">{files.length} files</Badge>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        {canManage ? (
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <Dropzone
+              {...dropzone}
+              accept={accept}
+              setStatus={dropzone.setStatus}
+            >
+              <DropzoneDescription>
+                Click or drag and drop a file to upload. Images, videos, and
+                PDFs are supported.
+              </DropzoneDescription>
+              <DropzoneMessage />
+              <DropZoneArea>
+                <div className="flex flex-col gap-4">
                   <div>
-                    <p className="font-medium text-sm">
-                      {selectedKind?.label ?? fileKind}
-                    </p>
-                    <p className="text-muted-foreground text-sm">
-                      {selectedKind?.description}
+                    <label
+                      className="block font-medium text-sm"
+                      htmlFor="doctor-material-file-kind"
+                    >
+                      File type
+                    </label>
+                    <Select
+                      onValueChange={(value) =>
+                        setFileKind(value as DoctorFileKind)
+                      }
+                      value={fileKind}
+                    >
+                      <SelectTrigger
+                        className="w-full"
+                        id="doctor-material-file-kind"
+                      >
+                        <SelectValue placeholder="Select file type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {doctorFileKinds.map((kind) => (
+                          <SelectItem key={kind.value} value={kind.value}>
+                            {kind.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="rounded-xl border bg-muted/20">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {selectedKind?.label ?? fileKind}
+                      </Badge>
+                      <span className="text-muted-foreground text-sm">
+                        {selectedKind?.description}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                      Accepts: {accept}
                     </p>
                   </div>
-                  <Chip variant="tertiary">{accept}</Chip>
-                </div>
-              </div>
 
-              <div>
-                <label
-                  className="block font-medium text-sm"
-                  htmlFor="doctor-material-caption"
-                >
-                  Caption
-                </label>
-                <TextArea
-                  className="mt-2 w-full"
-                  id="doctor-material-caption"
-                  onChange={(event) => setCaption(event.target.value)}
-                  placeholder="Short public description"
-                  value={caption}
-                />
-              </div>
-            </div>
+                  <div>
+                    <label
+                      className="block font-medium text-sm"
+                      htmlFor="doctor-material-caption"
+                    >
+                      Caption
+                    </label>
+                    <Textarea
+                      id="doctor-material-caption"
+                      onChange={(event) => setCaption(event.target.value)}
+                      placeholder="Short public description"
+                      value={caption}
+                    />
+                  </div>
 
-            <div className="space-y-4">
-              <Dropzone
-                {...dropzone}
-                accept={accept}
-                setStatus={dropzone.setStatus}
-              >
-                <DropzoneDescription>
-                  Click or drag and drop a file to upload. Images, videos, and
-                  PDFs are supported.
-                </DropzoneDescription>
-                <DropzoneMessage />
-                <DropZoneArea>
-                  <div className="flex flex-row gap-3 pt-3">
-                    <DropzoneTrigger>Choose file</DropzoneTrigger>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DropzoneTrigger>
+                      Click here or drag and drop
+                    </DropzoneTrigger>
                     <Button
-                      isDisabled={uploadFile.isPending || !selectedFile}
-                      onPress={handleUpload}
+                      disabled={uploadFile.isPending || !selectedFile}
+                      onClick={handleUpload}
                     >
                       {uploadFile.isPending ? "Uploading..." : "Upload file"}
                     </Button>
+                    {selectedFile ? (
+                      <p className="text-muted-foreground text-sm">
+                        {selectedFile.name}
+                      </p>
+                    ) : null}
                   </div>
-                  {selectedFile ? (
-                    <p className="text-muted-foreground text-sm">
-                      {selectedFile.name}
-                    </p>
-                  ) : null}
-                </DropZoneArea>
-                <DropzoneFileList>
-                  {selectedFile ? (
-                    <DropzoneFileListItem file={selectedFile}>
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          {selectedPreviewUrl ? (
-                            <img
-                              alt={selectedFile.name}
-                              className="size-10 rounded-md object-cover"
-                              height={40}
-                              src={selectedPreviewUrl}
-                              width={40}
-                            />
-                          ) : (
-                            <div className="flex size-10 items-center justify-center rounded-md bg-muted text-[10px]">
-                              File
-                            </div>
-                          )}
-                          <div>
-                            <div className="max-w-64 truncate font-medium text-sm">
-                              {selectedFile.name}
-                            </div>
-                            <p className="text-muted-foreground text-xs">
-                              {selectedFile.type || "Unknown type"}
-                            </p>
+                </div>
+              </DropZoneArea>
+              <DropzoneFileList>
+                {selectedFile ? (
+                  <DropzoneFileListItem file={selectedFile}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {selectedPreviewUrl ? (
+                          <img
+                            alt={selectedFile.name}
+                            className="size-10 rounded-md object-cover"
+                            height={40}
+                            src={selectedPreviewUrl}
+                            width={40}
+                          />
+                        ) : (
+                          <div className="flex size-10 items-center justify-center rounded-md bg-muted text-[10px]">
+                            File
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <DropzoneRemoveFile>Remove</DropzoneRemoveFile>
+                        )}
+                        <div>
+                          <div className="font-medium text-sm">
+                            {selectedFile.name}
+                          </div>
+                          <p className="text-muted-foreground text-xs">
+                            {selectedFile.type || "Unknown type"}
+                          </p>
                         </div>
                       </div>
-                    </DropzoneFileListItem>
-                  ) : null}
-                </DropzoneFileList>
-              </Dropzone>
-            </div>
-          </Fieldset.Group>
-        </Fieldset>
-      </div>
+                      <div className="flex items-center gap-2">
+                        <DropzoneRemoveFile>Remove</DropzoneRemoveFile>
+                      </div>
+                    </div>
+                  </DropzoneFileListItem>
+                ) : null}
+              </DropzoneFileList>
+            </Dropzone>
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            {isPermanent
+              ? "Uploads are currently unavailable."
+              : "Wait a moment. Your doctor profile needs to be approved before you can add uploads."}
+          </p>
+        )}
 
-      {filesQuery.isFetching ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Skeleton className="h-32 rounded-xl" />
-          <Skeleton className="h-32 rounded-xl" />
-        </div>
-      ) : filesQuery.isError ? (
-        <Alert status="danger">
-          <Alert.Indicator />
-          <Alert.Content>
-            <Alert.Description>
+        {filesQuery.isFetching ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Skeleton className="h-32 rounded-xl" />
+            <Skeleton className="h-32 rounded-xl" />
+          </div>
+        ) : filesQuery.isError ? (
+          <Alert variant="destructive">
+            <AlertDescription>
               Failed to load doctor materials. Please try again.
-            </Alert.Description>
-          </Alert.Content>
-        </Alert>
-      ) : files.length === 0 ? (
-        <div />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {files.map((file) => (
-            <DoctorFilePreviewCard
-              file={file}
-              isDeleting={deleteFile.isPending}
-              key={file.id}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+            </AlertDescription>
+          </Alert>
+        ) : files.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-1">
+            <p className="font-medium text-sm">No files uploaded yet</p>
+            <p className="text-muted-foreground text-sm">
+              Upload documents, images, or videos to showcase your credentials.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {files.map((file) => (
+              <DoctorFilePreviewCard
+                file={file}
+                isDeleting={deleteFile.isPending}
+                key={file.id}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

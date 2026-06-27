@@ -229,6 +229,7 @@ export default function ProfileScreen() {
             </Text>
             <ToggleGroup
               items={professionItems}
+              numColumns={3}
               onValueChange={setProfession}
               value={profession}
             />

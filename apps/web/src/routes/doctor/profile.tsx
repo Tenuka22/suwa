@@ -1,186 +1,421 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Card, Chip, Separator } from "@heroui/react";
+import { useUser } from "@clerk/tanstack-react-start";
+import { Avatar, AvatarFallback } from "@suwa/ui/components/avatar";
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
+import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
+import { Separator } from "@suwa/ui/components/separator";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
+import {
+  BadgeCheckIcon,
+  BookOpenIcon,
+  CameraIcon,
+  CopyIcon,
+  FileIcon,
+  GlobeIcon,
+  LanguagesIcon,
+  Loader2Icon,
+  RadioIcon,
+  ShieldAlertIcon,
+  UserCheckIcon,
+  UserCircleIcon,
+  VideoIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
+import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { FaceCaptureDialog } from "@/components/face-detection";
-import { DoctorProfileCard } from "@/components/doctors";
-import { BodyText, PageTitle } from "@/components/typography";
+import { DoctorFilesPanel, DoctorProfileCard } from "@/components/doctors";
+import { useSaveDoctorProfile } from "@/hooks/queries/doctor";
 import { orpc } from "@/utils/orpc";
 
-type DoctorProfileState = {
-  hasFaceEmbedding: boolean;
-  permanent: boolean;
-  profileExists: boolean;
-};
-
 export const Route = createFileRoute("/doctor/profile")({
-  component: DoctorProfilePage,
+  loaderDeps: () => ({}),
+  loader: async ({ context }) => {
+    try {
+
+      const ensureQueryData = context.queryClient.ensureQueryData.bind(
+        context.queryClient
+      );
+      await Promise.all([
+        ensureQueryData(orpc.profileStats.queryOptions()),
+        ensureQueryData(orpc.doctorProfile.queryOptions()),
+      ]);
+    }
+    catch {}
+    return null;
+  },
+  component: DoctorProfileRoute,
 });
 
-function DoctorProfilePage() {
+function DoctorProfileRoute() {
+  const user = useUser();
   const queryClient = useQueryClient();
-  const [state, setState] = useState<DoctorProfileState | null>(null);
-  const [role, setRole] = useState<string>("user");
+  const saveDoctorProfile = useSaveDoctorProfile();
   const [faceDialogOpen, setFaceDialogOpen] = useState(false);
+  const [copiedDoctorId, setCopiedDoctorId] = useState(false);
 
-  const saveFaceMutation = useMutation(
-    orpc.saveFaceEmbedding.mutationOptions({
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: orpc.doctorProfile.queryKey(),
-        });
-        await queryClient.invalidateQueries({
-          queryKey: orpc.profileStats.queryKey(),
-        });
-      },
-    })
-  );
+  type DoctorProfileStats = {
+    profileExists: boolean;
+    isPermanent: boolean;
+    completenessPercentage: number;
+    fileCount: number;
+    specialtyCount: number;
+    languageCount: number;
+    hubVideoCount: number;
+    hubAudioCount: number;
+  };
 
-  useEffect(() => {
-    let mounted = true;
-    Promise.all([orpc.doctorProfile.call(), orpc.profileStats.call()])
-      .then(([profile, stats]) => {
-        if (!mounted) return;
-        setState({
-          hasFaceEmbedding: !!profile?.profile?.hasFaceEmbedding,
-          permanent: !!stats?.isPermanent,
-          profileExists: !!stats?.profileExists,
-        });
-        setRole(profile?.role ?? "user");
-      })
-      .catch(() => {
-        if (mounted) setState(null);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  type DoctorProfileData = {
+    profile: {
+      permanent: boolean;
+      hasFaceEmbedding: boolean;
+      displayName?: string | null;
+    } | null;
+  };
 
-  const status = !state
-    ? "loading"
-    : !state.profileExists
-      ? "missing"
-      : !state.permanent
-        ? "pending"
-        : !state.hasFaceEmbedding
-          ? "verify"
-          : "accepted";
+  const statsQueryOptions: any = orpc.profileStats.queryOptions();
+  const profileQueryOptions: any = orpc.doctorProfile.queryOptions();
+  const statsQuery = useQuery<DoctorProfileStats, Error>(statsQueryOptions);
+  const profileQuery = useQuery<DoctorProfileData, Error>(profileQueryOptions);
 
-  console.log("[doctor/profile] access state", {
-    state,
-    status,
-    role,
-  });
+  const stats = statsQuery.data;
+  const profileData = profileQuery.data;
+  const profile = profileData?.profile ?? null;
+
+  const canManageFiles = profile?.permanent ?? false;
+  const name = user.user?.fullName ?? user.user?.username ?? "Doctor";
+  const doctorId = user.user?.id ?? "";
+
+  const handleCopyDoctorId = () => {
+    void navigator.clipboard.writeText(doctorId);
+    setCopiedDoctorId(true);
+    window.setTimeout(() => setCopiedDoctorId(false), 2000);
+  };
+
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const completenessPercentage = stats?.completenessPercentage ?? 0;
+  const fileCount = stats?.fileCount ?? 0;
+  const specialtyCount = stats?.specialtyCount ?? 0;
+  const languageCount = stats?.languageCount ?? 0;
+  const isPermanent = stats?.isPermanent ?? false;
+  const profileExists = stats?.profileExists ?? false;
+  const hubVideoCount = stats?.hubVideoCount ?? 0;
+  const hubAudioCount = stats?.hubAudioCount ?? 0;
+  const hasFaceEmbedding = profile?.hasFaceEmbedding ?? false;
+
+  type StatusTone = "warning" | "pending" | "success";
+  const status: {
+    badge: string;
+    title: string;
+    description: string;
+    tone: StatusTone;
+  } = !profile
+    ? {
+        badge: "Missing profile",
+        title: "Create your profile to continue",
+        description:
+          "Set up your practice details below, then complete face verification before admin review.",
+        tone: "warning",
+      }
+    : !hasFaceEmbedding
+      ? {
+          badge: "Face verification required",
+          title: "Complete face capture",
+          description:
+            "Your profile is saved, but you still need to capture a face embedding before access can be approved.",
+          tone: "warning",
+        }
+      : !isPermanent
+        ? {
+            badge: "Awaiting approval",
+            title: "Waiting for admin review",
+            description:
+              "Your profile and face verification are in place. Admin approval is still required to unlock the portal.",
+            tone: "pending",
+          }
+        : {
+            badge: "Access approved",
+            title: "Doctor access is active",
+            description:
+              "Your profile is approved and face verification is complete.",
+            tone: "success",
+          };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <PageTitle>Doctor Access</PageTitle>
-        <BodyText className="max-w-2xl">
-          Complete your profile, verify your identity, and request review to
-          unlock the rest of the doctor portal.
-        </BodyText>
-      </div>
-
-      <Card className="rounded-2xl">
-        <Card.Content className="flex flex-col gap-4 px-6 pb-6 pt-0">
-          <div className="flex items-center gap-3">
-            {status === "accepted" ? (
-              <CheckCircle2 className="size-6 text-emerald-500" />
-            ) : status === "verify" ? (
-              <ShieldAlert className="size-6 text-amber-500" />
-            ) : (
-              <AlertCircle className="size-6 text-rose-500" />
-            )}
-            <div>
-              <h2 className="font-medium text-base">
-                {status === "loading"
-                  ? "Checking access..."
-                  : status === "missing"
-                    ? "Profile missing"
-                    : status === "pending"
-                      ? "Awaiting approval"
-                      : status === "verify"
-                        ? "Face verification required"
-                        : "Access approved"}
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                {status === "loading"
-                  ? "Please wait while we check your doctor account."
-                  : status === "missing"
-                    ? "Create your profile and submit it for review."
-                    : status === "pending"
-                      ? "Your profile is submitted and waiting for admin review."
-                      : status === "verify"
-                        ? "Your profile exists, but face verification is still required."
-                        : "You can now use all doctor session features."}
+    <div className="flex flex-col gap-6">
+      <Card
+        className={
+          status.tone === "success"
+            ? "rounded-3xl border-emerald-500/20 bg-emerald-500/5"
+            : status.tone === "pending"
+              ? "rounded-3xl border-amber-500/20 bg-amber-500/5"
+              : "rounded-3xl border-border/60 bg-background"
+        }
+      >
+        <CardContent className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div
+              className={
+                status.tone === "success"
+                  ? "rounded-2xl bg-emerald-500/15 p-3 text-emerald-600"
+                  : status.tone === "pending"
+                    ? "rounded-2xl bg-amber-500/15 p-3 text-amber-600"
+                    : "rounded-2xl bg-muted p-3 text-muted-foreground"
+              }
+            >
+              {status.tone === "success" ? (
+                <BadgeCheckIcon className="size-6" />
+              ) : status.tone === "pending" ? (
+                <Loader2Icon className="size-6 animate-spin" />
+              ) : (
+                <ShieldAlertIcon className="size-6" />
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Badge
+                variant={status.tone === "success" ? "default" : "secondary"}
+              >
+                {status.badge}
+              </Badge>
+              <h1 className="font-semibold text-xl tracking-tight">
+                {status.title}
+              </h1>
+              <p className="max-w-2xl text-muted-foreground text-sm">
+                {status.description}
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Chip color={status === "accepted" ? "success" : "default"} variant="soft">
-              {status}
-            </Chip>
-            <Chip color="default" variant="soft">
-              role: {role}
-            </Chip>
-            <Chip color={state?.permanent ? "success" : "warning"} variant="soft">
-              {state?.permanent ? "accepted" : "not accepted"}
-            </Chip>
-            <Chip color={state?.hasFaceEmbedding ? "success" : "warning"} variant="soft">
-              {state?.hasFaceEmbedding ? "face verified" : "face missing"}
-            </Chip>
-          </div>
+            {profile && (!hasFaceEmbedding || !isPermanent) ? (
+              <Button
+                className="gap-2"
+                onClick={() => setFaceDialogOpen(true)}
+                variant={hasFaceEmbedding ? "outline" : "default"}
+              >
+                {hasFaceEmbedding ? (
+                  <UserCheckIcon className="size-4" />
+                ) : (
+                  <CameraIcon className="size-4" />
+                )}
+                {hasFaceEmbedding
+                  ? "Update face embedding"
+                  : "Start face capture"}
+              </Button>
+            ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            <Button onPress={() => setFaceDialogOpen(true)} variant="secondary">
-              {state?.hasFaceEmbedding ? "Update Face Verification" : "Verify Face"}
-            </Button>
+            {name && hasFaceEmbedding && !isPermanent ? (
+              <Button
+                className="gap-2"
+                disabled={saveDoctorProfile.isPending}
+                onClick={() => {
+                  saveDoctorProfile.mutate(
+                    {
+                      displayName: profile?.displayName ?? name,
+                    },
+                    {
+                      onSuccess: () => {
+                        toast.success("Review request created");
+                      },
+                      onError: (error) => {
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to create review request"
+                        );
+                      },
+                    }
+                  );
+                }}
+              >
+                {saveDoctorProfile.isPending
+                  ? "Submitting..."
+                  : "Create review request"}
+              </Button>
+            ) : null}
           </div>
-        </Card.Content>
+        </CardContent>
       </Card>
 
-      {status !== "accepted" ? (
-        <Alert color="warning">
-          <Alert.Indicator />
-          <Alert.Content>
-            <Alert.Description>
-              You cannot access other doctor pages until your profile is verified
-              and approved.
-            </Alert.Description>
-          </Alert.Content>
-        </Alert>
-      ) : null}
+      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
+        <CardContent>
+          <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-start gap-4">
+              <Avatar className="size-16 border shadow-sm">
+                <AvatarFallback className="font-semibold text-lg">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
 
-      <Separator />
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">Doctor profile</Badge>
+                  {isPermanent ? (
+                    <Badge variant="default">
+                      <BadgeCheckIcon className="size-3.5" />
+                      Verified
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">Pending verification</Badge>
+                  )}
+                </div>
 
-      <section className="flex flex-col gap-3">
-        <div>
-          <PageTitle>Profile submission</PageTitle>
-          <BodyText className="max-w-2xl">
-            Fill out your profile to create or update your review request.
-          </BodyText>
-        </div>
+                <div className="flex flex-col gap-2">
+                  <h1 className="font-semibold text-lg tracking-tight">
+                    {name}
+                  </h1>
 
-        <DoctorProfileCard />
+                  <p className="max-w-2xl text-muted-foreground text-sm">
+                    Manage your public directory listing, therapeutic
+                    credentials, and introductory materials. A complete profile
+                    helps patients find and trust you.
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs">
+                      ID: {doctorId}
+                    </code>
+                    <Button
+                      className="h-6 gap-1 px-2"
+                      onClick={handleCopyDoctorId}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <CopyIcon className="size-3" />
+                      {copiedDoctorId ? "Copied" : "Copy ID"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          description={`${profileExists ? "In progress" : "Not started yet"}`}
+          icon={<UserCircleIcon className="size-5" />}
+          title="Profile completeness"
+          trend={profileExists ? `${completenessPercentage}%` : undefined}
+          value={`${completenessPercentage}%`}
+        />
+
+        <MetricCard
+          description="Uploaded introductory materials"
+          icon={<FileIcon className="size-5" />}
+          title="Files"
+          value={fileCount.toString()}
+        />
+
+        <MetricCard
+          description="Areas of therapeutic expertise"
+          icon={<BookOpenIcon className="size-5" />}
+          title="Specialties"
+          value={specialtyCount.toString()}
+        />
+
+        <MetricCard
+          description="Languages you speak with patients"
+          icon={<LanguagesIcon className="size-5" />}
+          title="Languages"
+          value={languageCount.toString()}
+        />
       </section>
 
-      <div className="flex justify-end">
-        <Button onPress={() => window.location.reload()} variant="secondary">
-          Refresh status
-        </Button>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+        <MetricCard
+          description="Videos in your content hub"
+          icon={<VideoIcon className="size-5" />}
+          title="Hub videos"
+          value={hubVideoCount.toString()}
+        />
+
+        <MetricCard
+          description="Audio recordings in your hub"
+          icon={<RadioIcon className="size-5" />}
+          title="Hub audio"
+          value={hubAudioCount.toString()}
+        />
+      </section>
+
+      <div className="grid gap-6">
+        <Card className="rounded-3xl border-border/60">
+          <CardHeader>
+            <SectionHeader
+              action={
+                <Badge className="gap-1" variant="secondary">
+                  <GlobeIcon className="size-3" />
+                  Public listing
+                </Badge>
+              }
+              description="Your professional details visible to patients"
+              title="Profile information"
+            />
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent>
+            <DoctorProfileCard />
+          </CardContent>
+        </Card>
       </div>
 
+      {user.user ? (
+        <div className="grid gap-6">
+          <Card className="rounded-3xl border-border/60">
+            <CardHeader>
+              <SectionHeader
+                action={
+                  <Badge className="gap-1" variant="secondary">
+                    <VideoIcon className="size-3" />
+                    Media & files
+                  </Badge>
+                }
+                description="Upload and manage your introductory photos, videos, and qualifications"
+                title="Introductory materials"
+              />
+            </CardHeader>
+
+            <Separator />
+
+            <CardContent>
+              <DoctorFilesPanel
+                canManage={canManageFiles}
+                doctorId={user.user.id}
+                isPermanent={profile?.permanent ?? false}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
       <FaceCaptureDialog
-        open={faceDialogOpen}
-        onOpenChange={setFaceDialogOpen}
-        onFaceCaptured={async (result) => {
-          await saveFaceMutation.mutateAsync(result);
+        onFaceCaptured={async (embedding) => {
+          await orpc.saveFaceEmbedding.call({ embedding });
+          if (name && !isPermanent) {
+            await saveDoctorProfile.mutateAsync({
+              displayName: profile?.displayName ?? name,
+            });
+            toast.success("Review request created");
+          }
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: orpc.doctorProfile.queryKey() }),
+            queryClient.invalidateQueries({ queryKey: orpc.profileStats.queryKey() }),
+          ]);
           setFaceDialogOpen(false);
         }}
+        onOpenChange={setFaceDialogOpen}
+        open={faceDialogOpen}
       />
     </div>
   );

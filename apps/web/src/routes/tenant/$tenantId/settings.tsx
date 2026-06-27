@@ -1,19 +1,26 @@
+import { Badge } from "@suwa/ui/components/badge";
+import { Button } from "@suwa/ui/components/button";
 import {
-  Button,
-  Chip,
-  Input,
-  Label,
-  ListBox,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@suwa/ui/components/card";
+import { Input } from "@suwa/ui/components/input";
+import { Label } from "@suwa/ui/components/label";
+import {
   Select,
-  Separator,
-  Skeleton,
-  toast,
-} from "@heroui/react";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@suwa/ui/components/select";
+import { Skeleton } from "@suwa/ui/components/skeleton";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { BuildingIcon, SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-import { BodyText, PageTitle } from "@/components/typography";
 import { useGetTenant, useUpdateTenant } from "@/hooks/queries/tenant";
 
 const HOSPITAL_SERVICES = [
@@ -85,60 +92,34 @@ function TenantSettingsPage() {
       });
       toast.success("Tenant updated successfully");
     } catch {
-      toast.danger("Failed to update tenant");
+      toast.error("Failed to update tenant");
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-52 rounded-3xl" />
-        <Skeleton className="h-96 rounded-3xl" />
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
 
-  const tenant = data?.tenant;
-
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative h-44 overflow-hidden rounded-[2rem] bg-gradient-to-b from-accent/10 via-accent/5 to-background md:h-52" />
-
-      <div className="relative z-10 -mt-16 flex flex-col gap-4 px-6">
-        <div className="flex items-center gap-5">
-          <div className="flex size-16 items-center justify-center rounded-full bg-accent/10">
-            <BuildingIcon className="size-6 text-accent" />
-          </div>
-
-          <div className="flex-1 pb-2">
-            <div className="flex items-center gap-3">
-              <h1 className="font-light text-2xl tracking-tight">Settings</h1>
-              <Chip color="accent" variant="soft">
-                <div className="flex items-center justify-center">
-                  <SettingsIcon className="size-3" />
-                </div>
-                {tenant?.name ?? "Tenant"}
-              </Chip>
-            </div>
-
-            <BodyText className="max-w-2xl">
-              Manage your hospital tenant profile and branding.
-            </BodyText>
-          </div>
-        </div>
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+      <div>
+        <h1 className="font-semibold text-lg tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your hospital tenant profile and branding.
+        </p>
       </div>
 
-      <Separator />
-
-      <section className="flex flex-col gap-3 px-6">
-        <div>
-          <PageTitle>Hospital Profile</PageTitle>
-          <p className="font-light text-foreground/60 text-sm">
-            Edit tenant details and services.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4 rounded-xl border border-border px-4 py-3">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Hospital Profile</CardTitle>
+          <CardDescription>Edit tenant details and services.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label>Hospital Name</Label>
@@ -147,19 +128,17 @@ function TenantSettingsPage() {
             <div className="flex flex-col gap-2">
               <Label>Status</Label>
               <Select
-                onSelectionChange={(id) => setStatus(String(id) ?? "ACTIVE")}
-                selectedKey={status}
+                onValueChange={(v) => setStatus(v ?? "ACTIVE")}
+                value={status}
               >
-                <Select.Trigger>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="ACTIVE">Active</ListBox.Item>
-                    <ListBox.Item id="INACTIVE">Inactive</ListBox.Item>
-                    <ListBox.Item id="SUSPENDED">Suspended</ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
@@ -193,52 +172,48 @@ function TenantSettingsPage() {
               value={contactInfo}
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <Separator />
-
-      <section className="flex flex-col gap-3 px-6">
-        <div>
-          <PageTitle>Services Offered</PageTitle>
-          <p className="font-light text-foreground/60 text-sm">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Services Offered</CardTitle>
+          <CardDescription>
             Select which services this hospital provides.
-          </p>
-        </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {HOSPITAL_SERVICES.map((service) => (
+              <Badge
+                className="cursor-pointer text-xs transition-colors"
+                key={service}
+                onClick={() => toggleService(service)}
+                variant={
+                  selectedServices.includes(service) ? "default" : "outline"
+                }
+              >
+                {service}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex flex-wrap gap-2 rounded-xl border border-border px-4 py-3">
-          {HOSPITAL_SERVICES.map((service) => (
-            <Chip
-              className="cursor-pointer text-xs transition-colors"
-              color={selectedServices.includes(service) ? "accent" : "default"}
-              key={service}
-              onClick={() => toggleService(service)}
-              variant={
-                selectedServices.includes(service) ? "soft" : "secondary"
-              }
-            >
-              {service}
-            </Chip>
-          ))}
-        </div>
-      </section>
-
+      {/* Admins */}
       {data?.admins && data.admins.length > 0 && (
-        <>
-          <Separator />
-
-          <section className="flex flex-col gap-3 px-6">
-            <div>
-              <PageTitle>Tenant Admins</PageTitle>
-              <p className="font-light text-foreground/60 text-sm">
-                Users who can manage this hospital.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2 rounded-xl border border-border px-4 py-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tenant Admins</CardTitle>
+            <CardDescription>
+              Users who can manage this hospital.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
               {data.admins.map((admin) => (
                 <div
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between rounded-lg border"
                   key={admin.id}
                 >
                   <span className="text-sm">{admin.userId}</span>
@@ -248,20 +223,18 @@ function TenantSettingsPage() {
                 </div>
               ))}
             </div>
-          </section>
-        </>
+          </CardContent>
+        </Card>
       )}
 
-      <Separator />
-
-      <div className="flex justify-between px-6 pb-4">
+      <div className="flex justify-between">
         <Button
-          onPress={() => navigate({ to: `/tenant/${tenantId}` })}
+          onClick={() => navigate({ to: `/tenant/${tenantId}` })}
           variant="outline"
         >
           Back to Dashboard
         </Button>
-        <Button isDisabled={updateTenant.isPending} onPress={handleSave}>
+        <Button disabled={updateTenant.isPending} onClick={handleSave}>
           {updateTenant.isPending ? "Saving..." : "Save Changes"}
         </Button>
       </div>

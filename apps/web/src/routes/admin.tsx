@@ -1,14 +1,18 @@
 import { SignInButton as ClerkSignInButton } from "@clerk/tanstack-react-start";
-import { Button, Card, Separator } from "@heroui/react";
 import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useLoaderData,
-  useMatches,
-} from "@tanstack/react-router";
-import { MenuIcon, ShieldIcon } from "lucide-react";
-import { useState } from "react";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@suwa/ui/components/card";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@suwa/ui/components/sidebar";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { ShieldIcon } from "lucide-react";
 
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { getServerSession } from "@/utils/clerk-auth";
@@ -27,109 +31,51 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayoutRoute,
 });
 
-function AdminBreadcrumbs() {
-  const matches = useMatches();
-
-  const breadcrumbs = matches
-    .filter((match) => match.routeId !== "__root__")
-    .flatMap((match) => {
-      const segments = match.pathname.split("/").filter(Boolean);
-
-      return segments.map((segment, index) => {
-        const href = `/${segments.slice(0, index + 1).join("/")}`;
-        const isLast = index === segments.length - 1;
-
-        return {
-          href,
-          label: segment.charAt(0).toUpperCase() + segment.slice(1),
-          isLast,
-        };
-      });
-    })
-    .filter(
-      (crumb, index, self) =>
-        index === self.findIndex((c) => c.href === crumb.href)
-    );
-
-  if (breadcrumbs.length <= 1) {
-    return null;
-  }
-
-  return (
-    <nav
-      aria-label="Breadcrumb"
-      className="flex items-center gap-2 text-muted-foreground text-sm"
-    >
-      {breadcrumbs.map((crumb) => (
-        <span className="flex items-center gap-2" key={crumb.href}>
-          {crumb.isLast ? (
-            <span className="font-medium text-foreground">{crumb.label}</span>
-          ) : (
-            <Link
-              className="transition-colors hover:text-foreground"
-              to={crumb.href}
-            >
-              {crumb.label}
-            </Link>
-          )}
-          {!crumb.isLast && <span>/</span>}
-        </span>
-      ))}
-    </nav>
-  );
-}
-
 function AdminLayoutRoute() {
-  const { session } = useLoaderData({ from: "/admin" });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { session } = Route.useLoaderData();
 
   if (!session) {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <Card className="w-full max-w-md rounded-3xl">
-          <Card.Header className="items-center text-center">
+          <CardHeader className="items-center text-center">
             <div className="rounded-2xl border bg-muted/40 p-4">
               <ShieldIcon className="size-6" />
             </div>
             <div className="flex flex-col gap-2">
-              <Card.Title>Unauthorized</Card.Title>
-              <Card.Description>
+              <CardTitle>Unauthorized</CardTitle>
+              <CardDescription>
                 You do not have admin access or are not signed in.
-              </Card.Description>
+              </CardDescription>
             </div>
-          </Card.Header>
-
-          <Card.Content className="flex justify-center">
+          </CardHeader>
+          <CardContent className="flex justify-center">
             <ClerkSignInButton />
-          </Card.Content>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-svh">
-      <AdminSidebar collapsed={!sidebarOpen} />
-
-      <main className="flex w-full flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b bg-background/80 px-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
-          <Button
-            isIconOnly
-            onPress={() => setSidebarOpen((v) => !v)}
-            variant="ghost"
-          >
-            <MenuIcon />
-          </Button>
-
-          <Separator className="h-12" orientation="vertical" />
-
-          <AdminBreadcrumbs />
-        </header>
-
-        <div className="flex-1 p-4">
-          <Outlet />
+    <SidebarProvider>
+      <AdminSidebar />
+      <SidebarInset>
+        <div className="flex min-h-svh flex-col">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 pl-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
+            <SidebarTrigger />
+            <div className="min-w-0">
+              <p className="font-medium text-sm">Admin Console</p>
+              <p className="truncate text-muted-foreground text-sm">
+                Signed in as {session.name ?? session.email ?? "Admin"}
+              </p>
+            </div>
+          </header>
+          <div className="flex-1 p-4">
+            <Outlet />
+          </div>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

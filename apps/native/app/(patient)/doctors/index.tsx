@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react-native";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
@@ -24,6 +24,7 @@ import {
   languageLabels,
   specialtyLabels,
 } from "@/utils/doctor-profile";
+import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { orpc } from "@/utils/orpc";
 
 const SPECIALTY_OPTIONS = Object.entries(specialtyLabels).map(
@@ -117,6 +118,37 @@ export default function DoctorsScreen() {
     setPage(1);
   }
 
+  function DoctorCard({
+    doc,
+  }: {
+    doc: NonNullable<typeof doctorsQuery.data>["doctors"][number];
+  }) {
+    const portraitPreviewUrl = useDoctorMaterialPreviewUrl(
+      doc.portrait?.id ?? null
+    );
+
+    return (
+      <Card
+        description={doc.profile.headline ?? "Licensed medical practitioner"}
+        icon={
+          portraitPreviewUrl ? (
+            <Image
+              className="h-full w-full"
+              resizeMode="cover"
+              source={{ uri: portraitPreviewUrl }}
+            />
+          ) : (
+            <Stethoscope className="text-tint-green-foreground" size={24} />
+          )
+        }
+        iconBgColor={portraitPreviewUrl ? "bg-background-subtle" : "bg-tint-green"}
+        key={doc.profile.userId}
+        onPress={() => router.push(`/doctors/${doc.profile.userId}`)}
+        title={doc.profile.displayName ?? "Clinician"}
+      />
+    );
+  }
+
   function renderDoctorList() {
     if (doctorsQuery.isPending) {
       return (
@@ -146,16 +178,7 @@ export default function DoctorsScreen() {
       );
     }
 
-    return doctors.map((doc) => (
-      <Card
-        description={doc.profile.headline ?? "Licensed medical practitioner"}
-        icon={<Stethoscope className="text-tint-green-foreground" size={24} />}
-        iconBgColor="bg-tint-green"
-        key={doc.profile.userId}
-        onPress={() => router.push(`/doctors/${doc.profile.userId}`)}
-        title={doc.profile.displayName ?? "Clinician"}
-      />
-    ));
+    return doctors.map((doc) => <DoctorCard doc={doc} key={doc.profile.userId} />);
   }
 
   return (

@@ -19,7 +19,6 @@
     "noUncheckedSideEffectImports": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@suwa/crypto": ["../../packages/crypto/src/index.ts"],
       "@suwa/db": ["../../packages/db/src/index.ts"],
       "@suwa/db/*": ["../../packages/db/src/*"],
       "@suwa/pricing": ["../../packages/pricing/src/index.ts"],
