@@ -51,6 +51,28 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
     >
   >(new Map());
 
+  const syncLocalPreview = useCallback((room: Room) => {
+    for (const [, publication] of room.localParticipant.trackPublications) {
+      if (
+        publication.track?.kind === Track.Kind.Video &&
+        publication.track.mediaStreamTrack
+      ) {
+        try {
+          const stream = new MediaStream([
+            publication.track.mediaStreamTrack,
+          ] as unknown as RNMediaStreamTrack[]);
+          const url = stream.toURL();
+          if (url) {
+            setLocalStreamURL(url);
+            return;
+          }
+        } catch {
+          // Ignore preview creation failures while tracks settle.
+        }
+      }
+    }
+  }, []);
+
   const connect = useCallback(
     async (
       url: string,
@@ -88,26 +110,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
           setIsConnected(true);
           setIsConnecting(false);
           options.onConnected?.();
-
-          for (const [, publication] of room.localParticipant
-            .trackPublications) {
-            if (
-              publication.track?.kind === Track.Kind.Video &&
-              publication.track.mediaStreamTrack
-            ) {
-              try {
-                const stream = new MediaStream([
-                  publication.track.mediaStreamTrack,
-                ] as unknown as RNMediaStreamTrack[]);
-                const url = stream.toURL();
-                if (url) {
-                  setLocalStreamURL(url);
-                }
-              } catch {
-                // Ignore preview creation failures while tracks settle.
-              }
-            }
-          }
+          syncLocalPreview(room);
 
           const map = participantStreamsRef.current;
           const initial: RemoteParticipantInfo[] = [];
@@ -272,22 +275,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
         });
 
         room.on(RoomEvent.LocalTrackPublished, (publication) => {
-          if (
-            publication.track?.kind === Track.Kind.Video &&
-            publication.track?.mediaStreamTrack
-          ) {
-            try {
-              const stream = new MediaStream([
-                publication.track.mediaStreamTrack,
-              ] as unknown as RNMediaStreamTrack[]);
-              const url = stream.toURL();
-              if (url) {
-                setLocalStreamURL(url);
-              }
-            } catch {
-              // Ignore preview creation failures while tracks settle.
-            }
-          }
+          syncLocalPreview(room);
         });
 
         await room.connect(url, token);
@@ -335,9 +323,11 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
       setIsCameraEnabled(enabled);
       if (!enabled) {
         setLocalStreamURL(null);
+      } else {
+        syncLocalPreview(room);
       }
     }
-  }, []);
+  }, [syncLocalPreview]);
 
   const toggleMic = useCallback(async () => {
     const room = roomRef.current;

@@ -10,6 +10,7 @@ export const getTestLiveKitTokenRoute = protectedProcedure
   .input(
     z.object({
       sessionId: z.string().min(1),
+      role: z.enum(["patient", "doctor"]).optional().default("patient"),
     })
   )
   .handler(async ({ context, input }) => {
@@ -34,7 +35,8 @@ export const getTestLiveKitTokenRoute = protectedProcedure
     }
 
     const roomName = `session_${session.id}`;
-    const identity = `patient_${userId}`;
+    const prefix = input.role === "doctor" ? "doctor" : "patient";
+    const identity = `${prefix}_${userId}`;
 
     const at = new AccessToken(apiKey, apiSecret, {
       identity,

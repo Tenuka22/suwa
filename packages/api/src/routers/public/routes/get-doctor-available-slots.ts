@@ -9,7 +9,7 @@ import { z } from "zod";
 import { publicProcedure } from "../../../index";
 
 function getDayOfWeek(date: Date): number {
-  return date.getDay();
+  return date.getUTCDay();
 }
 
 function timeToMinutes(time: string): number {
@@ -101,7 +101,7 @@ export const getDoctorAvailableSlotsRoute = publicProcedure
       // Expand recurring windows across the date range
       const dateCursor = new Date(fromDate);
       while (dateCursor < toDate) {
-        const dayOfWeek = dateCursor.getDay();
+        const dayOfWeek = dateCursor.getUTCDay();
         for (const w of windows) {
           if (w.dayOfWeek === dayOfWeek) {
             const startMin = timeToMinutes(w.startTime);

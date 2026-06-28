@@ -1,5 +1,5 @@
-import { doctorPlans, doctorProfiles, doctorSessions } from "@suwa/db";
-import { eq } from "drizzle-orm";
+import { doctorFiles, doctorPlans, doctorProfiles, doctorSessions } from "@suwa/db";
+import { and, eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
@@ -21,6 +21,17 @@ export const listPatientSessionsRoute = protectedProcedure.handler(
           .where(eq(doctorProfiles.userId, session.doctorId))
           .limit(1);
 
+        const [portrait] = await context.db
+          .select({ id: doctorFiles.id })
+          .from(doctorFiles)
+          .where(
+            and(
+              eq(doctorFiles.doctorId, session.doctorId),
+              eq(doctorFiles.fileKind, "portrait")
+            )
+          )
+          .limit(1);
+
         const [plan] = session.planId
           ? await context.db
               .select()
@@ -38,6 +49,7 @@ export const listPatientSessionsRoute = protectedProcedure.handler(
                 location: doctor.location,
               }
             : null,
+          portrait: portrait ?? null,
           plan: plan
             ? {
                 name: plan.name,
