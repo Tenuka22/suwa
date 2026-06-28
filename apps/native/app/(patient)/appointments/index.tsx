@@ -5,7 +5,6 @@ import { Stack, useRouter } from "expo-router";
 import {
   Calendar,
   ChevronLeft,
-  ChevronRight,
   Clock,
   ListRestart,
   SlidersHorizontal,
@@ -80,14 +79,22 @@ function formatTime(date: Date): string {
   });
 }
 
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+function getRelativeTime(date: Date): { label: string; urgent: boolean } {
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 0) return { label: "Past", urgent: false };
+  if (diffMins < 60) return { label: `in ${diffMins}m`, urgent: diffMins < 15 };
+  if (diffHours < 24) return { label: `in ${diffHours}h`, urgent: diffHours < 2 };
+  if (diffDays === 1) return { label: "Tomorrow", urgent: false };
+  if (diffDays < 7) return { label: `in ${diffDays} days`, urgent: false };
+  return { label: formatDate(date), urgent: false };
 }
 
-function AppointmentCard({
+function NextAppointmentCard({
   session,
   onPress,
 }: {
@@ -103,6 +110,99 @@ function AppointmentCard({
   };
   onPress: () => void;
 }) {
+  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(
+    session.portrait?.id ?? null
+  );
+  const startDate = new Date(session.startAt);
+  const endDate = new Date(session.endAt);
+  const { label: relativeTime, urgent } = getRelativeTime(startDate);
+
+  return (
+    <Pressable
+      className={`overflow-hidden rounded-3xl border bg-background-elevated shadow-md ${urgent ? "border-accent" : "border-border"}`}
+      onPress={onPress}
+    >
+      <View className={`absolute inset-0 ${urgent ? "bg-accent/5" : "bg-primary/5"}`} />
+      <View className="relative p-lg">
+        <View className="mb-md flex-row items-center justify-between">
+          <View className="flex-row items-center gap-2">
+            <View className={`h-2 w-2 rounded-full ${urgent ? "bg-accent animate-pulse" : "bg-primary"}`} />
+            <Text className="font-sans text-micro text-foreground-muted uppercase tracking-widest">
+              Next Appointment
+            </Text>
+          </View>
+          <Text className={`font-sans text-micro font-semibold ${urgent ? "text-accent" : "text-primary"}`}>
+            {relativeTime}
+          </Text>
+        </View>
+
+        <View className="flex-row gap-lg">
+          <View className={`h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border/50 ${portraitPreviewUrl ? "bg-background-subtle" : "bg-tint-purple"}`}>
+            {portraitPreviewUrl ? (
+              <Image
+                className="h-full w-full"
+                resizeMode="cover"
+                source={{ uri: portraitPreviewUrl }}
+              />
+            ) : (
+              <Stethoscope className="text-tint-purple-foreground" size={20} />
+            )}
+          </View>
+
+          <View className="flex-1 gap-1">
+            <Text
+              className="font-serif text-title text-foreground"
+              numberOfLines={1}
+            >
+              {session.doctor?.displayName ?? "Clinician"}
+            </Text>
+            {session.doctor?.headline ? (
+              <Text
+                className="font-sans text-caption text-foreground-muted"
+                numberOfLines={1}
+              >
+                {session.doctor.headline}
+              </Text>
+            ) : null}
+            <View className="mt-1 flex-row items-center gap-3">
+              <View className="flex-row items-center gap-1">
+                <Calendar className="text-foreground-muted" size={13} />
+                <Text className="font-sans text-micro text-foreground-muted">
+                  {formatDate(startDate)}
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <Clock className="text-foreground-muted" size={12} />
+              <Text className="font-sans text-micro text-foreground-muted">
+                From {formatTime(startDate)} to {formatTime(endDate)}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function AppointmentCard({
+  session,
+  onPress,
+  disabled = false,
+}: {
+  session: {
+    id: string;
+    doctorId: string;
+    startAt: string;
+    endAt: string;
+    status: string;
+    doctor: { displayName: string | null; headline: string | null } | null;
+    portrait: { id: string } | null;
+    plan: { name: string; durationMinutes: number } | null;
+  };
+  onPress: () => void;
+  disabled?: boolean;
+}) {
   const statusStyle = sessionStatusConfig[session.status] ?? {
     label: session.status,
     bg: "bg-muted/20",
@@ -116,12 +216,12 @@ function AppointmentCard({
 
   return (
     <Pressable
-      className="overflow-hidden rounded-3xl border border-border bg-background-elevated shadow-sm"
-      onPress={onPress}
+      className={`overflow-hidden rounded-3xl border bg-background-elevated shadow-sm ${disabled ? "border-border/50 opacity-60" : "border-border"}`}
+      onPress={disabled ? undefined : onPress}
     >
       <View className="flex-row gap-lg p-lg">
         <View
-          className={`h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border/50 ${portraitPreviewUrl ? "bg-background-subtle" : "bg-tint-purple"}`}
+          className={`h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border/50 ${portraitPreviewUrl ? "bg-background-subtle" : "bg-tint-purple"}`}
         >
           {portraitPreviewUrl ? (
             <Image
@@ -130,14 +230,14 @@ function AppointmentCard({
               source={{ uri: portraitPreviewUrl }}
             />
           ) : (
-            <Stethoscope className="text-tint-purple-foreground" size={24} />
+            <Stethoscope className="text-tint-purple-foreground" size={20} />
           )}
         </View>
 
         <View className="flex-1 gap-1">
           <View className="flex-row items-center gap-2">
             <Text
-              className="flex-1 font-serif text-title text-foreground"
+              className="flex-1 font-serif text-subtitle text-foreground"
               numberOfLines={1}
             >
               {session.doctor?.displayName ?? "Clinician"}
@@ -155,7 +255,7 @@ function AppointmentCard({
 
           {session.doctor?.headline ? (
             <Text
-              className="font-sans text-caption text-foreground-muted"
+              className="font-sans text-micro text-foreground-muted"
               numberOfLines={1}
             >
               {session.doctor.headline}
@@ -164,27 +264,24 @@ function AppointmentCard({
 
           <View className="mt-1 flex-row items-center gap-3">
             <View className="flex-row items-center gap-1">
-              <Calendar className="text-foreground-muted" size={14} />
+              <Calendar className="text-foreground-muted" size={12} />
               <Text className="font-sans text-micro text-foreground-muted">
                 {formatDate(startDate)}
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <Clock className="text-foreground-muted" size={14} />
+              <Clock className="text-foreground-muted" size={12} />
               <Text className="font-sans text-micro text-foreground-muted">
-                {formatTime(startDate)} - {formatTime(endDate)}
+                {formatTime(startDate)}
               </Text>
             </View>
           </View>
 
           {session.plan ? (
             <View className="mt-1 flex-row items-center gap-1.5">
-              <Sparkles className="text-accent" size={13} />
+              <Sparkles className="text-accent" size={12} />
               <Text className="font-sans text-micro text-accent">
                 {session.plan.name}
-                {session.plan.durationMinutes
-                  ? ` · ${formatDuration(session.plan.durationMinutes)}`
-                  : ""}
               </Text>
             </View>
           ) : null}
@@ -197,10 +294,8 @@ function AppointmentCard({
 export default function AppointmentsScreen() {
   const router = useRouter();
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
-  const [page, setPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const [pendingChips, setPendingChips] = useState<string[]>([]);
-  const perPage = 5;
 
   const sessionsQuery = useQuery(orpc.listPatientSessions.queryOptions());
 
@@ -215,12 +310,21 @@ export default function AppointmentsScreen() {
     return sessions.filter((s) => combinedFilter.includes(s.status));
   }, [sessions, combinedFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredSessions.length / perPage));
-  const paginatedSessions = filteredSessions.slice(
-    (page - 1) * perPage,
-    page * perPage
-  );
-  const hasMore = page < totalPages;
+  const { upcoming, past, nextSession } = useMemo(() => {
+    const now = new Date();
+    const up: typeof sessions = [];
+    const pa: typeof sessions = [];
+    for (const s of filteredSessions) {
+      if (new Date(s.startAt) >= now) {
+        up.push(s);
+      } else {
+        pa.push(s);
+      }
+    }
+    up.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+    pa.sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime());
+    return { upcoming: up, past: pa, nextSession: up[0] ?? null };
+  }, [filteredSessions]);
 
   if (sessionsQuery.isLoading) {
     return (
@@ -236,7 +340,6 @@ export default function AppointmentsScreen() {
         ? current.filter((v) => v !== value)
         : [...current, value]
     );
-    setPage(1);
   }
 
   function openFilters() {
@@ -254,14 +357,12 @@ export default function AppointmentsScreen() {
 
   function applyFilters() {
     setSelectedChips(pendingChips);
-    setPage(1);
     setFilterOpen(false);
   }
 
   function clearAllFilters() {
     setSelectedChips([]);
     setPendingChips([]);
-    setPage(1);
   }
 
   return (
@@ -281,24 +382,19 @@ export default function AppointmentsScreen() {
           </Text>
         </View>
 
-          {/* Results Info */}
+          {/* Filter Row */}
           <View className="flex-row items-center justify-between border-border border-b pb-xxs">
             <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
               {sessionsQuery.isPending
                 ? "Loading..."
                 : `${filteredSessions.length} appointment${filteredSessions.length === 1 ? "" : "s"}`}
             </Text>
-            <View className="flex-row items-center gap-2">
-              <Pressable
-                className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
-                onPress={openFilters}
-              >
-                <SlidersHorizontal className="text-foreground" size={16} />
-              </Pressable>
-              <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
-                Page {page}
-              </Text>
-            </View>
+            <Pressable
+              className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
+              onPress={openFilters}
+            >
+              <SlidersHorizontal className="text-foreground" size={16} />
+            </Pressable>
           </View>
 
           {/* Active Filter Chips */}
@@ -319,52 +415,67 @@ export default function AppointmentsScreen() {
             </View>
           )}
 
-          {/* Sessions */}
-          <View className="gap-lg">
-            {paginatedSessions.length === 0 ? (
-              <View className="items-center gap-md py-huge">
-                <Text className="font-serif text-foreground-muted text-title">
-                  No appointments
-                </Text>
-                <Text className="text-center font-sans text-foreground-muted text-sm">
-                  Try adjusting your filters
-                </Text>
-                {selectedChips.length > 0 && (
-                  <Pressable onPress={clearAllFilters}>
-                    <Text className="font-bold font-sans text-accent text-body">
-                      Clear filters
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            ) : (
-              paginatedSessions.map((session) => (
-                <AppointmentCard
-                  key={session.id}
-                  session={session}
-                  onPress={() => router.push(`/appointments/${session.id}`)}
-                />
-              ))
-            )}
-          </View>
+          {/* Next Appointment */}
+          {nextSession && (
+            <NextAppointmentCard
+              session={nextSession}
+              onPress={() => router.push(`/appointments/${nextSession.id}`)}
+            />
+          )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <View className="mt-md flex-row items-center justify-center gap-huge">
-              <Pressable
-                className={`h-12 w-12 items-center justify-center rounded-full border border-border ${page === 1 ? "opacity-30" : "bg-background-elevated shadow-sm"}`}
-                disabled={page === 1}
-                onPress={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                <ChevronLeft className="text-primary" size={24} />
-              </Pressable>
-              <Pressable
-                className={`h-12 w-12 items-center justify-center rounded-full border border-border ${hasMore ? "bg-background-elevated shadow-sm" : "opacity-30"}`}
-                disabled={!hasMore}
-                onPress={() => setPage((p) => p + 1)}
-              >
-                <ChevronRight className="text-primary" size={24} />
-              </Pressable>
+          {/* Upcoming */}
+          {upcoming.length > 1 && (
+            <View className="gap-3">
+              <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
+                Upcoming
+              </Text>
+              <View className="gap-md">
+                {upcoming.slice(1).map((session) => (
+                  <AppointmentCard
+                    key={session.id}
+                    session={session}
+                    onPress={() => router.push(`/appointments/${session.id}`)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Past */}
+          {past.length > 0 && (
+            <View className="gap-3">
+              <Text className="font-sans text-foreground-muted text-micro uppercase tracking-widest">
+                Past
+              </Text>
+              <View className="gap-md">
+                {past.map((session) => (
+                  <AppointmentCard
+                    key={session.id}
+                    session={session}
+                    onPress={() => router.push(`/appointments/${session.id}`)}
+                    disabled
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Empty state */}
+          {filteredSessions.length === 0 && (
+            <View className="items-center gap-md py-huge">
+              <Text className="font-serif text-foreground-muted text-title">
+                No appointments
+              </Text>
+              <Text className="text-center font-sans text-foreground-muted text-sm">
+                Try adjusting your filters
+              </Text>
+              {selectedChips.length > 0 && (
+                <Pressable onPress={clearAllFilters}>
+                  <Text className="font-bold font-sans text-accent text-body">
+                    Clear filters
+                  </Text>
+                </Pressable>
+              )}
             </View>
           )}
       </Screen>
