@@ -1,7 +1,9 @@
+import { Alert, AlertDescription, AlertTitle } from "@suwa/ui/components/alert";
+import { Badge } from "@suwa/ui/components/badge";
 import { Button } from "@suwa/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@suwa/ui/components/card";
-import { Badge } from "@suwa/ui/components/badge";
 import { Separator } from "@suwa/ui/components/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@suwa/ui/components/table";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -240,6 +242,75 @@ function DoctorSessionDetailRoute() {
 
   const session = sessionData.session;
 
+  function renderSharedDataContent() {
+    if (!sessionKeyPair) {
+      return (
+        <Alert>
+          <ShieldAlertIcon />
+          <AlertTitle>Key not available</AlertTitle>
+          <AlertDescription>
+            This browser does not have the local session key yet, so shared data cannot be decrypted.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (sharedDataStatus === "loading") {
+      return (
+        <Alert>
+          <Loader2 className="animate-spin" />
+          <AlertTitle>Decrypting shared data...</AlertTitle>
+          <AlertDescription>
+            Please wait while the patient data is being decrypted.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (sharedDataStatus === "error") {
+      return (
+        <Alert variant="destructive">
+          <LockIcon />
+          <AlertTitle>Decryption failed</AlertTitle>
+          <AlertDescription>
+            Could not decrypt the shared patient data.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (sharedDetails.length === 0) {
+      return (
+        <Alert>
+          <KeyRoundIcon />
+          <AlertTitle>No data shared</AlertTitle>
+          <AlertDescription>
+            No patient details have been shared for this session yet.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Field</TableHead>
+            <TableHead>Value</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sharedDetails.map(([label, value]) => (
+            <TableRow key={label}>
+              <TableCell className="text-muted-foreground">{label}</TableCell>
+              <TableCell className="font-medium">{value}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  }
+
   return (
     <div className="flex h-svh flex-col bg-background">
       <header className="flex items-center gap-3 border-b px-6 py-4">
@@ -268,7 +339,7 @@ function DoctorSessionDetailRoute() {
             startAt={session.startAt}
           />
 
-          <Card className="h-full overflow-hidden rounded-3xl border-border/60">
+          <Card className="h-full overflow-hidden">
             <CardHeader className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">Shared session data</Badge>
@@ -285,41 +356,7 @@ function DoctorSessionDetailRoute() {
             <Separator />
 
             <CardContent className="flex flex-col gap-4 p-4">
-              {!sessionKeyPair ? (
-                <div className="flex flex-col gap-3 rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                  <ShieldAlertIcon className="size-5 text-amber-500" />
-                  <p>
-                    This browser does not have the local session key yet, so shared data cannot be decrypted.
-                  </p>
-                </div>
-              ) : sharedDataStatus === "loading" ? (
-                <div className="flex items-center gap-3 rounded-2xl border p-4 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                  <span>Decrypting shared data...</span>
-                </div>
-              ) : sharedDataStatus === "error" ? (
-                <div className="flex items-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-                  <LockIcon className="size-4" />
-                  <span>Could not decrypt shared data.</span>
-                </div>
-              ) : sharedDetails.length === 0 ? (
-                <div className="flex flex-col gap-3 rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                  <KeyRoundIcon className="size-5" />
-                  <p>No patient details have been shared for this session yet.</p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {sharedDetails.map(([label, value]) => (
-                    <div
-                      className="rounded-2xl border bg-muted/20 p-3"
-                      key={label}
-                    >
-                      <p className="text-muted-foreground text-xs">{label}</p>
-                      <p className="mt-1 font-medium text-sm">{String(value)}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {renderSharedDataContent()}
             </CardContent>
           </Card>
         </div>

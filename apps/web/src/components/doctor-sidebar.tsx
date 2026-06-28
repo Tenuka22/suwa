@@ -45,17 +45,15 @@ export function DoctorSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarNavSection
-          items={[{ icon: HouseIcon, label: "Home", to: "/" }]}
-          label="Main"
+          items={[
+            { icon: HouseIcon, label: "Home", to: "/" },
+            { icon: LayoutDashboardIcon, label: "Dashboard", to: "/doctor" },
+          ]}
+          label="Overview"
         />
         <SidebarNavSection
           items={[
-            { icon: LayoutDashboardIcon, label: "Dashboard", to: "/doctor" },
-            {
-              icon: PlayCircleIcon,
-              label: "Hub",
-              to: "/doctor/hub",
-            },
+            { icon: PlayCircleIcon, label: "Hub", to: "/doctor/hub" },
             {
               icon: CalendarCheckIcon,
               label: "Sessions",
@@ -69,7 +67,7 @@ export function DoctorSidebar() {
             { icon: TagsIcon, label: "Plans", to: "/doctor/plans" },
             { icon: UserIcon, label: "Profile", to: "/doctor/profile" },
           ]}
-          label="Secondary"
+          label="Schedule"
         />
       </SidebarContent>
       <SidebarFooter>

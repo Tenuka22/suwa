@@ -22,6 +22,11 @@ interface UseLiveKitRoomOptions {
   onError?: (error: Error) => void;
 }
 
+interface ConnectMediaOptions {
+  cameraEnabled?: boolean;
+  microphoneEnabled?: boolean;
+}
+
 export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
   const roomRef = useRef<Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -47,9 +52,21 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
   >(new Map());
 
   const connect = useCallback(
-    async (url: string, token: string) => {
+    async (
+      url: string,
+      token: string,
+      mediaOptions: ConnectMediaOptions = {}
+    ) => {
+      const cameraEnabled = mediaOptions.cameraEnabled ?? true;
+      const microphoneEnabled = mediaOptions.microphoneEnabled ?? true;
+
       setIsConnecting(true);
       setError(null);
+      setIsCameraEnabled(cameraEnabled);
+      setIsMicEnabled(microphoneEnabled);
+      if (!cameraEnabled) {
+        setLocalStreamURL(null);
+      }
       participantStreamsRef.current.clear();
 
       try {
@@ -86,7 +103,9 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
                 if (url) {
                   setLocalStreamURL(url);
                 }
-              } catch {}
+              } catch {
+                // Ignore preview creation failures while tracks settle.
+              }
             }
           }
 
@@ -145,9 +164,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
               });
             }
           }
-          if (initial.length > 0) {
-            setRemoteParticipants(initial);
-          }
+          setRemoteParticipants(initial);
         });
 
         room.on(RoomEvent.Disconnected, () => {
@@ -267,23 +284,28 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
               if (url) {
                 setLocalStreamURL(url);
               }
-            } catch {}
+            } catch {
+              // Ignore preview creation failures while tracks settle.
+            }
           }
         });
 
         await room.connect(url, token);
 
-        await room.localParticipant.setCameraEnabled(true);
-        await room.localParticipant.setMicrophoneEnabled(true);
+        await room.localParticipant.setCameraEnabled(cameraEnabled);
+        await room.localParticipant.setMicrophoneEnabled(microphoneEnabled);
 
         roomRef.current = room;
         setRoom(room);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to connect";
+        const error = err instanceof Error ? err : new Error(message);
+
         setError(message);
         setIsConnecting(false);
-        options.onError?.(err instanceof Error ? err : new Error(message));
+        options.onError?.(error);
+        throw error;
       }
     },
     [options]
@@ -299,6 +321,8 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
     setIsConnected(false);
     setRemoteParticipants([]);
     setLocalStreamURL(null);
+    setIsCameraEnabled(true);
+    setIsMicEnabled(true);
     setRoom(null);
     participantStreamsRef.current.clear();
   }, []);

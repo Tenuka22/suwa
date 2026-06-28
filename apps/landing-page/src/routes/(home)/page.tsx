@@ -25,9 +25,6 @@ export function LandingPage() {
         <Appear delay={0.06}>
           <TrustStrip />
         </Appear>
-        <Appear delay={0.12}>
-          <ProofBar />
-        </Appear>
         <Appear delay={0.15}>
           <Doctors />
         </Appear>
@@ -49,6 +46,11 @@ export function LandingPage() {
         <Appear delay={0.48}>
           <Faq />
         </Appear>
+
+        <Appear delay={0.12}>
+          <ProofBar />
+        </Appear>
+
         <Appear delay={0.52}>
           <Team />
         </Appear>

@@ -6,7 +6,7 @@ export function Services() {
   return (
     <section
       aria-label="Suwa services"
-      className="page-shell grid max-w-[1335px] grid-cols-2 gap-[62px] border-border border-t pt-[48px] pb-[95px] max-xl:grid-cols-1 max-xl:gap-[46px] xl:gap-[36px] max-xl:pt-[50px] max-xl:pb-[70px]"
+      className="page-shell grid max-w-[1335px] grid-cols-2 gap-[62px] pt-[48px] pb-[95px] max-xl:grid-cols-1 max-xl:gap-[46px] xl:gap-[36px] max-xl:pt-[50px] max-xl:pb-[70px]"
     >
       <article
         className="grid min-w-0 grid-cols-[220px_1fr] items-center gap-[38px] max-xl:grid-cols-[240px_1fr] max-xl:grid-cols-1 xl:grid-cols-[180px_1fr] max-xl:gap-[25px] xl:gap-[24px]"

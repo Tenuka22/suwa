@@ -62,10 +62,12 @@ export const getSharedPatientDataRoute = protectedProcedure
       throw new Error("Session not found");
     }
 
+    const role = context.auth?.sessionClaims?.metadata?.role ?? "user";
     const isPatient = session.patientId === userId;
     const isDoctor = session.doctorId === userId;
+    const isAdmin = role === "admin";
 
-    if (!(isPatient || isDoctor)) {
+    if (!(isPatient || isDoctor || isAdmin)) {
       throw new Error("Not authorized for this session");
     }
 
@@ -138,10 +140,12 @@ export const getDoctorPublicKeyRoute = protectedProcedure
       throw new Error("Session not found");
     }
 
+    const role = context.auth?.sessionClaims?.metadata?.role ?? "user";
     const isPatient = session.patientId === userId;
     const isDoctor = session.doctorId === userId;
+    const isAdmin = role === "admin";
 
-    if (!(isPatient || isDoctor)) {
+    if (!(isPatient || isDoctor || isAdmin)) {
       throw new Error("Not authorized for this session");
     }
 

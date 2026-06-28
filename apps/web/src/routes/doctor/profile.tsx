@@ -2,8 +2,7 @@ import { useUser } from "@clerk/tanstack-react-start";
 import { Avatar, AvatarFallback } from "@suwa/ui/components/avatar";
 import { Badge } from "@suwa/ui/components/badge";
 import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader } from "@suwa/ui/components/card";
-import { Separator } from "@suwa/ui/components/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@suwa/ui/components/card";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -24,7 +23,6 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { FaceCaptureDialog } from "@/components/face-detection";
 import { DoctorFilesPanel, DoctorProfileCard } from "@/components/doctors";
 import { useSaveDoctorProfile } from "@/hooks/queries/doctor";
@@ -111,85 +109,57 @@ function DoctorProfileRoute() {
   const hubAudioCount = stats?.hubAudioCount ?? 0;
   const hasFaceEmbedding = profile?.hasFaceEmbedding ?? false;
 
-  type StatusTone = "warning" | "pending" | "success";
-  const status: {
-    badge: string;
-    title: string;
-    description: string;
-    tone: StatusTone;
-  } = !profile
-    ? {
-        badge: "Missing profile",
-        title: "Create your profile to continue",
-        description:
-          "Set up your practice details below, then complete face verification before admin review.",
-        tone: "warning",
-      }
+  const statusBadge = !profile
+    ? "Missing profile"
     : !hasFaceEmbedding
-      ? {
-          badge: "Face verification required",
-          title: "Complete face capture",
-          description:
-            "Your profile is saved, but you still need to capture a face embedding before access can be approved.",
-          tone: "warning",
-        }
+      ? "Face verification required"
       : !isPermanent
-        ? {
-            badge: "Awaiting approval",
-            title: "Waiting for admin review",
-            description:
-              "Your profile and face verification are in place. Admin approval is still required to unlock the portal.",
-            tone: "pending",
-          }
-        : {
-            badge: "Access approved",
-            title: "Doctor access is active",
-            description:
-              "Your profile is approved and face verification is complete.",
-            tone: "success",
-          };
+        ? "Awaiting approval"
+        : "Access approved";
+
+  const statusTitle = !profile
+    ? "Create your profile to continue"
+    : !hasFaceEmbedding
+      ? "Complete face capture"
+      : !isPermanent
+        ? "Waiting for admin review"
+        : "Doctor access is active";
+
+  const statusDescription = !profile
+    ? "Set up your practice details below, then complete face verification before admin review."
+    : !hasFaceEmbedding
+      ? "Your profile is saved, but you still need to capture a face embedding before access can be approved."
+      : !isPermanent
+        ? "Your profile and face verification are in place. Admin approval is still required to unlock the portal."
+        : "Your profile is approved and face verification is complete.";
+
+  const statusVariant: "default" | "destructive" = !isPermanent && profile ? "destructive" : "default";
+
+  const statusIcon = !profile || !hasFaceEmbedding ? (
+    <ShieldAlertIcon className="size-5" />
+  ) : !isPermanent ? (
+    <Loader2Icon className="size-5 animate-spin" />
+  ) : (
+    <BadgeCheckIcon className="size-5" />
+  );
 
   return (
     <div className="flex flex-col gap-6">
-      <Card
-        className={
-          status.tone === "success"
-            ? "rounded-3xl border-emerald-500/20 bg-emerald-500/5"
-            : status.tone === "pending"
-              ? "rounded-3xl border-amber-500/20 bg-amber-500/5"
-              : "rounded-3xl border-border/60 bg-background"
-        }
-      >
+      <Card>
         <CardContent className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-start gap-4">
-            <div
-              className={
-                status.tone === "success"
-                  ? "rounded-2xl bg-emerald-500/15 p-3 text-emerald-600"
-                  : status.tone === "pending"
-                    ? "rounded-2xl bg-amber-500/15 p-3 text-amber-600"
-                    : "rounded-2xl bg-muted p-3 text-muted-foreground"
-              }
-            >
-              {status.tone === "success" ? (
-                <BadgeCheckIcon className="size-6" />
-              ) : status.tone === "pending" ? (
-                <Loader2Icon className="size-6 animate-spin" />
-              ) : (
-                <ShieldAlertIcon className="size-6" />
-              )}
+            <div className="rounded-lg border bg-muted p-2.5 text-muted-foreground">
+              {statusIcon}
             </div>
             <div className="flex flex-col gap-1">
-              <Badge
-                variant={status.tone === "success" ? "default" : "secondary"}
-              >
-                {status.badge}
+              <Badge variant={statusVariant}>
+                {statusBadge}
               </Badge>
               <h1 className="font-semibold text-xl tracking-tight">
-                {status.title}
+                {statusTitle}
               </h1>
               <p className="max-w-2xl text-muted-foreground text-sm">
-                {status.description}
+                {statusDescription}
               </p>
             </div>
           </div>
@@ -197,14 +167,14 @@ function DoctorProfileRoute() {
           <div className="flex flex-wrap gap-2">
             {profile && (!hasFaceEmbedding || !isPermanent) ? (
               <Button
-                className="gap-2"
+                className="gap-1.5"
                 onClick={() => setFaceDialogOpen(true)}
                 variant={hasFaceEmbedding ? "outline" : "default"}
               >
                 {hasFaceEmbedding ? (
-                  <UserCheckIcon className="size-4" />
+                  <UserCheckIcon className="size-3.5" />
                 ) : (
-                  <CameraIcon className="size-4" />
+                  <CameraIcon className="size-3.5" />
                 )}
                 {hasFaceEmbedding
                   ? "Update face embedding"
@@ -214,7 +184,7 @@ function DoctorProfileRoute() {
 
             {name && hasFaceEmbedding && !isPermanent ? (
               <Button
-                className="gap-2"
+                className="gap-1.5"
                 disabled={saveDoctorProfile.isPending}
                 onClick={() => {
                   saveDoctorProfile.mutate(
@@ -245,54 +215,52 @@ function DoctorProfileRoute() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
-          <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex items-start gap-4">
-              <Avatar className="size-16 border shadow-sm">
-                <AvatarFallback className="font-semibold text-lg">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+      <Card>
+        <CardContent className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <Avatar className="size-16 border shadow-sm">
+              <AvatarFallback className="font-semibold text-lg">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
 
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">Doctor profile</Badge>
-                  {isPermanent ? (
-                    <Badge variant="default">
-                      <BadgeCheckIcon className="size-3.5" />
-                      Verified
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">Pending verification</Badge>
-                  )}
-                </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">Doctor profile</Badge>
+                {isPermanent ? (
+                  <Badge variant="default">
+                    <BadgeCheckIcon className="size-3.5" />
+                    Verified
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">Pending verification</Badge>
+                )}
+              </div>
 
-                <div className="flex flex-col gap-2">
-                  <h1 className="font-semibold text-lg tracking-tight">
-                    {name}
-                  </h1>
+              <div className="flex flex-col gap-2">
+                <h1 className="font-semibold text-lg tracking-tight">
+                  {name}
+                </h1>
 
-                  <p className="max-w-2xl text-muted-foreground text-sm">
-                    Manage your public directory listing, therapeutic
-                    credentials, and introductory materials. A complete profile
-                    helps patients find and trust you.
-                  </p>
+                <p className="max-w-2xl text-muted-foreground text-sm">
+                  Manage your public directory listing, therapeutic
+                  credentials, and introductory materials. A complete profile
+                  helps patients find and trust you.
+                </p>
 
-                  <div className="flex items-center gap-2">
-                    <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs">
-                      ID: {doctorId}
-                    </code>
-                    <Button
-                      className="h-6 gap-1 px-2"
-                      onClick={handleCopyDoctorId}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <CopyIcon className="size-3" />
-                      {copiedDoctorId ? "Copied" : "Copy ID"}
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs">
+                    ID: {doctorId}
+                  </code>
+                  <Button
+                    className="h-6 gap-1 px-2"
+                    onClick={handleCopyDoctorId}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <CopyIcon className="size-3" />
+                    {copiedDoctorId ? "Copied" : "Copy ID"}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -300,103 +268,148 @@ function DoctorProfileRoute() {
         </CardContent>
       </Card>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          description={`${profileExists ? "In progress" : "Not started yet"}`}
-          icon={<UserCircleIcon className="size-5" />}
-          title="Profile completeness"
-          trend={profileExists ? `${completenessPercentage}%` : undefined}
-          value={`${completenessPercentage}%`}
-        />
-
-        <MetricCard
-          description="Uploaded introductory materials"
-          icon={<FileIcon className="size-5" />}
-          title="Files"
-          value={fileCount.toString()}
-        />
-
-        <MetricCard
-          description="Areas of therapeutic expertise"
-          icon={<BookOpenIcon className="size-5" />}
-          title="Specialties"
-          value={specialtyCount.toString()}
-        />
-
-        <MetricCard
-          description="Languages you speak with patients"
-          icon={<LanguagesIcon className="size-5" />}
-          title="Languages"
-          value={languageCount.toString()}
-        />
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
-        <MetricCard
-          description="Videos in your content hub"
-          icon={<VideoIcon className="size-5" />}
-          title="Hub videos"
-          value={hubVideoCount.toString()}
-        />
-
-        <MetricCard
-          description="Audio recordings in your hub"
-          icon={<RadioIcon className="size-5" />}
-          title="Hub audio"
-          value={hubAudioCount.toString()}
-        />
-      </section>
-
-      <div className="grid gap-6">
-        <Card className="rounded-3xl border-border/60">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
           <CardHeader>
-            <SectionHeader
-              action={
-                <Badge className="gap-1" variant="secondary">
-                  <GlobeIcon className="size-3" />
-                  Public listing
-                </Badge>
-              }
-              description="Your professional details visible to patients"
-              title="Profile information"
-            />
+            <CardDescription>Profile completeness</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">
+                {completenessPercentage}%
+              </CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <UserCircleIcon className="size-4" />
+              </div>
+            </div>
           </CardHeader>
-
-          <Separator />
-
           <CardContent>
-            <DoctorProfileCard />
+            <p className="text-muted-foreground text-xs">
+              {profileExists ? "In progress" : "Not started yet"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription>Files</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{fileCount}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <FileIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Uploaded introductory materials</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription>Specialties</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{specialtyCount}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <BookOpenIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Areas of therapeutic expertise</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription>Languages</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{languageCount}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <LanguagesIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Languages you speak with patients</p>
           </CardContent>
         </Card>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardDescription>Hub videos</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{hubVideoCount}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <VideoIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Videos in your content hub</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardDescription>Hub audio</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{hubAudioCount}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <RadioIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Audio recordings in your hub</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Profile information</CardTitle>
+              <CardDescription>
+                Your professional details visible to patients
+              </CardDescription>
+            </div>
+            <Badge className="gap-1" variant="secondary">
+              <GlobeIcon className="size-3" />
+              Public listing
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DoctorProfileCard />
+        </CardContent>
+      </Card>
+
       {user.user ? (
-        <div className="grid gap-6">
-          <Card className="rounded-3xl border-border/60">
-            <CardHeader>
-              <SectionHeader
-                action={
-                  <Badge className="gap-1" variant="secondary">
-                    <VideoIcon className="size-3" />
-                    Media & files
-                  </Badge>
-                }
-                description="Upload and manage your introductory photos, videos, and qualifications"
-                title="Introductory materials"
-              />
-            </CardHeader>
-
-            <Separator />
-
-            <CardContent>
-              <DoctorFilesPanel
-                canManage={canManageFiles}
-                doctorId={user.user.id}
-                isPermanent={profile?.permanent ?? false}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Introductory materials</CardTitle>
+                <CardDescription>
+                  Upload and manage your introductory photos, videos, and qualifications
+                </CardDescription>
+              </div>
+              <Badge className="gap-1" variant="secondary">
+                <VideoIcon className="size-3" />
+                Media & files
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <DoctorFilesPanel
+              canManage={canManageFiles}
+              doctorId={user.user.id}
+              isPermanent={profile?.permanent ?? false}
+            />
+          </CardContent>
+        </Card>
       ) : null}
 
       <FaceCaptureDialog

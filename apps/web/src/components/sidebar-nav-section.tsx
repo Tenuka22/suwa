@@ -6,7 +6,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@suwa/ui/components/sidebar";
 import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
@@ -25,8 +24,7 @@ export function SidebarNavSection({
   items: SidebarNavItem[];
   label: string;
 }) {
-  const { state } = useSidebar();
-  const buttonSize = state === "collapsed" ? "default" : "lg";
+  const buttonSize = "default";
 
   return (
     <SidebarGroup>

@@ -3,6 +3,7 @@ import { Button } from "@suwa/ui/components/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@suwa/ui/components/card";
@@ -28,7 +29,6 @@ import {
 } from "@suwa/ui/components/empty";
 import { Input } from "@suwa/ui/components/input";
 import { Label } from "@suwa/ui/components/label";
-import { Separator } from "@suwa/ui/components/separator";
 import { Textarea } from "@suwa/ui/components/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -40,8 +40,10 @@ import {
   LayoutGridIcon,
   Loader2,
   PackageIcon,
+  PencilIcon,
   PlusIcon,
   StarIcon,
+  TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -53,10 +55,8 @@ import {
   YAxis,
 } from "recharts";
 
-import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
-import { BodyText, PageTitle } from "@/components/typography";
 import { notify } from "@/lib/notify";
-import { orpc } from "@/utils/orpc";
+import { orpc, queryClient } from "@/utils/orpc";
 
 interface DoctorPlan {
   description: string | null;
@@ -68,6 +68,14 @@ interface DoctorPlan {
   name: string;
   priceCents: number;
   sortOrder: number;
+}
+
+function parseFeatures(features: string | null): string[] {
+  try {
+    return features ? (JSON.parse(features) as string[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 function CreatePlanDialog() {
@@ -88,6 +96,12 @@ function CreatePlanDialog() {
         setPriceCents("1500");
         setDurationMinutes("60");
         setFeatures("");
+        await queryClient.invalidateQueries({
+          queryKey: orpc.listDoctorPlans.queryKey(),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: orpc.planStats.queryKey(),
+        });
       },
       onError: (error: Error) => {
         notify.error(error.message);
@@ -111,9 +125,9 @@ function CreatePlanDialog() {
   };
 
   return (
-      <Dialog onOpenChange={setOpen} open={open}>
-      <Button className="gap-2" onClick={() => setOpen(true)} size="sm">
-        <PlusIcon className="size-4" />
+    <Dialog onOpenChange={setOpen} open={open}>
+      <Button className="gap-1.5" onClick={() => setOpen(true)} size="sm">
+        <PlusIcon className="size-3.5" />
         Create plan
       </Button>
       <DialogContent className="sm:max-w-[520px]">
@@ -156,7 +170,7 @@ function CreatePlanDialog() {
               <Label htmlFor="duration">Duration minutes</Label>
               <Input
                 id="duration"
-                min="60"
+                min="1"
                 onChange={(e) => setDurationMinutes(e.target.value)}
                 type="number"
                 value={durationMinutes}
@@ -188,6 +202,204 @@ function CreatePlanDialog() {
   );
 }
 
+function EditPlanDialog({ plan }: { plan: DoctorPlan }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(plan.name);
+  const [description, setDescription] = useState(plan.description ?? "");
+
+  const initialPriceCents = plan.priceCents.toString();
+  const initialDuration = plan.durationMinutes.toString();
+  const [priceCents, setPriceCents] = useState(initialPriceCents);
+  const [durationMinutes, setDurationMinutes] = useState(initialDuration);
+
+  let initialFeatures: string[] = [];
+  try {
+    initialFeatures = plan.features ? (JSON.parse(plan.features) as string[]) : [];
+  } catch {
+    initialFeatures = [];
+  }
+  const [features, setFeatures] = useState(initialFeatures.join("\n"));
+
+  const updateMutation = useMutation(
+    orpc.updateDoctorPlan.mutationOptions({
+      onSuccess: async () => {
+        notify.success("Plan updated");
+        setOpen(false);
+        await queryClient.invalidateQueries({
+          queryKey: orpc.listDoctorPlans.queryKey(),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: orpc.planStats.queryKey(),
+        });
+      },
+      onError: (error: Error) => {
+        notify.error(error.message);
+      },
+    })
+  );
+
+  const handleUpdate = () => {
+    const parsedFeatures = features
+      .split("\n")
+      .map((feature) => feature.trim())
+      .filter(Boolean);
+
+    updateMutation.mutate({
+      id: plan.id,
+      name,
+      description: description.trim() ? description : null,
+      priceCents: Number(priceCents),
+      durationMinutes: Number(durationMinutes),
+      features: parsedFeatures.length > 0 ? parsedFeatures : null,
+    });
+  };
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <Button
+        className="size-8"
+        onClick={() => {
+          setName(plan.name);
+          setDescription(plan.description ?? "");
+          setPriceCents(plan.priceCents.toString());
+          setDurationMinutes(plan.durationMinutes.toString());
+          let feat: string[] = [];
+          try {
+            feat = plan.features ? (JSON.parse(plan.features) as string[]) : [];
+          } catch {
+            feat = [];
+          }
+          setFeatures(feat.join("\n"));
+          setOpen(true);
+        }}
+        size="icon"
+        variant="ghost"
+      >
+        <PencilIcon className="size-4" />
+      </Button>
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>Edit plan</DialogTitle>
+          <DialogDescription>Update your consultation plan details.</DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="edit-plan-name">Plan name</Label>
+            <Input
+              id="edit-plan-name"
+              onChange={(e) => setName(e.target.value)}
+              value={name}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="edit-plan-description">Description</Label>
+            <Input
+              id="edit-plan-description"
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-price-cents">Price (cents)</Label>
+              <Input
+                id="edit-price-cents"
+                min="100"
+                onChange={(e) => setPriceCents(e.target.value)}
+                type="number"
+                value={priceCents}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-duration">Duration minutes</Label>
+              <Input
+                id="edit-duration"
+                min="1"
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                type="number"
+                value={durationMinutes}
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="edit-features">Features</Label>
+            <Textarea
+              className="min-h-24 resize-y"
+              id="edit-features"
+              onChange={(e) => setFeatures(e.target.value)}
+              placeholder="One feature per line"
+              value={features}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button disabled={updateMutation.isPending} onClick={handleUpdate}>
+            {updateMutation.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : null}
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeletePlanDialog({ plan, onDeleted }: { plan: DoctorPlan; onDeleted: () => void }) {
+  const [open, setOpen] = useState(false);
+
+  const deleteMutation = useMutation(
+    orpc.deleteDoctorPlan.mutationOptions({
+      onSuccess: async () => {
+        notify.success("Plan deleted");
+        setOpen(false);
+        onDeleted();
+      },
+      onError: (error: Error) => {
+        notify.error(error.message);
+      },
+    })
+  );
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <Button
+        className="size-8 text-destructive hover:text-destructive"
+        onClick={() => setOpen(true)}
+        size="icon"
+        variant="ghost"
+      >
+        <TrashIcon className="size-4" />
+      </Button>
+      <DialogContent className="sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>Delete plan</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete "{plan.name}"? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button onClick={() => setOpen(false)} variant="outline">
+            Cancel
+          </Button>
+          <Button
+            disabled={deleteMutation.isPending}
+            onClick={() => deleteMutation.mutate({ id: plan.id })}
+            variant="destructive"
+          >
+            {deleteMutation.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : null}
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export const Route = createFileRoute("/doctor/plans")({
   loaderDeps: () => ({}),
   loader: async ({ context }) => {
@@ -202,6 +414,15 @@ export const Route = createFileRoute("/doctor/plans")({
 
 function DoctorPlansRoute() {
   const { stats, plansData } = Route.useLoaderData();
+
+  const handleDeleted = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: orpc.listDoctorPlans.queryKey(),
+    });
+    await queryClient.invalidateQueries({
+      queryKey: orpc.planStats.queryKey(),
+    });
+  };
   const plans = (plansData?.plans as DoctorPlan[]) ?? [];
 
   const totalPlans = stats?.totalPlans ?? 0;
@@ -212,133 +433,151 @@ function DoctorPlansRoute() {
   const maxPriceCents = stats?.maxPriceCents ?? 0;
 
   const chartData = plans
-    .map((plan) => {
-      let parsedFeatures: string[] = [];
-      try {
-        parsedFeatures = plan.features
-          ? (JSON.parse(plan.features) as string[])
-          : [];
-      } catch {
-        parsedFeatures = [];
-      }
-      return {
-        name: plan.name,
-        priceCents: plan.priceCents,
-        minutes: plan.durationMinutes,
-        features: parsedFeatures,
-        isDefault: plan.isDefault,
-      };
-    })
+    .map((plan) => ({
+      name: plan.name,
+      priceCents: plan.priceCents,
+      minutes: plan.durationMinutes,
+      features: parseFeatures(plan.features),
+      isDefault: plan.isDefault,
+    }))
     .sort((a, b) => b.priceCents - a.priceCents);
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden rounded-[2rem] border-border/60 bg-gradient-to-br from-background via-background to-muted/20">
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Plans dashboard</Badge>
-              <Badge variant="secondary">Pricing overview</Badge>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <PageTitle>Session plans</PageTitle>
-
-              <BodyText className="max-w-2xl">
-                Manage your session offerings and pricing at a glance. Review
-                plan details, compare pricing, and see which plan is the default
-                for new patients.
-              </BodyText>
-            </div>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline">Plans dashboard</Badge>
+            <Badge variant="secondary">Pricing overview</Badge>
           </div>
-        </CardContent>
+          <CardTitle>Session plans</CardTitle>
+          <CardDescription>
+            Manage your session offerings and pricing at a glance. Review
+            plan details, compare pricing, and see which plan is the default
+            for new patients.
+          </CardDescription>
+        </CardHeader>
       </Card>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          description="Active session offerings"
-          icon={<LayoutGridIcon className="size-5" />}
-          title="Total plans"
-          trend="Active"
-          value={totalPlans.toString()}
-        />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardDescription>Total plans</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{totalPlans}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <LayoutGridIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Active session offerings</p>
+          </CardContent>
+        </Card>
 
-        <MetricCard
-          description="Average price per plan"
-          icon={<CoinsIcon className="size-5" />}
-          title="Avg price"
-          trend={`$${(minPriceCents / 100).toFixed(0)}–$${(maxPriceCents / 100).toFixed(0)}`}
-          value={`$${(averagePriceCents / 100).toFixed(2)}`}
-        />
+        <Card>
+          <CardHeader>
+            <CardDescription>Avg price</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">
+                ${(averagePriceCents / 100).toFixed(2)}
+              </CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <CoinsIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Badge className="gap-1" variant="secondary">
+              ${(minPriceCents / 100).toFixed(0)}–${(maxPriceCents / 100).toFixed(0)}
+            </Badge>
+          </CardContent>
+        </Card>
 
-        <MetricCard
-          description="Average session duration"
-          icon={<ClockIcon className="size-5" />}
-          title="Avg minutes"
-          value={averageDurationMinutes.toString()}
-        />
+        <Card>
+          <CardHeader>
+            <CardDescription>Avg minutes</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">{averageDurationMinutes}</CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <ClockIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Average session duration</p>
+          </CardContent>
+        </Card>
 
-        <MetricCard
-          description="Pre-selected for new patients"
-          icon={<StarIcon className="size-5" />}
-          title="Default plan"
-          value={defaultPlanName ?? "None"}
-        />
-      </section>
+        <Card>
+          <CardHeader>
+            <CardDescription>Default plan</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="truncate text-2xl font-semibold">
+                {defaultPlanName ?? "None"}
+              </CardTitle>
+              <div className="rounded-lg border bg-muted p-2 text-muted-foreground">
+                <StarIcon className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-xs">Pre-selected for new patients</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
-        <Card className="rounded-3xl border-border/60">
+        <Card>
           <CardHeader>
-            <SectionHeader
-              action={<CreatePlanDialog />}
-              description="Create and manage the plans patients can book"
-              title="Plan controls"
-            />
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Plan controls</CardTitle>
+                <CardDescription>
+                  Create and manage the plans patients can book
+                </CardDescription>
+              </div>
+              <CreatePlanDialog />
+            </div>
           </CardHeader>
-
-          <Separator />
-
           <CardContent className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
+              <div className="rounded-lg border p-4">
                 <p className="text-muted-foreground text-xs uppercase tracking-wider">
                   Total plans
                 </p>
                 <p className="mt-2 font-semibold text-2xl">{totalPlans}</p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
+              <div className="rounded-lg border p-4">
                 <p className="text-muted-foreground text-xs uppercase tracking-wider">
                   Default plan
                 </p>
-                <p className="mt-2 font-semibold text-2xl">
+                <p className="mt-2 truncate font-semibold text-2xl">
                   {defaultPlanName ?? "None"}
                 </p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm">
               Keep your pricing simple and consistent. Use the chart to compare
               price against session duration.
-            </div>
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-border/60">
+        <Card>
           <CardHeader>
-            <SectionHeader
-              action={
-                <Badge className="gap-1" variant="secondary">
-                  <CreditCardIcon className="size-3" />
-                  Price comparison
-                </Badge>
-              }
-              description="A compact comparison of pricing and minutes"
-              title="Plan comparison"
-            />
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Plan comparison</CardTitle>
+                <CardDescription>A compact comparison of pricing and minutes</CardDescription>
+              </div>
+              <Badge className="gap-1" variant="secondary">
+                <CreditCardIcon className="size-3" />
+                Price comparison
+              </Badge>
+            </div>
           </CardHeader>
-
-          <Separator />
-
           <CardContent>
             {chartData.length > 0 ? (
               <ChartContainer
@@ -425,20 +664,11 @@ function DoctorPlansRoute() {
       {chartData.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => {
-            let parsedFeatures: string[] = [];
-            try {
-              parsedFeatures = plan.features
-                ? (JSON.parse(plan.features) as string[])
-                : [];
-            } catch {
-              parsedFeatures = [];
-            }
+            const parsedFeatures = parseFeatures(plan.features);
 
             return (
               <Card
-                className={`flex flex-col border-border/60 bg-gradient-to-br from-card to-card/50 shadow-sm transition-all duration-200 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary ${
-                  plan.isDefault ? "ring-1 ring-primary/20" : ""
-                }`}
+                className={plan.isDefault ? "ring-1 ring-primary/30" : ""}
                 key={plan.id}
               >
                 <CardHeader className="pb-3">
@@ -446,25 +676,30 @@ function DoctorPlansRoute() {
                     <CardTitle className="font-medium text-sm">
                       {plan.name}
                     </CardTitle>
-                    {plan.isDefault && (
-                      <Badge
-                        className="border-primary/20 bg-primary/10 text-primary"
-                        variant="outline"
-                      >
-                        Default
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {plan.isDefault && (
+                        <Badge className="gap-1" variant="default">
+                          <StarIcon className="size-3" />
+                          Default
+                        </Badge>
+                      )}
+                      <DeletePlanDialog
+                        onDeleted={handleDeleted}
+                        plan={plan}
+                      />
+                      <EditPlanDialog plan={plan} />
+                    </div>
                   </div>
 
                   {plan.description && (
-                    <p className="text-muted-foreground text-xs leading-relaxed">
+                    <CardDescription className="text-xs">
                       {plan.description}
-                    </p>
+                    </CardDescription>
                   )}
                 </CardHeader>
 
                 <CardContent className="flex flex-1 flex-col gap-4">
-                  <div className="flex items-center gap-4 border-border/50 border-y py-2">
+                  <div className="flex items-center gap-4 border-y py-2">
                     <div className="flex items-center gap-1.5">
                       <CoinsIcon className="size-4 text-muted-foreground" />
                       <span className="font-semibold text-lg">
@@ -485,7 +720,7 @@ function DoctorPlansRoute() {
                     <div className="flex flex-col gap-2">
                       {parsedFeatures.slice(0, 3).map((feature, idx) => (
                         <div className="flex items-start gap-2" key={idx}>
-                          <CheckIcon className="mt-1 size-3 shrink-0 text-emerald-500" />
+                          <CheckIcon className="mt-0.5 size-3 shrink-0 text-primary" />
                           <span className="text-muted-foreground text-xs">
                             {feature}
                           </span>
@@ -498,8 +733,6 @@ function DoctorPlansRoute() {
                       )}
                     </div>
                   ) : null}
-
-                  <div className="mt-auto" />
                 </CardContent>
               </Card>
             );

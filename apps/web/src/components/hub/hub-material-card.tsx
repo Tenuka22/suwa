@@ -139,14 +139,14 @@ export function HubMaterialCard({
       <div className="flex gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
           {isVideo ? (
-            <FilmIcon className="size-4 text-primary" />
+            <FilmIcon className="size-4 text-secondary/80" />
           ) : (
-            <FileAudioIcon className="size-4 text-primary" />
+            <FileAudioIcon className="size-4 text-secondary/80" />
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-2 font-medium text-sm leading-snug transition-colors group-hover:text-primary">
+          <h3 className="line-clamp-2 font-medium text-sm leading-snug transition-colors group-hover:text-secondary/80">
             {title}
           </h3>
           <div className="flex items-center gap-1.5 text-muted-foreground text-xs">

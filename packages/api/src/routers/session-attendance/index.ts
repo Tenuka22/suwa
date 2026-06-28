@@ -1,5 +1,6 @@
 import { autoMarkAttendanceRoute } from "./routes/auto-mark-attendance";
 import { getSessionAttendanceRoute } from "./routes/get-session-attendance";
+import { getSessionPatientInfoRoute } from "./routes/get-session-patient-info";
 import { recordAttendanceEventRoute } from "./routes/record-attendance-event";
 import { recordSnapshotRoute } from "./routes/record-snapshot";
 import {
@@ -18,4 +19,5 @@ export const sessionAttendanceRouter = {
   getSharedPatientData: getSharedPatientDataRoute,
   storeDoctorPublicKey: storeDoctorPublicKeyRoute,
   getDoctorPublicKey: getDoctorPublicKeyRoute,
+  getSessionPatientInfo: getSessionPatientInfoRoute,
 };

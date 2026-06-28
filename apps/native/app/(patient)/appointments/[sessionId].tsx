@@ -4,7 +4,7 @@ import { useUser } from "@clerk/expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Button } from "@/components/design/ui/button";
 import { Screen } from "@/components/design/ui/screen";
@@ -40,6 +40,10 @@ export default function AppointmentSessionDetailScreen() {
   );
 
   const alias = profileQuery.data?.alias;
+  const [privacyMode, setPrivacyMode] = useState<
+    "anonymous" | "show-info" | null
+  >(null);
+  const hasSharedInfoRef = useRef(false);
 
   const sessionQuery = useQuery({
     ...orpc.getLiveKitToken.queryOptions({
@@ -68,21 +72,33 @@ export default function AppointmentSessionDetailScreen() {
   const doctorPublicKey = doctorKeyQuery.data?.publicKey;
 
   useEffect(() => {
+    hasSharedInfoRef.current = false;
+    setPrivacyMode(null);
+  }, [sessionId]);
+
+  useEffect(() => {
     if (
+      privacyMode !== "show-info" ||
       !(hasInfoToShare && sessionId && doctorPublicKey) ||
-      shareMutation.isPending
+      shareMutation.isPending ||
+      shareMutation.isSuccess ||
+      hasSharedInfoRef.current
     ) {
       return;
     }
 
+    hasSharedInfoRef.current = true;
+
     getStoredSecret()
       .then(async (secret) => {
         if (!(secret && profile?._securedData)) {
+          hasSharedInfoRef.current = false;
           return;
         }
 
         const decrypted = await decryptData(profile._securedData, secret);
         if (!decrypted) {
+          hasSharedInfoRef.current = false;
           return;
         }
 
@@ -103,18 +119,29 @@ export default function AppointmentSessionDetailScreen() {
           sessionKey
         );
 
-        shareMutation.mutate({
-          sessionId,
-          encryptedData: encrypted,
-          patientPublicKey: keyPair.publicKey,
-        });
+        shareMutation.mutate(
+          {
+            sessionId,
+            encryptedData: encrypted,
+            patientPublicKey: keyPair.publicKey,
+          },
+          {
+            onError: () => {
+              hasSharedInfoRef.current = false;
+            },
+          }
+        );
       })
-      .catch(() => undefined);
+      .catch(() => {
+        hasSharedInfoRef.current = false;
+      });
   }, [
+    privacyMode,
     hasInfoToShare,
     sessionId,
     doctorPublicKey,
     shareMutation.isPending,
+    shareMutation.isSuccess,
     shareMutation.mutate,
     profile?._securedData,
   ]);
@@ -185,12 +212,13 @@ export default function AppointmentSessionDetailScreen() {
           </View>
         </View>
 
-        <View className="flex-1 overflow-hidden rounded-3xl border border-border bg-background-elevated shadow-lg">
+        <View className="flex-1">
           <VideoRoom
             alias={alias}
             endAt={session.endAt}
             onClose={() => router.back()}
-            role={userRole}
+            onPrivacyModeChange={setPrivacyMode}
+            participantRole={userRole}
             sessionId={sessionId ?? ""}
             startAt={session.startAt}
           />

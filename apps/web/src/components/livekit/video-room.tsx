@@ -165,6 +165,7 @@ function VideoRoomContent({
   isFetchingToken,
   liveKit,
   role,
+  compact = false,
   timing,
   tokenError,
   isMock,
@@ -175,6 +176,7 @@ function VideoRoomContent({
   isFetchingToken: boolean;
   liveKit: ReturnType<typeof useLiveKitRoomWeb>;
   role: "doctor" | "patient" | "admin";
+  compact?: boolean;
   timing: ReturnType<typeof useSessionTiming>;
   tokenError: string | null;
   isMock?: boolean;
@@ -305,9 +307,11 @@ function VideoRoomContent({
       remoteParticipantsArray[0]?.identity ?? ""
     );
 
+    const showDetailsPane = !compact;
+
     return (
       <div className="flex h-full flex-col gap-6 overflow-hidden">
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
+        <div className={`grid min-h-0 flex-1 grid-cols-1 gap-6 ${showDetailsPane ? "xl:grid-cols-[minmax(0,1fr)_320px]" : ""}`}>
           <div className="relative flex flex-1 flex-col overflow-hidden rounded-[2rem] border border-border/40 bg-neutral-950 shadow-2xl">
             <div className="absolute top-6 left-1/2 z-20 -translate-x-1/2">
               <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-4 py-1.5 backdrop-blur-xl">
@@ -512,7 +516,7 @@ function VideoRoomContent({
             )}
           </div>
 
-          {(liveKit.isConnected || isMock) && (
+          {showDetailsPane && (liveKit.isConnected || isMock) && (
             <div className="flex w-auto flex-col gap-6 overflow-y-auto">
               <section className="flex flex-col gap-3">
                 <p className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
@@ -678,8 +682,10 @@ export function VideoRoomWeb({
   role,
   asDialog = false,
   isMock,
+  compact,
   content,
-}: VideoRoomProps & { content?: React.ReactNode }) {
+  sidebar,
+}: VideoRoomProps & { compact?: boolean; content?: React.ReactNode; sidebar?: React.ReactNode }) {
   const liveKit = useLiveKitRoomWeb();
   const timing = useSessionTiming(startAt, endAt, role);
   const [tokenData, setTokenData] = useState<{
@@ -782,18 +788,30 @@ export function VideoRoomWeb({
     );
   }, [timing]);
 
-  const contentToRender = content || (
+  const defaultContent = (
     <VideoRoomContent
       fetchToken={fetchToken}
       handleEndSession={handleEndSession}
       isFetchingToken={isFetchingToken}
       isMock={isMock}
       liveKit={liveKit}
+      compact={compact ?? Boolean(sidebar)}
       role={role}
       sessionId={sessionId}
       timing={timing}
       tokenError={tokenError}
     />
+  );
+
+  const contentToRender = sidebar ? (
+    <div className="flex h-full gap-4">
+      <div className="flex min-w-0 flex-1">{defaultContent}</div>
+      <div className="w-80 shrink-0 overflow-y-auto border-l border-border pl-4">
+        {sidebar}
+      </div>
+    </div>
+  ) : (
+    content || defaultContent
   );
 
   if (asDialog) {
@@ -826,30 +844,6 @@ export function VideoRoomWeb({
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <Video className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-lg tracking-tight">
-                Session
-              </span>
-              <Badge
-                className="h-5 rounded-md text-[10px] uppercase"
-                variant="outline"
-              >
-                {role}
-              </Badge>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-              LiveKit Infrastructure
-            </p>
-          </div>
-        </div>
-        {statusBadge}
-      </div>
       {contentToRender}
     </div>
   );

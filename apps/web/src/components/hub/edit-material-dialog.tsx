@@ -237,7 +237,7 @@ export function EditMaterialDialog({
               <div className="grid gap-2">
                 {VISIBILITY_OPTIONS.map((opt) => (
                   <button
-                    className={`flex items-center gap-3 rounded-lg border text-left transition-colors ${
+                    className={`px-3 py-1 flex items-center gap-3 rounded-lg border text-left transition-colors ${
                       visibility === opt.value
                         ? "border-primary bg-primary/5"
                         : "border-border/60 hover:border-border"
