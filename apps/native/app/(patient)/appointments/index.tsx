@@ -6,35 +6,193 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Clock,
   ListRestart,
   SlidersHorizontal,
+  Sparkles,
+  Stethoscope,
   X,
 } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
-import { Card } from "@/components/design/ui/card";
 import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
 import { Screen } from "@/components/design/ui/screen";
+
+import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { orpc } from "@/utils/orpc";
 
-const sessionStatusLabels: Record<string, string> = {
-  requested: "Requested",
-  rescheduled: "Rescheduled",
-  approved: "Approved",
-  attended: "Attended",
-  timing_balance_failure: "Failed",
+const sessionStatusConfig: Record<
+  string,
+  { label: string; bg: string; text: string }
+> = {
+  requested: {
+    label: "Requested",
+    bg: "bg-amber-500/15",
+    text: "text-amber-600",
+  },
+  rescheduled: {
+    label: "Rescheduled",
+    bg: "bg-blue-500/15",
+    text: "text-blue-600",
+  },
+  approved: {
+    label: "Approved",
+    bg: "bg-emerald-500/15",
+    text: "text-emerald-600",
+  },
+  attended: {
+    label: "Attended",
+    bg: "bg-primary/15",
+    text: "text-primary",
+  },
+  timing_balance_failure: {
+    label: "Failed",
+    bg: "bg-red-500/15",
+    text: "text-red-600",
+  },
 };
 
-const STATUS_OPTIONS = Object.entries(sessionStatusLabels).map(
-  ([value, label]) => ({ value, label })
+const STATUS_OPTIONS = Object.entries(sessionStatusConfig).map(
+  ([value, config]) => ({ value, label: config.label })
 );
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+function AppointmentCard({
+  session,
+  onPress,
+}: {
+  session: {
+    id: string;
+    doctorId: string;
+    startAt: string;
+    endAt: string;
+    status: string;
+    doctor: { displayName: string | null; headline: string | null } | null;
+    portrait: { id: string } | null;
+    plan: { name: string; durationMinutes: number } | null;
+  };
+  onPress: () => void;
+}) {
+  const statusStyle = sessionStatusConfig[session.status] ?? {
+    label: session.status,
+    bg: "bg-muted/20",
+    text: "text-foreground-muted",
+  };
+  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(
+    session.portrait?.id ?? null
+  );
+  const startDate = new Date(session.startAt);
+  const endDate = new Date(session.endAt);
+
+  return (
+    <Pressable
+      className="overflow-hidden rounded-3xl border border-border bg-background-elevated shadow-sm"
+      onPress={onPress}
+    >
+      <View className="flex-row gap-lg p-lg">
+        <View
+          className={`h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border/50 ${portraitPreviewUrl ? "bg-background-subtle" : "bg-tint-purple"}`}
+        >
+          {portraitPreviewUrl ? (
+            <Image
+              className="h-full w-full"
+              resizeMode="cover"
+              source={{ uri: portraitPreviewUrl }}
+            />
+          ) : (
+            <Stethoscope className="text-tint-purple-foreground" size={24} />
+          )}
+        </View>
+
+        <View className="flex-1 gap-1">
+          <View className="flex-row items-center gap-2">
+            <Text
+              className="flex-1 font-serif text-title text-foreground"
+              numberOfLines={1}
+            >
+              {session.doctor?.displayName ?? "Clinician"}
+            </Text>
+            <View
+              className={`rounded-full px-2.5 py-0.5 ${statusStyle.bg}`}
+            >
+              <Text
+                className={`font-sans text-micro font-semibold ${statusStyle.text}`}
+              >
+                {statusStyle.label}
+              </Text>
+            </View>
+          </View>
+
+          {session.doctor?.headline ? (
+            <Text
+              className="font-sans text-caption text-foreground-muted"
+              numberOfLines={1}
+            >
+              {session.doctor.headline}
+            </Text>
+          ) : null}
+
+          <View className="mt-1 flex-row items-center gap-3">
+            <View className="flex-row items-center gap-1">
+              <Calendar className="text-foreground-muted" size={14} />
+              <Text className="font-sans text-micro text-foreground-muted">
+                {formatDate(startDate)}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-1">
+              <Clock className="text-foreground-muted" size={14} />
+              <Text className="font-sans text-micro text-foreground-muted">
+                {formatTime(startDate)} - {formatTime(endDate)}
+              </Text>
+            </View>
+          </View>
+
+          {session.plan ? (
+            <View className="mt-1 flex-row items-center gap-1.5">
+              <Sparkles className="text-accent" size={13} />
+              <Text className="font-sans text-micro text-accent">
+                {session.plan.name}
+                {session.plan.durationMinutes
+                  ? ` · ${formatDuration(session.plan.durationMinutes)}`
+                  : ""}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+    </Pressable>
+  );
+}
 
 export default function AppointmentsScreen() {
   const router = useRouter();
@@ -153,7 +311,7 @@ export default function AppointmentsScreen() {
                   onPress={() => toggleChip(chip)}
                 >
                   <Text className="font-sans text-caption text-primary">
-                    {sessionStatusLabels[chip] ?? chip}
+                    {sessionStatusConfig[chip]?.label ?? chip}
                   </Text>
                   <X className="text-primary" size={14} />
                 </Pressable>
@@ -181,18 +339,10 @@ export default function AppointmentsScreen() {
               </View>
             ) : (
               paginatedSessions.map((session) => (
-                <Card
-                  description={`${new Date(session.startAt).toLocaleDateString()} at ${new Date(session.startAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
-                  icon={
-                    <Calendar
-                      className="text-tint-purple-foreground"
-                      size={24}
-                    />
-                  }
-                  iconBgColor="bg-tint-purple"
+                <AppointmentCard
                   key={session.id}
+                  session={session}
                   onPress={() => router.push(`/appointments/${session.id}`)}
-                  title={`Dr. ${session.doctorId.slice(0, 8)}`}
                 />
               ))
             )}

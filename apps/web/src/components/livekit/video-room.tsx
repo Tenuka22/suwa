@@ -136,10 +136,11 @@ function formatParticipantLabel(identity: string): string {
   if (identity.startsWith("patient_")) {
     return "Patient";
   }
-  if (identity.startsWith("admin_")) {
-    return "Admin";
-  }
   return "Participant";
+}
+
+function isClinicalIdentity(identity: string) {
+  return identity.startsWith("doctor_") || identity.startsWith("patient_");
 }
 
 function AudioVisualizer({ levels }: { levels: number[] }) {
@@ -284,7 +285,9 @@ function VideoRoomContent({
   }
 
   const remoteParticipantsArray = liveKit.isConnected
-    ? Array.from(liveKit.room?.remoteParticipants?.values() ?? [])
+    ? Array.from(liveKit.room?.remoteParticipants?.values() ?? []).filter((participant) =>
+        isClinicalIdentity(participant.identity)
+      )
     : [];
   const allParticipants = [
     ...(liveKit.isConnected && liveKit.room?.localParticipant
@@ -299,8 +302,26 @@ function VideoRoomContent({
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const hasRemote =
-    isMock || (liveKit.isConnected && remoteParticipantsArray.length > 0);
+  const remoteVideoParticipant = remoteParticipantsArray.find((participant) =>
+    participant.videoTrackPublications.size > 0
+  );
+  const hasRemote = isMock || !!remoteVideoParticipant;
+
+  useEffect(() => {
+    if (!liveKit.isConnected || isMock) return;
+
+    let currentIdentity = remoteVideoParticipant?.identity;
+
+    if (currentIdentity) {
+      liveKit.attachParticipantTracks(currentIdentity);
+    }
+
+    return () => {
+      if (currentIdentity) {
+        liveKit.detachParticipantTracks(currentIdentity);
+      }
+    };
+  }, [liveKit.isConnected, isMock, remoteVideoParticipant?.identity, liveKit.attachParticipantTracks, liveKit.detachParticipantTracks]);
 
   if (isMock || timing.canJoin) {
     const remoteLabel = formatParticipantLabel(

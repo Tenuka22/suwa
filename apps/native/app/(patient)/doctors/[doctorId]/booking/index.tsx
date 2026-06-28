@@ -321,14 +321,25 @@ export default function BookingScreen() {
 
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
 
-  const fromDate = useMemo(() => selectedDate?.toISOString(), [selectedDate]);
+  const fromDate = useMemo(() => {
+    if (!selectedDate) return;
+    return new Date(
+      Date.UTC(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate()
+      )
+    ).toISOString();
+  }, [selectedDate]);
   const toDate = useMemo(() => {
-    if (!selectedDate) {
-      return;
-    }
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString();
+    if (!selectedDate) return;
+    return new Date(
+      Date.UTC(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() + 1
+      )
+    ).toISOString();
   }, [selectedDate]);
 
   const slotsQuery = useQuery({

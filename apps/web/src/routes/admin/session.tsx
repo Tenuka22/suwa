@@ -2,28 +2,30 @@ import { useUser } from "@clerk/tanstack-react-start";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  CheckCircle2,
-  Clipboard,
-  Eye,
-  EyeOff,
-  KeyRoundIcon,
+  Camera,
+  ClipboardIcon,
   Loader2,
   LockIcon,
-  ShieldAlertIcon,
-  ShieldCheckIcon,
+  Mic,
   ShieldIcon,
-  User,
+  UserX,
   Video,
   VideoOff,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Avatar, AvatarFallback } from "@suwa/ui/components/avatar";
 import { Badge } from "@suwa/ui/components/badge";
 import { Button } from "@suwa/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@suwa/ui/components/card";
-import { Input } from "@suwa/ui/components/input";
-import { VideoRoomWeb } from "@/components/livekit/video-room";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@suwa/ui/components/card";
+import { ScrollArea } from "@suwa/ui/components/scroll-area";
+import { Separator } from "@suwa/ui/components/separator";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@suwa/ui/components/table";
+import { Textarea } from "@suwa/ui/components/textarea";
+import { Toggle } from "@suwa/ui/components/toggle";
+import { useLiveKitRoomWeb } from "@/hooks/use-livekit-room";
 import { orpc } from "@/utils/orpc";
 import {
   createSessionKeyPair,
@@ -53,7 +55,9 @@ function PrivacyChoiceModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="relative w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
         <button
@@ -112,61 +116,89 @@ function PrivacyChoiceModal({
   );
 }
 
-function PatientInfoBar({ sessionId }: { sessionId: string }) {
-  const queryOptions: any = orpc.getSessionPatientInfo.queryOptions({
-    input: { sessionId },
-    enabled: !!sessionId,
-    refetchInterval: 10000,
-    meta: { ignoreError: true },
-  });
-  const query = useQuery(queryOptions);
-  const info = query.data as { alias: string; ageCategory: string; profession: string } | null;
-
-  if (!info) return null;
-
-  return (
-    <Card>
-      <CardContent className="flex items-center gap-3 py-3">
-        <User className="size-4 text-muted-foreground" />
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">{info.alias}</span>
-          <span className="text-muted-foreground">{info.ageCategory}</span>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-muted-foreground">{info.profession}</span>
-        </div>
-        <Badge variant="outline" className="ml-auto text-xs">Shared publicly</Badge>
-      </CardContent>
-    </Card>
-  );
+function formatTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function SharedPatientDataPanel({ sessionId }: { sessionId: string }) {
+function connectionBadgeVariant(quality: string | undefined) {
+  if (quality === "excellent" || quality === "good") return "default" as const;
+  if (quality === "poor") return "destructive" as const;
+  return "secondary" as const;
+}
+
+function isPatientIdentity(identity?: string) {
+  return typeof identity === "string" && identity.startsWith("patient_");
+}
+
+function SessionFullscreen({
+  activeSession,
+  sessionId,
+  onEnd,
+}: {
+  activeSession: { id: string; startAt: string; endAt: string };
+  sessionId: string;
+  onEnd: () => void;
+}) {
+  const liveKit = useLiveKitRoomWeb();
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [notesSaved, setNotesSaved] = useState("");
+  const [patientAmplitude, setPatientAmplitude] = useState(0);
+  const [audioBars, setAudioBars] = useState<number[]>(Array.from({ length: 24 }, () => 0));
+  const animationFrame = useRef<number | null>(null);
+
+  const patientInfoQuery = useQuery(
+    orpc.getSessionPatientInfo.queryOptions({
+      input: { sessionId },
+      enabled: !!sessionId,
+      refetchInterval: 10000,
+      meta: { ignoreError: true },
+    }) as any
+  );
+  const doctorPublicKeyQuery = useQuery(
+    orpc.getDoctorPublicKey.queryOptions({
+      input: { sessionId },
+      enabled: !!sessionId,
+      refetchInterval: 5000,
+      meta: { ignoreError: true },
+    }) as any
+  );
+  const sharedDataQuery = useQuery(
+    orpc.getSharedPatientData.queryOptions({
+      input: { sessionId },
+      enabled: !!sessionId,
+      refetchInterval: 5000,
+      meta: { ignoreError: true },
+    }) as any
+  );
+
+  const patientInfo = patientInfoQuery.data as
+    | {
+        alias: string;
+        ageCategory: string;
+        profession: string;
+        sex?: string;
+        profileType?: string;
+        visibility?: string;
+        sessionType?: string;
+      }
+    | null;
+  const doctorPublicKey = (doctorPublicKeyQuery.data as { publicKey: string } | null)?.publicKey ?? null;
+  const sharedData = sharedDataQuery.data as { encryptedData: string | null; patientPublicKey: string | null } | null;
+
   const [sessionKeyPair, setSessionKeyPair] = useState<{ publicKey: string; privateKey: string } | null>(null);
   const [sharedPatientData, setSharedPatientData] = useState<Record<string, unknown> | null>(null);
-  const [sharedDataStatus, setSharedDataStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [showDetails, setShowDetails] = useState(false);
-
-  const doctorPublicKeyQueryOptions: any = orpc.getDoctorPublicKey.queryOptions({
-    input: { sessionId },
-    enabled: !!sessionId,
-    refetchInterval: 5000,
-    meta: { ignoreError: true },
-  });
-  const sharedDataQueryOptions: any = orpc.getSharedPatientData.queryOptions({
-    input: { sessionId },
-    enabled: !!sessionId,
-    refetchInterval: 5000,
-    meta: { ignoreError: true },
-  });
-
-  const doctorPublicKeyQuery = useQuery(doctorPublicKeyQueryOptions);
-  const sharedDataQuery = useQuery(sharedDataQueryOptions);
-
-  const doctorPublicKey = (doctorPublicKeyQuery.data as { publicKey: string } | null)?.publicKey ?? null;
-  const sharedData = sharedDataQuery.data as { encryptedData: string; patientPublicKey: string } | null;
 
   useEffect(() => {
-    if (!sessionId) return;
+    const tick = () => setElapsedSeconds(Math.floor((Date.now() - new Date(activeSession.startAt).getTime()) / 1000));
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [activeSession.startAt]);
+
+  useEffect(() => {
     const storedPair = loadSessionKeyPair(sessionId);
     if (storedPair) {
       setSessionKeyPair(storedPair);
@@ -175,10 +207,12 @@ function SharedPatientDataPanel({ sessionId }: { sessionId: string }) {
       }
       return;
     }
+
     if (doctorPublicKey) {
       setSessionKeyPair(null);
       return;
     }
+
     createSessionKeyPair(sessionId).then((pair) => {
       setSessionKeyPair(pair);
       saveSessionKeyPair(sessionId, pair);
@@ -188,38 +222,75 @@ function SharedPatientDataPanel({ sessionId }: { sessionId: string }) {
 
   useEffect(() => {
     let cancelled = false;
+
     async function decryptSharedData() {
-      if (!sharedData || !sessionKeyPair) {
+      if (!sharedData || !sessionKeyPair || !sharedData.encryptedData || !sharedData.patientPublicKey) {
         setSharedPatientData(null);
-        setSharedDataStatus(sharedData ? "loading" : "idle");
         return;
       }
-      if (!sharedData.encryptedData || !sharedData.patientPublicKey) {
-        setSharedPatientData(null);
-        setSharedDataStatus("idle");
-        return;
-      }
-      setSharedDataStatus("loading");
+
       try {
         const sharedKey = await deriveSharedKey(sessionKeyPair.privateKey, sharedData.patientPublicKey);
         const decrypted = await decryptData(sharedData.encryptedData, sharedKey);
-        if (!cancelled) {
-          setSharedPatientData(decrypted);
-          setSharedDataStatus("ready");
-        }
+        if (!cancelled) setSharedPatientData(decrypted);
       } catch {
-        if (!cancelled) {
-          setSharedPatientData(null);
-          setSharedDataStatus("error");
-        }
+        if (!cancelled) setSharedPatientData(null);
       }
     }
+
     decryptSharedData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sessionKeyPair, sharedData]);
 
-  const sharedDetails: Array<[string, string]> = [];
-  if (sharedPatientData) {
+  useEffect(() => {
+    const room = liveKit.room;
+    if (!room) return;
+
+    const frame = () => {
+      const participant = Array.from(room.remoteParticipants.values()).find((item) => isPatientIdentity(item.identity));
+      const amplitude = participant?.audioLevel ?? 0;
+      setPatientAmplitude(amplitude);
+      setAudioBars((prev) => [...prev.slice(1), amplitude]);
+      animationFrame.current = window.requestAnimationFrame(frame);
+    };
+
+    animationFrame.current = window.requestAnimationFrame(frame);
+    return () => {
+      if (animationFrame.current !== null) window.cancelAnimationFrame(animationFrame.current);
+    };
+  }, [liveKit.room]);
+
+  useEffect(() => {
+    if (liveKit.isConnected || liveKit.isConnecting) return;
+    orpc.getLiveKitToken.call({ sessionId }).then((tokenData) => {
+      liveKit.connect(tokenData.serverUrl, tokenData.token).catch(() => undefined);
+    }).catch(() => undefined);
+  }, [liveKit, sessionId]);
+
+  const remoteParticipants = liveKit.room
+    ? Array.from(liveKit.room.remoteParticipants.values()).filter(
+        (item) => isPatientIdentity(item.identity) || item.identity.startsWith("doctor_")
+      )
+    : [];
+  const remoteParticipant = remoteParticipants.find((item) => isPatientIdentity(item.identity)) ?? null;
+
+  useEffect(() => {
+    if (!liveKit.isConnected) return;
+    const patientIdentity = remoteParticipant?.identity;
+    if (patientIdentity) {
+      liveKit.attachParticipantTracks(patientIdentity);
+    }
+    return () => {
+      if (patientIdentity) {
+        liveKit.detachParticipantTracks(patientIdentity);
+      }
+    };
+  }, [liveKit.isConnected, remoteParticipant?.identity, liveKit.attachParticipantTracks, liveKit.detachParticipantTracks]);
+  const sharedRows = useMemo(() => {
+    const rows: Array<[string, string]> = [];
+    if (!sharedPatientData) return rows;
     for (const [label, value] of [
       ["Full name", sharedPatientData.fullName],
       ["Email", sharedPatientData.email],
@@ -228,78 +299,203 @@ function SharedPatientDataPanel({ sessionId }: { sessionId: string }) {
       ["Age category", sharedPatientData.ageCategory],
       ["Profession", sharedPatientData.profession],
     ] as Array<[string, unknown]>) {
-      if (value !== undefined && value !== null && value !== "") {
-        sharedDetails.push([label, String(value)]);
-      }
+      if (value !== undefined && value !== null && value !== "") rows.push([label, String(value)]);
     }
-  }
+    return rows;
+  }, [sharedPatientData]);
 
-  const statusIcon = {
-    idle: <LockIcon className="size-4 text-muted-foreground" />,
-    loading: <Loader2 className="size-4 animate-spin text-muted-foreground" />,
-    ready: <ShieldCheckIcon className="size-4 text-emerald-500" />,
-    error: <ShieldAlertIcon className="size-4 text-destructive" />,
-  }[sharedDataStatus];
+  const endSession = async () => {
+    await liveKit.disconnect();
+    onEnd();
+  };
 
-  const statusLabel = {
-    idle: "No data shared yet",
-    loading: "Decrypting...",
-    ready: "Data available",
-    error: "Decryption failed",
-  }[sharedDataStatus];
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <KeyRoundIcon className="size-4 text-primary" />
-            <CardTitle className="text-sm">Patient shared data</CardTitle>
+  const main = (
+    <div className="fixed inset-0 z-[9999] h-svh w-screen overflow-hidden bg-background">
+      <div className="grid h-full grid-rows-[56px_1fr]">
+        <div className="flex items-center justify-between border-b bg-background px-4">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <Badge className="animate-pulse bg-destructive text-destructive-foreground" variant="destructive">
+              LIVE
+            </Badge>
+            <Badge variant="outline">{formatTime(elapsedSeconds)}</Badge>
+            <Badge variant="secondary">{patientInfo?.alias ?? "Patient"}</Badge>
+            <Badge variant="outline">{patientInfo?.ageCategory ?? "Age"}</Badge>
+            <Badge variant="outline">{patientInfo?.profession ?? "Category"}</Badge>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {statusIcon}
-            {statusLabel}
+          <div className="flex items-center gap-2">
+            <Toggle aria-label="Microphone" pressed={true} size="sm" variant="outline">
+              <Mic className="size-3.5" />
+            </Toggle>
+            <Toggle aria-label="Camera" pressed={true} size="sm" variant="outline">
+              <Camera className="size-3.5" />
+            </Toggle>
+            <Button className="gap-2" onClick={endSession} variant="destructive">
+              <VideoOff className="size-4" />
+              End call
+            </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        {sharedDataStatus === "ready" && sharedDetails.length > 0 && (
-          <>
-            <button
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => setShowDetails(!showDetails)}
-              type="button"
-            >
-              {showDetails ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
-              {showDetails ? "Hide details" : "View details"}
-            </button>
-            {showDetails && (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {sharedDetails.map(([label, value]) => (
-                  <div className="rounded-md border p-2" key={label}>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
-                    <p className="text-sm font-medium">{value}</p>
-                  </div>
-                ))}
+
+        <div className="grid min-h-0 grid-cols-[1fr_380px]">
+          <div className="relative min-h-0 overflow-hidden bg-black">
+            {remoteParticipant ? (
+              <video
+                autoPlay
+                className="h-full w-full object-cover"
+                playsInline
+                ref={liveKit.videoRef}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center p-6">
+                <Card className="w-full max-w-sm border-border/60 bg-background/80">
+                  <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+                    <UserX className="size-12 text-muted-foreground" />
+                    <p className="font-medium text-lg">Waiting for patient…</p>
+                    <p className="text-sm text-muted-foreground">
+                      The session is live and ready for the patient to join.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             )}
-          </>
-        )}
-        {sharedDataStatus === "ready" && sharedDetails.length === 0 && (
-          <p className="text-xs text-muted-foreground">No personal details were shared.</p>
-        )}
-        {sharedDataStatus === "loading" && (
-          <p className="text-xs text-muted-foreground">Attempting to decrypt patient data...</p>
-        )}
-        {sharedDataStatus === "idle" && (
-          <p className="text-xs text-muted-foreground">Waiting for patient to share their encrypted profile.</p>
-        )}
-        {sharedDataStatus === "error" && (
-          <p className="text-xs text-destructive">Could not decrypt shared data. Session keys may have changed.</p>
-        )}
-      </CardContent>
-    </Card>
+
+            <div className="absolute bottom-4 right-4 w-48 overflow-hidden rounded-xl border bg-background/90 shadow-lg ring-1 ring-border">
+              <video
+                autoPlay
+                className="aspect-video w-full object-cover"
+                muted
+                playsInline
+                ref={liveKit.localVideoRef}
+              />
+            </div>
+
+          </div>
+
+          <ScrollArea className="h-full border-l bg-background">
+            <div className="flex flex-col gap-3 p-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Patient Info</CardTitle>
+                  <CardDescription>
+                    {patientInfo?.alias ?? "Patient"}
+                    {patientInfo?.sex ? ` · ${patientInfo.sex}` : ""}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">{patientInfo?.profileType ?? "adult/minor"}</Badge>
+                    <Badge variant="secondary">{patientInfo?.visibility ?? "shared publicly"}</Badge>
+                    <Badge variant="default">{patientInfo?.sessionType ?? "session"}</Badge>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center gap-3">
+                    <Avatar size="sm">
+                      <AvatarFallback>{(patientInfo?.alias ?? "P").slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{patientInfo?.alias ?? "Patient"}</div>
+                      <div className="text-muted-foreground">
+                        {patientInfo?.ageCategory ?? "Age category"}
+                        {patientInfo?.sex ? ` · ${patientInfo.sex}` : ""}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Shared Data</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {sharedRows.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableCell className="font-medium">Field</TableCell>
+                          <TableCell className="font-medium">Value</TableCell>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {sharedRows.map(([label, value]) => (
+                          <TableRow key={label}>
+                            <TableCell>{label}</TableCell>
+                            <TableCell>{value}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
+                      <LockIcon className="size-4" />
+                      Waiting for patient to share their encrypted profile.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Session</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2 text-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Duration</span>
+                    <span>{formatTime(elapsedSeconds)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Participant joined</span>
+                    <span>{remoteParticipant?.joinedAt ? new Date(remoteParticipant.joinedAt).toLocaleTimeString() : "Not joined"}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Connection</span>
+                    <Badge variant={connectionBadgeVariant(remoteParticipant?.connectionQuality)}>
+                      {remoteParticipant?.connectionQuality ?? "unknown"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Audio</span>
+                    <span>{`Audio: ${Math.round(patientAmplitude * 100)}%`}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-muted-foreground">Patient audio</p>
+                    <div className="flex items-end gap-1">
+                      {audioBars.map((value, index) => (
+                        <div
+                          className={`w-2 rounded-full transition-all ${value > 0.15 ? "bg-primary" : "bg-muted"}`}
+                          key={index}
+                          style={{ height: `${Math.max(4, value * 40)}px` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Session Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                  <Textarea
+                    onBlur={() => setNotesSaved(notesDraft)}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    placeholder="Add private notes..."
+                    value={notesDraft}
+                  />
+                  <p className="text-xs text-muted-foreground">Not saved to record</p>
+                  {notesSaved ? <p className="text-xs text-muted-foreground">Autosaved locally.</p> : null}
+                </CardContent>
+              </Card>
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+    </div>
   );
+
+  return createPortal(main, document.body);
 }
 
 function AdminSessionPage() {
@@ -309,15 +505,11 @@ function AdminSessionPage() {
   const [copied, setCopied] = useState(false);
   const [activeSession, setActiveSession] = useState<{ id: string; startAt: string; endAt: string } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [isMock, setIsMock] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"patient" | "doctor" | "admin">("doctor");
+  const [selectedRole, setSelectedRole] = useState<"patient" | "doctor">("doctor");
 
   if (!user) return null;
-
-  const isAdmin = user.publicMetadata?.role === "admin";
-
-  if (!isAdmin) {
+  if (user.publicMetadata?.role !== "admin") {
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
         <Card className="w-full max-w-sm">
@@ -331,70 +523,12 @@ function AdminSessionPage() {
     );
   }
 
-  if (activeSession) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 p-4">
-        <PrivacyChoiceModal
-          busy={false}
-          onClose={() => setPrivacyModalOpen(false)}
-          onSelect={() => { setPrivacyModalOpen(false); }}
-          visible={privacyModalOpen}
-        />
-
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">Live session</Badge>
-          <Badge variant="secondary">{selectedRole}</Badge>
-          {isMock && <Badge variant="secondary">Mock mode</Badge>}
-        </div>
-
-        <div className="flex min-h-0 flex-1 gap-4">
-          <div className="flex-1 overflow-hidden rounded-lg border bg-black">
-            <VideoRoomWeb
-              compact
-              endAt={activeSession.endAt}
-              isMock={isMock}
-              onClose={() => { setActiveSession(null); setIsMock(false); }}
-              onFetchToken={(sid) => orpc.getTestLiveKitToken.call({ sessionId: sid })}
-              role={selectedRole}
-              sessionId={activeSession.id}
-              startAt={activeSession.startAt}
-            />
-          </div>
-
-          {!isMock && selectedRole !== "patient" && (
-            <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto">
-              <PatientInfoBar sessionId={activeSession.id} />
-              <SharedPatientDataPanel sessionId={activeSession.id} />
-            </div>
-          )}
-
-          {selectedRole === "patient" && (
-            <div className="flex w-64 shrink-0 flex-col gap-4">
-              <Button onClick={() => setPrivacyModalOpen(true)} variant="outline">
-                <ShieldIcon className="mr-2 size-4" />
-                Change join preference
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {isMock && (
-          <div className="flex items-center gap-2 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-            <CheckCircle2 className="size-4 text-emerald-500" />
-            Mock simulation active — no LiveKit credits used.
-          </div>
-        )}
-      </div>
-    );
-  }
-
   const handleCreateSession = async () => {
     setIsCreating(true);
     try {
       const result = await orpc.createTestSession.call({});
       setGeneratedSessionId(result.sessionId);
       setSessionId(result.sessionId);
-    } catch {
     } finally {
       setIsCreating(false);
     }
@@ -408,18 +542,18 @@ function AdminSessionPage() {
 
   const handleJoin = () => {
     if (!sessionId) return;
-    if (selectedRole === "doctor" || selectedRole === "admin") {
-      setActiveSession({
-        id: sessionId,
-        startAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        endAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      });
+    if (selectedRole === "patient") {
+      setPrivacyModalOpen(true);
       return;
     }
-    setPrivacyModalOpen(true);
+    setActiveSession({
+      id: sessionId,
+      startAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      endAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    });
   };
 
-  const handlePrivacySelect = (_mode: "anonymous" | "show-info") => {
+  const handlePrivacySelect = () => {
     setPrivacyModalOpen(false);
     setActiveSession({
       id: sessionId,
@@ -427,6 +561,16 @@ function AdminSessionPage() {
       endAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
   };
+
+  if (activeSession) {
+    return (
+      <SessionFullscreen
+        activeSession={activeSession}
+        onEnd={() => setActiveSession(null)}
+        sessionId={activeSession.id}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
@@ -444,7 +588,7 @@ function AdminSessionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Step 1 — Generate session</CardTitle>
+          <CardTitle className="text-sm">Step 1 - Generate session</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Button disabled={isCreating} onClick={handleCreateSession}>
@@ -455,7 +599,7 @@ function AdminSessionPage() {
             <div className="flex flex-col gap-2 rounded-md border p-3">
               <code className="break-all font-mono text-xs">{generatedSessionId}</code>
               <Button onClick={handleCopy} size="sm" variant="outline">
-                <Clipboard className="mr-2 size-3.5" />
+                <ClipboardIcon className="mr-2 size-3.5" />
                 {copied ? "Copied!" : "Copy session ID"}
               </Button>
             </div>
@@ -467,19 +611,20 @@ function AdminSessionPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Step 2 — Join session</CardTitle>
+          <CardTitle className="text-sm">Step 2 - Join session</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Input
+          <input
+            className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
             onChange={(e) => setSessionId(e.target.value)}
             placeholder="Paste or type session ID..."
             value={sessionId}
           />
 
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Role</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Role</p>
             <div className="grid grid-cols-3 gap-2">
-              {(["patient", "doctor", "admin"] as const).map((role) => (
+                  {(["patient", "doctor"] as const).map((role) => (
                 <button
                   className={`rounded-md border p-3 text-left text-xs transition-colors ${
                     selectedRole === role
@@ -497,24 +642,10 @@ function AdminSessionPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button className="flex-1" disabled={!sessionId} onClick={handleJoin}>
-              <Video className="mr-2 size-4" />
-              Join as {selectedRole}
-            </Button>
-            <Button
-              onClick={() => {
-                setIsMock(true);
-                setPrivacyModalOpen(false);
-                setActiveSession({
-                  id: "mock-session",
-                  startAt: new Date().toISOString(),
-                  endAt: new Date(Date.now() + 3_600_000).toISOString(),
-                });
-              }}
-              variant="secondary"
-            >
-              Mock
-            </Button>
+                <Button className="flex-1" disabled={!sessionId} onClick={handleJoin}>
+                  <Video className="mr-2 size-4" />
+                  Join as {selectedRole}
+                </Button>
           </div>
         </CardContent>
       </Card>

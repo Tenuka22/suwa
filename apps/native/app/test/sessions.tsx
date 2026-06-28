@@ -84,6 +84,7 @@ export default function TestSessionsScreen() {
   const [copied, setCopied] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isMock, setIsMock] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"patient" | "doctor">("patient");
 
   const testWindow = useMemo(() => {
     const startAt = new Date().toISOString();
@@ -149,9 +150,9 @@ export default function TestSessionsScreen() {
         endAt={testWindow.endAt}
         onClose={handleDisconnect}
         onFetchToken={(currentSessionId) =>
-          orpc.getTestLiveKitToken.call({ sessionId: currentSessionId })
+          orpc.getTestLiveKitToken.call({ sessionId: currentSessionId, role: selectedRole })
         }
-        participantRole="patient"
+        participantRole={selectedRole}
         sessionId={activeSessionId}
         startAt={testWindow.startAt}
       />
@@ -180,7 +181,26 @@ export default function TestSessionsScreen() {
           </View>
         </View>
 
-        <View className="gap-6">
+          <View className="gap-6">
+          <View className="gap-3">
+            <Text className="font-poppins-medium text-caption text-foreground-muted uppercase tracking-widest">
+              Join as
+            </Text>
+            <View className="flex-row gap-2">
+              {(["patient", "doctor"] as const).map((role) => (
+                <Pressable
+                  className={`flex-1 items-center rounded-full border px-4 py-3 ${selectedRole === role ? "border-primary bg-primary/10" : "border-border bg-background-elevated"}`}
+                  key={role}
+                  onPress={() => setSelectedRole(role)}
+                >
+                  <Text className={`font-poppins-medium text-sm ${selectedRole === role ? "text-primary" : "text-foreground"}`}>
+                    {role}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
           <View className="gap-3">
             <Text className="font-poppins-medium text-caption text-foreground-muted uppercase tracking-widest">
               Generate session

@@ -29,6 +29,43 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const attachParticipantTracks = useCallback(
+    (identity: string) => {
+      const room = roomRef.current;
+      if (!room) return;
+      const participant = room.remoteParticipants.get(identity);
+      if (!participant) return;
+
+      for (const publication of participant.videoTrackPublications.values()) {
+        if (publication.track?.kind === "video" && videoRef.current) {
+          publication.track.attach(videoRef.current);
+          break;
+        }
+      }
+      for (const publication of participant.audioTrackPublications.values()) {
+        if (publication.track?.kind === "audio" && audioRef.current) {
+          publication.track.attach(audioRef.current);
+          break;
+        }
+      }
+    },
+    []
+  );
+
+  const detachParticipantTracks = useCallback((identity: string) => {
+    const room = roomRef.current;
+    if (!room) return;
+    const participant = room.remoteParticipants.get(identity);
+    if (!participant) return;
+
+    for (const publication of participant.videoTrackPublications.values()) {
+      publication.track?.detach();
+    }
+    for (const publication of participant.audioTrackPublications.values()) {
+      publication.track?.detach();
+    }
+  }, []);
+
   const connect = useCallback(
     async (url: string, token: string) => {
       setIsConnecting(true);
@@ -58,27 +95,6 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
           setRoom(room);
           roomRef.current = room;
           options.onConnected?.();
-
-          for (const participant of room.remoteParticipants.values()) {
-            for (const publication of participant.videoTrackPublications.values()) {
-              if (
-                publication.track &&
-                publication.track.kind === "video" &&
-                videoRef.current
-              ) {
-                publication.track.attach(videoRef.current);
-              }
-            }
-            for (const publication of participant.audioTrackPublications.values()) {
-              if (
-                publication.track &&
-                publication.track.kind === "audio" &&
-                audioRef.current
-              ) {
-                publication.track.attach(audioRef.current);
-              }
-            }
-          }
         });
 
         room.on(RoomEvent.Disconnected satisfies RoomEventType, () => {
@@ -101,16 +117,8 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
 
         room.on(
           RoomEvent.TrackSubscribed satisfies RoomEventType,
-          (track, _publication, participant) => {
-            if (participant.isLocal) {
-              return;
-            }
-            if (track.kind === "video" && videoRef.current) {
-              track.attach(videoRef.current);
-            }
-            if (track.kind === "audio" && audioRef.current) {
-              track.attach(audioRef.current);
-            }
+          () => {
+            // Track attachment is handled by the component via attachParticipantTracks
           }
         );
 
@@ -201,5 +209,7 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
     room,
     activeSpeakers,
     audioLevelHistory,
+    attachParticipantTracks,
+    detachParticipantTracks,
   };
 }
