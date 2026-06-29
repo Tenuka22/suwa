@@ -44,6 +44,7 @@ function SignUpPage() {
     setGoogleLoading(true);
     const { data } = await authClient.signIn.social({
       provider: "google",
+      callbackURL: window.location.origin,
     });
     if (data?.url) {
       window.location.href = data.url;

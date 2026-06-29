@@ -23,6 +23,7 @@ function OAuthButton({
     try {
       const { data } = await authClient.signIn.social({
         provider,
+        callbackURL: "/",
       });
 
       if (data?.url) {

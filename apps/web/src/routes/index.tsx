@@ -188,17 +188,7 @@ function HomeRoute() {
                   signedIn={signedIn}
                 />
                 {signedIn ? (
-                  <a
-                    className={buttonVariants({
-                      className:
-                        "h-12 rounded-full border-border bg-card/70 px-5 text-foreground hover:bg-muted",
-                      size: "lg",
-                      variant: "outline",
-                    })}
-                    href="#quick-access"
-                  >
-                    View shortcuts
-                  </a>
+                <></>
                 ) : (
                   <Link
                     className={buttonVariants({

@@ -5,7 +5,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react-native";
 import type { ReactNode } from "react";
-import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -29,6 +28,7 @@ import { Button } from "@/components/design/ui/button";
 import { Input } from "@/components/design/ui/input";
 import { Reveal } from "@/components/design/ui/reveal";
 import { ToggleGroup } from "@/components/design/ui/toggle-group";
+import { env } from "@suwa/env/native";
 import { authClient } from "@/utils/better-auth";
 import { orpc, queryClient } from "@/utils/orpc";
 import { encryptData, generateUserSecret, storeSecret } from "@/utils/privacy";
@@ -163,13 +163,11 @@ function OAuthButton({
 }: {
   label: string;
 }) {
-  const handlePress = async () => {
-    const { data } = await authClient.signIn.social({
+  const handlePress = () => {
+    authClient.signIn.social({
       provider: "google",
+      callbackURL: env.EXPO_PUBLIC_CALLBACK_URL,
     });
-    if (data?.url) {
-      await WebBrowser.openAuthSessionAsync(data.url);
-    }
   };
 
   return (

@@ -28,7 +28,7 @@ export function ScreenTabBar({ children, tabs }: ScreenTabBarProps) {
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 pb-28">{children}</View>
+        <View className="flex-1 pb-24">{children}</View>
       </ScrollView>
 
       <View
