@@ -8,6 +8,20 @@
       "when": 1782664334473,
       "tag": "0000_late_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1782713431171,
+      "tag": "0001_robust_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782713727758,
+      "tag": "0002_normal_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

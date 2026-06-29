@@ -1,6 +1,5 @@
 "use client";
 
-import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import React from "react";
 import { Button } from "@/components/design/ui/button";
@@ -15,7 +14,7 @@ function OAuthButton({
   icon: Icon,
   disabled,
 }: {
-  provider: "google" | "facebook";
+  provider: "google";
   label: string;
   icon: any;
   disabled?: boolean;
@@ -24,11 +23,11 @@ function OAuthButton({
     try {
       const { data } = await authClient.signIn.social({
         provider,
-        callbackURL: Linking.createURL("/", { scheme: "suwa" }),
+        callbackURL: "/",
       });
 
       if (data?.url) {
-        await WebBrowser.openAuthSessionAsync(data.url, "suwa://callback");
+        await WebBrowser.openAuthSessionAsync(data.url);
       }
     } catch (err) {
       console.error(`OAuth error with ${provider}`, err);
@@ -56,7 +55,7 @@ export function OAuthButtons({ disabled }: { disabled?: boolean }) {
           icon={provider.icon}
           key={provider.strategy}
           label={provider.label}
-          provider={provider.strategy as "google" | "facebook"}
+          provider={provider.strategy as "google"}
         />
       ))}
     </>

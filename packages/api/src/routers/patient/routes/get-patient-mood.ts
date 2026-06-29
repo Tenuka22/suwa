@@ -8,8 +8,10 @@ export const getPatientMoodRoute = protectedProcedure.handler(
   async ({ context }) => {
     const { userId } = requireAuth(context);
 
-    return context.db.query.patientMoods.findFirst({
+    const mood = await context.db.query.patientMoods.findFirst({
       where: eq(patientMoods.userId, userId),
     });
+
+    return mood ?? null;
   }
 );

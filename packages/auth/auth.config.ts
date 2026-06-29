@@ -1,6 +1,7 @@
 import * as schema from "@suwa/db/schema/auth";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { expo } from "@better-auth/expo";
 import { admin, multiSession } from "better-auth/plugins";
 
 const auth = betterAuth({
@@ -8,7 +9,14 @@ const auth = betterAuth({
     provider: "sqlite",
     schema: schema,
   }),
-  plugins: [admin(), multiSession()],
+  plugins: [expo(), admin(), multiSession()],
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
   },

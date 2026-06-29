@@ -171,7 +171,7 @@ export default function AppointmentSessionDetailScreen() {
     );
   }
 
-  const { session } = sessionQuery.data;
+  const { session: sessionData } = sessionQuery.data;
 
   if (!timing.canJoin) {
     return (
@@ -215,12 +215,12 @@ export default function AppointmentSessionDetailScreen() {
         <View className="flex-1">
           <VideoRoom
             alias={alias}
-            endAt={session.endAt}
+            endAt={sessionData.endAt}
             onClose={() => router.back()}
             onPrivacyModeChange={setPrivacyMode}
             participantRole={userRole}
             sessionId={sessionId ?? ""}
-            startAt={session.startAt}
+            startAt={sessionData.startAt}
           />
         </View>
       </Screen>

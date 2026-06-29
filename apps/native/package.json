@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "better-auth": "catalog:",
+    "@better-auth/expo": "catalog:",
     "@expo-google-fonts/playfair-display": "^0.4.2",
     "@expo-google-fonts/poppins": "^0.4.1",
     "@expo/config-plugins": "55.0.10",

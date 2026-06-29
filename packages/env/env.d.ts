@@ -9,6 +9,8 @@ interface FallbackEnv {
   FACE_EMBEDDINGS_KV: KVNamespace;
   FACE_VIDEOS_KV: KVNamespace;
   GEMINI_API_KEY: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
   LIVEKIT_API_KEY: string;
   LIVEKIT_API_SECRET: string;
   LIVEKIT_HOST: string;
