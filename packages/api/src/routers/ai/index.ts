@@ -51,11 +51,11 @@ export const aiRouter = {
 
         await addMessages(kv, input.sessionId, [userMsg]);
 
-        let fullResponse = "";
+        let cleanMessage = "";
         try {
           for await (const event of runAgentStream(context, input.message)) {
             if (event.event === "message.token") {
-              fullResponse += (event.data.token as string) ?? "";
+              cleanMessage += (event.data.token as string) ?? "";
             }
             yield event;
           }
@@ -69,7 +69,7 @@ export const aiRouter = {
           id: crypto.randomUUID(),
           sessionId: input.sessionId,
           role: "assistant",
-          content: fullResponse,
+          content: cleanMessage,
           agent: "coordinator",
           timestamp: Date.now(),
         };

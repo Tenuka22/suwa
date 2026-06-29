@@ -5,6 +5,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
   Brain,
+  Loader2,
   MapPin,
   Mic,
   MicOff,
@@ -53,6 +54,7 @@ interface QuestionCard {
 
 interface StreamData {
   agent?: string;
+  cards?: QuestionCard[];
   message?: string;
   token?: string;
   tool?: string;
@@ -61,6 +63,19 @@ interface StreamData {
 interface StreamAccumulator {
   content: string;
   messageId: string;
+}
+
+const TOOL_LABELS: Record<string, string> = {
+  search_doctors: "Searching for doctors",
+  search_hospitals: "Finding nearby hospitals",
+  get_doctor_profile: "Loading doctor profile",
+  check_availability: "Checking availability",
+  get_upcoming_sessions: "Looking up your sessions",
+  transfer_to_agent: "Finding the right specialist",
+};
+
+function formatToolName(tool: string): string {
+  return TOOL_LABELS[tool] ?? tool.replace(/_/g, " ");
 }
 
 function extractQuestionText(content: string): string {
@@ -306,12 +321,15 @@ function ThinkingState() {
 function applyStreamEvent(
   streamEvent: { data: StreamData; event: string },
   accumulator: StreamAccumulator,
-  setMessages: Dispatch<SetStateAction<ChatMessage[]>>
+  setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
+  setPendingChoices: Dispatch<SetStateAction<QuestionCard[] | null>>,
+  setToolCalls: Dispatch<SetStateAction<string[]>>
 ) {
   const data = streamEvent.data;
 
   switch (streamEvent.event) {
     case "message.start": {
+      setToolCalls([]);
       accumulator.content = "";
       accumulator.messageId = crypto.randomUUID();
       setMessages((currentMessages) => [
@@ -334,7 +352,6 @@ function applyStreamEvent(
                 ...message,
                 agent: data.agent,
                 content: accumulator.content,
-                questionCards: parseQuestionCards(accumulator.content) ?? undefined,
               }
             : message
         )
@@ -342,7 +359,24 @@ function applyStreamEvent(
       break;
     }
     case "message.tool_call": {
-      // keep tool calls internal; don't surface them as chat messages
+      const tool = data.tool as string | undefined;
+      if (tool) {
+        setToolCalls((prev) => [...prev, tool]);
+      }
+      break;
+    }
+    case "message.question_cards": {
+      const cards = data.cards as QuestionCard[] | undefined;
+      if (cards?.length) {
+        setMessages((currentMessages) =>
+          currentMessages.map((message) =>
+            message.id === accumulator.messageId
+              ? { ...message, questionCards: cards }
+              : message
+          )
+        );
+        setPendingChoices(cards);
+      }
       break;
     }
     case "message.error": {
@@ -363,19 +397,13 @@ function applyStreamEvent(
 
 function ChatBubble({ item }: { item: ChatMessage }) {
   const isUser = item.role === "user";
-  const isQuestionCards = !!item.questionCards?.length;
-  const questionText = extractQuestionText(item.content);
-  let bubbleClass =
-    "self-start rounded-bl-lg border border-border/60 bg-background-elevated";
-  if (isUser) {
-    bubbleClass = "self-end rounded-br-lg bg-primary";
-  }
+  const bubbleClass = isUser
+    ? "self-end rounded-br-lg bg-primary"
+    : "self-start rounded-bl-lg border border-border/60 bg-background-elevated";
 
   return (
     <Reveal delay={20}>
-      <View
-        className={`mb-lg max-w-[86%] rounded-3xl ${bubbleClass} p-md`}
-      >
+      <View className={`mb-lg max-w-[86%] rounded-3xl ${bubbleClass} p-md`}>
         {isUser ? null : (
           <View className="flex-row items-center gap-sm">
             <View className="h-7 w-7 items-center justify-center rounded-lg bg-primary-subtle">
@@ -386,17 +414,11 @@ function ChatBubble({ item }: { item: ChatMessage }) {
             </Text>
           </View>
         )}
-        {isQuestionCards ? (
-          <Text className="font-sans text-body leading-relaxed text-foreground-secondary">
-            {questionText}
-          </Text>
-        ) : (
-          <Text
-            className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
-          >
-            {item.content}
-          </Text>
-        )}
+        <Text
+          className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
+        >
+          {item.content}
+        </Text>
       </View>
     </Reveal>
   );
@@ -412,6 +434,7 @@ export default function AiChatScreen() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
   const [pendingChoices, setPendingChoices] = useState<QuestionCard[] | null>(null);
+  const [toolCalls, setToolCalls] = useState<string[]>([]);
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
   const abortRef = useRef<AbortController | null>(null);
   const hasAutoSent = useRef(false);
@@ -460,11 +483,7 @@ export default function AiChatScreen() {
 
       for await (const event of iterator) {
         const streamEvent = event as { data: StreamData; event: string };
-        applyStreamEvent(streamEvent, accumulator, setMessages);
-      }
-      const cards = parseQuestionCards(accumulator.content);
-      if (cards) {
-        setPendingChoices(cards);
+        applyStreamEvent(streamEvent, accumulator, setMessages, setPendingChoices, setToolCalls);
       }
       queryClient.invalidateQueries({ queryKey: ["ai"] });
     } catch (error: unknown) {
@@ -482,6 +501,7 @@ export default function AiChatScreen() {
       }
     } finally {
       setStreaming(false);
+      setToolCalls([]);
       abortRef.current = null;
     }
   };
@@ -509,6 +529,7 @@ export default function AiChatScreen() {
     setActiveSessionId(null);
     setInput("");
     setPendingChoices(null);
+    setToolCalls([]);
   };
 
   return (
@@ -550,7 +571,25 @@ export default function AiChatScreen() {
         ListEmptyComponent={
           <EmptyConversation onPrompt={(prompt) => sendMessage(prompt)} />
         }
-        ListFooterComponent={streaming ? <ThinkingState /> : null}
+        ListFooterComponent={
+          streaming ? (
+            <View className="gap-sm">
+              {toolCalls.length ? (
+                <View className="mb-lg self-start rounded-3xl border border-border/60 bg-background-elevated px-lg py-md">
+                  {toolCalls.map((tool) => (
+                    <View className="flex-row items-center gap-sm py-0.5" key={tool}>
+                      <Loader2 className="text-accent" size={14} />
+                      <Text className="font-sans text-micro text-foreground-muted">
+                        {formatToolName(tool)}…
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              <ThinkingState />
+            </View>
+          ) : null
+        }
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: true })
         }
@@ -583,6 +622,41 @@ export default function AiChatScreen() {
             </View>
           </View>
         </View>
+      ) : null}
+
+      {/* Hospital suggestion card */}
+      {!pendingChoices && !streaming && messages.length > 0 ? (
+        (() => {
+          const lastMsg = messages.filter((m) => m.role === "assistant").at(-1);
+          const text = lastMsg?.content ?? "";
+          const mentionsHospital =
+            !lastMsg?.questionCards?.length &&
+            /\b(hospital|medical centre|medical center|clinic)\b/i.test(text);
+          if (!mentionsHospital) {
+            return null;
+          }
+          return (
+            <View className="px-lg pb-2">
+              <Pressable
+                className="flex-row items-center gap-md rounded-3xl border border-border/60 bg-background-elevated p-md"
+                onPress={() => router.push("/(patient)/map")}
+              >
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-accent-subtle">
+                  <MapPin color="#d78357" size={20} />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-poppins-medium text-caption text-foreground">
+                    Find nearby hospitals
+                  </Text>
+                  <Text className="font-sans text-micro text-foreground-muted">
+                    View hospitals on the map
+                  </Text>
+                </View>
+                <Text className="font-serif text-accent text-lg">+</Text>
+              </Pressable>
+            </View>
+          );
+        })()
       ) : null}
 
       <KeyboardAvoidingView
