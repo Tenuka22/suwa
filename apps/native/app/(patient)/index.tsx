@@ -303,7 +303,11 @@ function VoiceOrb({
 export default function HomeScreen() {
   const router = useRouter();
   const patientProfileQuery = useQuery(orpc.getPatientProfile.queryOptions());
-  const patientMoodQuery = useQuery(orpc.getPatientMood.queryOptions());
+  const patientMoodQuery = useQuery(
+    orpc.getPatientMood.queryOptions({
+      meta: { ignoreError: true },
+    })
+  );
   const moodMutation = useMutation(orpc.setPatientMood.mutationOptions());
   const patientName = patientProfileQuery.data?.alias ?? "Guest";
   const [mood, setMood] = useState(3);

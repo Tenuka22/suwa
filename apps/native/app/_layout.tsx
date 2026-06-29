@@ -17,27 +17,11 @@ import {
   useErrorDialog,
 } from "@/components/design/ui/error-dialog";
 import { showToast } from "@/components/design/ui/toast";
-import { authClient, setToken } from "@/utils/better-auth";
+import { authClient } from "@/utils/better-auth";
 import { orpc, queryClient, setQueryErrorHandler } from "@/utils/orpc";
 import { StripePaymentProvider } from "@/utils/stripe";
 
 maybeCompleteAuthSession();
-
-function AuthBridge() {
-  const { data: session } = authClient.useSession();
-
-  useEffect(() => {
-    if (session?.session) {
-      setToken(session.session.token ?? null);
-    } else if (session === undefined) {
-      setToken(null);
-    } else {
-      setToken(null);
-    }
-  }, [session]);
-
-  return null;
-}
 
 type OnboardingRedirectPath = "/(patient)" | "/landing" | "/profile";
 
@@ -207,7 +191,6 @@ function LayoutContent() {
 
   return (
     <>
-      <AuthBridge />
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <StripePaymentProvider>

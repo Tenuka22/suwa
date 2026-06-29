@@ -7,6 +7,7 @@ function getRuntimeEnv() {
     EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     EXPO_PUBLIC_LIVEKIT_HOST: process.env.EXPO_PUBLIC_LIVEKIT_HOST,
+    EXPO_PUBLIC_CALLBACK_URL: process.env.EXPO_PUBLIC_CALLBACK_URL,
   };
 }
 
@@ -16,6 +17,7 @@ export const env = createEnv({
     EXPO_PUBLIC_SERVER_URL: z.url(),
     EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
     EXPO_PUBLIC_LIVEKIT_HOST: z.string().min(1),
+    EXPO_PUBLIC_CALLBACK_URL: z.string().min(1),
   },
   runtimeEnv: getRuntimeEnv(),
   emptyStringAsUndefined: true,

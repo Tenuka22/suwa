@@ -9,5 +9,3 @@ export function createClient(baseURL: string) {
     ],
   });
 }
-
-export type { authClient } from "better-auth/react";

@@ -28,7 +28,8 @@ import { Button } from "@/components/design/ui/button";
 import { Input } from "@/components/design/ui/input";
 import { Reveal } from "@/components/design/ui/reveal";
 import { ToggleGroup } from "@/components/design/ui/toggle-group";
-import { authClient, setToken } from "@/utils/better-auth";
+import { env } from "@suwa/env/native";
+import { authClient } from "@/utils/better-auth";
 import { orpc, queryClient } from "@/utils/orpc";
 import { encryptData, generateUserSecret, storeSecret } from "@/utils/privacy";
 
@@ -159,28 +160,22 @@ function ActionButton({
 
 function OAuthButton({
   label,
-  provider,
 }: {
   label: string;
-  provider: "google" | "facebook";
 }) {
-  const handlePress = async () => {
-    const { data } = await authClient.signIn.social({
-      provider,
-      callbackURL: "suwa://callback",
+  const handlePress = () => {
+    authClient.signIn.social({
+      provider: "google",
+      callbackURL: env.EXPO_PUBLIC_CALLBACK_URL,
     });
-    if (data?.url) {
-      // The URL will be opened by the system browser
-      // Better Auth handles the redirect and session creation
-    }
   };
 
   return (
     <Button
       icon={
         <FontAwesome6
-          color={provider === "google" ? "#4285F4" : "#1877F2"}
-          name={provider === "google" ? "google" : "facebook-f"}
+          color="#4285F4"
+          name="google"
           size={17}
         />
       }
@@ -334,8 +329,7 @@ function AuthStep({
           <View className="h-px flex-1 bg-border" />
         </View>
         <View className="gap-md">
-          <OAuthButton label="Continue with Google" provider="google" />
-          <OAuthButton label="Continue with Facebook" provider="facebook" />
+          <OAuthButton label="Continue with Google" />
         </View>
       </Reveal>
     </View>
@@ -546,6 +540,7 @@ export default function LandingScreen() {
         const { error } = await authClient.signUp.email({
           email: emailAddress,
           password,
+          name: emailAddress.split("@")[0] ?? "User",
         });
         if (error) {
           setStatusMessage(error.message ?? "Unable to sign up.");
@@ -619,7 +614,10 @@ export default function LandingScreen() {
       <ProfileStep
         form={patientForm}
         isPending={completeOnboarding.isPending}
-        onBack={() => navigateStep("auth", "back")}
+        onBack={async () => {
+          await authClient.signOut();
+          navigateStep("start", "back");
+        }}
         onChange={changePatientForm}
         onSubmit={submitOnboarding}
       />

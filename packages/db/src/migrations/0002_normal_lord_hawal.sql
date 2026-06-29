@@ -1,0 +1,1 @@
+ALTER TABLE `user` DROP COLUMN `expo_push_token`;

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { authClient, setOnboardingRole } from "@/utils/auth";
 import { Button } from "@suwa/ui/components/button";
 import { Card, CardContent } from "@suwa/ui/components/card";
+import { queryClient } from "@/utils/orpc";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
@@ -42,6 +43,7 @@ function OnboardingPage() {
     setLoading(true);
     try {
       await setOnboardingRole(role === "doctor" ? "pending-doctor" : "tenant-admin");
+      queryClient.invalidateQueries();
       navigate({ to: "/" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

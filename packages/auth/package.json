@@ -17,6 +17,7 @@
     "@suwa/db": "workspace:*",
     "@suwa/env": "workspace:*",
     "better-auth": "catalog:",
+    "@better-auth/expo": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -95,6 +95,8 @@ export const server = await Worker("server", {
     STRIPE_WEBHOOK_SECRET: alchemy.secret.env.STRIPE_WEBHOOK_SECRET!,
     LIVEKIT_HOST: alchemy.env.LIVEKIT_HOST!,
     LIVEKIT_API_KEY: alchemy.secret.env.LIVEKIT_API_KEY!,
+    GOOGLE_CLIENT_ID: alchemy.env.GOOGLE_CLIENT_ID!,
+    GOOGLE_CLIENT_SECRET: alchemy.secret.env.GOOGLE_CLIENT_SECRET!,
     LIVEKIT_API_SECRET: alchemy.secret.env.LIVEKIT_API_SECRET!,
   },
   crons: ["*/10 * * * *"],

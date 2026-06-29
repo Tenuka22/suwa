@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Stack } from "expo-router";
-import { Key, ShieldCheck, UserRound } from "lucide-react-native";
+import { Stack, useRouter } from "expo-router";
+import { AlertTriangle, Key, LogOut, ShieldCheck, UserRound } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Button } from "@/components/design/ui/button";
@@ -25,6 +25,7 @@ import {
   getStoredSecret,
   storeSecret,
 } from "@/utils/privacy";
+import { authClient } from "@/utils/better-auth";
 import { useErrorHandler } from "@/utils/use-error-handler";
 
 type AgeCategory = "adult" | "child" | "teen" | "senior";
@@ -57,6 +58,7 @@ const professionItems: { label: string; value: Profession }[] = [
 ];
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const [alias, setAlias] = useState("");
   const [ageCategory, setAgeCategory] = useState<AgeCategory>("adult");
   const [profession, setProfession] = useState<Profession>("other");
@@ -70,6 +72,8 @@ export default function ProfileScreen() {
   const [_initialFullName, setInitialFullName] = useState("");
   const [_initialAddress, setInitialAddress] = useState("");
   const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [keyLoading, setKeyLoading] = useState(true);
+  const [keyInvalid, setKeyInvalid] = useState(false);
 
   const { handleError } = useErrorHandler();
   const { dialogProps } = useErrorDialog();
@@ -78,6 +82,7 @@ export default function ProfileScreen() {
   useEffect(() => {
     getStoredSecret().then((secret) => {
       setHasKey(secret !== null);
+      setKeyLoading(false);
     });
   }, []);
 
@@ -92,27 +97,41 @@ export default function ProfileScreen() {
     setAgeCategory((data.ageCategory as AgeCategory | undefined) ?? "adult");
     setProfession((data.profession as Profession | undefined) ?? "other");
 
-    if (data._securedData) {
+    if (data.secured && data._securedData) {
       getStoredSecret().then(async (secret) => {
-        if (!(secret && data._securedData)) {
+        if (!secret) {
           return;
         }
 
-        const decrypted = await decryptData(data._securedData, secret);
-        if (decrypted) {
-          setAgeCategory((decrypted.ageCategory as AgeCategory | undefined) ?? "adult");
-          setProfession((decrypted.profession as Profession | undefined) ?? "other");
-          setEmail((decrypted.email as string) ?? "");
-          setPhone((decrypted.phone as string) ?? "");
-          setFullName((decrypted.fullName as string) ?? "");
-          setAddress((decrypted.address as string) ?? "");
-          setInitialAlias(data.alias ?? "");
-          setInitialEmail((decrypted.email as string) ?? "");
-          setInitialPhone((decrypted.phone as string) ?? "");
-          setInitialFullName((decrypted.fullName as string) ?? "");
-          setInitialAddress((decrypted.address as string) ?? "");
+        try {
+          const decrypted = await decryptData(data._securedData, secret);
+          if (decrypted) {
+            setKeyInvalid(false);
+            setAgeCategory((decrypted.ageCategory as AgeCategory | undefined) ?? "adult");
+            setProfession((decrypted.profession as Profession | undefined) ?? "other");
+            setEmail((decrypted.email as string) ?? "");
+            setPhone((decrypted.phone as string) ?? "");
+            setFullName((decrypted.fullName as string) ?? "");
+            setAddress((decrypted.address as string) ?? "");
+            setInitialAlias(data.alias ?? "");
+            setInitialEmail((decrypted.email as string) ?? "");
+            setInitialPhone((decrypted.phone as string) ?? "");
+            setInitialFullName((decrypted.fullName as string) ?? "");
+            setInitialAddress((decrypted.address as string) ?? "");
+          }
+        } catch {
+          setKeyInvalid(true);
         }
       });
+    } else if (!data.secured) {
+      setEmail("");
+      setPhone("");
+      setFullName("");
+      setAddress("");
+      setInitialEmail("");
+      setInitialPhone("");
+      setInitialFullName("");
+      setInitialAddress("");
     }
   }, [profileQuery.data]);
 
@@ -137,6 +156,19 @@ export default function ProfileScreen() {
     const secret = generateUserSecret();
     await storeSecret(secret);
     setHasKey(true);
+
+    const profile = profileQuery.data;
+    if (profile && (email || phone || fullName || address)) {
+      const _securedData = await encryptData(
+        { address, ageCategory, email, fullName, phone, profession },
+        secret
+      );
+      updateMutation.mutate({
+        _securedData,
+        alias: alias || undefined,
+      });
+    }
+    setKeyInvalid(false);
   };
 
   const handleSave = async () => {
@@ -177,7 +209,7 @@ export default function ProfileScreen() {
   const showPersonalFields =
     hasKey === true ||
     profileQuery.data === null ||
-    !profileQuery.data?._securedData;
+    !profileQuery.data?.secured;
 
   return (
     <PatientTabScaffold activeTab="profile">
@@ -235,7 +267,7 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {hasKey === false ? (
+          {!keyLoading && hasKey === false ? (
             <View className="gap-md rounded-3xl bg-accent-subtle p-lg">
               <Text className="font-poppins-medium text-accent text-subtitle">
                 Turn on your privacy shield
@@ -249,7 +281,7 @@ export default function ProfileScreen() {
             </View>
           ) : null}
 
-          {hasKey === true ? (
+          {!keyLoading && hasKey === true ? (
             <View className="flex-row items-center gap-md rounded-2xl bg-primary-subtle px-lg py-md">
               <View className="h-9 w-9 items-center justify-center rounded-xl bg-background-elevated">
                 <Key color="#315b4d" size={16} />
@@ -260,6 +292,20 @@ export default function ProfileScreen() {
                 </Text>
                 <Text className="font-sans text-micro text-primary/70">
                   Personal details are encrypted locally
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
+          {keyInvalid ? (
+            <View className="flex-row items-center gap-md rounded-2xl bg-rose-100 px-lg py-md">
+              <AlertTriangle color="#d32f2f" size={18} />
+              <View className="flex-1">
+                <Text className="font-poppins-medium text-caption text-destructive">
+                  Encryption key mismatch
+                </Text>
+                <Text className="font-sans text-micro text-destructive/80">
+                  Your local key cannot decrypt the saved data.
                 </Text>
               </View>
             </View>
@@ -305,6 +351,22 @@ export default function ProfileScreen() {
         >
           {updateMutation.isPending ? "Saving..." : "Save profile"}
         </Button>
+
+        <View className="border-t border-border pt-lg">
+          <Pressable
+            className="flex-row items-center justify-center gap-2 rounded-full border border-destructive/30 py-4"
+            onPress={async () => {
+              await authClient.signOut();
+              queryClient.clear();
+              router.replace("/landing");
+            }}
+          >
+            <LogOut color="#d32f2f" size={18} />
+            <Text className="font-poppins-medium text-body text-destructive">
+              Sign out
+            </Text>
+          </Pressable>
+        </View>
       </View>
       <ErrorDialog {...dialogProps} />
     </PatientTabScaffold>

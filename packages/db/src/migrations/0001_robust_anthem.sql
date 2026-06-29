@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `expo_push_token` text;
