@@ -3,24 +3,20 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Bell,
   BookOpen,
   ChevronRight,
   Film,
   Flower2,
-  Frown,
   HeartPulse,
-  Laugh,
   MapPin,
-  Meh,
   MessageCircle,
   Mic,
   MicOff,
-  Moon,
   Search,
   ShieldCheck,
-  Smile,
   Sparkles,
 } from "lucide-react-native";
 import type { ReactNode } from "react";
@@ -48,11 +44,11 @@ import { useMaterialThumbnail } from "@/utils/material-thumbnail";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
 
 const moodStops = [
-  { icon: Moon, label: "Tired", mood: "sleep", intensity: 1 },
-  { icon: Frown, label: "Low", mood: "sad", intensity: 2 },
-  { icon: Meh, label: "Okay", mood: "idle", intensity: 3 },
-  { icon: Smile, label: "Good", mood: "happy", intensity: 4 },
-  { icon: Laugh, label: "Great", mood: "happy", intensity: 5 },
+  { icon: "weather-night", label: "Tired", mood: "sleep", intensity: 1 },
+  { icon: "emoticon-sad-outline", label: "Low", mood: "sad", intensity: 2 },
+  { icon: "emoticon-neutral-outline", label: "Okay", mood: "idle", intensity: 3 },
+  { icon: "emoticon-happy-outline", label: "Good", mood: "happy", intensity: 4 },
+  { icon: "emoticon-excited-outline", label: "Great", mood: "happy", intensity: 5 },
 ] as const;
 
 const searchPrompts = [
@@ -126,10 +122,7 @@ function MoodSlider({
             Slide to choose your mood for today
           </Text>
         </View>
-        {(() => {
-          const ActiveIcon = active.icon;
-          return <ActiveIcon color="#315b4d" size={28} />;
-        })()}
+        <MaterialCommunityIcons color="#315b4d" name={active.icon} size={30} />
       </View>
       <View
         {...responder.panHandlers}
@@ -151,14 +144,22 @@ function MoodSlider({
         </View>
         <View className="flex-row justify-between pt-2">
           {moodStops.map((stop, index) => {
-            const StopIcon = stop.icon;
+            const isActive = index === activeIndex;
             return (
-              <View key={stop.label} className="items-center">
-                <StopIcon
-                  color={index === activeIndex ? "#315b4d" : "#8e9a94"}
-                  size={18}
+              <Pressable
+                key={stop.label}
+                onPress={() => {
+                  onChange(index + 1);
+                  onCommit(stop);
+                }}
+                className="items-center"
+              >
+                <MaterialCommunityIcons
+                  color={isActive ? "#315b4d" : "#8e9a94"}
+                  name={stop.icon}
+                  size={26}
                 />
-              </View>
+              </Pressable>
             );
           })}
         </View>
