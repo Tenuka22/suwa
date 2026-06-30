@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 
+import { buildHeadFromKey } from "../../__root";
 import { orpc } from "@/utils/orpc";
 
 const adminSearchSchema = z.object({
@@ -29,6 +30,7 @@ const adminSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/doctors/")({
+  head: () => buildHeadFromKey("web:admin:doctors:index"),
   validateSearch: adminSearchSchema,
   loaderDeps: ({ search }) => ({
     page: search.page,

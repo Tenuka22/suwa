@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
   BookOpen,
@@ -85,7 +86,7 @@ export default function DoctorProfileScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:doctors:detail") }} />
       <ScrollView
         contentContainerClassName="gap-xl px-lg pt-12 pb-40"
         contentInsetAdjustmentBehavior="automatic"

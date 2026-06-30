@@ -37,6 +37,7 @@ import {
   useListTenantAffiliations,
   useMarkClinicAttendance,
 } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../../../__root";
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
@@ -47,6 +48,7 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 export const Route = createFileRoute(
   "/tenant/$tenantId/clinics/$clinicId/attendance"
 )({
+  head: () => buildHeadFromKey("web:tenant:clinics:detail"),
   component: ClinicAttendancePage,
 });
 

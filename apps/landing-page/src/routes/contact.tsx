@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeading, Section } from "../components/ui";
-import { createSeoHead, resolveSiteUrl } from "../lib/seo";
+import { createSeoHeadFromRegistry, resolveSiteUrl } from "../lib/seo";
 import { Navbar } from "./(home)/helpers/navbar";
 import { Footer } from "./(home)/sections/footer";
 
@@ -8,12 +8,7 @@ const siteUrl = resolveSiteUrl(import.meta.env.VITE_WEB_URL);
 
 export const Route = createFileRoute("/contact")({
   head: () =>
-    createSeoHead({
-      siteUrl,
-      path: "/contact",
-      title: "Contact Suwa",
-      description: "Reach out with questions about private consultations and support.",
-    }),
+    createSeoHeadFromRegistry("landing:contact", { siteUrl }),
   component: () => (
     <div className="flex min-h-screen flex-col overflow-hidden bg-background">
       <Navbar />

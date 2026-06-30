@@ -22,6 +22,7 @@ import {
 } from "@/utils/privacy";
 
 export const Route = createFileRoute("/doctor/sessions/$sessionId")({
+  head: () => buildHeadFromKey("web:doctor:sessions:detail"),
   component: DoctorSessionDetailRoute,
 });
 

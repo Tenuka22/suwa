@@ -6,8 +6,10 @@ import { authClient } from "@/utils/auth";
 import { Button } from "@suwa/ui/components/button";
 import { Input } from "@suwa/ui/components/input";
 import { Card, CardContent } from "@suwa/ui/components/card";
+import { buildHeadFromKey } from "./__root";
 
 export const Route = createFileRoute("/sign-up")({
+  head: () => buildHeadFromKey("web:sign-up"),
   component: SignUpPage,
 });
 

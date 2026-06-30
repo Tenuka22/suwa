@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ResizeMode, Video } from "expo-av";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
   MessageCircle,
@@ -169,7 +170,7 @@ export default function MaterialDetailScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:materials:detail") }} />
 
       <Screen
         contentClassName="flex-1 gap-lg pt-12 px-lg bg-background"

@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   ChevronLeft,
   ChevronRight,
@@ -184,7 +185,7 @@ export default function DoctorsScreen() {
   return (
     <PatientTabScaffold activeTab="doctors">
       <View className="flex-1 bg-background">
-        <Stack.Screen options={{ animation: "fade", headerShown: false }} />
+        <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:doctors:index") }} />
 
         <Screen
           contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"

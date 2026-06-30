@@ -22,6 +22,7 @@ import {
 import { z } from "zod";
 
 import { useApproveDoctor } from "@/hooks/queries/admin";
+import { buildHeadFromKey } from "../../__root";
 import { orpc } from "@/utils/orpc";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -31,6 +32,7 @@ const adminSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/doc-requests/")({
+  head: () => buildHeadFromKey("web:admin:doc-requests:index"),
   validateSearch: adminSearchSchema,
   loaderDeps: ({ search }) => ({
     page: search.page,

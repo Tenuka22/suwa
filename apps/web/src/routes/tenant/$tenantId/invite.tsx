@@ -27,8 +27,10 @@ import {
   useInviteDoctor,
   useListTenantInvitations,
 } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../__root";
 
 export const Route = createFileRoute("/tenant/$tenantId/invite")({
+  head: () => buildHeadFromKey("web:tenant:invite"),
   component: TenantInvitePage,
 });
 

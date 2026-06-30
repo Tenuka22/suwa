@@ -29,9 +29,11 @@ import {
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
+import { buildHeadFromKey } from "../__root";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/admin/")({
+  head: () => buildHeadFromKey("web:admin:index"),
   loaderDeps: () => ({}),
   loader: async ({ context }) =>
     context.queryClient.ensureQueryData(orpc.stats.queryOptions()),

@@ -13,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, FileTextIcon } from "lucide-react";
 import { z } from "zod";
 
+import { buildHeadFromKey } from "../../__root";
 import { orpc } from "@/utils/orpc";
 
 const searchSchema = z.object({
@@ -20,6 +21,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/plans/")({
+  head: () => buildHeadFromKey("web:admin:plans:index"),
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context, deps }) => {

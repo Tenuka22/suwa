@@ -1,4 +1,5 @@
 import { chatSystemRegistry } from "@suwa/api/routers/chat/helpers/chat-systems";
+import { buildHeadFromKey } from "../__root";
 import {
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 
 export const Route = createFileRoute("/admin/chat-settings")({
+  head: () => buildHeadFromKey("web:admin:chat-settings"),
   component: ChatSettingsPage,
 });
 

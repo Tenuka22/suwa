@@ -4,6 +4,7 @@ import { authClient } from "@/utils/better-auth";
 import { consumeEventIterator } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   Activity,
   BarChart3,
@@ -251,7 +252,7 @@ export default function HealthHubScreen() {
   return (
     <PatientTabScaffold activeTab="health">
       <View className="flex-1 bg-background">
-        <Stack.Screen options={{ animation: "fade", headerShown: false }} />
+        <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:health-hub") }} />
         <Screen
           contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
           scrollClassName="flex-1 bg-background"

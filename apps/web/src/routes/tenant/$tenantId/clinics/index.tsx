@@ -37,6 +37,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useCreateClinic, useListClinics } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../../__root";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -102,6 +103,7 @@ function formatCreatedAt(createdAt: string): string {
 }
 
 export const Route = createFileRoute("/tenant/$tenantId/clinics/")({
+  head: () => buildHeadFromKey("web:tenant:clinics:index"),
   component: TenantClinicsPage,
 });
 

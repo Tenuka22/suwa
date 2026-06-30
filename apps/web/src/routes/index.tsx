@@ -1,3 +1,4 @@
+import { buildHeadFromKey } from "./__root";
 import { APP_DISPLAY_NAME } from "@suwa/app-info";
 import { Badge } from "@suwa/ui/components/badge";
 import { Button, buttonVariants } from "@suwa/ui/components/button";
@@ -15,6 +16,7 @@ import { useState } from "react";
 import { authClient } from "@/utils/auth";
 
 export const Route = createFileRoute("/")({
+  head: () => buildHeadFromKey("web:index"),
   component: HomeRoute,
 });
 

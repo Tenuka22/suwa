@@ -4,7 +4,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@suwa/ui/components/sidebar";
-import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { ShieldIcon } from "lucide-react";
 
 import { AdminSidebar } from "@/components/admin-sidebar";
@@ -17,8 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@suwa/ui/components/card";
+import { buildHeadFromKey } from "./__root";
 
 export const Route = createFileRoute("/admin")({
+  head: () => buildHeadFromKey("web:admin:index"),
   beforeLoad: async () => {
     const session = await requireAuth(["admin"]).catch(() => null);
     return { session };

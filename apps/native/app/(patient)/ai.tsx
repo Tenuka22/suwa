@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
   Brain,
@@ -534,7 +535,7 @@ export default function AiChatScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:ai") }} />
       <View className="flex-row items-center gap-md border-border border-b bg-background-elevated/80 px-lg py-md">
         <Pressable
           accessibilityLabel="Go back"

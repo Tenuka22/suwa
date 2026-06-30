@@ -31,6 +31,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { MetricCard, SectionHeader } from "@/components/dashboard-metrics";
 import { SessionStatusBadge } from "@/components/session-status-badge";
 import { DoctorHospitalAffiliations } from "@/components/tenant/doctor-hospital-affiliations";
+import { buildHeadFromKey } from "../__root";
 import { orpc } from "@/utils/orpc";
 
 interface SessionItem {
@@ -119,6 +120,7 @@ function PendingRequests({ sessions }: { sessions: SessionItem[] }) {
 }
 
 export const Route = createFileRoute("/doctor/")({
+  head: () => buildHeadFromKey("web:doctor:index"),
   loaderDeps: () => ({}),
   loader: async ({ context }) => {
     const [stats, sessions] = await Promise.all([

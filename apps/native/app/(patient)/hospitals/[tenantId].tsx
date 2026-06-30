@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { type Href, Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
   Building2,
@@ -40,7 +41,7 @@ export default function HospitalDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:hospitals:detail") }} />
 
       <Screen>
         <ScrollView

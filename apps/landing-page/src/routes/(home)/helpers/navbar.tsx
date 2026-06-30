@@ -16,9 +16,9 @@ export function Navbar() {
   return (
     <Appear className="site-header" from="top">
       <header>
-        <nav
+<nav
           aria-label="Main navigation"
-          className="page-shell grid h-[104px] grid-cols-2 items-center xl:grid-cols-[1fr_auto_1fr] max-xl:h-[86px] max-xl:justify-between max-sm:h-[72px]"
+          className="page-shell grid grid-cols-[1fr_auto_1fr] items-center py-[28px] max-xl:grid-cols-2 max-xl:justify-between max-xl:py-[22px] max-sm:py-[17px]"
         >
           <div className="justify-self-start">
             <Wordmark aria-label="Suwa home" href="#top" />
@@ -38,11 +38,16 @@ export function Navbar() {
               </a>
             ))}
           </div>
-          <div className="flex items-center justify-end gap-[34px] justify-self-end whitespace-nowrap text-[13px] max-sm:gap-[12px] max-sm:text-[12px]">
-            <span className="flex items-center gap-[9px] max-xl:hidden">
+          <div className="flex items-center justify-end gap-[34px] justify-self-end whitespace-nowrap text-[13px] max-xl:hidden">
+            <span className="flex items-center gap-[9px]">
               <ShieldCheck aria-hidden="true" size={19} strokeWidth={1.7} />
               Private by design
             </span>
+            <Button href={SIGN_UP_URL} variant="headerCta">
+              Our app platform
+            </Button>
+          </div>
+          <div className="justify-self-end max-xl:flex max-xl:items-center max-xl:gap-[12px] max-sm:gap-[8px] xl:hidden">
             <Button href={SIGN_UP_URL} variant="headerCta">
               Our app platform
             </Button>

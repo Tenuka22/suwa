@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   Bell,
   BookOpen,
@@ -387,7 +388,7 @@ export default function HomeScreen() {
 
   return (
     <PatientTabScaffold activeTab="home">
-      <Stack.Screen options={{ animation: "fade", headerShown: false }} />
+      <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:index") }} />
       <View className="flex-1 gap-xxl bg-background px-lg pt-12">
         <Reveal delay={40}>
           <View className="flex-row items-center justify-between">

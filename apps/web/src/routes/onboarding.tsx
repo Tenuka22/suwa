@@ -6,8 +6,10 @@ import { authClient, setOnboardingRole } from "@/utils/auth";
 import { Button } from "@suwa/ui/components/button";
 import { Card, CardContent } from "@suwa/ui/components/card";
 import { queryClient } from "@/utils/orpc";
+import { buildHeadFromKey } from "./__root";
 
 export const Route = createFileRoute("/onboarding")({
+  head: () => buildHeadFromKey("web:onboarding"),
   component: OnboardingPage,
 });
 

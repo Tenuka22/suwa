@@ -22,6 +22,7 @@ import {
   useGetTenant,
   useListTenantAffiliations,
 } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../__root";
 
 function getTenantStatusVariant(
   status: string
@@ -38,6 +39,7 @@ function getTenantStatusVariant(
 }
 
 export const Route = createFileRoute("/tenant/$tenantId/")({
+  head: () => buildHeadFromKey("web:tenant:detail"),
   component: TenantDashboardPage,
 });
 

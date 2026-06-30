@@ -15,6 +15,7 @@ import { CalendarDaysIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { z } from "zod";
 
 import { SessionStatusBadge } from "@/components/session-status-badge";
+import { buildHeadFromKey } from "../../__root";
 import { orpc } from "@/utils/orpc";
 
 const searchSchema = z.object({
@@ -22,6 +23,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/admin/sessions/")({
+  head: () => buildHeadFromKey("web:admin:sessions:index"),
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context, deps }) => {

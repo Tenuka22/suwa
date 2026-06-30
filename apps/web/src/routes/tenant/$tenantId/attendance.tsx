@@ -55,6 +55,7 @@ import {
   useLogAttendanceEvent,
   useUpdateAttendanceEvent,
 } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../__root";
 
 const EVENT_TYPES = [
   "CHECKED_IN",
@@ -81,6 +82,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 const MINUTES = ["00", "30"];
 
 export const Route = createFileRoute("/tenant/$tenantId/attendance")({
+  head: () => buildHeadFromKey("web:tenant:attendance"),
   component: TenantAttendancePage,
 });
 

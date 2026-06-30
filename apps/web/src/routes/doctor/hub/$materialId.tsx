@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@suwa/ui/components/dropdown-menu";
 import { Separator } from "@suwa/ui/components/separator";
+import { buildHeadFromKey } from "../../__root";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import {

@@ -21,6 +21,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useCreateTenant } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../__root";
 
 // Hospital services enum
 const HOSPITAL_SERVICES = [
@@ -57,6 +58,7 @@ interface PlaceData {
 }
 
 export const Route = createFileRoute("/tenant/create")({
+  head: () => buildHeadFromKey("web:tenant:create"),
   component: TenantCreatePage,
 });
 

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import { ArrowLeft, Film, Search } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
@@ -84,7 +85,7 @@ export default function MaterialsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:materials:index") }} />
 
       <View className="flex-1 gap-lg px-lg pt-16">
         <View className="flex-row items-center justify-between">

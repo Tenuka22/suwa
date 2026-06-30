@@ -30,8 +30,10 @@ import { BuildingIcon } from "lucide-react";
 
 import { TenantSidebar } from "@/components/tenant-sidebar";
 import { requireAuth } from "@/utils/auth";
+import { buildHeadFromKey } from "./__root";
 
 export const Route = createFileRoute("/tenant")({
+  head: () => buildHeadFromKey("web:tenant:index"),
   beforeLoad: async () => {
     const session = await requireAuth(["tenant-admin"]).catch(() => null);
     return { session };

@@ -18,8 +18,10 @@ import {
 import type { ReactNode } from "react";
 
 import { useListTenants } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../__root";
 
 export const Route = createFileRoute("/tenant/")({
+  head: () => buildHeadFromKey("web:tenant:index"),
   component: TenantListPage,
 });
 

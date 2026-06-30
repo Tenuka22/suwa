@@ -14,12 +14,14 @@ import { ChevronLeft, ChevronRight, UserRoundIcon } from "lucide-react";
 import { z } from "zod";
 
 import { orpc } from "@/utils/orpc";
+import { buildHeadFromKey } from "../../__root";
 
 const searchSchema = z.object({
   page: z.coerce.number().int().positive().catch(1),
 });
 
 export const Route = createFileRoute("/admin/patients/")({
+  head: () => buildHeadFromKey("web:admin:patients:index"),
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: async ({ context, deps }) => {

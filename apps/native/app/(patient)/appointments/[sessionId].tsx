@@ -3,6 +3,7 @@
 import { authClient } from "@/utils/better-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import { ArrowLeft } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -189,7 +190,7 @@ export default function AppointmentSessionDetailScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:appointments:detail") }} />
       <Screen
         contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
         scrollClassName="flex-1 bg-background"

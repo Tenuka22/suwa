@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { buildHeadFromKey } from "../__root";
 import {
   Camera,
   ClipboardIcon,
@@ -36,6 +37,7 @@ import {
 } from "@/utils/privacy";
 
 export const Route = createFileRoute("/admin/session")({
+  head: () => buildHeadFromKey("web:admin:sessions:detail"),
   component: AdminSessionPage,
 });
 

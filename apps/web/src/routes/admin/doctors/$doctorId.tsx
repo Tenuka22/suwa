@@ -42,10 +42,12 @@ import {
   parseApproachSteps,
   parseEducationRows,
 } from "@/utils/doctor/profile-utils";
+import { buildHeadFromKey } from "../../__root";
 import { authClient } from "@/utils/auth";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/admin/doctors/$doctorId")({
+  head: () => buildHeadFromKey("web:admin:doctors:detail"),
   loader: async ({ context, params }) => {
     const input = { doctorId: params.doctorId };
     return context.queryClient.ensureQueryData(

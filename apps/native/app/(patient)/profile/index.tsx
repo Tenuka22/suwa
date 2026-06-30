@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import { AlertTriangle, Key, LogOut, ShieldCheck, UserRound } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -213,7 +214,7 @@ export default function ProfileScreen() {
 
   return (
     <PatientTabScaffold activeTab="profile">
-      <Stack.Screen options={{ animation: "fade", headerShown: false }} />
+      <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:profile") }} />
       <View className="flex-1 gap-xxl bg-background px-lg pt-12 pb-xl">
         <View className="relative overflow-hidden rounded-[32px] bg-primary px-xl py-xxl">
           <View className="absolute -top-10 -right-8 h-36 w-36 rounded-full bg-accent/25" />

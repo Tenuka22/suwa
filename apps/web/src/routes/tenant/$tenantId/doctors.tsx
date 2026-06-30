@@ -19,10 +19,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { UserPlusIcon } from "lucide-react";
 
 import { useListTenantAffiliations } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../__root";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export const Route = createFileRoute("/tenant/$tenantId/doctors")({
+  head: () => buildHeadFromKey("web:tenant:doctors"),
   component: TenantDoctorsPage,
 });
 

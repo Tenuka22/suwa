@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DISPLAY_NAME_SPACE } from "@suwa/app-info";
+import { APP_DISPLAY_NAME_SPACE, getScreenTitle } from "@suwa/app-info";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -459,7 +459,7 @@ export default function BookingScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:doctors:booking") }} />
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}

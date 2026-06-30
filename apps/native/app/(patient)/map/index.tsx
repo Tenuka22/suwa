@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
+import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
   Building2,
@@ -138,7 +139,7 @@ export default function MapScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:map") }} />
 
       <MapComponent
         filteredHospitals={allHospitals}

@@ -49,6 +49,7 @@ import {
   useUpdateAffiliationWindows,
 } from "@/hooks/queries/tenant";
 import { notify } from "@/lib/notify";
+import { buildHeadFromKey } from "../__root";
 import { orpc } from "@/utils/orpc";
 
 const DAYS = [
@@ -84,6 +85,7 @@ const getHoursForSlot = (slot: AvailabilitySlot) =>
   (timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime)) / 60;
 
 export const Route = createFileRoute("/doctor/availability")({
+  head: () => buildHeadFromKey("web:doctor:availability"),
   loaderDeps: () => ({}),
   loader: async ({ context }) => {
     const [stats, availability] = await Promise.all([

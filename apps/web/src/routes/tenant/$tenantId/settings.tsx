@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useGetTenant, useUpdateTenant } from "@/hooks/queries/tenant";
+import { buildHeadFromKey } from "../../__root";
 
 const HOSPITAL_SERVICES = [
   "EMERGENCY",
@@ -37,6 +38,7 @@ const HOSPITAL_SERVICES = [
 ] as const;
 
 export const Route = createFileRoute("/tenant/$tenantId/settings")({
+  head: () => buildHeadFromKey("web:tenant:settings"),
   component: TenantSettingsPage,
 });
 

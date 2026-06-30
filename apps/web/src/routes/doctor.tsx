@@ -32,9 +32,11 @@ import { Button } from "@suwa/ui/components/button";
 
 import { DoctorSidebar } from "@/components/doctor-sidebar";
 import { requireAuth } from "@/utils/auth";
+import { buildHeadFromKey } from "./__root";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/doctor")({
+  head: () => buildHeadFromKey("web:doctor:index"),
   beforeLoad: async ({ context, location }) => {
     const session = await requireAuth(["doctor", "pending-doctor"]).catch(() => null);
     if (!session) return { session: null };

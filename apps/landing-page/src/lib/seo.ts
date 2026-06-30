@@ -1,4 +1,7 @@
-export const SITE_NAME = "Suwa";
+import { APP_DISPLAY_NAME, getWebMetaOutput } from "@suwa/app-info";
+import type { LandingRouteKey } from "@suwa/app-info";
+
+export const SITE_NAME = APP_DISPLAY_NAME;
 
 export const DEFAULT_SITE_URL = "https://app.suwa.life";
 
@@ -25,35 +28,49 @@ export function absoluteUrl(path: string, siteUrl?: string): string {
   return new URL(path, resolveSiteUrl(siteUrl)).toString();
 }
 
-export function createSeoHead({
-  siteUrl,
-  path,
-  title,
-  description,
-}: Readonly<{
-  siteUrl?: string;
-  path: string;
-  title: string;
-  description: string;
-}>) {
-  const url = absoluteUrl(path, siteUrl);
-  const image = absoluteUrl("/logo.png", siteUrl);
+const LANDING_SITE_URL = "https://suwa.life";
 
-  return {
-    links: [{ rel: "canonical", href: url }],
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { name: "robots", content: "index,follow" },
-      { property: "og:type", content: "website" },
-      { property: "og:site_name", content: SITE_NAME },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:url", content: url },
-      { property: "og:image", content: image },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-    ],
-  };
+export function createSeoHeadFromRegistry(
+  key: LandingRouteKey,
+  overrides?: { siteUrl?: string }
+) {
+  const { tags } = getWebMetaOutput(key);
+  const resolvedUrl = overrides?.siteUrl ?? LANDING_SITE_URL;
+  const baseUrl = absoluteUrl("/", resolvedUrl);
+
+  const meta: Record<string, string>[] = [];
+  const links: Record<string, string>[] = [{ rel: "canonical", href: baseUrl }];
+
+  for (const tag of tags) {
+    if (tag.charset || tag.name === "viewport") continue;
+    if (tag.rel === "canonical") continue;
+
+    if (tag.rel) {
+      const link: Record<string, string> = { rel: tag.rel };
+      if (tag.href) link.href = tag.href;
+      if (tag.hreflang) link.hreflang = tag.hreflang;
+      links.push(link);
+      continue;
+    }
+
+    if (tag.property === "og:url") {
+      meta.push({ property: "og:url", content: baseUrl });
+      continue;
+    }
+
+    if (tag.property === "og:image") {
+      meta.push({ property: "og:image", content: absoluteUrl("/logo.png", resolvedUrl) });
+      continue;
+    }
+
+    const m: Record<string, string> = {};
+    if (tag.name) m.name = tag.name;
+    if (tag.property) m.property = tag.property;
+    if (tag.content) m.content = tag.content;
+    if (tag["http-equiv"]) m.httpEquiv = tag["http-equiv"];
+    if (tag.itemprop) m.itemProp = tag.itemprop;
+    meta.push(m);
+  }
+
+  return { meta, links };
 }

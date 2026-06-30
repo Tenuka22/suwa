@@ -15,6 +15,7 @@ import {
 } from "@suwa/ui/components/select";
 import { Skeleton } from "@suwa/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@suwa/ui/components/tabs";
+import { buildHeadFromKey } from "../__root";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   FilmIcon,

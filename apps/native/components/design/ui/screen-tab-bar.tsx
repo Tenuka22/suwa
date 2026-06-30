@@ -41,7 +41,7 @@ export function ScreenTabBar({ children, tabs }: ScreenTabBarProps) {
               <Pressable
                 accessibilityRole="tab"
                 accessibilityState={{ selected: tab.active }}
-                className={`min-h-14 min-w-14 items-center justify-center gap-0.5 rounded-xl px-3 py-1 ${tab.active ? "bg-primary/40" : ""}`}
+                className={`size-16 items-center justify-center gap-0.5 rounded-xl px-3 py-1 ${tab.active ? "bg-primary/40" : ""}`}
                 disabled={tab.active}
                 hitSlop={8}
                 key={tab.label}
