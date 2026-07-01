@@ -49,6 +49,21 @@ const faceVideosKv = await KVNamespace("face-videos");
 
 const aiBinding = Ai({ binding: "AI" });
 
+const seedAssetsDir = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../apps/server/src/seed-assets"
+);
+const seedFileServer = Bun.serve({
+  port: 0,
+  fetch(req) {
+    const url = new URL(req.url);
+    const filePath = join(seedAssetsDir, url.pathname.replace(/^\//, ""));
+    const f = Bun.file(filePath);
+    return new Response(f);
+  },
+});
+const SEED_FILE_SERVER_URL = `http://localhost:${seedFileServer.port}`;
+
 export const server = await Worker("server", {
   cwd: "../../apps/server",
   entrypoint: "src/index.ts",
@@ -69,6 +84,7 @@ export const server = await Worker("server", {
       dirname(fileURLToPath(import.meta.url)),
       "../../apps/server/src/seed-assets"
     ),
+    SEED_FILE_SERVER_URL,
     CHAT_MESSAGES_KV: chatMessagesKv,
     DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,

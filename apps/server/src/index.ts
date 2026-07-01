@@ -115,21 +115,28 @@ app.use("/*", async (c, next) => {
 
 app.get("/seed", async (c) => {
   try {
-    const { readFile } = await import("node:fs/promises");
-    const { join } = await import("node:path");
-
     const env = c.env as {
       AI: Ai;
       DOCTOR_MATERIALS_KV: KVNamespace;
       CHAT_MESSAGES_KV: KVNamespace;
       MODEL_FEATURES_KV: KVNamespace;
       SEED_ASSETS_DIR: string;
+      SEED_FILE_SERVER_URL?: string;
     };
 
-    const seedAssetsDir = env.SEED_ASSETS_DIR;
     const readAsset = async (filename: string) => {
+      if (env.SEED_FILE_SERVER_URL) {
+        try {
+          const res = await fetch(`${env.SEED_FILE_SERVER_URL}/${filename}`);
+          if (res.ok) return res.arrayBuffer();
+        } catch {
+          /* fall through */
+        }
+      }
       try {
-        const buf = await readFile(join(seedAssetsDir, filename));
+        const { readFile } = await import("node:fs/promises");
+        const { join } = await import("node:path");
+        const buf = await readFile(join(env.SEED_ASSETS_DIR, filename));
         return buf.buffer.slice(
           buf.byteOffset,
           buf.byteOffset + buf.byteLength

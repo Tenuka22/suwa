@@ -1,5 +1,5 @@
-import type { createDb } from "@suwa/db";
 import {
+  accounts,
   clinicAttendance,
   clinics,
   conversations,
@@ -19,179 +19,123 @@ import {
   doctorWeeklyAvailability,
   hospitalAttendanceEvents,
   hospitalAvailabilityOverrides,
-  hubUploadSessions,
   messages,
+  patientMoods,
   patientProfiles,
   sessionAttendanceEvents,
+  sessionSharedData,
   sessionSnapshots,
   sessionTaskAssignments,
-  stressDownloadAcknowledgments,
-  stressPredictions,
+  sessions,
   tenantAdmins,
   tenantAuditLogs,
   tenantNotifications,
   tenants,
   userSubscriptions,
+  users,
 } from "@suwa/db";
+import { and, inArray, like, or } from "drizzle-orm";
 
-export interface SeedManifest {
-  doctorIds: string[];
-  patientIds: string[];
-  seededAt: string;
-}
+import { seedIds } from "./ids";
 
-const MANIFEST_KEY = "seed:manifest";
-
-export async function saveManifest(
-  kv: KVNamespace,
-  doctorIds: string[],
-  patientIds: string[]
-): Promise<void> {
-  const manifest: SeedManifest = {
-    seededAt: new Date().toISOString(),
-    doctorIds,
-    patientIds,
+type DbWithDelete = {
+  delete: (table: any) => {
+    where: (condition: any) => unknown;
   };
-  await kv.put(MANIFEST_KEY, JSON.stringify(manifest));
-}
+};
 
-export async function loadManifest(
-  kv: KVNamespace
-): Promise<SeedManifest | null> {
-  const raw = await kv.get(MANIFEST_KEY);
-  if (!raw) {
-    return null;
-  }
-  return JSON.parse(raw) as SeedManifest;
-}
+const whereIn = (column: unknown, values: readonly string[]) =>
+  inArray(column as never, values as never[]);
 
-export async function deleteManifest(kv: KVNamespace): Promise<void> {
-  await kv.delete(MANIFEST_KEY);
-}
+const whereLike = (column: unknown, value: string) =>
+  like(column as never, value);
 
-async function listKvKeys(kv: KVNamespace, prefix: string): Promise<string[]> {
-  const keys: string[] = [];
-  let cursor: string | undefined;
-  while (true) {
-    const page = await kv.list<unknown>({ prefix, cursor });
-    keys.push(...page.keys.map((k) => k.name));
-    if ((page as any).list_complete) {
-      break;
+const whereOr = (...conditions: unknown[]) => or(...(conditions as never[]));
+
+const whereAnd = (...conditions: unknown[]) => and(...(conditions as never[]));
+
+export async function unseedData(db: DbWithDelete, _doctorMaterialsKv?: KVNamespace) {
+  const doctorIds = seedIds.doctorIds;
+  const tenantIds = seedIds.tenantIds;
+  const userIds = seedIds.userIds;
+
+  if (_doctorMaterialsKv) {
+    for (const id of doctorIds) {
+      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-portrait.jpg`);
+      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-portrait.svg`);
+      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-qualification.svg`);
+      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-intro-video.mp4`);
     }
-    cursor = (page as any).cursor as string;
-  }
-  return keys;
-}
 
-async function deleteKvPrefix(
-  kv: KVNamespace,
-  prefix: string
-): Promise<number> {
-  const keys = await listKvKeys(kv, prefix);
-  for (const key of keys) {
-    await kv.delete(key);
-  }
-  return keys.length;
-}
-
-interface UnseedResult {
-  dbRecords: Record<string, number>;
-  kvFilesDeleted: number;
-  kvManifestDeleted: boolean;
-}
-
-export async function unseedData(
-  db: ReturnType<typeof createDb>,
-  kv: KVNamespace
-): Promise<UnseedResult> {
-  const manifest = await loadManifest(kv);
-
-  // ── KV file deletion ────────────────────────────────────────────────
-  let kvFilesDeleted = 0;
-  if (manifest?.doctorIds?.length) {
-    for (const doctorId of manifest.doctorIds) {
-      kvFilesDeleted += await deleteKvPrefix(kv, `doctor-files/${doctorId}/`);
-      kvFilesDeleted += await deleteKvPrefix(kv, `hub-uploads/${doctorId}/`);
-    }
-    await kv.delete("seed:sample-video").catch(() => {});
-    await kv.delete("seed:sample-audio").catch(() => {});
-    await kv.delete("seed:sample-thumbnail").catch(() => {});
   }
 
-  let kvManifestDeleted = false;
-  if (manifest) {
-    await deleteManifest(kv);
-    kvManifestDeleted = true;
-  }
+  await db.delete(sessionTaskAssignments).where(whereIn(sessionTaskAssignments.doctorId, doctorIds));
+  await db.delete(sessionAttendanceEvents).where(whereLike(sessionAttendanceEvents.sessionId, "seed-%"));
+  await db.delete(sessionSnapshots).where(whereLike(sessionSnapshots.sessionId, "seed-%"));
+  await db.delete(sessionSharedData).where(whereLike(sessionSharedData.sessionId, "seed-%"));
+  await db.delete(doctorSessions).where(whereIn(doctorSessions.doctorId, doctorIds));
 
-  // ── DB deletion (reverse dependency order) ──────────────────────────
-  const counts: Record<string, number> = {};
+  await db.delete(messages).where(whereLike(messages.id, "seed-%"));
+  await db.delete(conversations).where(whereLike(conversations.id, "seed-%"));
 
-  counts.messages = await deleteAll(db, messages);
-  counts.conversations = await deleteAll(db, conversations);
-
-  counts.sessionTaskAssignments = await deleteAll(db, sessionTaskAssignments);
-  counts.sessionAttendanceEvents = await deleteAll(db, sessionAttendanceEvents);
-  counts.sessionSnapshots = await deleteAll(db, sessionSnapshots);
-  counts.doctorSessions = await deleteAll(db, doctorSessions);
-
-  counts.hubUploadSessions = await deleteAll(db, hubUploadSessions);
-  counts.doctorHubMaterials = await deleteAll(db, doctorHubMaterials);
-  counts.doctorHubChannels = await deleteAll(db, doctorHubChannels);
-  counts.doctorPlaylists = await deleteAll(db, doctorPlaylists);
-
-  counts.clinicAttendance = await deleteAll(db, clinicAttendance);
-  counts.clinics = await deleteAll(db, clinics);
-  counts.tenantAuditLogs = await deleteAll(db, tenantAuditLogs);
-  counts.tenantNotifications = await deleteAll(db, tenantNotifications);
-  counts.hospitalAvailabilityOverrides = await deleteAll(
-    db,
-    hospitalAvailabilityOverrides
+  await db.delete(clinicAttendance).where(whereIn(clinicAttendance.doctorId, doctorIds));
+  await db.delete(hospitalAttendanceEvents).where(
+    whereOr(
+      whereIn(hospitalAttendanceEvents.doctorId, doctorIds),
+      whereIn(hospitalAttendanceEvents.tenantId, tenantIds)
+    )
   );
-  counts.hospitalAttendanceEvents = await deleteAll(
-    db,
-    hospitalAttendanceEvents
+  await db.delete(hospitalAvailabilityOverrides).where(
+    whereOr(
+      whereIn(hospitalAvailabilityOverrides.doctorId, doctorIds),
+      whereIn(hospitalAvailabilityOverrides.tenantId, tenantIds)
+    )
   );
-  counts.doctorHospitalInvitations = await deleteAll(
-    db,
-    doctorHospitalInvitations
+  await db.delete(doctorHospitalInvitations).where(
+    whereOr(
+      whereIn(doctorHospitalInvitations.doctorId, doctorIds),
+      whereIn(doctorHospitalInvitations.tenantId, tenantIds)
+    )
   );
-  counts.doctorHospitalAffiliations = await deleteAll(
-    db,
-    doctorHospitalAffiliations
-  );
-  counts.tenantAdmins = await deleteAll(db, tenantAdmins);
-  counts.tenants = await deleteAll(db, tenants);
-
-  counts.doctorCashoutRequests = await deleteAll(db, doctorCashoutRequests);
-  counts.userSubscriptions = await deleteAll(db, userSubscriptions);
-
-  counts.doctorPlans = await deleteAll(db, doctorPlans);
-  counts.doctorWeeklyAvailability = await deleteAll(
-    db,
-    doctorWeeklyAvailability
-  );
-  counts.doctorScheduleEntries = await deleteAll(db, doctorScheduleEntries);
-  counts.doctorEducationEntries = await deleteAll(db, doctorEducationEntries);
-  counts.doctorFiles = await deleteAll(db, doctorFiles);
-  counts.doctorCredits = await deleteAll(db, doctorCredits);
-
-  counts.stressPredictions = await deleteAll(db, stressPredictions);
-  counts.stressDownloadAcknowledgments = await deleteAll(
-    db,
-    stressDownloadAcknowledgments
+  await db.delete(doctorHospitalAffiliations).where(
+    whereOr(
+      whereIn(doctorHospitalAffiliations.doctorId, doctorIds),
+      whereIn(doctorHospitalAffiliations.tenantId, tenantIds)
+    )
   );
 
-  counts.doctorProfiles = await deleteAll(db, doctorProfiles);
-  counts.patientProfiles = await deleteAll(db, patientProfiles);
+  await db.delete(doctorHubMaterials).where(whereIn(doctorHubMaterials.doctorId, doctorIds));
+  await db.delete(doctorPlaylists).where(whereIn(doctorPlaylists.doctorId, doctorIds));
+  await db.delete(doctorHubChannels).where(whereIn(doctorHubChannels.doctorId, doctorIds));
+  await db.delete(doctorCashoutRequests).where(whereIn(doctorCashoutRequests.doctorId, doctorIds));
+  await db.delete(doctorCredits).where(whereIn(doctorCredits.doctorId, doctorIds));
+  await db.delete(doctorPlans).where(whereIn(doctorPlans.doctorId, doctorIds));
+  await db.delete(doctorWeeklyAvailability).where(whereIn(doctorWeeklyAvailability.doctorId, doctorIds));
+  await db.delete(doctorScheduleEntries).where(whereIn(doctorScheduleEntries.doctorId, doctorIds));
+  await db.delete(doctorEducationEntries).where(whereIn(doctorEducationEntries.doctorId, doctorIds));
+  await db.delete(doctorFiles).where(whereIn(doctorFiles.doctorId, doctorIds));
+  await db.delete(doctorProfiles).where(whereIn(doctorProfiles.userId, doctorIds));
 
-  return { kvFilesDeleted, kvManifestDeleted, dbRecords: counts };
-}
+  await db.delete(patientMoods).where(whereLike(patientMoods.userId, "seed-patient-%"));
+  await db.delete(patientProfiles).where(whereLike(patientProfiles.userId, "seed-patient-%"));
+  await db.delete(userSubscriptions).where(whereIn(userSubscriptions.userId, userIds));
+  await db.delete(accounts).where(whereIn(accounts.userId, userIds));
+  await db.delete(sessions).where(whereIn(sessions.userId, userIds));
 
-async function deleteAll(
-  db: ReturnType<typeof createDb>,
-  table: any
-): Promise<number> {
-  const result = await db.delete(table).run();
-  return (result as { meta?: { changes?: number } })?.meta?.changes ?? 0;
+  await db.delete(tenantNotifications).where(
+    whereOr(whereIn(tenantNotifications.userId, userIds), whereLike(tenantNotifications.entityId, "seed-%"))
+  );
+  await db.delete(tenantAuditLogs).where(whereIn(tenantAuditLogs.tenantId, tenantIds));
+  await db.delete(tenantAdmins).where(
+    whereAnd(whereIn(tenantAdmins.tenantId, tenantIds), whereIn(tenantAdmins.userId, userIds))
+  );
+  await db.delete(clinics).where(whereIn(clinics.tenantId, tenantIds));
+  await db.delete(tenants).where(whereIn(tenants.id, tenantIds));
+  await db.delete(users).where(whereIn(users.id, userIds));
+
+  return {
+    doctors: doctorIds.length,
+    tenants: tenantIds.length,
+    users: userIds.length,
+  };
 }
