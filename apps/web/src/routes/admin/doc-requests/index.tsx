@@ -194,18 +194,24 @@ function AdminDocRequestsRoute() {
                       <Button
                         disabled={approveDoctor.isPending}
                         onClick={() => {
-                          approveDoctor.mutate({ userId: doctor.userId } as any);
-                          void Promise.all([
-                            queryClient.invalidateQueries({
-                              queryKey: orpc.pendingDoctors.queryKey({
-                                input: {
-                                  page: search.page,
-                                  query: search.query,
-                                },
-                              }),
-                            }),
-                            router.invalidate(),
-                          ]);
+                          approveDoctor.mutate(
+                            { userId: doctor.userId } as any,
+                            {
+                              onSuccess: () => {
+                                void Promise.all([
+                                  queryClient.invalidateQueries({
+                                    queryKey: orpc.pendingDoctors.queryKey({
+                                      input: {
+                                        page: search.page,
+                                        query: search.query,
+                                      },
+                                    }),
+                                  }),
+                                  router.invalidate(),
+                                ]);
+                              },
+                            }
+                          );
                         }}
                         size="sm"
                       >

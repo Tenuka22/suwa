@@ -11,9 +11,10 @@ export interface AuthContext {
     token: string;
     createdAt: Date;
     updatedAt: Date;
-    ipAddress?: string;
-    userAgent?: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
     userId: string;
+    impersonatedBy?: string | null;
   } | null;
   user: {
     id: string;
@@ -21,8 +22,10 @@ export interface AuthContext {
     name: string;
     image?: string | null;
     emailVerified: boolean;
-    role: string;
-    banned: boolean | null;
+    role?: string | null;
+    banned?: boolean | null;
+    banReason?: string | null;
+    banExpires?: Date | null;
   } | null;
 }
 
@@ -65,3 +68,7 @@ export async function createContext({
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
+
+// Temporary alias for migration from Clerk to Better Auth
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type ClerkRequestContext = Context;

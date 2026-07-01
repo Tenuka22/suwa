@@ -1,4 +1,4 @@
-import { doctorPlans, doctorProfiles } from "@suwa/db";
+import { doctorPlans, doctorProfiles, users } from "@suwa/db";
 import {
   BASIC_PLAN_DURATION_MINUTES,
   BASIC_PLAN_FEATURES,
@@ -32,6 +32,11 @@ export const adminApproveDoctorRoute = protectedProcedure
         updatedAt: now,
       })
       .where(eq(doctorProfiles.userId, input.userId));
+
+    await context.db
+      .update(users)
+      .set({ role: "doctor" })
+      .where(eq(users.id, input.userId));
 
     const [existing] = await context.db
       .select()

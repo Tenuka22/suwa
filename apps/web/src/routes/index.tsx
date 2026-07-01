@@ -3,6 +3,7 @@ import { APP_DISPLAY_NAME } from "@suwa/app-info";
 import { Badge } from "@suwa/ui/components/badge";
 import { Button, buttonVariants } from "@suwa/ui/components/button";
 import { Card, CardContent } from "@suwa/ui/components/card";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRightIcon,
@@ -14,6 +15,7 @@ import {
 import { useState } from "react";
 
 import { authClient } from "@/utils/auth";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/")({
   head: () => buildHeadFromKey("web:index"),
@@ -30,8 +32,21 @@ function HomeRoute() {
   const name = user?.name ?? user?.email;
   const role = (user as { role?: string } | undefined)?.role;
   const signedIn = Boolean(session);
+  const shouldCheckDoctorProfile =
+    signedIn && (role === "doctor" || role === "pending-doctor");
+  const doctorProfileQueryOptions: any = orpc.doctorProfile.queryOptions();
+  const { data: doctorProfileData } = useQuery<{
+    profile: { permanent: boolean } | null;
+  }>({
+    ...doctorProfileQueryOptions,
+    enabled: shouldCheckDoctorProfile,
+  });
+  const effectiveRole =
+    shouldCheckDoctorProfile && doctorProfileData?.profile?.permanent
+      ? "doctor"
+      : role;
   const firstName = getFirstName(name);
-  const roleDetails = getRoleDetails(role, signedIn, firstName);
+  const roleDetails = getRoleDetails(effectiveRole, signedIn, firstName);
 
   const handleSignOut = async () => {
     setSignOutError("");
@@ -75,7 +90,7 @@ function HomeRoute() {
               aria-label="Workspace navigation"
               className="hidden items-center gap-1 md:flex"
             >
-              {role === "doctor" || role === "pending-doctor" ? (
+              {effectiveRole === "doctor" || effectiveRole === "pending-doctor" ? (
                 <Link
                   className="rounded-full px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                   search={{ page: 1 }}
@@ -84,7 +99,7 @@ function HomeRoute() {
                   Doctor
                 </Link>
               ) : null}
-              {role === "tenant-admin" ? (
+              {effectiveRole === "tenant-admin" ? (
                 <Link
                   className="rounded-full px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                   to="/tenant"
@@ -92,7 +107,7 @@ function HomeRoute() {
                   Tenant
                 </Link>
               ) : null}
-              {role === "admin" ? (
+              {effectiveRole === "admin" ? (
                 <Link
                   className="rounded-full px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                   search={{ page: 1, query: "" }}
@@ -113,7 +128,7 @@ function HomeRoute() {
                   </p>
                   -
                   <p className="text-muted-foreground text-xs capitalize">
-                    {formatRole(role)}
+                    {formatRole(effectiveRole)}
                   </p>
                 </div>
                 <Button
@@ -186,7 +201,7 @@ function HomeRoute() {
               <div className="flex flex-wrap gap-3">
                 <PrimaryGatewayAction
                   isPending={isPending}
-                  role={role}
+                  role={effectiveRole}
                   signedIn={signedIn}
                 />
                 {signedIn ? (
@@ -241,7 +256,7 @@ function HomeRoute() {
                   <div className="mt-7 grid gap-3">
                     <QuickAccessLinks
                       isPending={isPending}
-                      role={role}
+                      role={effectiveRole}
                       signedIn={signedIn}
                     />
                   </div>
