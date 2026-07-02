@@ -20,8 +20,8 @@ import {
   Sparkles,
 } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
-import { Image, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -38,6 +38,7 @@ import { Card } from "@/components/design/ui/card";
 import { Input } from "@/components/design/ui/input";
 import { Reveal } from "@/components/design/ui/reveal";
 import { Skeleton } from "@/components/design/ui/skeleton";
+import { ToggleGroup } from "@/components/design/ui/toggle-group";
 import { showToast, ToastContainer } from "@/components/design/ui/toast";
 import { orpc } from "@/utils/orpc";
 import { useMaterialThumbnail } from "@/utils/material-thumbnail";
@@ -50,6 +51,13 @@ const moodStops = [
   { icon: "emoticon-happy-outline", label: "Good", mood: "happy", intensity: 4 },
   { icon: "emoticon-excited-outline", label: "Great", mood: "happy", intensity: 5 },
 ] as const;
+
+type MoodIntensity = (typeof moodStops)[number]["intensity"];
+
+const moodItems = moodStops.map(({ intensity, label }) => ({
+  label,
+  value: intensity,
+}));
 
 const searchPrompts = [
   "Tell us what you are feeling",
@@ -73,7 +81,7 @@ function getGreeting() {
   return "Good evening";
 }
 
-function MoodSlider({
+function MoodButtons({
   value,
   onChange,
   onCommit,
@@ -84,32 +92,6 @@ function MoodSlider({
 }) {
   const activeIndex = Math.max(0, Math.min(moodStops.length - 1, value - 1));
   const active = moodStops[activeIndex];
-  const [trackWidth, setTrackWidth] = useState(0);
-  const lastIndexRef = useRef(activeIndex);
-
-  useEffect(() => {
-    lastIndexRef.current = activeIndex;
-  }, [activeIndex]);
-
-  const setFromX = (x: number) => {
-    if (!trackWidth) {
-      return;
-    }
-    const ratio = Math.max(0, Math.min(1, x / trackWidth));
-    const nextIndex = Math.round(ratio * (moodStops.length - 1));
-    lastIndexRef.current = nextIndex;
-    onChange(nextIndex + 1);
-  };
-
-  const responder = PanResponder.create({
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, gestureState) => {
-      setFromX(gestureState.moveX);
-    },
-    onPanResponderRelease: () => {
-      onCommit(moodStops[lastIndexRef.current] ?? active);
-    },
-  });
 
   return (
     <View className="gap-md rounded-[28px] border border-border bg-background-elevated px-xl py-lg shadow-sm">
@@ -119,51 +101,28 @@ function MoodSlider({
             How are you feeling?
           </Text>
           <Text selectable={false} className="font-sans text-caption text-foreground-muted">
-            Slide to choose your mood for today
+            Tap a mood to choose your check-in
           </Text>
         </View>
         <MaterialCommunityIcons color="#315b4d" name={active.icon} size={30} />
       </View>
-      <View
-        {...responder.panHandlers}
-        className="gap-sm py-md"
-        onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
-      >
-        <View className="relative h-3 rounded-full bg-muted">
-          <View
-            className="h-3 rounded-full bg-primary"
-            style={{ width: `${(activeIndex / (moodStops.length - 1)) * 100}%` }}
-          />
-          <View
-            className="absolute top-[-7px] h-6 w-6 rounded-full border-2 border-background-elevated bg-primary shadow-sm"
-            style={{
-              left: `${(activeIndex / (moodStops.length - 1)) * 100}%`,
-              transform: [{ translateX: -12 }],
-            }}
-          />
-        </View>
-        <View className="flex-row justify-between pt-2">
-          {moodStops.map((stop, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <Pressable
-                key={stop.label}
-                onPress={() => {
-                  onChange(index + 1);
-                  onCommit(stop);
-                }}
-                className="items-center"
-              >
-                <MaterialCommunityIcons
-                  color={isActive ? "#315b4d" : "#8e9a94"}
-                  name={stop.icon}
-                  size={26}
-                />
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
+      <ToggleGroup
+        className="w-full"
+        items={moodItems}
+        onValueChange={(selectedIntensity: MoodIntensity) => {
+          const selectedMood = moodStops.find(
+            (stop) => stop.intensity === selectedIntensity
+          );
+
+          if (!selectedMood) {
+            return;
+          }
+
+          onChange(selectedIntensity);
+          onCommit(selectedMood);
+        }}
+        value={value}
+      />
     </View>
   );
 }
@@ -427,7 +386,7 @@ export default function HomeScreen() {
         </Reveal>
 
         <Reveal delay={80}>
-          <MoodSlider
+          <MoodButtons
             onChange={setMood}
             onCommit={(selected) =>
               moodMutation.mutate({

@@ -5,7 +5,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
-  Brain,
+  Calendar,
+  ChevronRight,
   Loader2,
   MapPin,
   Mic,
@@ -17,6 +18,7 @@ import {
   StopCircle,
 } from "lucide-react-native";
 import {
+  type ReactNode,
   type Dispatch,
   type SetStateAction,
   useEffect,
@@ -25,6 +27,8 @@ import {
   useState,
 } from "react";
 import {
+  Animated,
+  Easing,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -44,21 +48,31 @@ interface ChatMessage {
   content: string;
   id: string;
   role: "assistant" | "tool_call" | "user";
-  questionCards?: QuestionCard[];
+  actionCards?: ActionCard[];
   toolName?: string;
 }
 
-interface QuestionCard {
-  answer: string;
+interface ActionCard {
+  description?: string;
+  kind: "appointment" | "availability" | "doctor" | "hospital";
+  params?: Record<string, string>;
+  route: string;
   title: string;
 }
 
 interface StreamData {
   agent?: string;
-  cards?: QuestionCard[];
+  cards?: ActionCard[];
+  id?: string;
   message?: string;
   token?: string;
   tool?: string;
+}
+
+interface ToolCallState {
+  id: string;
+  name: string;
+  status: "done" | "pending";
 }
 
 interface StreamAccumulator {
@@ -67,164 +81,111 @@ interface StreamAccumulator {
 }
 
 const TOOL_LABELS: Record<string, string> = {
+  list_available_doctors: "Finding available doctors",
   search_doctors: "Searching for doctors",
   search_hospitals: "Finding nearby hospitals",
   get_doctor_profile: "Loading doctor profile",
   check_availability: "Checking availability",
-  get_upcoming_sessions: "Looking up your sessions",
-  transfer_to_agent: "Finding the right specialist",
+  get_upcoming_sessions: "Looking up your appointments",
+  transfer_to_agent: "Finding the right care",
 };
 
 function formatToolName(tool: string): string {
   return TOOL_LABELS[tool] ?? tool.replace(/_/g, " ");
 }
 
-function extractQuestionText(content: string): string {
-  const payload = parseQuestionPayload(content);
-  if (payload) {
-    return payload.question;
-  }
+function SpinningLoader() {
+  const rotation = useRef(new Animated.Value(0)).current;
 
-  const trimmed = content.trim();
-  const jsonBlock = trimmed.match(/^```json\s*([\s\S]*?)\s*```$/i);
-  const bracketStart = trimmed.indexOf("[");
-  const prose = jsonBlock
-    ? trimmed.replace(jsonBlock[0], "").trim()
-    : bracketStart >= 0
-      ? trimmed.slice(0, bracketStart).trim()
-      : trimmed;
-  if (prose) {
-    return prose;
-  }
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
 
-  const cards = parseQuestionCards(content);
-  if (cards?.length) {
-    return `Which of these best matches what you need?`;
-  }
+    loop.start();
+    return () => loop.stop();
+  }, [rotation]);
 
-  return "Which option should we use?";
+  return (
+    <Animated.View
+      style={{
+        transform: [
+          {
+            rotate: rotation.interpolate({
+              inputRange: [0, 1],
+              outputRange: ["0deg", "360deg"],
+            }),
+          },
+        ],
+      }}
+    >
+      <Loader2 color="#d78357" size={14} />
+    </Animated.View>
+  );
 }
 
-function parseQuestionPayload(content: string): {
-  answers: QuestionCard[];
-  question: string;
-} | null {
-  const trimmed = content.trim();
-  const jsonBlock = trimmed.match(/^```json\s*([\s\S]*?)\s*```$/i);
-  const candidate = jsonBlock?.[1]?.trim() ?? trimmed;
-
-  try {
-    const parsed = JSON.parse(candidate) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return null;
-    }
-
-    const record = parsed as Record<string, unknown>;
-    const question = typeof record.question === "string" ? record.question.trim() : "";
-    const answers = Array.isArray(record.answers)
-      ? record.answers
-          .map((item) => {
-            if (!item || typeof item !== "object") {
-              return null;
-            }
-            const answerRecord = item as Record<string, unknown>;
-            const title =
-              typeof answerRecord.title === "string"
-                ? answerRecord.title.trim()
-                : "";
-            const answer =
-              typeof answerRecord.answer === "string"
-                ? answerRecord.answer.trim()
-                : "";
-            return title && answer ? { title, answer } : null;
-          })
-          .filter((item): item is QuestionCard => item !== null)
-      : [];
-
-    return question && answers.length === 4 ? { question, answers } : null;
-  } catch {
-    return null;
-  }
+function FinishedDot() {
+  return <View className="h-3.5 w-3.5 rounded-full bg-accent" />;
 }
 
-function parseQuestionCards(content: string): QuestionCard[] | null {
-  const payload = parseQuestionPayload(content);
-  if (payload) {
-    return payload.answers;
+function buildCardHref(card: ActionCard): string {
+  const params = card.params ? new URLSearchParams(card.params).toString() : "";
+  return params ? `${card.route}?${params}` : card.route;
+}
+
+function renderInlineMarkdown(text: string, baseClassName: string) {
+  const parts: ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(regex)) {
+    const index = match.index ?? 0;
+    if (index > lastIndex) {
+      parts.push(text.slice(lastIndex, index));
+    }
+    parts.push(
+      <Text className={`${baseClassName} font-poppins-semibold`} key={`${index}:${match[1]}`}>
+        {match[1]}
+      </Text>
+    );
+    lastIndex = index + match[0].length;
   }
 
-  const trimmed = content.trim();
-  const jsonBlock = trimmed.match(/^```json\s*([\s\S]*?)\s*```$/i);
-  const bracketStart = trimmed.indexOf("[");
-  const bracketEnd = trimmed.lastIndexOf("]");
-  const candidate =
-    jsonBlock?.[1]?.trim() ??
-    (bracketStart >= 0 && bracketEnd > bracketStart
-      ? trimmed.slice(bracketStart, bracketEnd + 1)
-      : trimmed);
-
-  try {
-    const parsed = JSON.parse(candidate) as unknown;
-    if (!Array.isArray(parsed)) {
-      throw new Error("Not an array");
-    }
-
-    const cards = parsed
-      .map((item) => {
-        if (!item || typeof item !== "object") {
-          return null;
-        }
-
-        const record = item as Record<string, unknown>;
-        const title = typeof record.title === "string" ? record.title.trim() : "";
-        const answer =
-          typeof record.answer === "string"
-            ? record.answer.trim()
-            : typeof record.question === "string"
-              ? record.question.trim()
-              : "";
-
-        if (!title || !answer) {
-          return null;
-        }
-
-        return { title, answer } satisfies QuestionCard;
-      })
-      .filter((card): card is QuestionCard => card !== null);
-
-    return cards.length === 4 ? cards : null;
-  } catch {
-    const objectMatches = candidate.match(/\{[\s\S]*?\}/g);
-    if (!objectMatches || objectMatches.length !== 4) {
-      return null;
-    }
-
-    const cards = objectMatches
-      .map((item) => {
-        try {
-          const record = JSON.parse(item) as Record<string, unknown>;
-          const title =
-            typeof record.title === "string" ? record.title.trim() : "";
-          const answer =
-            typeof record.answer === "string"
-              ? record.answer.trim()
-              : typeof record.question === "string"
-                ? record.question.trim()
-                : "";
-
-          if (!title || !answer) {
-            return null;
-          }
-
-          return { title, answer } satisfies QuestionCard;
-        } catch {
-          return null;
-        }
-      })
-      .filter((card): card is QuestionCard => card !== null);
-
-    return cards.length === 4 ? cards : null;
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
   }
+
+  return parts;
+}
+
+function MarkdownMessage({
+  text,
+  className,
+}: {
+  className: string;
+  text: string;
+}) {
+  const lines = text.split(/\r?\n/);
+
+  return (
+    <View className="gap-2">
+      {lines.map((line, lineIndex) => {
+        const bullet = line.match(/^\s*[*-]\s+(.+)$/);
+        const content = bullet ? bullet[1] : line;
+        return (
+          <View className="flex-row items-start gap-2" key={`${lineIndex}:${line}`}>
+            {bullet ? <Text className={`${className} mt-[1px]`}>•</Text> : null}
+            <Text className={className}>{renderInlineMarkdown(content, className)}</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
 }
 
 const SUGGESTED_PROMPTS = [
@@ -234,13 +195,13 @@ const SUGGESTED_PROMPTS = [
     prompt: "Help me find a doctor for frequent headaches",
   },
   {
-    icon: Brain,
-    label: "Understand my stress",
-    prompt: "What can I do to lower my stress today?",
+    icon: Calendar,
+    label: "Check my appointments",
+    prompt: "What appointments do I have coming up?",
   },
   {
     icon: MapPin,
-    label: "Care near me",
+    label: "Find care near me",
     prompt: "Show me trusted care options nearby",
   },
 ] as const;
@@ -262,8 +223,8 @@ function EmptyConversation({
             What can I help you understand?
           </Text>
           <Text className="max-w-72 font-sans text-caption text-primary-foreground/75 leading-relaxed">
-            Ask naturally. Suwa can explain, search for care, and help you find
-            your next step.
+            Ask naturally. Suwa can explain, search for care, and open results
+            as cards you can tap.
           </Text>
         </View>
       </View>
@@ -323,8 +284,7 @@ function applyStreamEvent(
   streamEvent: { data: StreamData; event: string },
   accumulator: StreamAccumulator,
   setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
-  setPendingChoices: Dispatch<SetStateAction<QuestionCard[] | null>>,
-  setToolCalls: Dispatch<SetStateAction<string[]>>
+  setToolCalls: Dispatch<SetStateAction<ToolCallState[]>>
 ) {
   const data = streamEvent.data;
 
@@ -362,21 +322,39 @@ function applyStreamEvent(
     case "message.tool_call": {
       const tool = data.tool as string | undefined;
       if (tool) {
-        setToolCalls((prev) => [...prev, tool]);
+        const id = data.id || crypto.randomUUID();
+        setToolCalls((prev) => [...prev, { id, name: tool, status: "pending" }]);
       }
       break;
     }
-    case "message.question_cards": {
-      const cards = data.cards as QuestionCard[] | undefined;
+    case "message.tool_result": {
+      const tool = data.tool as string | undefined;
+      const id = data.id as string | undefined;
+      if (tool || id) {
+        setToolCalls((prev) =>
+          prev.map((item) =>
+            id
+              ? item.id === id
+                ? { ...item, status: "done" }
+                : item
+              : item.name === tool && item.status === "pending"
+                ? { ...item, status: "done" }
+                : item
+          )
+        );
+      }
+      break;
+    }
+    case "message.cards": {
+      const cards = data.cards as ActionCard[] | undefined;
       if (cards?.length) {
         setMessages((currentMessages) =>
           currentMessages.map((message) =>
             message.id === accumulator.messageId
-              ? { ...message, questionCards: cards }
+              ? { ...message, actionCards: cards }
               : message
           )
         );
-        setPendingChoices(cards);
       }
       break;
     }
@@ -397,14 +375,21 @@ function applyStreamEvent(
 }
 
 function ChatBubble({ item }: { item: ChatMessage }) {
+  const router = useRouter();
   const isUser = item.role === "user";
+  const actionCards = item.actionCards ?? [];
+
+  if (!isUser && !item.content.trim() && actionCards.length === 0) {
+    return null;
+  }
+
   const bubbleClass = isUser
     ? "self-end rounded-br-lg bg-primary"
     : "self-start rounded-bl-lg border border-border/60 bg-background-elevated";
 
   return (
     <Reveal delay={20}>
-      <View className={`mb-lg max-w-[86%] rounded-3xl ${bubbleClass} p-md`}>
+      <View className={`max-w-[86%] rounded-3xl ${bubbleClass} p-md`}>
         {isUser ? null : (
           <View className="flex-row items-center gap-sm">
             <View className="h-7 w-7 items-center justify-center rounded-lg bg-primary-subtle">
@@ -415,11 +400,65 @@ function ChatBubble({ item }: { item: ChatMessage }) {
             </Text>
           </View>
         )}
-        <Text
-          className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
-        >
-          {item.content}
-        </Text>
+        {item.content.trim() ? (
+          isUser ? (
+            <Text
+              className={`font-sans text-body leading-relaxed ${isUser ? "text-primary-foreground" : "text-foreground-secondary"}`}
+            >
+              {item.content}
+            </Text>
+          ) : (
+            <MarkdownMessage
+              className="font-sans text-body leading-relaxed text-foreground-secondary"
+              text={item.content}
+            />
+          )
+        ) : null}
+        {!isUser && actionCards.length ? (
+          <View className="mt-md gap-sm">
+            {actionCards.map((card, index) => {
+              const Icon =
+                card.kind === "hospital"
+                  ? MapPin
+                  : card.kind === "appointment"
+                    ? Calendar
+                    : card.kind === "availability"
+                      ? Sparkles
+                      : Stethoscope;
+              const iconBgColor =
+                card.kind === "hospital" ? "bg-accent-subtle" : "bg-primary-subtle";
+              const iconColor = card.kind === "hospital" ? "#d78357" : "#315b4d";
+
+              return (
+                <Pressable
+                  className="rounded-3xl border border-border/60 bg-background-elevated p-5 shadow-sm"
+                  key={`${card.route}-${card.title}-${card.params?.date ?? index}`}
+                  onPress={() => router.push(buildCardHref(card) as never)}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
+                >
+                  <View className="flex-row items-start gap-4">
+                    <View className={`h-12 w-12 items-center justify-center rounded-2xl ${iconBgColor}`}>
+                      <Icon color={iconColor} size={18} />
+                    </View>
+                    <View className="flex-1 gap-1">
+                      <View className="flex-row items-start justify-between gap-2">
+                        <Text className="flex-1 font-poppins-medium text-foreground text-subtitle leading-snug">
+                          {card.title}
+                        </Text>
+                        <ChevronRight className="text-foreground-muted" size={16} />
+                      </View>
+                      {card.description ? (
+                        <Text className="font-sans text-caption text-foreground-secondary leading-relaxed">
+                          {card.description}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
       </View>
     </Reveal>
   );
@@ -434,10 +473,10 @@ export default function AiChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
-  const [pendingChoices, setPendingChoices] = useState<QuestionCard[] | null>(null);
-  const [toolCalls, setToolCalls] = useState<string[]>([]);
+  const [toolCalls, setToolCalls] = useState<ToolCallState[]>([]);
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const submitLockRef = useRef(false);
   const hasAutoSent = useRef(false);
   const { isListening, isSupported, startListening, stopListening } = useSpeechToText();
 
@@ -447,29 +486,32 @@ export default function AiChatScreen() {
         setActiveSessionId(session.id);
         queryClient.invalidateQueries({ queryKey: ["ai"] });
       },
-    })
-  );
+    }) as never
+  ) as any;
 
   const sendMessage = async (textOverride?: string) => {
     const text = textOverride ?? input.trim();
-    if (!text || streaming) {
+    if (!text || streaming || submitLockRef.current) {
       return;
     }
+    submitLockRef.current = true;
     setInput("");
 
-    let sessionId = activeSessionId;
+    let sessionId: string | null = activeSessionId;
     if (!sessionId) {
       const session = await createMutation.mutateAsync({
         title: text.slice(0, 50),
       });
       sessionId = session.id;
     }
+    if (!sessionId) {
+      return;
+    }
 
     setMessages((currentMessages) => [
       ...currentMessages,
       { content: text, id: crypto.randomUUID(), role: "user" },
     ]);
-    setPendingChoices(null);
     setStreaming(true);
 
     const abortController = new AbortController();
@@ -484,7 +526,7 @@ export default function AiChatScreen() {
 
       for await (const event of iterator) {
         const streamEvent = event as { data: StreamData; event: string };
-        applyStreamEvent(streamEvent, accumulator, setMessages, setPendingChoices, setToolCalls);
+        applyStreamEvent(streamEvent, accumulator, setMessages, setToolCalls);
       }
       queryClient.invalidateQueries({ queryKey: ["ai"] });
     } catch (error: unknown) {
@@ -504,13 +546,8 @@ export default function AiChatScreen() {
       setStreaming(false);
       setToolCalls([]);
       abortRef.current = null;
+      submitLockRef.current = false;
     }
-  };
-
-  const chooseCard = (choice: QuestionCard) => {
-    setPendingChoices(null);
-    setInput("");
-    void sendMessage(choice.answer);
   };
 
   const sendInitialMessage = useEffectEvent((message: string) => {
@@ -529,7 +566,6 @@ export default function AiChatScreen() {
     setMessages([]);
     setActiveSessionId(null);
     setInput("");
-    setPendingChoices(null);
     setToolCalls([]);
   };
 
@@ -578,10 +614,10 @@ export default function AiChatScreen() {
               {toolCalls.length ? (
                 <View className="mb-lg self-start rounded-3xl border border-border/60 bg-background-elevated px-lg py-md">
                   {toolCalls.map((tool) => (
-                    <View className="flex-row items-center gap-sm py-0.5" key={tool}>
-                      <Loader2 className="text-accent" size={14} />
+                    <View className="flex-row items-center gap-sm py-0.5" key={tool.id}>
+                      {tool.status === "pending" ? <SpinningLoader /> : <FinishedDot />}
                       <Text className="font-sans text-micro text-foreground-muted">
-                        {formatToolName(tool)}…
+                        {formatToolName(tool.name)}
                       </Text>
                     </View>
                   ))}
@@ -598,68 +634,6 @@ export default function AiChatScreen() {
         renderItem={({ item }) => <ChatBubble item={item} />}
       />
 
-      {pendingChoices?.length ? (
-        <View className="px-lg pb-2">
-          <View className="gap-sm rounded-3xl border border-border/60 bg-background-elevated p-md">
-            <Text className="font-poppins-medium text-micro uppercase tracking-widest text-foreground-muted">
-              Select an answer
-            </Text>
-            <View className="gap-sm">
-              {pendingChoices.map((choice) => (
-                <Pressable
-                  accessibilityRole="button"
-                  className="rounded-2xl border border-border bg-background px-md py-md"
-                  key={choice.title}
-                  onPress={() => chooseCard(choice)}
-                >
-                  <Text className="font-poppins-medium text-caption text-foreground">
-                    {choice.title}
-                  </Text>
-                  <Text className="mt-1 font-sans text-micro text-foreground-muted">
-                    {choice.answer}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        </View>
-      ) : null}
-
-      {/* Hospital suggestion card */}
-      {!pendingChoices && !streaming && messages.length > 0 ? (
-        (() => {
-          const lastMsg = messages.filter((m) => m.role === "assistant").at(-1);
-          const text = lastMsg?.content ?? "";
-          const mentionsHospital =
-            !lastMsg?.questionCards?.length &&
-            /\b(hospital|medical centre|medical center|clinic)\b/i.test(text);
-          if (!mentionsHospital) {
-            return null;
-          }
-          return (
-            <View className="px-lg pb-2">
-              <Pressable
-                className="flex-row items-center gap-md rounded-3xl border border-border/60 bg-background-elevated p-md"
-                onPress={() => router.push("/(patient)/map")}
-              >
-                <View className="h-10 w-10 items-center justify-center rounded-xl bg-accent-subtle">
-                  <MapPin color="#d78357" size={20} />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-poppins-medium text-caption text-foreground">
-                    Find nearby hospitals
-                  </Text>
-                  <Text className="font-sans text-micro text-foreground-muted">
-                    View hospitals on the map
-                  </Text>
-                </View>
-                <Text className="font-serif text-accent text-lg">+</Text>
-              </Pressable>
-            </View>
-          );
-        })()
-      ) : null}
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
@@ -668,9 +642,19 @@ export default function AiChatScreen() {
             <Input
               className="max-h-28 border-0 shadow-none"
               inputContainerClassName={`rounded-3xl border border-border/70 pl-lg pr-xs ${isListening ? "bg-accent/10" : "bg-background"}`}
-              multiline
               onChangeText={setInput}
+              onSubmitEditing={() => {
+                if (input.trim() && !streaming) {
+                  void sendMessage();
+                }
+              }}
+              onKeyPress={({ nativeEvent }) => {
+                if (nativeEvent.key === "Enter" && input.trim() && !streaming) {
+                  void sendMessage();
+                }
+              }}
               placeholder="Ask Suwa anything..."
+              returnKeyType="send"
               rightIcon={
                 <Pressable
                   accessibilityLabel={

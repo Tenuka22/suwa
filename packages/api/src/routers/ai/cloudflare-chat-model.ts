@@ -100,9 +100,19 @@ function parseToolCalls(rawCalls: unknown) {
   return rawCalls.map((tc: Record<string, unknown>) => {
     const fn = tc.function as { name?: string; arguments?: string } | undefined;
     const rawArgs = fn?.arguments ?? (tc.arguments as string) ?? "{}";
+    let args: Record<string, unknown> = {};
+    if (typeof rawArgs === "string") {
+      try {
+        args = JSON.parse(rawArgs) as Record<string, unknown>;
+      } catch {
+        args = {};
+      }
+    } else if (rawArgs && typeof rawArgs === "object") {
+      args = rawArgs as Record<string, unknown>;
+    }
     return {
       name: fn?.name ?? (tc.name as string) ?? "",
-      args: JSON.parse(typeof rawArgs === "string" ? rawArgs : "{}"),
+      args,
       id: (tc.id as string) ?? `call_${Math.random().toString(36).slice(2)}`,
       type: "tool_call" as const,
     };

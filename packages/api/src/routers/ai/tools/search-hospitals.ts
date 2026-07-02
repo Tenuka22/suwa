@@ -12,10 +12,12 @@ export function createSearchHospitalsTool(_context: ClerkRequestContext) {
           name: h.name,
           address: h.address,
           rating: h.rating,
+          reviewCount: h.reviewCount,
           category: h.category,
           phone: h.phone,
           latitude: h.latitude,
           longitude: h.longitude,
+          website: h.website,
         }))
       );
     },

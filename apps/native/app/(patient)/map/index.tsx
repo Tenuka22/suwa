@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
@@ -43,6 +43,10 @@ const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function MapScreen() {
   const router = useRouter();
+  const { mode, search: initialSearch } = useLocalSearchParams<{
+    mode?: string;
+    search?: string;
+  }>();
   const mapRef = useRef<MapView>(null);
   const { location: userLocation, requestLocation } = useUserLocation();
 
@@ -51,11 +55,27 @@ export default function MapScreen() {
   }, []);
 
   // ── Search state ────────────────────────────────────────────────────
-  const [searchMode, setSearchMode] = useState<"hospitals" | "doctors">("hospitals");
-  const [search, setSearch] = useState("");
+  const [searchMode, setSearchMode] = useState<"hospitals" | "doctors">(
+    mode === "doctors" ? "doctors" : "hospitals"
+  );
+  const [search, setSearch] = useState(
+    typeof initialSearch === "string" ? initialSearch : ""
+  );
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isDebouncing, setIsDebouncing] = useState(false);
-  const [listOpen, setListOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(
+    typeof initialSearch === "string" && initialSearch.trim().length > 0
+  );
+
+  useEffect(() => {
+    if (mode === "doctors" || mode === "hospitals") {
+      setSearchMode(mode);
+    }
+    if (typeof initialSearch === "string" && initialSearch.trim()) {
+      setSearch(initialSearch);
+      setListOpen(true);
+    }
+  }, [initialSearch, mode]);
 
   // ── Hospital state ──────────────────────────────────────────────────
   const [selectedHospital, setSelectedHospital] = useState<any>(null);

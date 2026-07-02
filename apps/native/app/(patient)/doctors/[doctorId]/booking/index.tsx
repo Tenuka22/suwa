@@ -292,7 +292,10 @@ export default function BookingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { handleError } = useErrorHandler();
-  const { doctorId } = useLocalSearchParams<{ doctorId?: string }>();
+  const { date, doctorId } = useLocalSearchParams<{
+    date?: string;
+    doctorId?: string;
+  }>();
   const id = Array.isArray(doctorId) ? doctorId[0] : doctorId;
 
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -301,6 +304,18 @@ export default function BookingScreen() {
   const [bookingStep, setBookingStep] = useState<
     "select" | "processing" | "done"
   >("select");
+
+  useEffect(() => {
+    const rawDate = Array.isArray(date) ? date[0] : date;
+    if (!rawDate) {
+      return;
+    }
+
+    const parsed = new Date(rawDate);
+    if (!Number.isNaN(parsed.getTime())) {
+      setSelectedDate(parsed);
+    }
+  }, [date]);
 
   const plansQuery = useQuery(
     orpc.getDoctorPlans.queryOptions({

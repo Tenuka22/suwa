@@ -52,8 +52,16 @@ export const aiRouter = {
         await addMessages(kv, input.sessionId, [userMsg]);
 
         let cleanMessage = "";
+        let lastAgent = existing.lastAgent || "coordinator";
         try {
-          for await (const event of runAgentStream(context, input.message)) {
+          const history = await getMessages(kv, input.sessionId, 16);
+          for await (const event of runAgentStream(
+            context,
+            history.map(({ content, role }) => ({ content, role }))
+          )) {
+            if (event.event === "message.start" && typeof event.data.agent === "string") {
+              lastAgent = event.data.agent;
+            }
             if (event.event === "message.token") {
               cleanMessage += (event.data.token as string) ?? "";
             }
@@ -65,16 +73,18 @@ export const aiRouter = {
           yield { event: "message.error", data: { error: msg } };
         }
 
-        const assistantMsg: ChatMessage = {
-          id: crypto.randomUUID(),
-          sessionId: input.sessionId,
-          role: "assistant",
-          content: cleanMessage,
-          agent: "coordinator",
-          timestamp: Date.now(),
-        };
+        if (cleanMessage.trim()) {
+          const assistantMsg: ChatMessage = {
+            id: crypto.randomUUID(),
+            sessionId: input.sessionId,
+            role: "assistant",
+            content: cleanMessage,
+            agent: lastAgent,
+            timestamp: Date.now(),
+          };
 
-        await addMessages(kv, input.sessionId, [assistantMsg]);
+          await addMessages(kv, input.sessionId, [assistantMsg]);
+        }
       }),
 
     history: protectedProcedure

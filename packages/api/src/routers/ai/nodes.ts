@@ -86,6 +86,7 @@ export function createDbAgentNode(config: AgentConfig) {
   return async (state: GraphState) => {
     const tools = [
       config.tools.searchDoctors,
+      config.tools.listAvailableDoctors,
       config.tools.searchHospitals,
       config.tools.getDoctorProfile,
       config.tools.checkAvailability,

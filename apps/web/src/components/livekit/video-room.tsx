@@ -274,15 +274,16 @@ function VideoRoomContent({
     ...remoteParticipantsArray,
   ];
 
-  const remoteVideoParticipant = remoteParticipantsArray.find((participant) =>
-    participant.videoTrackPublications.size > 0
+  const remoteParticipant = remoteParticipantsArray.find((participant) =>
+    participant.videoTrackPublications.size > 0 ||
+    participant.audioTrackPublications.size > 0
   );
-  const hasRemote = isMock || !!remoteVideoParticipant;
+  const hasRemote = isMock || !!remoteParticipant;
 
   useEffect(() => {
     if (!liveKit.isConnected || isMock) return;
 
-    const currentIdentity = remoteVideoParticipant?.identity;
+    const currentIdentity = remoteParticipant?.identity;
 
     if (currentIdentity) {
       liveKit.attachParticipantTracks(currentIdentity);
@@ -296,7 +297,7 @@ function VideoRoomContent({
   }, [
     liveKit.isConnected,
     isMock,
-    remoteVideoParticipant?.identity,
+    remoteParticipant?.identity,
     liveKit.attachParticipantTracks,
     liveKit.detachParticipantTracks,
   ]);
@@ -357,7 +358,7 @@ function VideoRoomContent({
             <div className="relative flex-1 overflow-hidden">
               <video
                 autoPlay
-                className={`h-full w-full object-contain transition-opacity duration-500 ${
+                className={`h-full w-full object-cover object-center transition-opacity duration-500 ${
                   !isMock && liveKit.isConnected && hasRemote
                     ? "opacity-100"
                     : "hidden opacity-0"
@@ -720,7 +721,6 @@ export function VideoRoomWeb({
     isConnecting: liveKitConnecting,
     connect: liveKitConnect,
     disconnect: liveKitDisconnect,
-    room: liveKitRoom,
   } = liveKit;
   const timing = useSessionTiming(startAt, endAt, role);
   const [tokenData, setTokenData] = useState<{

@@ -107,34 +107,55 @@ export function useLiveKitRoomWeb(options: UseLiveKitRoomWebOptions = {}) {
           options.onDisconnected?.();
         });
 
-        room.on(RoomEvent.ParticipantConnected satisfies RoomEventType, () => {
+        room.on(RoomEvent.ParticipantConnected satisfies RoomEventType, (participant) => {
           setParticipantCount(room.remoteParticipants.size);
+          attachedIdentityRef.current = participant.identity;
+          for (const pub of participant.videoTrackPublications.values()) {
+            if (pub.track?.kind === "video" && videoRef.current) {
+              pub.track.attach(videoRef.current);
+              break;
+            }
+          }
+          for (const pub of participant.audioTrackPublications.values()) {
+            if (pub.track?.kind === "audio" && audioRef.current) {
+              pub.track.attach(audioRef.current);
+              break;
+            }
+          }
         });
 
         room.on(
           RoomEvent.ParticipantDisconnected satisfies RoomEventType,
-          () => {
+          (participant) => {
             setParticipantCount(room.remoteParticipants.size);
+            if (participant.identity === attachedIdentityRef.current) {
+              for (const pub of participant.videoTrackPublications.values()) {
+                pub.track?.detach();
+              }
+              for (const pub of participant.audioTrackPublications.values()) {
+                pub.track?.detach();
+              }
+              attachedIdentityRef.current = null;
+            }
           }
         );
 
         room.on(
           RoomEvent.TrackSubscribed satisfies RoomEventType,
           (_track, _publication, participant) => {
-            if (participant.identity === attachedIdentityRef.current) {
-              const p = room.remoteParticipants.get(participant.identity);
-              if (!p) return;
-              for (const pub of p.videoTrackPublications.values()) {
-                if (pub.track?.kind === "video" && videoRef.current) {
-                  pub.track.attach(videoRef.current);
-                  break;
-                }
+            if (participant.identity !== attachedIdentityRef.current) {
+              return;
+            }
+            for (const pub of participant.videoTrackPublications.values()) {
+              if (pub.track?.kind === "video" && videoRef.current) {
+                pub.track.attach(videoRef.current);
+                break;
               }
-              for (const pub of p.audioTrackPublications.values()) {
-                if (pub.track?.kind === "audio" && audioRef.current) {
-                  pub.track.attach(audioRef.current);
-                  break;
-                }
+            }
+            for (const pub of participant.audioTrackPublications.values()) {
+              if (pub.track?.kind === "audio" && audioRef.current) {
+                pub.track.attach(audioRef.current);
+                break;
               }
             }
           }

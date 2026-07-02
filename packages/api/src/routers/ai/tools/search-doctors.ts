@@ -2,6 +2,7 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import type { ClerkRequestContext } from "../../../context";
 import { searchSimilarDoctors } from "../../chat/helpers/embeddings";
+import { parseJsonStringArray } from "@suwa/db";
 
 const STOP_WORDS = new Set([
   "the",
@@ -128,6 +129,23 @@ const STOP_WORDS = new Set([
   "done",
   "much",
   "many",
+  "doctor",
+  "doctors",
+  "specialist",
+  "specialists",
+  "appointment",
+  "appointments",
+  "hospital",
+  "hospitals",
+  "clinic",
+  "clinics",
+  "care",
+  "near",
+  "nearby",
+  "book",
+  "booking",
+  "available",
+  "availability",
 ]);
 
 const WORD_SPLIT = /[^a-z0-9]+/;
@@ -135,8 +153,8 @@ const WORD_SPLIT = /[^a-z0-9]+/;
 export function createSearchDoctorsTool(context: ClerkRequestContext) {
   return tool(
     async ({ query }: { query: string }) => {
-      const { doctorProfiles } = await import("@suwa/db");
-      const { inArray, or, like } = await import("drizzle-orm");
+      const { doctorProfiles } = (await import("@suwa/db")) as any;
+      const { inArray, or, like } = (await import("drizzle-orm")) as any;
 
       // Try semantic search first — if it fails (AI down, KV down), fall through to LIKE
       try {
@@ -153,7 +171,11 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
                 id: d.userId,
                 name: d.displayName,
                 headline: d.headline,
-                specialties: d.specialties,
+                specialties: parseJsonStringArray(d.specialties),
+                consultationModes: parseJsonStringArray(d.consultationModes),
+                focusAreas: parseJsonStringArray(d.focusAreas),
+                location: d.location,
+                placeName: d.placeName,
               }))
             );
           }
@@ -169,7 +191,11 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
         like(doctorProfiles.headline, `%${query}%`),
         like(doctorProfiles.bio, `%${query}%`),
         like(doctorProfiles.focusAreas, `%${query}%`),
-        like(doctorProfiles.approach, `%${query}%`)
+        like(doctorProfiles.approach, `%${query}%`),
+        like(doctorProfiles.location, `%${query}%`),
+        like(doctorProfiles.placeName, `%${query}%`),
+        like(doctorProfiles.placeAddress, `%${query}%`),
+        like(doctorProfiles.consultationModes, `%${query}%`)
       );
 
       let doctors = await context.db
@@ -193,7 +219,11 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
               like(doctorProfiles.headline, `%${term}%`),
               like(doctorProfiles.bio, `%${term}%`),
               like(doctorProfiles.focusAreas, `%${term}%`),
-              like(doctorProfiles.approach, `%${term}%`)
+              like(doctorProfiles.approach, `%${term}%`),
+              like(doctorProfiles.location, `%${term}%`),
+              like(doctorProfiles.placeName, `%${term}%`),
+              like(doctorProfiles.placeAddress, `%${term}%`),
+              like(doctorProfiles.consultationModes, `%${term}%`)
             )
           );
 
@@ -210,7 +240,11 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
           id: d.userId,
           name: d.displayName,
           headline: d.headline,
-          specialties: d.specialties,
+          specialties: parseJsonStringArray(d.specialties),
+          consultationModes: parseJsonStringArray(d.consultationModes),
+          focusAreas: parseJsonStringArray(d.focusAreas),
+          location: d.location,
+          placeName: d.placeName,
         }))
       );
     },

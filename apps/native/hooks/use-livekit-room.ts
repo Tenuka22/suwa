@@ -96,6 +96,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
       { audioTracks: MediaStreamTrack[]; videoTracks: MediaStreamTrack[] }
     >
   >(new Map());
+  const persistentStreamsRef = useRef<Map<string, MediaStream>>(new Map());
 
   const captureLocalStream = useCallback(
     (mediaStreamTrack: MediaStreamTrack) => {
@@ -132,9 +133,29 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
 
       const allTracks = [...tracks.audioTracks, ...tracks.videoTracks];
       if (allTracks.length > 0) {
-        const stream = new MediaStream(allTracks);
-        registerRemoteStream(identity, stream);
+        let stream = persistentStreamsRef.current.get(identity);
+        if (!stream) {
+          stream = new MediaStream();
+          persistentStreamsRef.current.set(identity, stream);
+          registerRemoteStream(identity, stream);
+        }
+        const existingTracks = new Set(stream.getTracks());
+        const desiredTracks = new Set(allTracks);
+        for (const track of existingTracks) {
+          if (!desiredTracks.has(track)) {
+            stream.removeTrack(track);
+          }
+        }
+        for (const track of desiredTracks) {
+          if (!existingTracks.has(track)) {
+            stream.addTrack(track);
+          }
+        }
       } else {
+        const existing = persistentStreamsRef.current.get(identity);
+        if (existing) {
+          persistentStreamsRef.current.delete(identity);
+        }
         unregisterRemoteStream(identity);
       }
 
@@ -174,9 +195,17 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
             audioTracks.push(pub.track.mediaStreamTrack);
           }
         }
-        if (audioTracks.length > 0 || videoTracks.length > 0) {
-          const stream = new MediaStream([...audioTracks, ...videoTracks]);
-          registerRemoteStream(p.identity, stream);
+        const allTracks = [...audioTracks, ...videoTracks];
+        if (allTracks.length > 0) {
+          let stream = persistentStreamsRef.current.get(p.identity);
+          if (!stream) {
+            stream = new MediaStream();
+            persistentStreamsRef.current.set(p.identity, stream);
+            registerRemoteStream(p.identity, stream);
+          }
+          for (const track of allTracks) {
+            stream.addTrack(track);
+          }
         }
         participantTracksRef.current.set(p.identity, { audioTracks, videoTracks });
         const url =
@@ -264,6 +293,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
 
         room.on(RoomEvent.ParticipantDisconnected, (p) => {
           participantTracksRef.current.delete(p.identity);
+          persistentStreamsRef.current.delete(p.identity);
           unregisterRemoteStream(p.identity);
           setRemoteParticipants((prev) =>
             prev.filter((item) => item.identity !== p.identity)
@@ -347,6 +377,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
 
     clearRegistry();
     participantTracksRef.current.clear();
+    persistentStreamsRef.current.clear();
 
     setIsConnected(false);
     setIsConnecting(false);
@@ -392,6 +423,7 @@ export function useLiveKitRoom(options: UseLiveKitRoomOptions = {}) {
       }
       clearRegistry();
       participantTracksRef.current.clear();
+      persistentStreamsRef.current.clear();
     },
     []
   );

@@ -133,10 +133,14 @@ export async function addMessage(
   const messages: ChatMessage[] = raw ? JSON.parse(raw) : [];
   messages.push(message);
   await kv.put(K.sessionMsgs(sessionId), JSON.stringify(messages));
-  await updateSession(kv, sessionId, {
+  const updates: Partial<ChatSession> = {
     messageCount: messages.length,
     updatedAt: Date.now(),
-  });
+  };
+  if (message.agent) {
+    updates.lastAgent = message.agent;
+  }
+  await updateSession(kv, sessionId, updates);
 }
 
 export async function addMessages(
@@ -151,8 +155,10 @@ export async function addMessages(
   const messages: ChatMessage[] = raw ? JSON.parse(raw) : [];
   messages.push(...newMessages);
   await kv.put(K.sessionMsgs(sessionId), JSON.stringify(messages));
+  const lastAgent = [...newMessages].reverse().find((m) => m.agent)?.agent;
   await updateSession(kv, sessionId, {
     messageCount: messages.length,
+    ...(lastAgent ? { lastAgent } : {}),
     updatedAt: Date.now(),
   });
 }

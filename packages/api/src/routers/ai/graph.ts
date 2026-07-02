@@ -1,9 +1,4 @@
-import type { BaseMessage } from "@langchain/core/messages";
-import {
-  Annotation,
-  MessagesAnnotation,
-  StateGraph,
-} from "@langchain/langgraph";
+import { Annotation, MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import type { ClerkRequestContext } from "../../context";
 import { CloudflareChatModel } from "./cloudflare-chat-model";
@@ -14,67 +9,31 @@ import {
 } from "./nodes";
 import { createAiTools } from "./tools";
 
-export interface QuestionCard {
-  answer: string;
+export interface ActionCard {
+  description?: string;
+  kind: "appointment" | "availability" | "doctor" | "hospital";
+  params?: Record<string, string>;
+  route: string;
   title: string;
 }
 
 const PROMPTS: Record<string, string> = {
-  coordinator: `You are a friendly, conversational medical assistant. Your ONLY tool is transfer_to_agent — call it ONLY when the user is asking about finding a doctor, searching for a specialist, booking an appointment, checking availability, viewing a doctor's profile, or describing symptoms/conditions that need a doctor.
+  coordinator: `You are Suwa's router.
 
-CRITICAL: NEVER call transfer_to_agent for: greetings ("hello", "hi", "hey"), casual chat, feelings, loneliness, general health advice, questions about what you can do, requests to list features, or any meta-questions about yourself. For those, just respond conversationally and end the conversation.
+Keep replies short, warm, and direct.
+Only transfer to the db agent when the user wants to find care, compare doctors, check availability, book an appointment, view an appointment, or open a doctor or hospital profile.
+Answer directly for greetings, casual chat, general health questions, or anything that does not need a search.
+If the intent is unclear, respond naturally instead of routing.`,
+  db: `You are Suwa's care assistant.
 
-If you are unsure whether to transfer, just respond conversationally instead. It's better to chat than to incorrectly transfer.`,
-  db: `You are a friendly medical assistant that helps users find doctors, nearby hospitals, and manage appointments.
-
-CRITICAL RULE: Your response is shown DIRECTLY to the user. Never output instructions, meta-commentary, or internal reasoning. Every word you write is a message to the user.
-
-You MUST ALWAYS output a JSON object as your ENTIRE response. Never output anything before or after the JSON object. Your entire response must be parseable as a single JSON object.
-
-When you just need to respond conversationally (no follow-up needed), output:
-{"message":"your friendly response here"}
-
-When you need the user to choose or answer a follow-up, output:
-{"message":"your question here","questionCards":[{"title":"short label","answer":"exact text to send on tap"},{"title":"...","answer":"..."},{"title":"...","answer":"..."},{"title":"...","answer":"..."}]}
-
-Rules:
-- message: The text shown to the user. Must be a complete sentence.
-- questionCards (optional): Exactly 4 cards when asking a follow-up, omitted otherwise.
-  - title: short label for the option
-  - answer: the exact text to send when the user taps the card
-
-For doctor search requests, do not ask the user to refine the query first. Use the user's message as the search input, answer the request immediately, then optionally include 4 refinement cards if they help narrow results.
-
-For doctor search refinements, cards should be direct shortcuts like "Search doctors by specialty: stress management" or "Search doctors by symptoms: stress management".
-Never ask follow-up questions such as "What specialty are you looking for?" if you can infer a usable search query from the user's message.
-Never return only tool names or tool instructions to the user.
-
-Always use tools to answer questions — never just describe what tools exist. Follow this pattern:
-1. Understand what the user needs
-2. Call the right tool (search_doctors, search_hospitals, get_doctor_profile, check_availability, or get_upcoming_sessions). Use the most specific search query possible.
-3. After receiving tool results, respond with a natural message for the user and, if useful, 4 refinement cards.
-
-HOSPITAL SEARCH — When search_doctors returns 0 results, call search_hospitals with the user's symptom or specialty to find nearby hospitals. Always suggest the user can check the hospital map in the app for directions.
-
-MEDICATION GUIDELINES — For common symptoms only, you may suggest general over-the-counter options with a disclaimer. Follow these rules:
-- Headache/migraine: "Over-the-counter pain relievers like paracetamol or ibuprofen may help. Always follow the dosage on the package."
-- Cold/flu: "Rest, hydration, and OTC cold medications may help relieve symptoms."
-- Allergies: "Antihistamines like cetirizine or loratadine may help with mild allergies."
-- Indigestion: "Antacids or proton pump inhibitors (like omeprazole) may help."
-- Always add: "Please consult a pharmacist or doctor before taking any new medication."
-- Never prescribe prescription-only medications.
-- If symptoms are severe, always recommend seeing a doctor or visiting a hospital.
-
-Response guidelines:
-- If search_doctors finds doctors → {"message":"I found 3 specialists near you: Dr. Smith, Dr. Jones, and Dr. Lee."}
-- If search_doctors finds no results but search_hospitals finds hospitals → {"message":"I couldn't find a matching doctor, but there are hospitals nearby like Asiri Hospital Galle (3.7★) and Queensbury Hospitals (4.0★). You can check the hospital map in the app to find one near you.\n\nFor your symptoms, over-the-counter pain relievers like paracetamol may help. Please consult a pharmacist before taking any new medication."}
-- If neither found → {"message":"I couldn't find any doctors or hospitals matching that. Try a different search term or check the hospital map in the app."}
-- If the question isn't health-related → {"message":"Sorry, I can only help with finding doctors, hospitals, and managing appointments."}
-- Never explain what you should do — just do it.
-- Never start with Since, I should, We should, Based on, or other reasoning language.
-- Never use quotation marks around your spoken message text — the JSON already handles structure.
-
-After you receive tool results, always respond with a message for the user — never end with silence or only a tool call.`,
+Use the available tools freely and in sequence when needed. You may call more than one tool if it helps you answer well.
+Use recent conversation context. Do not ask the user to repeat details that are already in the chat.
+Keep the final reply natural, concise, and helpful. Never output JSON, metadata, or internal tool names.
+If you found doctors, hospitals, or appointments, summarize them naturally and mention the best next step.
+If a search returns no useful results, try the next best related tool before answering.
+Use list_available_doctors for broad questions like "which doctors are available". Use check_availability for a specific doctor, even if the user did not give a date, because it can return the next open slots.
+If the user asks for availability, always use a tool first and let the client show cards. Do not invent doctor names or schedules from memory.
+Let the client surface the matching cards from the tool results.`,
 };
 
 const GraphAnnotation = Annotation.Root({
@@ -89,7 +48,7 @@ export type GraphState = typeof GraphAnnotation.State;
 
 function createAgentRouter() {
   return (state: GraphState) => {
-    const last = state.messages.at(-1) as BaseMessage & {
+    const last = state.messages.at(-1) as unknown as Record<string, unknown> & {
       tool_calls?: Array<{ name: string }>;
     };
     return last?.tool_calls?.length ? "tools" : "__end__";
@@ -139,86 +98,386 @@ export interface StreamEvent {
     | "message.tool_call"
     | "message.tool_result"
     | "message.end"
-    | "message.question_cards"
+    | "message.cards"
     | "message.error";
 }
 
-function parseLlmResponse(
-  raw: string
-): { message: string; questionCards: QuestionCard[] } {
+type ToolResultRecord = Record<string, unknown>;
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+
+  const text = asString(value);
+  if (!text) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item): item is string => typeof item === "string");
+    }
+  } catch {
+    return text
+      .split(/,|\n/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function safeJsonParse(raw: string): unknown | null {
   const trimmed = raw.trim();
   if (!trimmed) {
-    return { message: "", questionCards: [] };
+    return null;
   }
 
-  const tryParse = (text: string) => {
-    try {
-      const parsed = JSON.parse(text) as Record<string, unknown>;
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        return null;
-      }
-      const message =
-        typeof parsed.message === "string" ? parsed.message.trim() : "";
-      if (!message) {
-        return null;
-      }
-      const rawCards = parsed.questionCards;
-      const questionCards = Array.isArray(rawCards)
-        ? rawCards
-            .filter(
-              (c: unknown): c is { title: string; answer: string } =>
-                typeof c === "object" &&
-                c !== null &&
-                typeof (c as Record<string, unknown>).title === "string" &&
-                typeof (c as Record<string, unknown>).answer === "string"
-            )
-            .map((c) => ({
-              title: c.title.trim(),
-              answer: c.answer.trim(),
-            }))
-        : [];
-
-      return {
-        message,
-        questionCards:
-          questionCards.length === 4 ? questionCards : ([] as QuestionCard[]),
-      };
-    } catch {
-      return null;
-    }
-  };
-
-  const result = tryParse(trimmed);
-  if (result) {
-    return result;
+  try {
+    return JSON.parse(trimmed) as unknown;
+  } catch {
+    return null;
   }
-
-  const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    const extracted = tryParse(jsonMatch[0]);
-    if (extracted) {
-      return extracted;
-    }
-  }
-
-  return { message: trimmed, questionCards: [] };
 }
+
+function formatDateLabel(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    month: "short",
+    weekday: "short",
+  }).format(date);
+}
+
+function prettifyStatus(value: string): string {
+  return value.replace(/_/g, " ");
+}
+
+function getDoctorProfile(record: ToolResultRecord): ToolResultRecord {
+  if (record.profile && typeof record.profile === "object") {
+    return record.profile as ToolResultRecord;
+  }
+
+  return record;
+}
+
+function summarizeDoctor(record: ToolResultRecord): ActionCard | null {
+  const profile = getDoctorProfile(record);
+  const id = asString(record.id) || asString(record.userId) || asString(profile.userId);
+  if (!id) {
+    return null;
+  }
+
+  const specialties = asStringList(profile.specialties).slice(0, 2).join(", ");
+  const focusAreas = asStringList(profile.focusAreas).slice(0, 2).join(", ");
+  const availability =
+    typeof record.hasAvailability === "boolean"
+      ? record.hasAvailability
+      : typeof profile.hasAvailability === "boolean"
+        ? profile.hasAvailability
+        : undefined;
+  const parts = [
+    asString(profile.headline) || asString(record.headline),
+    specialties,
+    focusAreas,
+    asString(profile.location) || asString(record.location),
+    availability === true
+      ? "Open availability"
+      : availability === false
+        ? "No open slots"
+        : "",
+  ].filter(Boolean);
+
+  return {
+    kind: "doctor",
+    route: `/(patient)/doctors/${id}`,
+    title:
+      asString(profile.displayName) ||
+      asString(record.name) ||
+      asString(record.displayName) ||
+      "Doctor",
+    description: parts.join(" · "),
+  };
+}
+
+function summarizeHospital(record: ToolResultRecord): ActionCard | null {
+  const name = asString(record.name);
+  if (!name) {
+    return null;
+  }
+
+  const rating =
+    typeof record.rating === "number" ? `${record.rating.toFixed(1)}★` : "";
+  const reviews =
+    typeof record.reviewCount === "number" ? `${record.reviewCount} reviews` : "";
+  const description = [
+    rating,
+    reviews,
+    asString(record.category),
+    asString(record.address),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return {
+    kind: "hospital",
+    params: {
+      mode: "hospitals",
+      search: name,
+    },
+    route: "/(patient)/map",
+    title: name,
+    description,
+  };
+}
+
+function summarizeProfile(record: ToolResultRecord): ActionCard | null {
+  const id = asString(record.id);
+  if (!id) {
+    return null;
+  }
+
+  const specialties = asStringList(record.specialties).slice(0, 2).join(", ");
+  const parts = [asString(record.headline), specialties, asString(record.location)]
+    .filter(Boolean)
+    .join(" · ");
+
+  return {
+    kind: "doctor",
+    route: `/(patient)/doctors/${id}`,
+    title: asString(record.name) || asString(record.displayName) || "Doctor",
+    description: parts,
+  };
+}
+
+function summarizeSession(record: ToolResultRecord): ActionCard | null {
+  const id = asString(record.id);
+  if (!id) {
+    return null;
+  }
+
+  const doctor =
+    record.doctor && typeof record.doctor === "object"
+      ? (record.doctor as ToolResultRecord)
+      : null;
+  const plan =
+    record.plan && typeof record.plan === "object"
+      ? (record.plan as ToolResultRecord)
+      : null;
+
+  const description = [
+    doctor ? asString(doctor.displayName) : "",
+    asString(record.startAt) ? formatDateLabel(asString(record.startAt)) : "",
+    plan ? asString(plan.name) : "",
+    asString(record.status) ? prettifyStatus(asString(record.status)) : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return {
+    kind: "appointment",
+    route: `/(patient)/appointments/${id}`,
+    title:
+      (doctor ? asString(doctor.displayName) : "") ||
+      `Appointment ${id.slice(0, 6)}`,
+    description,
+  };
+}
+
+function summarizeAvailability(record: ToolResultRecord): ActionCard[] {
+  const doctorId = asString(record.doctorId);
+  if (!doctorId) {
+    return [];
+  }
+
+  const doctorName = asString(record.doctorName);
+  const date = asString(record.date);
+  const available = Boolean(record.available);
+
+  const slots = Array.isArray(record.slots)
+    ? record.slots.filter(
+        (slot): slot is ToolResultRecord =>
+          Boolean(slot) && typeof slot === "object"
+      )
+    : [];
+
+  if (slots.length > 0) {
+    return slots.slice(0, 3).map((slot) => ({
+      kind: "availability",
+      route: `/(patient)/doctors/${doctorId}/booking`,
+      params: {
+        date: asString(slot.startAt),
+      },
+      title: doctorName ? `Book ${doctorName}` : "Book this slot",
+      description: `${formatDateLabel(asString(slot.startAt))} · ${formatDateLabel(asString(slot.endAt))}`,
+    }));
+  }
+
+  return [
+    {
+      kind: "availability",
+      route: available
+        ? `/(patient)/doctors/${doctorId}/booking`
+        : `/(patient)/doctors/${doctorId}`,
+      title: available
+        ? doctorName
+          ? `Book ${doctorName}`
+          : "Book this doctor"
+        : doctorName
+          ? `Open ${doctorName} profile`
+          : "Open doctor profile",
+      description: available
+        ? date
+          ? `Available on ${formatDateLabel(date)}`
+          : "Open booking to choose a time"
+        : date
+          ? `No open slot on ${formatDateLabel(date)}`
+          : "See the full profile and other dates",
+    },
+  ];
+}
+
+function deriveCardsFromToolResult(toolName: string, rawContent: string): ActionCard[] {
+  const parsed = safeJsonParse(rawContent);
+  if (!parsed) {
+    return [];
+  }
+
+  switch (toolName) {
+    case "search_doctors": {
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .slice(0, 4)
+        .map((item) =>
+          item && typeof item === "object"
+            ? summarizeDoctor(item as ToolResultRecord)
+            : null
+        )
+        .filter((card): card is ActionCard => card !== null);
+    }
+    case "list_available_doctors": {
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .slice(0, 4)
+        .map((item) =>
+          item && typeof item === "object"
+            ? summarizeDoctor(item as ToolResultRecord)
+            : null
+        )
+        .filter((card): card is ActionCard => card !== null);
+    }
+    case "search_hospitals": {
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .slice(0, 4)
+        .map((item) =>
+          item && typeof item === "object"
+            ? summarizeHospital(item as ToolResultRecord)
+            : null
+        )
+        .filter((card): card is ActionCard => card !== null);
+    }
+    case "get_doctor_profile": {
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const card = summarizeProfile(parsed as ToolResultRecord);
+        return card ? [card] : [];
+      }
+      return [];
+    }
+    case "check_availability": {
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return summarizeAvailability(parsed as ToolResultRecord);
+      }
+      return [];
+    }
+    case "get_upcoming_sessions": {
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .slice(0, 3)
+        .map((item) =>
+          item && typeof item === "object"
+            ? summarizeSession(item as ToolResultRecord)
+            : null
+        )
+        .filter((card): card is ActionCard => card !== null);
+    }
+    default:
+      return [];
+  }
+}
+
+function extractAssistantText(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/^<tool_call\|>\s*$/i.test(trimmed)) {
+    return "";
+  }
+
+  const parsed = safeJsonParse(trimmed);
+  if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+    const message = asString((parsed as ToolResultRecord).message);
+    if (message) {
+      return message;
+    }
+  }
+
+  return trimmed
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .replace(/<tool_call\|>/gim, "")
+    .trim();
+}
+
+type ConversationMessage = {
+  content: string;
+  role: string;
+};
 
 export async function* runAgentStream(
   ctx: ClerkRequestContext,
-  userMessage: string
+  messages: ConversationMessage[]
 ): AsyncGenerator<StreamEvent> {
   const graph = createGraph(ctx);
   let lastAgent = "";
+  let lastToolName = "";
+  const toolNamesById = new Map<string, string>();
   let rawBuffer = "";
+  let latestCards: ActionCard[] = [];
 
   const FALLBACK =
-    "I wasn't able to find an answer to that. Could you try rephrasing your question?";
+    "I wasn't able to find a clear answer. Could you try rephrasing your question?";
 
   try {
     const stream = await graph.stream(
       {
-        messages: [{ role: "user", content: userMessage }],
+        messages,
       },
       { recursionLimit: 15 }
     );
@@ -228,8 +487,10 @@ export async function* runAgentStream(
         string,
         {
           messages?: Array<{
-            content: string;
-            tool_calls?: Array<{ name: string }>;
+            content: string | unknown;
+            name?: string;
+            tool_call_id?: string;
+            tool_calls?: Array<{ id?: string; name: string }>;
           }>;
         },
       ][]) {
@@ -237,16 +498,48 @@ export async function* runAgentStream(
         for (const msg of msgs) {
           if (msg.tool_calls?.length) {
             for (const tc of msg.tool_calls) {
+              lastToolName = tc.name;
+              if (tc.id) {
+                toolNamesById.set(tc.id, tc.name);
+              }
               yield {
                 event: "message.tool_call",
-                data: { tool: tc.name, agent: node },
+                data: { tool: tc.name, agent: node, id: tc.id },
               };
             }
           }
+
+          const content =
+            typeof msg.content === "string"
+              ? msg.content
+              : Array.isArray(msg.content)
+                ? JSON.stringify(msg.content)
+                : "";
+
           if (node === "tools") {
+            const toolName =
+              asString(msg.name) ||
+              (msg.tool_call_id ? toolNamesById.get(msg.tool_call_id) ?? "" : "") ||
+              lastToolName;
+            if (toolName) {
+              if (content) {
+                const cards = deriveCardsFromToolResult(toolName, content);
+                if (cards.length > 0) {
+                  latestCards = cards;
+                }
+              }
+              yield {
+                event: "message.tool_result",
+                data: {
+                  agent: node,
+                  id: asString(msg.tool_call_id),
+                  tool: toolName,
+                },
+              };
+            }
             continue;
           }
-          const content = typeof msg.content === "string" ? msg.content : "";
+
           if (content) {
             rawBuffer = content;
             lastAgent = node;
@@ -255,32 +548,49 @@ export async function* runAgentStream(
       }
     }
 
-    const { message, questionCards } = parseLlmResponse(rawBuffer);
+    const assistantText =
+      extractAssistantText(rawBuffer) ||
+      (latestCards.length ? "I found a few options you can open below." : FALLBACK);
     const agent = lastAgent || "coordinator";
 
-    if (message) {
+    if (assistantText) {
       yield { event: "message.start", data: { agent } };
       yield {
         event: "message.token",
-        data: { token: message, agent },
+        data: { token: assistantText, agent },
       };
-      if (questionCards.length) {
+      if (latestCards.length) {
         yield {
-          event: "message.question_cards",
-          data: { cards: questionCards },
+          event: "message.cards",
+          data: { agent, cards: latestCards },
         };
       }
     } else if (!rawBuffer) {
       yield { event: "message.start", data: { agent } };
       yield { event: "message.token", data: { token: FALLBACK, agent } };
+      if (latestCards.length) {
+        yield {
+          event: "message.cards",
+          data: { agent, cards: latestCards },
+        };
+      }
     }
   } catch (err) {
     const isRecursion =
       err instanceof Error && err.name === "GraphRecursionError";
-    if (isRecursion && !rawBuffer) {
+    if (isRecursion) {
       const agent = lastAgent || "coordinator";
+      const assistantText =
+        extractAssistantText(rawBuffer) ||
+        (latestCards.length ? "I found a few options you can open below." : FALLBACK);
       yield { event: "message.start", data: { agent } };
-      yield { event: "message.token", data: { token: FALLBACK, agent } };
+      yield { event: "message.token", data: { token: assistantText, agent } };
+      if (latestCards.length) {
+        yield {
+          event: "message.cards",
+          data: { agent, cards: latestCards },
+        };
+      }
     } else {
       const msg = err instanceof Error ? err.message : "Unknown error";
       yield {
