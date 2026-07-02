@@ -7,7 +7,7 @@ export function Footer() {
         <div>
           <Wordmark aria-label="Back to Suwa home" href="#top" size="footer" />
           <p className="mx-0 mt-[12px] mb-0 text-[10px] text-foreground-muted">
-            Anonymous consultation, doctor support, and stigma-free care in one
+            Anonymous consultation, doctor support, and stigma free care in one
             private path.
           </p>
         </div>

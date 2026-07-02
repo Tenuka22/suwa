@@ -18,13 +18,17 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { getMediaUrl } from "@/utils/media-url";
+
 interface DoctorFileItem {
   caption: string | null;
   fileKind: "portrait" | "qualification" | "intro_video" | "other";
+  fileKey: string;
   fileName: string;
   id: string;
   isVideo: boolean;
   mimeType: string;
+  thumbnailKey: string | null;
   size: number;
 }
 
@@ -104,6 +108,8 @@ export function DoctorFileCard({
   previewUrl,
 }: DoctorFileCardProps) {
   let previewContent: ReactNode;
+  const downloadUrl = getMediaUrl(file.fileKey);
+  const shouldRenderVideo = file.isVideo && !file.thumbnailKey;
 
   if (!previewUrl) {
     previewContent = (
@@ -111,7 +117,7 @@ export function DoctorFileCard({
         Loading preview...
       </div>
     );
-  } else if (file.isVideo) {
+  } else if (shouldRenderVideo) {
     previewContent = (
       <video
         className="h-full w-full object-cover"
@@ -135,8 +141,8 @@ export function DoctorFileCard({
   }
 
   const handleDownload = () => {
-    if (previewUrl) {
-      downloadFile(previewUrl, file.fileName);
+    if (downloadUrl) {
+      downloadFile(downloadUrl, file.fileName);
       return;
     }
 

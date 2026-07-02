@@ -1,7 +1,16 @@
-import { createIsomorphicFn } from "@tanstack/react-start";
+import { getMediaUrl } from "@/utils/media-url";
 
-import { orpc } from "@/utils/orpc";
+export interface DoctorMediaSource {
+  fileKey: string | null;
+  thumbnailKey?: string | null;
+}
 
-export const getDoctorMaterialFile = createIsomorphicFn()
-  .server(async (id: string) => orpc.getDoctorFile.call({ id }))
-  .client(async (id: string) => orpc.getDoctorFile.call({ id }));
+export function getDoctorMaterialPreviewUrl(
+  media: DoctorMediaSource | null | undefined
+) {
+  return getMediaUrl(media?.thumbnailKey ?? media?.fileKey);
+}
+
+export function getDoctorMaterialFileUrl(fileKey: string | null | undefined) {
+  return getMediaUrl(fileKey);
+}

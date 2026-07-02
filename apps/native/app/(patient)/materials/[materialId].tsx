@@ -10,17 +10,16 @@ import {
   Pause,
   Play,
   Send,
-  TriangleAlert,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Input } from "@/components/design/ui/input";
 import { Screen } from "@/components/design/ui/screen";
 import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
+import { getMediaUrl } from "@/utils/media-url";
 import { orpc } from "@/utils/orpc";
-import { env } from "@suwa/env/native";
 
 export default function MaterialDetailScreen() {
   const router = useRouter();
@@ -31,80 +30,17 @@ export default function MaterialDetailScreen() {
   const [commentText, setCommentText] = useState("");
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [videoLocalUri, setVideoLocalUri] = useState<string | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [fileLoading, setFileLoading] = useState(true);
-  const videoRef = useRef<Video>(null);
   const userId = "patient-demo";
-
-  useEffect(() => {
-    if (!id) {
-      return;
-    }
-
-    console.log(`[materialId] mounting with id=${id}`);
-    let active = true;
-    let objectUrl: string | null = null;
-
-    const loadFile = async () => {
-      try {
-        setFileLoading(true);
-        setVideoLocalUri(null);
-        setFileError(null);
-        let file: File;
-
-        try {
-          file = await orpc.getMaterialFile.call({ materialId: id });
-        } catch (rpcError) {
-          const response = await fetch(
-            `${env.EXPO_PUBLIC_SERVER_URL}/materials/${id}/file`
-          );
-          if (!response.ok) {
-            throw rpcError;
-          }
-          file = await response.blob();
-        }
-
-        if (!active) {
-          return;
-        }
-
-        objectUrl = URL.createObjectURL(file);
-        console.log(`[materialId] file ready at ${objectUrl}`);
-        setVideoLocalUri(objectUrl);
-      } catch (err) {
-        if (active) {
-          setVideoLocalUri(null);
-          setFileError(
-            err instanceof Error
-              ? err.message
-              : "This material file is not available yet."
-          );
-        }
-      } finally {
-        if (active) {
-          setFileLoading(false);
-        }
-      }
-    };
-
-    void loadFile();
-
-    return () => {
-      console.log("[materialId] unmounting");
-      active = false;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [id]);
 
   const materialsQuery = useQuery(
     orpc.listPublicMaterials.queryOptions({
-      input: { page: 1, pageSize: 1 },
+      input: { page: 1, pageSize: 100 },
     })
   );
-  const material = (materialsQuery.data ?? []).find((m) => m.id === id);
+  const material = Array.isArray(materialsQuery.data)
+    ? materialsQuery.data.find((m: any) => m.id === id)
+    : undefined;
+  const videoUri = material?.fileKey ? getMediaUrl(material.fileKey) : null;
 
   const likeQuery = useQuery(
     orpc.getMaterialLikeStatus.queryOptions({
@@ -178,37 +114,13 @@ export default function MaterialDetailScreen() {
       >
         {/* Video Player */}
         <View className="min-h-64 overflow-hidden rounded-2xl bg-black">
-          {fileLoading ? (
-            <View className="aspect-video items-center justify-center bg-background-subtle">
-              <Text className="font-serif text-foreground-muted text-title">
-                Loading video...
-              </Text>
-            </View>
-          ) : fileError ? (
-            <View className="aspect-video items-center justify-center gap-4 bg-background-subtle px-6 text-center">
-              <View className="h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-                <TriangleAlert className="text-destructive" size={28} />
-              </View>
-              <View className="gap-1">
-                <Text className="font-serif text-foreground text-title">
-                  Playback failed
-                </Text>
-                <Text className="font-sans text-caption text-foreground-muted">
-                  The video file could not be loaded.
-                </Text>
-              </View>
-              <Text className="font-sans text-micro text-foreground-muted">
-                {fileError}
-              </Text>
-            </View>
-          ) : videoLocalUri ? (
+          {videoUri ? (
             <Video
               className="aspect-video w-full"
               isMuted={muted}
-              ref={videoRef}
               resizeMode={ResizeMode.CONTAIN}
               shouldPlay={!paused}
-              source={{ uri: videoLocalUri }}
+              source={{ uri: videoUri }}
               useNativeControls={false}
             />
           ) : (

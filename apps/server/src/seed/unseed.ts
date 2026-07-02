@@ -34,6 +34,8 @@ import {
   userSubscriptions,
   users,
 } from "@suwa/db";
+import { deleteStoredFile } from "@suwa/api/doctor-materials";
+import type { Context } from "@suwa/api/context";
 import { and, inArray, like, or } from "drizzle-orm";
 
 import { seedIds } from "./ids";
@@ -54,19 +56,35 @@ const whereOr = (...conditions: unknown[]) => or(...(conditions as never[]));
 
 const whereAnd = (...conditions: unknown[]) => and(...(conditions as never[]));
 
-export async function unseedData(db: DbWithDelete, _doctorMaterialsKv?: KVNamespace) {
+export async function unseedData(
+  db: DbWithDelete,
+  fileStorageBucket: Context["fileStorageBucket"]
+) {
   const doctorIds = seedIds.doctorIds;
   const tenantIds = seedIds.tenantIds;
   const userIds = seedIds.userIds;
 
-  if (_doctorMaterialsKv) {
-    for (const id of doctorIds) {
-      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-portrait.jpg`);
-      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-portrait.svg`);
-      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-qualification.svg`);
-      await _doctorMaterialsKv.delete(`doctor-files/${id}/seed-intro-video.mp4`);
-    }
-
+  for (const id of doctorIds) {
+    await deleteStoredFile(
+      fileStorageBucket,
+      `doctor-files/${id}/seed-portrait.jpg`
+    );
+    await deleteStoredFile(
+      fileStorageBucket,
+      `doctor-files/${id}/seed-portrait.svg`
+    );
+    await deleteStoredFile(
+      fileStorageBucket,
+      `doctor-files/${id}/seed-qualification.svg`
+    );
+    await deleteStoredFile(
+      fileStorageBucket,
+      `doctor-files/${id}/seed-intro-video.mp4`
+    );
+    await deleteStoredFile(
+      fileStorageBucket,
+      `doctor-files/${id}/seed-intro-video.jpg`
+    );
   }
 
   await db.delete(sessionTaskAssignments).where(whereIn(sessionTaskAssignments.doctorId, doctorIds));

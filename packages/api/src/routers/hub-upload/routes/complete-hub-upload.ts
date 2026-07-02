@@ -1,7 +1,11 @@
 import { doctorHubMaterials, hubUploadSessions } from "@suwa/db";
 import { completeHubUploadSchema } from "@suwa/db/schemas-types";
-import { env } from "@suwa/env/server";
 import { and, eq } from "drizzle-orm";
+import {
+  deleteStoredFile,
+  putStoredFile,
+  readStoredFileRecord,
+} from "../../../doctor-materials";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
@@ -36,18 +40,15 @@ export const completeHubUploadRoute = protectedProcedure
       );
     }
 
-    // Assemble all chunks into a single binary in KV
+    // Assemble all chunks into a single binary in bucket
     const assembledChunks: Uint8Array[] = [];
     for (const chunkIndex of uploadedChunks) {
       const chunkKey = `${session.fileKey}/chunks/${chunkIndex}`;
-      const chunkData = await env.DOCTOR_MATERIALS_KV.get(
-        chunkKey,
-        "arrayBuffer"
-      );
-      if (!chunkData) {
-        throw new Error(`Chunk ${chunkIndex} not found in KV`);
+      const chunk = await readStoredFileRecord(context.fileStorageBucket, chunkKey);
+      if (!chunk) {
+        throw new Error(`Chunk ${chunkIndex} not found in storage`);
       }
-      assembledChunks.push(new Uint8Array(chunkData));
+      assembledChunks.push(chunk.data);
     }
 
     // Calculate total size from chunks
@@ -64,16 +65,17 @@ export const completeHubUploadRoute = protectedProcedure
       offset += chunk.length;
     }
 
-    // Store the assembled file in KV
-    await env.DOCTOR_MATERIALS_KV.put(
-      session.fileKey,
-      assembled.buffer as ArrayBuffer
-    );
+    // Store the assembled file in bucket
+    await putStoredFile(context.fileStorageBucket, {
+      key: session.fileKey,
+      data: assembled.buffer as ArrayBuffer,
+      mimeType: session.mimeType,
+    });
 
-    // Clean up chunk keys from KV
+    // Clean up chunk keys from bucket
     for (const chunkIndex of uploadedChunks) {
       const chunkKey = `${session.fileKey}/chunks/${chunkIndex}`;
-      await env.DOCTOR_MATERIALS_KV.delete(chunkKey);
+      await deleteStoredFile(context.fileStorageBucket, chunkKey);
     }
 
     // Update upload session

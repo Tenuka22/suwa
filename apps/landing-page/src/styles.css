@@ -209,7 +209,8 @@
 
 @layer utilities {
   .page-shell {
-    width: min(calc(100% - 32px), 1400px);
+    width: 100%;
+    max-width: 1400px;
     margin-inline: auto;
   }
 }

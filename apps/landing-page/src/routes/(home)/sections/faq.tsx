@@ -4,12 +4,12 @@ import { SectionKicker } from "../helpers/section-heading";
 const faqItems = [
   {
     answer:
-      "Suwa helps people begin online consultation anonymously, then connect with doctors through chat, video, or in-person care when they are ready.",
+      "Suwa helps people begin online consultation anonymously, then connect with doctors through chat, video, or in person care when they are ready.",
     question: "What problem does Suwa solve?",
   },
   {
     answer:
-      "Hospitals and clinics provide trusted care infrastructure, doctor affiliation, scheduling, and continuity. They support the experience, but stigma-free consultation is the main goal.",
+      "Hospitals and clinics provide trusted care infrastructure, doctor affiliation, scheduling, and continuity. They support the experience, but stigma free consultation is the main goal.",
     question: "Where do hospitals fit in?",
   },
   {
@@ -19,7 +19,7 @@ const faqItems = [
   },
   {
     answer:
-      "The platform is built for people who fear stigma, plus the doctors and hospital teams who support safe consultation and follow-up.",
+      "The platform is built for people who fear stigma, plus the doctors and hospital teams who support safe consultation and follow up.",
     question: "Who is Suwa for?",
   },
 ] as const;

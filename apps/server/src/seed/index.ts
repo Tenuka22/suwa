@@ -15,6 +15,7 @@ import {
   tenants,
   users,
 } from "@suwa/db";
+import { putStoredFile } from "@suwa/api/doctor-materials";
 import type {
   DoctorConsultationMode,
   DoctorFocusArea,
@@ -32,7 +33,7 @@ type ReadAsset = (filename: string) => Promise<ArrayBuffer | null>;
 interface SeedContext {
   ai: Ai;
   chatMessagesKv: KVNamespace;
-  doctorMaterialsKv: KVNamespace;
+  fileStorageBucket: R2Bucket;
   modelFeaturesKv: KVNamespace;
   readAsset: ReadAsset;
 }
@@ -96,7 +97,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["anxiety", "depression", "sleep", "stress"],
     experienceStartYear: 2011,
     licenseNumber: "SLMC-PSY-10482",
-    portraitUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+    portraitUrl: sriLankanPortraitUrl(14694725),
     primaryTenantIndex: 0,
     secondaryTenantIndex: 8,
   },
@@ -110,7 +111,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["anxiety", "burnout", "stress", "sleep"],
     experienceStartYear: 2013,
     licenseNumber: "SLCP-CLP-2381",
-    portraitUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+    portraitUrl: sriLankanPortraitUrl(6168671),
     primaryTenantIndex: 2,
     secondaryTenantIndex: 9,
   },
@@ -124,7 +125,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["trauma", "grief", "relationships", "anxiety"],
     experienceStartYear: 2014,
     licenseNumber: "SLCP-COU-3194",
-    portraitUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+    portraitUrl: sriLankanPortraitUrl(9228161),
     primaryTenantIndex: 3,
     secondaryTenantIndex: 6,
   },
@@ -138,7 +139,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["stress", "sleep", "burnout", "anxiety"],
     experienceStartYear: 2010,
     licenseNumber: "SLMC-GP-09217",
-    portraitUrl: "https://randomuser.me/api/portraits/men/75.jpg",
+    portraitUrl: sriLankanPortraitUrl(38331275),
     primaryTenantIndex: 4,
     secondaryTenantIndex: 5,
   },
@@ -152,7 +153,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["stress", "sleep", "parenting", "burnout"],
     experienceStartYear: 2012,
     licenseNumber: "SLMC-FAM-11743",
-    portraitUrl: "https://randomuser.me/api/portraits/women/12.jpg",
+    portraitUrl: sriLankanPortraitUrl(18874846),
     primaryTenantIndex: 5,
     secondaryTenantIndex: 0,
   },
@@ -166,7 +167,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["depression", "sleep", "anxiety", "stress"],
     experienceStartYear: 2009,
     licenseNumber: "SLMC-PSY-08766",
-    portraitUrl: "https://randomuser.me/api/portraits/men/41.jpg",
+    portraitUrl: sriLankanPortraitUrl(38331276),
     primaryTenantIndex: 0,
     secondaryTenantIndex: 1,
   },
@@ -180,7 +181,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["parenting", "anxiety", "relationships", "stress"],
     experienceStartYear: 2015,
     licenseNumber: "SLCP-CLP-4219",
-    portraitUrl: "https://randomuser.me/api/portraits/women/79.jpg",
+    portraitUrl: sriLankanPortraitUrl(12681761),
     primaryTenantIndex: 2,
     secondaryTenantIndex: 8,
   },
@@ -194,7 +195,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["addiction", "depression", "relationships", "stress"],
     experienceStartYear: 2008,
     licenseNumber: "SLMC-PSY-07612",
-    portraitUrl: "https://randomuser.me/api/portraits/men/62.jpg",
+    portraitUrl: sriLankanPortraitUrl(37052011),
     primaryTenantIndex: 2,
     secondaryTenantIndex: 6,
   },
@@ -208,7 +209,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["grief", "relationships", "stress", "depression"],
     experienceStartYear: 2016,
     licenseNumber: "SLCP-COU-5068",
-    portraitUrl: "https://randomuser.me/api/portraits/women/23.jpg",
+    portraitUrl: sriLankanPortraitUrl(14694725),
     primaryTenantIndex: 4,
     secondaryTenantIndex: 9,
   },
@@ -222,7 +223,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["burnout", "sleep", "stress", "anxiety"],
     experienceStartYear: 2011,
     licenseNumber: "SLMC-GP-10934",
-    portraitUrl: "https://randomuser.me/api/portraits/men/18.jpg",
+    portraitUrl: sriLankanPortraitUrl(9333028),
     primaryTenantIndex: 5,
     secondaryTenantIndex: 7,
   },
@@ -236,7 +237,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["trauma", "grief", "anxiety", "sleep"],
     experienceStartYear: 2012,
     licenseNumber: "SLCP-CLP-2870",
-    portraitUrl: "https://randomuser.me/api/portraits/women/55.jpg",
+    portraitUrl: sriLankanPortraitUrl(9228161),
     primaryTenantIndex: 3,
     secondaryTenantIndex: 0,
   },
@@ -250,7 +251,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["depression", "anxiety", "sleep", "relationships"],
     experienceStartYear: 2004,
     licenseNumber: "SLMC-PSY-05443",
-    portraitUrl: "https://randomuser.me/api/portraits/men/83.jpg",
+    portraitUrl: sriLankanPortraitUrl(32298398),
     primaryTenantIndex: 1,
     secondaryTenantIndex: 2,
   },
@@ -264,7 +265,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["burnout", "anxiety", "stress", "sleep"],
     experienceStartYear: 2017,
     licenseNumber: "SLCP-CLP-5572",
-    portraitUrl: "https://randomuser.me/api/portraits/women/90.jpg",
+    portraitUrl: sriLankanPortraitUrl(18874846),
     primaryTenantIndex: 6,
     secondaryTenantIndex: 4,
   },
@@ -278,7 +279,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["stress", "sleep", "parenting", "burnout"],
     experienceStartYear: 2007,
     licenseNumber: "SLMC-FAM-08390",
-    portraitUrl: "https://randomuser.me/api/portraits/men/26.jpg",
+    portraitUrl: sriLankanPortraitUrl(5042879),
     primaryTenantIndex: 0,
     secondaryTenantIndex: 5,
   },
@@ -292,7 +293,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["grief", "anxiety", "relationships", "stress"],
     experienceStartYear: 2015,
     licenseNumber: "SLCP-COU-4813",
-    portraitUrl: "https://randomuser.me/api/portraits/women/40.jpg",
+    portraitUrl: sriLankanPortraitUrl(12681761),
     primaryTenantIndex: 8,
     secondaryTenantIndex: 4,
   },
@@ -306,7 +307,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["anxiety", "depression", "sleep", "burnout"],
     experienceStartYear: 2014,
     licenseNumber: "SLMC-PSY-13204",
-    portraitUrl: "https://randomuser.me/api/portraits/men/11.jpg",
+    portraitUrl: sriLankanPortraitUrl(6153953),
     primaryTenantIndex: 3,
     secondaryTenantIndex: 1,
   },
@@ -320,7 +321,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["relationships", "stress", "anxiety", "grief"],
     experienceStartYear: 2016,
     licenseNumber: "SLCP-COU-5361",
-    portraitUrl: "https://randomuser.me/api/portraits/women/31.jpg",
+    portraitUrl: sriLankanPortraitUrl(14694725),
     primaryTenantIndex: 9,
     secondaryTenantIndex: 6,
   },
@@ -334,7 +335,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["sleep", "stress", "burnout", "anxiety"],
     experienceStartYear: 2013,
     licenseNumber: "SLMC-GP-12048",
-    portraitUrl: "https://randomuser.me/api/portraits/men/54.jpg",
+    portraitUrl: sriLankanPortraitUrl(6168671),
     primaryTenantIndex: 4,
     secondaryTenantIndex: 7,
   },
@@ -348,7 +349,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["depression", "anxiety", "relationships", "stress"],
     experienceStartYear: 2018,
     licenseNumber: "SLCP-CLP-6039",
-    portraitUrl: "https://randomuser.me/api/portraits/women/84.jpg",
+    portraitUrl: sriLankanPortraitUrl(9228161),
     primaryTenantIndex: 5,
     secondaryTenantIndex: 3,
   },
@@ -362,7 +363,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["addiction", "depression", "sleep", "stress"],
     experienceStartYear: 2006,
     licenseNumber: "SLMC-PSY-06428",
-    portraitUrl: "https://randomuser.me/api/portraits/men/90.jpg",
+    portraitUrl: sriLankanPortraitUrl(38331276),
     primaryTenantIndex: 2,
     secondaryTenantIndex: 0,
   },
@@ -376,7 +377,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["parenting", "sleep", "stress", "depression"],
     experienceStartYear: 2012,
     licenseNumber: "SLMC-FAM-11475",
-    portraitUrl: "https://randomuser.me/api/portraits/women/7.jpg",
+    portraitUrl: sriLankanPortraitUrl(18874846),
     primaryTenantIndex: 8,
     secondaryTenantIndex: 1,
   },
@@ -390,7 +391,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["anxiety", "stress", "relationships", "sleep"],
     experienceStartYear: 2017,
     licenseNumber: "SLCP-CLP-5888",
-    portraitUrl: "https://randomuser.me/api/portraits/men/37.jpg",
+    portraitUrl: sriLankanPortraitUrl(37052011),
     primaryTenantIndex: 6,
     secondaryTenantIndex: 9,
   },
@@ -404,7 +405,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["grief", "stress", "relationships", "burnout"],
     experienceStartYear: 2010,
     licenseNumber: "SLCP-COU-2617",
-    portraitUrl: "https://randomuser.me/api/portraits/women/59.jpg",
+    portraitUrl: sriLankanPortraitUrl(12681761),
     primaryTenantIndex: 7,
     secondaryTenantIndex: 2,
   },
@@ -418,7 +419,7 @@ const DOCTORS: DoctorSeed[] = [
     focusAreas: ["stress", "sleep", "anxiety", "burnout"],
     experienceStartYear: 2003,
     licenseNumber: "SLMC-GP-04391",
-    portraitUrl: "https://randomuser.me/api/portraits/men/69.jpg",
+    portraitUrl: sriLankanPortraitUrl(32298398),
     primaryTenantIndex: 1,
     secondaryTenantIndex: 5,
   },
@@ -458,9 +459,9 @@ const AFFILIATION_WINDOWS: TimeWindow[][] = [
   ],
 ];
 
-export async function runSeed(_context: SeedContext) {
+export async function runSeed(context: SeedContext) {
   const db = createDb();
-  await unseedData(db, _context.doctorMaterialsKv);
+  await unseedData(db, context.fileStorageBucket);
 
   const now = new Date().toISOString();
   const places = placesData as PlaceEntry[];
@@ -607,8 +608,8 @@ export async function runSeed(_context: SeedContext) {
   await insertRows(db, doctorHubChannels, buildSeedHubChannels(now));
 
   const { doctorFileRows, hubMaterialRows } = await buildSeedDoctorFiles(
-    _context.doctorMaterialsKv,
-    _context.readAsset,
+    context.fileStorageBucket,
+    context.readAsset,
     now
   );
   await insertRows(db, doctorFiles, doctorFileRows);
@@ -704,7 +705,7 @@ async function insertRows(
 }
 
 async function buildSeedDoctorFiles(
-  doctorMaterialsKv: KVNamespace,
+  fileStorageBucket: SeedContext["fileStorageBucket"],
   readAsset: ReadAsset,
   now: string
 ) {
@@ -718,16 +719,40 @@ async function buildSeedDoctorFiles(
     const qualificationSvg = buildQualificationSvg(doctor, accent);
     const videoSpec = MATERIAL_SPECS_VIDEO[index % 4];
     const videoFileName = videoSpec?.seedFile ?? "WiJn9EpvtEk.mp4";
-    const videoAsset = await readSeedAsset(readAsset, doctorMaterialsKv, videoFileName);
+    const videoAsset = await readSeedAsset(readAsset, videoFileName);
     const canStoreVideo = videoAsset !== null && videoAsset.byteLength <= 25_000_000;
     const portraitKey = seedDoctorFileKey(id, "portrait.jpg");
     const qualificationKey = seedDoctorFileKey(id, "qualification.svg");
     const introVideoKey = seedDoctorFileKey(id, "intro-video.mp4");
+    const introVideoThumbnailKey = seedDoctorFileKey(id, "intro-video.jpg");
+    const thumbnailAsset = await readSeedAsset(
+      readAsset,
+      videoFileName.replace(/\.mp4$/i, ".jpg")
+    );
 
-    await doctorMaterialsKv.put(portraitKey, portraitImage.data);
-    await doctorMaterialsKv.put(qualificationKey, qualificationSvg);
+    await putStoredFile(fileStorageBucket, {
+      key: portraitKey,
+      data: portraitImage.data,
+      mimeType: portraitImage.mimeType,
+    });
+    await putStoredFile(fileStorageBucket, {
+      key: qualificationKey,
+      data: new TextEncoder().encode(qualificationSvg),
+      mimeType: "image/svg+xml",
+    });
     if (canStoreVideo) {
-      await doctorMaterialsKv.put(introVideoKey, videoAsset);
+      await putStoredFile(fileStorageBucket, {
+        key: introVideoKey,
+        data: videoAsset,
+        mimeType: "video/mp4",
+      });
+      if (thumbnailAsset) {
+        await putStoredFile(fileStorageBucket, {
+          key: introVideoThumbnailKey,
+          data: thumbnailAsset,
+          mimeType: "image/jpeg",
+        });
+      }
     } else if (videoAsset) {
       console.warn(`Skipping oversize video (${videoAsset.byteLength} bytes) for ${doctor.displayName}`);
     }
@@ -768,6 +793,7 @@ async function buildSeedDoctorFiles(
         id: `seed-doctor-file-${index + 1}-intro-video`,
         doctorId: id,
         fileKey: introVideoKey,
+        thumbnailKey: canStoreVideo ? introVideoThumbnailKey : null,
         fileName: `${slug(doctor.displayName)}-intro-video.mp4`,
         mimeType: "video/mp4",
         fileKind: "intro_video" as const,
@@ -786,6 +812,7 @@ async function buildSeedDoctorFiles(
         title: videoSpec?.title ?? "Mental Health Education",
         description: videoSpec?.description ?? null,
         fileKey: introVideoKey,
+        thumbnailKey: canStoreVideo ? introVideoThumbnailKey : null,
         fileType: "video" as const,
         fileName: `${slug(doctor.displayName)}-intro-video.mp4`,
         mimeType: "video/mp4",
@@ -826,6 +853,10 @@ function seedDoctorFileKey(doctorIdValue: string, fileName: string) {
   return `doctor-files/${doctorIdValue}/seed-${fileName}`;
 }
 
+function sriLankanPortraitUrl(photoId: number) {
+  return `https://images.pexels.com/photos/${photoId}/pexels-photo-${photoId}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800&h=800&dpr=2`;
+}
+
 async function fetchPortraitImage(url: string) {
   const response = await fetch(url);
   if (!response.ok) {
@@ -842,14 +873,8 @@ async function fetchPortraitImage(url: string) {
 
 async function readSeedAsset(
   readAsset: ReadAsset,
-  doctorMaterialsKv: KVNamespace,
   filename: string
 ) {
-  const kvAsset = await doctorMaterialsKv
-    .get(`seed-asset-video-${filename}`, "arrayBuffer")
-    .catch(() => null);
-  if (kvAsset) return kvAsset;
-
   const boundAsset = await readAsset(filename);
   if (boundAsset) return boundAsset;
 

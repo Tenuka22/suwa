@@ -19,7 +19,7 @@ const steps = [
   },
   {
     description:
-      "Move from chat to video or in-person care when trust is established.",
+      "Move from chat to video or in person care when trust is established.",
     icon: ShieldCheck,
     number: "03",
     title: "Continue with support",

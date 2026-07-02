@@ -13,102 +13,102 @@ export const PORTRAIT_SPECS: PortraitSpec[] = [
   {
     doctorIndex: 0,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/37.jpg",
-    firstName: "Mersana",
-    lastName: "Heydari",
-    city: "Tabriz",
-    country: "Iran",
-    email: "mersana.heydari@suwa.care",
+    url: createSriLankanPortraitDataUri("Anjalee Perera"),
+    firstName: "Anjalee",
+    lastName: "Perera",
+    city: "Colombo",
+    country: "Sri Lanka",
+    email: "anjalee.perera@suwa.care",
   },
   {
     doctorIndex: 1,
-    gender: "women",
-    url: "https://randomuser.me/api/portraits/women/89.jpg",
-    firstName: "Milla",
-    lastName: "Wuori",
-    city: "Tuusula",
-    country: "Finland",
-    email: "milla.wuori@suwa.care",
+    gender: "men",
+    url: createSriLankanPortraitDataUri("Nuwan Jayasinghe"),
+    firstName: "Nuwan",
+    lastName: "Jayasinghe",
+    city: "Kandy",
+    country: "Sri Lanka",
+    email: "nuwan.jayasinghe@suwa.care",
   },
   {
     doctorIndex: 2,
-    gender: "men",
-    url: "https://randomuser.me/api/portraits/men/41.jpg",
-    firstName: "Albert",
-    lastName: "Leclercq",
-    city: "Bern",
-    country: "Switzerland",
-    email: "albert.leclercq@suwa.care",
+    gender: "women",
+    url: createSriLankanPortraitDataUri("Tharushi Fernando"),
+    firstName: "Tharushi",
+    lastName: "Fernando",
+    city: "Galle",
+    country: "Sri Lanka",
+    email: "tharushi.fernando@suwa.care",
   },
   {
     doctorIndex: 3,
     gender: "men",
-    url: "https://randomuser.me/api/portraits/men/53.jpg",
-    firstName: "Giray",
-    lastName: "Bademci",
-    city: "Istanbul",
-    country: "Turkey",
-    email: "giray.bademci@suwa.care",
+    url: createSriLankanPortraitDataUri("Mohamed Rizwan"),
+    firstName: "Mohamed",
+    lastName: "Rizwan",
+    city: "Negombo",
+    country: "Sri Lanka",
+    email: "mohamed.rizwan@suwa.care",
   },
   {
     doctorIndex: 4,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/61.jpg",
-    firstName: "Lotta",
-    lastName: "Kallio",
-    city: "Helsinki",
-    country: "Finland",
-    email: "lotta.kallio@suwa.care",
+    url: createSriLankanPortraitDataUri("Isuri Wickramasinghe"),
+    firstName: "Isuri",
+    lastName: "Wickramasinghe",
+    city: "Kurunegala",
+    country: "Sri Lanka",
+    email: "isuri.wickramasinghe@suwa.care",
   },
   {
     doctorIndex: 5,
     gender: "men",
-    url: "https://randomuser.me/api/portraits/men/93.jpg",
-    firstName: "Terry",
-    lastName: "Jenkins",
-    city: "Dublin",
-    country: "Ireland",
-    email: "terry.jenkins@suwa.care",
+    url: createSriLankanPortraitDataUri("Kavinda Samarasinghe"),
+    firstName: "Kavinda",
+    lastName: "Samarasinghe",
+    city: "Matara",
+    country: "Sri Lanka",
+    email: "kavinda.samarasinghe@suwa.care",
   },
   {
     doctorIndex: 6,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/95.jpg",
-    firstName: "Zeferina",
-    lastName: "Ramos",
-    city: "Sao Paulo",
-    country: "Brazil",
-    email: "zeferina.ramos@suwa.care",
+    url: createSriLankanPortraitDataUri("Dilini Senanayake"),
+    firstName: "Dilini",
+    lastName: "Senanayake",
+    city: "Jaffna",
+    country: "Sri Lanka",
+    email: "dilini.senanayake@suwa.care",
   },
   {
     doctorIndex: 7,
-    gender: "women",
-    url: "https://randomuser.me/api/portraits/women/1.jpg",
-    firstName: "Amy",
-    lastName: "Miller",
-    city: "Toronto",
-    country: "Canada",
-    email: "amy.miller@suwa.care",
+    gender: "men",
+    url: createSriLankanPortraitDataUri("Suresh Pathirana"),
+    firstName: "Suresh",
+    lastName: "Pathirana",
+    city: "Badulla",
+    country: "Sri Lanka",
+    email: "suresh.pathirana@suwa.care",
   },
   {
     doctorIndex: 8,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/43.jpg",
-    firstName: "Shahistha",
-    lastName: "Dhamdhame",
-    city: "Kolkata",
-    country: "India",
-    email: "shahistha.dhamdhame@suwa.care",
+    url: createSriLankanPortraitDataUri("Ayesha Haniffa"),
+    firstName: "Ayesha",
+    lastName: "Haniffa",
+    city: "Batticaloa",
+    country: "Sri Lanka",
+    email: "ayesha.haniffa@suwa.care",
   },
   {
     doctorIndex: 9,
-    gender: "women",
-    url: "https://randomuser.me/api/portraits/women/15.jpg",
-    firstName: "Ariadna",
-    lastName: "Garica",
-    city: "Guadalajara",
-    country: "Mexico",
-    email: "ariadna.garica@suwa.care",
+    gender: "men",
+    url: createSriLankanPortraitDataUri("Chamara Ekanayake"),
+    firstName: "Chamara",
+    lastName: "Ekanayake",
+    city: "Anuradhapura",
+    country: "Sri Lanka",
+    email: "chamara.ekanayake@suwa.care",
   },
 ];
 
@@ -116,56 +116,132 @@ export const PATIENT_PORTRAIT_SPECS: PortraitSpec[] = [
   {
     doctorIndex: 0,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/3.jpg",
-    firstName: "Nadia",
-    lastName: "Chen",
-    city: "Vancouver",
-    country: "Canada",
-    email: "nadia.chen@suwa.care",
+    url: createSriLankanPortraitDataUri("Piumi Liyanage"),
+    firstName: "Piumi",
+    lastName: "Liyanage",
+    city: "Colombo",
+    country: "Sri Lanka",
+    email: "piumi.liyanage@suwa.care",
   },
   {
     doctorIndex: 1,
     gender: "men",
-    url: "https://randomuser.me/api/portraits/men/22.jpg",
-    firstName: "Ryo",
-    lastName: "Yamamoto",
-    city: "Tokyo",
-    country: "Japan",
-    email: "ryo.yamamoto@suwa.care",
+    url: createSriLankanPortraitDataUri("Dinesh Alwis"),
+    firstName: "Dinesh",
+    lastName: "Alwis",
+    city: "Gampaha",
+    country: "Sri Lanka",
+    email: "dinesh.alwis@suwa.care",
   },
   {
     doctorIndex: 2,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/65.jpg",
-    firstName: "Ingrid",
-    lastName: "Sorensen",
-    city: "Oslo",
-    country: "Norway",
-    email: "ingrid.sorensen@suwa.care",
+    url: createSriLankanPortraitDataUri("Nadini Herath"),
+    firstName: "Nadini",
+    lastName: "Herath",
+    city: "Kegalle",
+    country: "Sri Lanka",
+    email: "nadini.herath@suwa.care",
   },
   {
     doctorIndex: 3,
     gender: "men",
-    url: "https://randomuser.me/api/portraits/men/78.jpg",
-    firstName: "Kwame",
-    lastName: "Asante",
-    city: "Accra",
-    country: "Ghana",
-    email: "kwame.asante@suwa.care",
+    url: createSriLankanPortraitDataUri("Sameera Bandara"),
+    firstName: "Sameera",
+    lastName: "Bandara",
+    city: "Ratnapura",
+    country: "Sri Lanka",
+    email: "sameera.bandara@suwa.care",
   },
   {
     doctorIndex: 4,
     gender: "women",
-    url: "https://randomuser.me/api/portraits/women/12.jpg",
-    firstName: "Elena",
-    lastName: "Popescu",
-    city: "Bucharest",
-    country: "Romania",
-    email: "elena.popescu@suwa.care",
+    url: createSriLankanPortraitDataUri("Menaka Kularatne"),
+    firstName: "Menaka",
+    lastName: "Kularatne",
+    city: "Trincomalee",
+    country: "Sri Lanka",
+    email: "menaka.kularatne@suwa.care",
   },
 ];
 
-export const SAMPLE_PORTRAIT_URL =
-  "https://randomuser.me/api/portraits/women/50.jpg";
-export const SAMPLE_THUMBNAIL_URL =
-  "https://randomuser.me/api/portraits/thumb/women/50.jpg";
+export const SAMPLE_PORTRAIT_URL = createSriLankanPortraitDataUri(
+  "Sample Portrait"
+);
+export const SAMPLE_THUMBNAIL_URL = createSriLankanPortraitDataUri(
+  "Sample Thumbnail"
+);
+
+function createSriLankanPortraitDataUri(displayName: string) {
+  const svg = buildSriLankanPortraitSvg(displayName);
+  return `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString(
+    "base64"
+  )}`;
+}
+
+function buildSriLankanPortraitSvg(displayName: string) {
+  const [primary, secondary, accent] = portraitColorsForName(displayName);
+  const initials = portraitInitials(displayName);
+  const safeName = escapeXml(displayName);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${primary}"/>
+      <stop offset="100%" stop-color="${secondary}"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="800" rx="72" fill="url(#bg)"/>
+  <rect x="88" y="88" width="624" height="624" rx="56" fill="url(#glow)"/>
+  <circle cx="400" cy="286" r="150" fill="#ffffff" opacity="0.14"/>
+  <circle cx="400" cy="268" r="112" fill="#f8fafc"/>
+  <path d="M312 536c18-74 72-112 88-112s70 38 88 112v50H312z" fill="#f8fafc"/>
+  <circle cx="400" cy="258" r="52" fill="${accent}" opacity="0.22"/>
+  <text x="400" y="304" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="104" font-weight="800" fill="#0f172a">${initials}</text>
+  <text x="400" y="596" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">${safeName}</text>
+  <text x="400" y="636" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" fill="#fffbeb" opacity="0.96">Sri Lankan clinician</text>
+  <rect x="220" y="676" width="360" height="10" rx="5" fill="#ffd54f"/>
+  <rect x="260" y="692" width="280" height="10" rx="5" fill="#ffffff" opacity="0.75"/>
+  </svg>`;
+}
+
+function portraitColorsForName(displayName: string) {
+  const palettes = [
+    ["#0f766e", "#134e4a", "#f59e0b"],
+    ["#7c3aed", "#312e81", "#fde047"],
+    ["#b91c1c", "#7f1d1d", "#f97316"],
+    ["#1d4ed8", "#0f172a", "#facc15"],
+    ["#15803d", "#14532d", "#f59e0b"],
+    ["#b45309", "#78350f", "#fde68a"],
+  ] as const;
+
+  const index = hashString(displayName) % palettes.length;
+  return palettes[index] ?? palettes[0];
+}
+
+function portraitInitials(displayName: string) {
+  const parts = displayName.split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] ?? "S";
+  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "L" : first;
+  return `${first}${last}`.toUpperCase();
+}
+
+function hashString(value: string) {
+  let hash = 0;
+  for (const char of value) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return hash;
+}
+
+function escapeXml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}

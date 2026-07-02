@@ -16,15 +16,20 @@ export function ProofBar() {
       >
         {proofItems.map(({ label, value }, i) => (
           <div
-            className={`flex min-w-0 items-center justify-center gap-[11px] border-border border-r last:border-r-0 max-xl:min-h-[64px] max-xl:justify-start max-xl:border-border max-xl:border-b max-xl:pl-[15px] max-xl:[&:nth-child(2)]:border-r-0 max-xl:[&:nth-last-child(-n+2)]:border-b-0 ${
+            className={`flex min-w-0 items-center justify-center gap-[15px] border-border border-r last:border-r-0 max-xl:min-h-[64px] max-xl:justify-start max-xl:border-border max-xl:border-b max-xl:[&:nth-child(2)]:border-r-0 max-xl:[&:nth-last-child(-n+2)]:border-b-0 ${
               i >= 2 ? "max-xl:border-b-0" : ""
             }`}
             key={label}
           >
-            <strong className="font-normal font-serif text-[29px] tracking-[-0.04em] whitespace-nowrap">
-              {value}{label === "session length" && <span className="text-[11px]">min</span>}
+            <strong className="font-normal font-serif text-[40px] leading-none tracking-[-0.04em] whitespace-nowrap max-xl:text-[36px]">
+              {value}
+              {label === "session length" && (
+                <span className="ml-[4px] text-[13px] align-[0.15em] max-xl:text-[12px]">
+                  min
+                </span>
+              )}
             </strong>
-            <span className="max-w-[105px] text-[9px] text-foreground-muted uppercase leading-[1.45]">
+            <span className="max-w-[120px] text-[13px] text-foreground-muted uppercase leading-[1.4] tracking-[0.05em] max-xl:text-[12px]">
               {label}
             </span>
           </div>

@@ -4,6 +4,7 @@ import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { RPCHandler as WebSocketRPCHandler } from "@orpc/server/websocket";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import { readStoredFileRecord } from "@suwa/api/doctor-materials";
 import { createAuth } from "@suwa/auth";
 import { createContext } from "@suwa/api/context";
 import { appRouter, wsAppRouter } from "@suwa/api/routers/index";
@@ -14,13 +15,22 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import webhookApp from "./webhooks";
 
+type WorkerEnv = {
+  AI: Ai;
+  CHAT_MESSAGES_KV: KVNamespace;
+  FILE_STORAGE_BUCKET: R2Bucket;
+  MODEL_FEATURES_KV: KVNamespace;
+  SEED_ASSETS_DIR: string;
+  SEED_FILE_SERVER_URL?: string;
+};
+
 const app = new Hono();
 
 app.use(logger());
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN.split(","),
+    origin: (env as any).CORS_ORIGIN.split(","),
     allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type"],
     credentials: true,
@@ -90,6 +100,12 @@ app.get(
 );
 
 app.use("/*", async (c, next) => {
+  const requestPath = new URL(c.req.url).pathname;
+  if (requestPath.startsWith("/materials/") || requestPath.startsWith("/images/")) {
+    await next();
+    return;
+  }
+
   const context = await createContext({ context: c });
 
   const rpcResult = await rpcHandler.handle(c.req.raw, {
@@ -113,16 +129,26 @@ app.use("/*", async (c, next) => {
   await next();
 });
 
+app.get("/images/:key", async (c) => {
+  const { FILE_STORAGE_BUCKET } = c.env as Pick<WorkerEnv, "FILE_STORAGE_BUCKET">;
+  const key = c.req.param("key");
+  const record = await readStoredFileRecord(FILE_STORAGE_BUCKET, key);
+
+  if (!record) {
+    return c.text("Image not found", 404);
+  }
+
+  return new Response(record.data as unknown as BodyInit, {
+    status: 200,
+    headers: {
+      "Content-Type": record.mimeType,
+    },
+  });
+});
+
 app.get("/seed", async (c) => {
   try {
-    const env = c.env as {
-      AI: Ai;
-      DOCTOR_MATERIALS_KV: KVNamespace;
-      CHAT_MESSAGES_KV: KVNamespace;
-      MODEL_FEATURES_KV: KVNamespace;
-      SEED_ASSETS_DIR: string;
-      SEED_FILE_SERVER_URL?: string;
-    };
+    const env = c.env as WorkerEnv;
 
     const readAsset = async (filename: string) => {
       if (env.SEED_FILE_SERVER_URL) {
@@ -149,8 +175,8 @@ app.get("/seed", async (c) => {
     const { runSeed } = await import("./seed/index");
     const result = await runSeed({
       ai: env.AI,
-      doctorMaterialsKv: env.DOCTOR_MATERIALS_KV,
       chatMessagesKv: env.CHAT_MESSAGES_KV,
+      fileStorageBucket: env.FILE_STORAGE_BUCKET,
       modelFeaturesKv: env.MODEL_FEATURES_KV,
       readAsset,
     });
@@ -171,11 +197,9 @@ app.get("/unseed", async (c) => {
   try {
     const { unseedData } = await import("./seed/unseed");
     const { createDb } = await import("@suwa/db");
-    const env = c.env as {
-      DOCTOR_MATERIALS_KV: KVNamespace;
-    };
     const db = createDb();
-    const result = await unseedData(db, env.DOCTOR_MATERIALS_KV);
+    const { FILE_STORAGE_BUCKET } = c.env as Pick<WorkerEnv, "FILE_STORAGE_BUCKET">;
+    const result = await unseedData(db, FILE_STORAGE_BUCKET);
     return c.json({ success: true, result });
   } catch (error) {
     console.error("Unseed error:", error);

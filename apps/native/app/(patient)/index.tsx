@@ -156,7 +156,7 @@ function FeatureCard({
 
 function FeaturedMaterialCard({ item }: { item: any }) {
   const router = useRouter();
-  const { uri, loading } = useMaterialThumbnail(item.id);
+  const { uri, loading } = useMaterialThumbnail(item);
 
   return (
     <Pressable

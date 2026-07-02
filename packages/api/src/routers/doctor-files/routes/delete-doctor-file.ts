@@ -1,7 +1,7 @@
 import { doctorFiles } from "@suwa/db";
 import { fileKeySchema } from "@suwa/db/schemas-types";
-import { env } from "@suwa/env/server";
 import { and, eq } from "drizzle-orm";
+import { deleteStoredFile } from "../../../doctor-materials";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
@@ -23,7 +23,10 @@ export const deleteDoctorFileRoute = protectedProcedure
     }
 
     await context.db.delete(doctorFiles).where(eq(doctorFiles.id, input.id));
-    await env.DOCTOR_MATERIALS_KV.delete(file.fileKey);
+    await deleteStoredFile(context.fileStorageBucket, file.fileKey);
+    if (file.thumbnailKey) {
+      await deleteStoredFile(context.fileStorageBucket, file.thumbnailKey);
+    }
 
     return { ok: true };
   });

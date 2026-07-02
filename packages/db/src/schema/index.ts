@@ -84,6 +84,7 @@ export const doctorFiles = sqliteTable(
     id: text("id").primaryKey(),
     doctorId: text("doctor_id").notNull(),
     fileKey: text("file_key").notNull(),
+    thumbnailKey: text("thumbnail_key"),
     fileName: text("file_name").notNull(),
     mimeType: text("mime_type").notNull(),
     fileKind: text("file_kind", { enum: doctorFileKindValues }).notNull(),

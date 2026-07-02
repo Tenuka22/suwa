@@ -10,14 +10,14 @@ const connectModes = [
     title: "Chat",
   },
   {
-    description: "Face-to-face from wherever you are. Same care, less travel.",
+    description: "Face to face from wherever you are. Same care, less travel.",
     icon: Video,
     title: "Video",
   },
   {
     description: "Meet in person when you need that extra layer of connection.",
     icon: MapPin,
-    title: "In-Person",
+    title: "In person",
   },
 ] as const;
 

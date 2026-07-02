@@ -16,7 +16,7 @@ import { WaysToConnect } from "./sections/ways-to-connect";
 
 export function LandingPage() {
   return (
-    <div className="overflow-hidden bg-background">
+    <div className="overflow-hidden bg-background px-4 sm:px-6 lg:px-8">
       <Navbar />
       <main>
         <Appear>

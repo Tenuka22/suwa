@@ -106,14 +106,12 @@ function NextAppointmentCard({
     endAt: string;
     status: string;
     doctor: { displayName: string | null; headline: string | null } | null;
-    portrait: { id: string } | null;
+    portrait: { fileKey: string | null; thumbnailKey: string | null } | null;
     plan: { name: string; durationMinutes: number } | null;
   };
   onPress: () => void;
 }) {
-  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(
-    session.portrait?.id ?? null
-  );
+  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(session.portrait ?? null);
   const startDate = new Date(session.startAt);
   const endDate = new Date(session.endAt);
   const { label: relativeTime, urgent } = getRelativeTime(startDate);
@@ -198,7 +196,7 @@ function AppointmentCard({
     endAt: string;
     status: string;
     doctor: { displayName: string | null; headline: string | null } | null;
-    portrait: { id: string } | null;
+    portrait: { fileKey: string | null; thumbnailKey: string | null } | null;
     plan: { name: string; durationMinutes: number } | null;
   };
   onPress: () => void;
@@ -209,9 +207,7 @@ function AppointmentCard({
     bg: "bg-muted/20",
     text: "text-foreground-muted",
   };
-  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(
-    session.portrait?.id ?? null
-  );
+  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(session.portrait ?? null);
   const startDate = new Date(session.startAt);
   const endDate = new Date(session.endAt);
 

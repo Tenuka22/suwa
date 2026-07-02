@@ -1,5 +1,5 @@
 import { doctorHubMaterials, doctorProfiles } from "@suwa/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { publicProcedure } from "../../../index";
 
@@ -18,6 +18,7 @@ export const listPublicMaterialsRoute = publicProcedure
       eq(doctorHubMaterials.visibility, "public"),
       eq(doctorHubMaterials.status, "ready"),
       eq(doctorHubMaterials.fileType, "video"),
+      isNotNull(doctorHubMaterials.fileKey),
     ];
     if (input.doctorId) {
       conditions.push(eq(doctorHubMaterials.doctorId, input.doctorId));

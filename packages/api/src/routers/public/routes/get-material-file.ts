@@ -1,7 +1,7 @@
 import { doctorHubMaterials } from "@suwa/db";
-import { env } from "@suwa/env/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { readStoredFile } from "../../../doctor-materials";
 import { publicProcedure } from "../../../index";
 
 export const getMaterialFileRoute = publicProcedure
@@ -17,15 +17,11 @@ export const getMaterialFileRoute = publicProcedure
       throw new Error("Material file not found");
     }
 
-    const data = await env.DOCTOR_MATERIALS_KV.get(material.fileKey, {
-      type: "arrayBuffer",
-    });
+    const data = await readStoredFile(context.fileStorageBucket, material.fileKey, material.fileName ?? undefined);
 
     if (!data) {
       throw new Error("Material file not found in storage");
     }
 
-    return new File([data], material.fileName ?? "file", {
-      type: material.mimeType ?? "application/octet-stream",
-    });
+    return data;
   });

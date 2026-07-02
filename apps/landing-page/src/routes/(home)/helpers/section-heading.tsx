@@ -12,7 +12,7 @@ export function SectionHeading({
   description,
 }: SectionHeadingProps) {
   return (
-    <div className="mx-auto mb-[47px] max-w-[620px] px-[8px] text-center max-sm:mb-[32px]">
+    <div className="mx-auto mb-[47px] max-w-[620px] text-center max-sm:mb-[32px]">
       <span className="block font-medium text-[12px] text-accent uppercase tracking-[0.12em]">
         {eyebrow}
       </span>
@@ -30,11 +30,17 @@ export function SectionHeading({
 
 interface SectionKickerProps {
   children: ReactNode;
+  className?: string;
 }
 
-export function SectionKicker({ children }: SectionKickerProps) {
+export function SectionKicker({
+  children,
+  className = "",
+}: SectionKickerProps) {
   return (
-    <span className="block font-medium text-[11px] text-accent uppercase tracking-[0.11em]">
+    <span
+      className={`block font-medium text-[11px] text-accent uppercase tracking-[0.11em] ${className}`}
+    >
       {children}
     </span>
   );

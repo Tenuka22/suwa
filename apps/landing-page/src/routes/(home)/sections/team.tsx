@@ -4,48 +4,38 @@ import { Appear } from "../animations/appear";
 const team = [
   {
     name: "Hesandu Linal",
-    bio: "Entrepreneur, CEO of Suwa, and AI engineering.",
     avatarSeed: "/hesandu.jpeg",
     href: undefined,
-    note: "CEO of Suwa",
-    stack: ["Entrepreneur", "CEO", "n8n", "AI Engineer"],
-    summary: "Leading Suwa while building automation and AI workflows.",
+    role: "Team Leader",
+    stack: ["Entrepreneur", "n8n", "AI Engineer"],
   },
   {
     name: "Tenuka Omaljith",
-    bio: "Open-source builder focused on practical software and product work.",
     avatarSeed: "https://avatars.githubusercontent.com/u/135237290",
     href: "https://github.com/Tenuka22/",
-    note: "GitHub: Tenuka22",
+    role: "Lead developer",
     stack: ["Website projects", "Rust", "Scalable apps"],
-    summary: "Profile highlights shipping useful, efficient software.",
   },
   {
     name: "Sethun Thunder",
-    bio:"Builder obsessed with creating products people remember, where engineering, design, and storytelling come together. Always experimenting, always shipping.",
     avatarSeed: "/sethun.png",
     href: "https://github.com/sethunthunder111",
-    note: "GitHub: sethunthunder111",
+    role: "Web developer",
     stack: ["Entrepreneurship", "Open source", "Project shipping"],
-    summary: "Shares builds, experiments, and product-minded work.",
   },
   {
     name: "Pasindu Mihiranga",
-    bio: "Python developer working across IoT and applied software projects.",
     avatarSeed: "/pasindu.jpeg",
     href: undefined,
-    note: "Python and IoT development",
+    role: "Designer",
     stack: ["Python", "IoT", "Automation"],
-    summary: "Focused on connected devices and software tools.",
   },
   {
     name: "Kavija Anusara",
-    bio: "Python, website building, and IoT projects with a hands-on approach.",
     avatarSeed: "/kavija.jpeg",
     href: undefined,
-    note: "Python, websites, and IoT",
+    role: "IOT developer",
     stack: ["Python", "Website", "IoT"],
-    summary: "Builds across software, web, and hardware domains.",
   },
 ] as const;
 
@@ -94,13 +84,7 @@ export function Team() {
                   {member.name}
                 </h3>
                 <p className="m-0 text-[11px] uppercase tracking-[0.08em] text-accent">
-                  {member.note}
-                </p>
-                <p className="m-0 text-[12px] text-foreground-secondary leading-[1.7]">
-                  {member.bio}
-                </p>
-                <p className="mx-auto mt-[10px] mb-0 max-w-[220px] text-[12px] text-foreground-muted leading-[1.6]">
-                  {member.summary}
+                  {member.role}
                 </p>
                 <div className="mt-[14px] flex flex-wrap justify-center gap-[8px]">
                   {member.stack.map((tag) => (

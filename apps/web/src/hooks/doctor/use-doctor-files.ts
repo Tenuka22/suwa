@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { orpc } from "@/utils/orpc";
+import { createVideoThumbnail, isVideoFile } from "@/utils/video-thumbnail";
 
 export function useDoctorFiles() {
   return useQuery({
@@ -20,13 +21,24 @@ export function useUploadDoctorFile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UploadDoctorFileInput) =>
-      orpc.createDoctorFile.call({
+    mutationFn: async (input: UploadDoctorFileInput) => {
+      const thumbnail = isVideoFile(input.file)
+        ? await createVideoThumbnail(input.file)
+        : null;
+
+      return orpc.createDoctorFile.call({
         caption: input.caption,
         doctorId: input.doctorId,
         file: input.file,
         fileKind: input.fileKind,
-      }),
+        ...(thumbnail
+          ? {
+              thumbnailDataBase64: thumbnail.dataBase64,
+              thumbnailMimeType: thumbnail.mimeType,
+            }
+          : {}),
+      });
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: orpc.myDoctorFiles.queryKey(),

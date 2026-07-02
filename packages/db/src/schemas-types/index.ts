@@ -157,6 +157,8 @@ export const createDoctorFileSchema = z.object({
   fileKind: doctorFileKindSchema,
   caption: z.string().trim().max(280).optional(),
   file: z.file(),
+  thumbnailDataBase64: z.string().min(1).optional(),
+  thumbnailMimeType: z.string().min(1).optional(),
 });
 
 export const updateDoctorFileSchema = z.object({

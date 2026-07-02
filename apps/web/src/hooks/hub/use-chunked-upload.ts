@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { orpc } from "@/utils/orpc";
+import { createVideoThumbnail, isVideoFile } from "@/utils/video-thumbnail";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB - must match server
 
@@ -56,6 +57,10 @@ export function useChunkedUpload(options?: UseChunkedUploadOptions) {
 
       try {
         // Step 1: Initialize upload
+        const thumbnail = isVideoFile(file)
+          ? await createVideoThumbnail(file)
+          : null;
+
         const initResult = await orpc.initHubUpload.call({
           fileName: file.name,
           mimeType: file.type || "application/octet-stream",
@@ -64,6 +69,12 @@ export function useChunkedUpload(options?: UseChunkedUploadOptions) {
           title: input.title,
           channelId: input.channelId,
           visibility: input.visibility ?? "private",
+          ...(thumbnail
+            ? {
+                thumbnailDataBase64: thumbnail.dataBase64,
+                thumbnailMimeType: thumbnail.mimeType,
+              }
+            : {}),
         });
 
         setProgress((prev) =>

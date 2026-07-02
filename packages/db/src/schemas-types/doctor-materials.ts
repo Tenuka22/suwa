@@ -93,6 +93,8 @@ export const initHubUploadSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   channelId: z.string().optional(),
   visibility: hubVisibilitySchema.default("private"),
+  thumbnailDataBase64: z.string().min(1).optional(),
+  thumbnailMimeType: z.string().min(1).optional(),
 });
 
 export const uploadHubChunkSchema = z.object({

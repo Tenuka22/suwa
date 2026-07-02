@@ -7,29 +7,25 @@ import {
 
 const trustItems = [
   {
-    description:
-      "People can begin care without putting their identity at the center.",
+    description: "Start care privately, without making identity the focus.",
     icon: LockKeyhole,
     theme: "green",
     title: "Anonymous first",
   },
   {
-    description:
-      "Doctors provide credible support through online sessions and profiles.",
+    description: "Verified doctors add trust through sessions and profiles.",
     icon: BadgeCheck,
     theme: "peach",
-    title: "Doctor-backed care",
+    title: "Doctor backed care",
   },
   {
-    description:
-      "Chat, video, and in-person paths let people choose their comfort level.",
+    description: "Choose chat, video, or in person care when ready.",
     icon: HeartHandshake,
     theme: "lavender",
     title: "Flexible consultation",
   },
   {
-    description:
-      "Hospitals and clinics support the service without becoming the main story.",
+    description: "Clinics support care quietly in the background.",
     icon: ShieldCheck,
     theme: "gold",
     title: "Care infrastructure",
@@ -47,23 +43,23 @@ export function TrustStrip() {
   return (
     <section
       aria-label="Why Suwa is useful"
-      className="page-shell relative z-[4] grid min-h-[112px] max-w-[1335px] grid-cols-4 gap-3 rounded-xl border border-[rgb(235_229_218_/_72%)] bg-[rgb(255_253_248_/_68%)] p-[23px_32px] shadow-[0_14px_40px_rgb(52_66_59_/_3%)] backdrop-blur-[10px] max-xl:grid-cols-1 max-xl:p-[12px_19px]"
+      className="page-shell relative z-[4] grid max-w-[980px] grid-cols-2 gap-4 rounded-[24px] border border-[rgb(235_229_218_/_72%)] bg-[rgb(255_253_248_/_72%)] p-[26px] shadow-[0_14px_40px_rgb(52_66_59_/_3%)] backdrop-blur-[10px] max-md:grid-cols-1 max-md:p-[18px]"
     >
       {trustItems.map(({ description, icon: Icon, theme, title }) => (
         <article
-          className="flex min-w-0 items-center gap-[16px] border-border border-r px-[28px] py-4 first:pl-0 last:border-r-0 last:pr-0 max-xl:border-border max-xl:border-r-0 max-xl:border-b max-xl:px-[18px] max-xl:[&:first-child]:px-0 max-xl:[&:first-child]:pl-0 max-xl:[&:last-child]:border-b-0 max-xl:[&:last-child]:px-0 max-xl:[&:last-child]:pr-0 max-xl:[&:nth-child(-n+2)]:border-border max-xl:[&:nth-child(-n+2)]:border-b max-xl:[&:nth-child(2)]:border-r-0"
+          className="flex min-w-0 items-start gap-[18px] rounded-[18px] border border-border/70 bg-white/45 p-[22px] max-md:p-[18px]"
           key={title}
         >
           <span
-            className={`grid size-[57px] flex-none place-items-center rounded-full shadow-[inset_0_0_0_6px_rgb(255_255_255_/_32%)] max-xl:size-[50px] ${themeStyles[theme]}`}
+            className={`grid size-[58px] flex-none place-items-center rounded-full shadow-[inset_0_0_0_6px_rgb(255_255_255_/_32%)] max-md:size-[52px] ${themeStyles[theme]}`}
           >
             <Icon aria-hidden="true" size={27} strokeWidth={1.55} />
           </span>
           <div>
-            <h2 className="m-0 mb-[4px] font-sans font-semibold text-[13px] tracking-[-0.01em]">
+            <h2 className="m-0 mb-[7px] font-sans font-semibold text-[17px] tracking-[-0.02em]">
               {title}
             </h2>
-            <p className="m-0 max-w-[190px] text-[#4b5753] text-[11.5px] leading-[1.65] max-xl:max-w-none">
+            <p className="m-0 max-w-[260px] text-[#4b5753] text-[14px] leading-[1.55] max-md:max-w-none">
               {description}
             </p>
           </div>

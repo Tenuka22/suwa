@@ -312,16 +312,18 @@ function DoctorFilePreviewCard({
   file: {
     caption: string | null;
     fileKind: "portrait" | "qualification" | "intro_video" | "other";
+    fileKey: string;
     fileName: string;
     id: string;
     isVideo: boolean;
     mimeType: string;
+    thumbnailKey: string | null;
     size: number;
   };
   isDeleting: boolean;
   onDelete: (id: string) => void;
 }) {
-  const previewUrl = useDoctorMaterialPreviewUrl(file.id);
+  const previewUrl = useDoctorMaterialPreviewUrl(file);
 
   return (
     <DoctorFileCard

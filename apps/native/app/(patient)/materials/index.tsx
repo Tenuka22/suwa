@@ -15,7 +15,7 @@ import { orpc } from "@/utils/orpc";
 
 function MaterialCard({ item }: { item: any }) {
   const router = useRouter();
-  const { uri, loading } = useMaterialThumbnail(item.id);
+  const { uri, loading } = useMaterialThumbnail(item);
 
   return (
     <Pressable
@@ -74,13 +74,14 @@ export default function MaterialsScreen() {
   const { data: materials, isLoading } = useQuery(
     orpc.listPublicMaterials.queryOptions({ input: { page: 1, pageSize: 50 } })
   );
+  const materialList = (materials ?? []) as Array<any>;
 
   const filtered = useMemo(
     () =>
-      (materials ?? []).filter((m: any) =>
+      materialList.filter((m: any) =>
         search ? m.title.toLowerCase().includes(search.toLowerCase()) : true
       ),
-    [materials, search]
+    [materialList, search]
   );
 
   return (

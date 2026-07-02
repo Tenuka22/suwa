@@ -20,7 +20,7 @@ function isWeb(): boolean {
 
 export async function storeSecret(secret: string): Promise<void> {
   if (isWeb()) {
-    sessionStorage.setItem(SECRET_STORAGE_KEY, secret);
+    localStorage.setItem(SECRET_STORAGE_KEY, secret);
     return;
   }
   await setItemAsync(SECRET_STORAGE_KEY, secret);
@@ -28,7 +28,7 @@ export async function storeSecret(secret: string): Promise<void> {
 
 export async function getStoredSecret(): Promise<string | null> {
   if (isWeb()) {
-    return sessionStorage.getItem(SECRET_STORAGE_KEY);
+    return localStorage.getItem(SECRET_STORAGE_KEY);
   }
   try {
     return await getItemAsync(SECRET_STORAGE_KEY);

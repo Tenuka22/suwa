@@ -6,10 +6,10 @@ export function Services() {
   return (
     <section
       aria-label="Suwa services"
-      className="page-shell grid max-w-[1335px] grid-cols-2 gap-[62px] pt-[48px] pb-[95px] max-xl:grid-cols-1 max-xl:gap-[46px] xl:gap-[36px] max-xl:pt-[50px] max-xl:pb-[70px]"
+      className="page-shell flex items-center justify-center flex-col max-w-[1335px] gap-[62px] pt-[48px] pb-[95px] max-xl:gap-[46px] xl:gap-[36px] max-xl:pt-[50px] max-xl:pb-[70px] "
     >
       <article
-        className="grid min-w-0 grid-cols-[220px_1fr] items-center gap-[38px] max-xl:grid-cols-[240px_1fr] max-xl:grid-cols-1 xl:grid-cols-[180px_1fr] max-xl:gap-[25px] xl:gap-[24px]"
+        className="grid min-w-0 max-w-3xl grid-cols-[220px_1fr] items-center gap-[38px] max-md:grid-cols-1 max-md:gap-[25px] xl:grid-cols-[180px_1fr] xl:gap-[24px] w-full"
         id="hospital-management"
       >
         <div className="self-center max-xl:max-w-[300px]">
@@ -63,13 +63,13 @@ export function Services() {
       </article>
 
       <article
-        className="grid min-w-0 grid-cols-[220px_1fr] items-center gap-[38px] max-xl:grid-cols-[240px_1fr] max-xl:grid-cols-1 xl:grid-cols-[180px_1fr] max-xl:gap-[25px] xl:gap-[24px]"
+        className="grid max-w-3xl min-w-0 grid-cols-[220px_1fr] items-center gap-[38px] max-md:grid-cols-1 max-md:gap-[25px] xl:grid-cols-[180px_1fr] xl:gap-[24px] w-full"
         id="library"
       >
         <div className="self-center max-xl:max-w-[300px]">
           <SectionNumber>02</SectionNumber>
           <h2 className="m-0 mb-[12px] font-normal font-serif text-[25px] tracking-[-0.03em]">
-            Doctor-backed trust
+            Doctor backed trust
           </h2>
           <p className="m-0 text-[#31423d] text-[13px] leading-[1.65]">
             Show who can help, what they specialize in, and how someone can
@@ -125,7 +125,7 @@ export function Services() {
                   Availability
                 </p>
                 <p className="mt-[7px] mb-0 font-medium text-[12px] text-foreground leading-[1.4]">
-                  Mon - Fri, 9 AM - 5 PM
+                  Mon to Fri, 9 AM to 5 PM
                 </p>
               </div>
             </div>

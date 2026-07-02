@@ -1,7 +1,7 @@
 import { hubUploadSessions } from "@suwa/db";
 import { uploadHubChunkSchema } from "@suwa/db/schemas-types";
-import { env } from "@suwa/env/server";
 import { and, eq } from "drizzle-orm";
+import { base64ToUint8Array, putStoredFile } from "../../../doctor-materials";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
@@ -34,17 +34,13 @@ export const uploadHubChunkRoute = protectedProcedure
       throw new Error("Chunk index out of range");
     }
 
-    // Decode base64 chunk data
-    const chunkBuffer = Uint8Array.from(atob(input.chunkData), (c) =>
-      c.charCodeAt(0)
-    );
-
-    // Store chunk in KV with its index
+    // Store chunk in bucket with its index
     const chunkKey = `${session.fileKey}/chunks/${input.chunkIndex}`;
-    await env.DOCTOR_MATERIALS_KV.put(
-      chunkKey,
-      chunkBuffer.buffer as ArrayBuffer
-    );
+    await putStoredFile(context.fileStorageBucket, {
+      key: chunkKey,
+      data: base64ToUint8Array(input.chunkData),
+      mimeType: "application/octet-stream",
+    });
 
     // Update uploaded chunks list
     const uploadedChunks: number[] = session.uploadedChunks

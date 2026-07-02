@@ -27,7 +27,7 @@ export const createMaterialRoute = protectedProcedure
       size: null,
       durationSeconds: null,
       visibility: input.visibility,
-      status: "ready",
+      status: "uploading",
       tags: input.tags ? JSON.stringify(input.tags) : null,
       metadata: null,
       playlistId: input.playlistId ?? null,

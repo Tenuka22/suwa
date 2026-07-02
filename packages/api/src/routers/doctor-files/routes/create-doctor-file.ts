@@ -1,7 +1,10 @@
 import { doctorFiles } from "@suwa/db";
 import { createDoctorFileSchema } from "@suwa/db/schemas-types";
-import { env } from "@suwa/env/server";
 import { eq } from "drizzle-orm";
+import {
+  base64ToUint8Array,
+  putStoredFile,
+} from "../../../doctor-materials";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 import { canManageDoctorFiles, type UploadableFile } from "../file-utils";
@@ -20,13 +23,29 @@ export const createDoctorFileRoute = protectedProcedure
     const createdId = crypto.randomUUID();
     const file = input.file as UploadableFile;
     const fileKey = `doctor-files/${input.doctorId}/${createdId}-${file.name}`;
+    const thumbnailKey = input.thumbnailDataBase64
+      ? `${fileKey}.thumbnail.jpg`
+      : null;
 
-    await env.DOCTOR_MATERIALS_KV.put(fileKey, await file.arrayBuffer());
+    await putStoredFile(context.fileStorageBucket, {
+      key: fileKey,
+      data: await file.arrayBuffer(),
+      mimeType: file.type || "application/octet-stream",
+    });
+
+    if (thumbnailKey && input.thumbnailDataBase64) {
+      await putStoredFile(context.fileStorageBucket, {
+        key: thumbnailKey,
+        data: base64ToUint8Array(input.thumbnailDataBase64),
+        mimeType: input.thumbnailMimeType ?? "image/jpeg",
+      });
+    }
 
     await context.db.insert(doctorFiles).values({
       id: createdId,
       doctorId: input.doctorId,
       fileKey,
+      thumbnailKey,
       fileName: file.name,
       mimeType: file.type || "application/octet-stream",
       fileKind: input.fileKind,

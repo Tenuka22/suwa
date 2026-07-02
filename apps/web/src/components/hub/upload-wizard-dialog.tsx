@@ -34,6 +34,7 @@ import { useCallback, useRef, useState } from "react";
 import type { UploadProgress } from "@/hooks/hub/use-chunked-upload";
 import { useChunkedUpload } from "@/hooks/hub/use-chunked-upload";
 import { useHubChannels } from "@/hooks/hub/use-hub";
+import { isAudioFile, isVideoFile } from "@/utils/video-thumbnail";
 
 interface UploadWizardDialogProps {
   onOpenChange: (open: boolean) => void;
@@ -80,6 +81,11 @@ export function UploadWizardDialog({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: channels } = useHubChannels();
+  const channelOptions: Array<{ id: string; name: string }> = Array.isArray(
+    channels
+  )
+    ? channels
+    : [];
   const { progress, startUpload, pauseUpload, resetUpload } = useChunkedUpload({
     onComplete: () => setStep("done"),
   });
@@ -107,8 +113,8 @@ export function UploadWizardDialog({
 
   const handleFileSelect = useCallback(
     (file: File) => {
-      const isVideo = file.type.startsWith("video/");
-      const isAudio = file.type.startsWith("audio/");
+      const isVideo = isVideoFile(file);
+      const isAudio = isAudioFile(file);
 
       if (!(isVideo || isAudio)) {
         return;
@@ -140,7 +146,7 @@ export function UploadWizardDialog({
       return;
     }
 
-    const fileType = selectedFile.type.startsWith("video/") ? "video" : "audio";
+    const fileType = isVideoFile(selectedFile) ? "video" : "audio";
 
     setStep("uploading");
     await startUpload(selectedFile, {
@@ -241,11 +247,11 @@ export function UploadWizardDialog({
         {step === "details" && selectedFile && (
           <div className="grid gap-4">
             <div className="flex items-center gap-3 rounded-lg bg-muted/40 p-3">
-              {selectedFile.type.startsWith("video/") ? (
+              {isVideoFile(selectedFile) ? (
                 <FileVideoIcon className="size-8 text-primary" />
-              ) : (
+              ) : isAudioFile(selectedFile) ? (
                 <FileAudioIcon className="size-8 text-primary" />
-              )}
+              ) : null}
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-sm">
                   {selectedFile.name}
@@ -307,7 +313,7 @@ export function UploadWizardDialog({
               />
             </div>
 
-            {channels && channels.length > 0 ? (
+            {channelOptions.length > 0 ? (
               <div className="grid gap-2">
                 <Label>Channel</Label>
                 <Select
@@ -318,7 +324,7 @@ export function UploadWizardDialog({
                     <SelectValue placeholder="Select a channel" />
                   </SelectTrigger>
                   <SelectContent>
-                    {channels?.map((ch) => (
+                    {channelOptions.map((ch) => (
                       <SelectItem key={ch.id} value={ch.id}>
                         {ch.name}
                       </SelectItem>

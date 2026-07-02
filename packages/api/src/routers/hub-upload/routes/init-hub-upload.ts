@@ -1,5 +1,9 @@
 import { doctorHubMaterials, hubUploadSessions } from "@suwa/db";
 import { CHUNK_SIZE, initHubUploadSchema } from "@suwa/db/schemas-types";
+import {
+  base64ToUint8Array,
+  putStoredFile,
+} from "../../../doctor-materials";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
@@ -12,6 +16,9 @@ export const initHubUploadRoute = protectedProcedure
     const materialId = crypto.randomUUID();
     const timestamp = new Date().toISOString();
     const fileKey = `hub-uploads/${doctorId}/${materialId}/${input.fileName}`;
+    const thumbnailKey = input.thumbnailDataBase64
+      ? `${fileKey}.thumbnail.jpg`
+      : null;
     const totalChunks = Math.ceil(input.totalSize / CHUNK_SIZE);
 
     // Create upload session
@@ -40,7 +47,7 @@ export const initHubUploadRoute = protectedProcedure
       description: null,
       content: null,
       fileKey,
-      thumbnailKey: null,
+       thumbnailKey,
       fileType: input.fileType,
       fileName: input.fileName,
       mimeType: input.mimeType,
@@ -55,6 +62,14 @@ export const initHubUploadRoute = protectedProcedure
       createdAt: timestamp,
       updatedAt: timestamp,
     });
+
+    if (thumbnailKey && input.thumbnailDataBase64) {
+      await putStoredFile(context.fileStorageBucket, {
+        key: thumbnailKey,
+        data: base64ToUint8Array(input.thumbnailDataBase64),
+        mimeType: input.thumbnailMimeType ?? "image/jpeg",
+      });
+    }
 
     return {
       uploadId,

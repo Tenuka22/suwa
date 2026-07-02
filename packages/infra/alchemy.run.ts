@@ -6,6 +6,7 @@ import {
   Ai,
   D1Database,
   KVNamespace,
+  R2Bucket as createR2Bucket,
   TanStackStart,
   Website,
   Worker,
@@ -32,7 +33,10 @@ const db = await D1Database("primary-database", {
   migrationsDir: "../../packages/db/src/migrations",
 });
 
-const doctorMaterialsKv = await KVNamespace("doctor-materials");
+const fileStorageBucket = await createR2Bucket("file-storage", {
+  name: process.env.NODE_ENV === "production" ? "prod-suwa-files" : "suwa-dev-files",
+});
+
 const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
 const faceEmbeddingsKv = await KVNamespace("face-embeddings");
@@ -47,7 +51,7 @@ const faceVideosKv = await KVNamespace("face-videos");
 //   }
 // );
 
-const aiBinding = Ai({ binding: "AI" });
+const aiBinding = Ai();
 
 const seedAssetsDir = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -80,13 +84,13 @@ export const server = await Worker("server", {
   ],
   bindings: {
     DB: db,
+    FILE_STORAGE_BUCKET: fileStorageBucket,
     SEED_ASSETS_DIR: join(
       dirname(fileURLToPath(import.meta.url)),
       "../../apps/server/src/seed-assets"
     ),
     SEED_FILE_SERVER_URL,
     CHAT_MESSAGES_KV: chatMessagesKv,
-    DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
     FACE_EMBEDDINGS_KV: faceEmbeddingsKv,
     FACE_VIDEOS_KV: faceVideosKv,
@@ -129,7 +133,6 @@ export const web = await TanStackStart("web", {
   bindings: {
     VITE_SERVER_URL: server.url!,
     VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
-    DOCTOR_MATERIALS_KV: doctorMaterialsKv,
     VITE_STRIPE_PUBLISHABLE_KEY: alchemy.env.VITE_STRIPE_PUBLISHABLE_KEY!,
   },
   observability: {

@@ -1,30 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  getDoctorMaterialPreviewUrl,
+  type DoctorMediaSource,
+} from "@/utils/doctor/materials";
 
-import { getDoctorMaterialFile } from "@/utils/doctor/materials";
-
-export function useDoctorMaterialPreviewUrl(id: string) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isActive = true;
-    let nextObjectUrl: string | null = null;
-
-    void getDoctorMaterialFile(id).then((file) => {
-      if (!(isActive && file)) {
-        return;
-      }
-
-      nextObjectUrl = URL.createObjectURL(file);
-      setPreviewUrl(nextObjectUrl);
-    });
-
-    return () => {
-      isActive = false;
-      if (nextObjectUrl) {
-        URL.revokeObjectURL(nextObjectUrl);
-      }
-    };
-  }, [id]);
-
-  return previewUrl;
+export function useDoctorMaterialPreviewUrl(
+  media: DoctorMediaSource | null | undefined
+) {
+  return getDoctorMaterialPreviewUrl(media);
 }

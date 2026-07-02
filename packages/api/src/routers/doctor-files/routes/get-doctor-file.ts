@@ -1,7 +1,7 @@
 import { doctorFiles } from "@suwa/db";
 import { fileKeySchema } from "@suwa/db/schemas-types";
 import { eq } from "drizzle-orm";
-import { readDoctorMaterialFile } from "../../../doctor-materials";
+import { readStoredFile } from "../../../doctor-materials";
 import { publicProcedure } from "../../../index";
 
 export const getDoctorFileRoute = publicProcedure
@@ -17,11 +17,7 @@ export const getDoctorFileRoute = publicProcedure
       throw new Error("Doctor file not found");
     }
 
-    const doctorMaterialFile = await readDoctorMaterialFile({
-      fileKey: file.fileKey,
-      fileName: file.fileName,
-      mimeType: file.mimeType,
-    });
+    const doctorMaterialFile = await readStoredFile(context.fileStorageBucket, file.fileKey, file.fileName);
 
     if (!doctorMaterialFile) {
       throw new Error("Doctor file not found in bucket");

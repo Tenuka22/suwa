@@ -1,32 +1,27 @@
-import { ArrowRight, CirclePlay, ShieldCheck } from "lucide-react";
+import { ArrowRight, CirclePlay } from "lucide-react";
 import { OptimizedImage } from "../../../components/optimized-image";
 import { Button, playCircle, RoundArrow } from "../helpers/button";
 import { MOBILE_WEB_URL } from "../helpers/mobile-web-url";
 import { H1 } from "../helpers/typography";
 
-const heroProof = [
-  "Anonymous sessions",
-  "Online doctors",
-  "No public exposure",
-] as const;
-
 export function Hero() {
   return (
     <section
-      className="relative grid h-[550px] grid-cols-[45.5%_54.5%] max-xl:h-auto max-xl:min-h-[760px] max-xl:grid-cols-1"
+      className="relative grid h-[525px] grid-cols-[45.5%_54.5%] max-xl:h-auto max-xl:min-h-[690px] max-xl:grid-cols-1"
       id="top"
     >
-      <div className="relative z-[2] pt-[48px] pl-[28px] max-xl:px-[26px] max-xl:pt-[41px] xl:pl-[40px]">
-        <span className="mb-[13px] block font-medium text-[11px] text-accent uppercase tracking-[0.12em] max-xl:text-[9px]">
+      <div className="relative z-[2] flex h-full flex-col justify-center max-xl:items-center max-xl:pt-[36px] max-xl:text-center">
+        <span className="mb-[11px] block font-medium text-[11px] text-accent uppercase tracking-[0.12em] max-xl:text-[10px]">
           Private online care without stigma
         </span>
-        <H1>Talk to a doctor anonymously, before fear stops you.</H1>
-        <p className="mx-0 mt-[24px] mb-0 text-[17px] text-foreground-secondary leading-[1.65] max-xl:mt-[27px] max-xl:text-[15px] xl:flex hidden">
-          Suwa helps people seek help online without revealing more than they
-          are ready to share. Hospitals and doctors support the care behind the
-          scenes, but the first promise is privacy.
+        <H1 className="max-w-[620px] text-[clamp(43px,3.4vw,52px)] max-sm:text-[clamp(32px,10vw,38px)] max-xl:text-[clamp(38px,9vw,48px)] xl:text-[46px]">
+          Talk to a doctor anonymously, before fear stops you.
+        </H1>
+        <p className="mx-0 mt-[18px] mb-0 max-w-[520px] text-[16px] text-foreground-secondary leading-[1.6] max-xl:mt-[20px] max-xl:text-[15px]">
+          Start privately, ask what feels difficult to say out loud, and move
+          into trusted doctor backed care when you are ready.
         </p>
-        <div className="mt-[24px] flex items-center gap-[25px] max-xl:mt-[27px] max-xl:flex-col max-xl:items-start max-xl:gap-[16px]">
+        <div className="mt-[22px] flex items-center gap-[22px] max-xl:mt-[24px] max-xl:flex-col max-xl:gap-[14px]">
           <Button href={MOBILE_WEB_URL} variant="primary">
             <span>Start anonymous consult</span>
             <RoundArrow size="sm">
@@ -43,42 +38,28 @@ export function Hero() {
             <span>See how it works</span>
           </a>
         </div>
-        <div className="mt-[18px] flex flex-wrap gap-[8px] text-[10px] text-foreground-secondary uppercase tracking-[0.08em]">
-          {heroProof.map((item) => (
-            <span
-              className="rounded-full border border-border bg-[rgb(255_253_248_/_74%)] px-[12px] py-[7px]"
-              key={item}
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-        <div className="mt-[22px] flex items-center gap-[10px] text-[#273c36] text-[12px] max-xl:mt-[24px] max-xl:flex-wrap max-xl:leading-[1.5]">
-          <ShieldCheck aria-hidden="true" size={19} strokeWidth={1.6} />
-          <strong className="font-medium">Built for hospital teams</strong>
-          <span
-            aria-hidden="true"
-            className="mx-[2px] size-[3px] rounded-full bg-accent max-xl:hidden"
-          />
-          <span className="max-xl:basis-full max-xl:pl-[29px]">
-            Want the private app view?{" "}
-            <a className="cursor-pointer text-accent" href={MOBILE_WEB_URL}>
-              Open anonymous care
-            </a>
-            .
+        <div className="mt-[20px] flex max-w-[520px] flex-wrap gap-[8px] text-[11px] text-foreground-secondary uppercase tracking-[0.08em] max-xl:mt-[18px] max-xl:justify-center">
+          <span className="rounded-full border border-border bg-[rgb(255_253_248_/_68%)] px-[11px] py-[6px]">
+            Anonymous sessions
+          </span>
+          <span className="rounded-full border border-border bg-[rgb(255_253_248_/_68%)] px-[11px] py-[6px]">
+            Verified doctors
+          </span>
+          <span className="rounded-full border border-border bg-[rgb(255_253_248_/_68%)] px-[11px] py-[6px]">
+            Private by design
           </span>
         </div>
       </div>
       <div
         aria-hidden="true"
-        className="pointer-events-none relative z-[1] after:absolute after:inset-x-[-20px] after:bottom-[-5px] after:h-[48px] after:bg-gradient-to-b after:from-transparent after:to-background max-xl:absolute max-xl:inset-x-0 max-xl:top-[180px] max-xl:h-[580px] max-xl:overflow-hidden"
+        className="pointer-events-none relative z-[1] after:absolute after:inset-x-[-20px] after:bottom-[-5px] after:h-[48px] after:bg-gradient-to-b after:from-transparent after:to-background max-xl:absolute max-xl:inset-x-0 max-xl:top-[165px] max-xl:h-[525px] max-xl:overflow-hidden"
       >
         <OptimizedImage
           alt=""
+          className="max-xl:scale-[1.08] max-xl:opacity-60"
           height={1024}
           priority
           src="/images/gen/suwa-hero-watercolor.png"
-          className="max-xl:scale-[1.08] max-xl:opacity-60"
           style={{ height: "100%", aspectRatio: undefined }}
           width={1536}
         />
