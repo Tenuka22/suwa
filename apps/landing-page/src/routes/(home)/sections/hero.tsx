@@ -52,7 +52,7 @@ export function Hero() {
       </div>
       <div
         aria-hidden="true"
-        className="pointer-events-none relative z-[1] after:absolute after:inset-x-[-20px] after:bottom-[-5px] after:h-[48px] after:bg-gradient-to-b after:from-transparent after:to-background max-xl:absolute max-xl:inset-x-0 max-xl:top-[165px] max-xl:h-[525px] max-xl:overflow-hidden"
+        className="pointer-events-none relative z-[1] -mr-4 sm:-mr-6 lg:-mr-8 after:absolute after:inset-x-[-20px] after:bottom-[-5px] after:h-[48px] after:bg-gradient-to-b after:from-transparent after:to-background max-xl:absolute max-xl:inset-x-0 max-xl:top-[165px] max-xl:h-[525px] max-xl:overflow-hidden"
       >
         <OptimizedImage
           alt=""
