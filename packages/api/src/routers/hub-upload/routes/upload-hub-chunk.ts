@@ -36,7 +36,7 @@ export const uploadHubChunkRoute = protectedProcedure
 
     // Store chunk in bucket with its index
     const chunkKey = `${session.fileKey}/chunks/${input.chunkIndex}`;
-    await putStoredFile(context.fileStorageBucket, {
+    await putStoredFile(context.fileStorageKv, {
       key: chunkKey,
       data: base64ToUint8Array(input.chunkData),
       mimeType: "application/octet-stream",

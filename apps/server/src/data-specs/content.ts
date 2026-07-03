@@ -85,7 +85,7 @@ export const MATERIAL_SPECS_VIDEO: MaterialSpec[] = [
       "A powerful TED Talk on breaking the stigma around mental health and prioritizing self-care.",
     fileType: "video",
     mimeType: "video/mp4",
-    durationSeconds: 546,
+    durationSeconds: 60,
     seedFile: "BvpmZktlBFs.mp4",
     sourceYouTubeId: "BvpmZktlBFs",
     tags: ["ted-talk", "mental-health", "stigma", "self-care", "motivation"],

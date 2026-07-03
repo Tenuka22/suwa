@@ -9,16 +9,13 @@ import {
   Activity,
   BarChart3,
   Brain,
-  Play,
-  Square,
   TrendingDown,
   TrendingUp,
 } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Screen } from "@/components/design/ui/screen";
-import { vibrate } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 import {
   CLASS_COLORS,
@@ -30,33 +27,14 @@ import {
 import {
   appendBundles,
   getBundles,
-  getSimulationState,
   type StoredPrediction,
   type StressBundle,
-  setSimulationState,
 } from "@/utils/stress-storage";
-
-function generateMockSample(): number[] {
-  const meanRr = 700 + Math.random() * 300;
-  const sdnn = 30 + Math.random() * 50;
-  const rmssd = 20 + Math.random() * 40;
-  const pnn50 = Math.random() * 30;
-  const hr = 60_000 / meanRr;
-
-  return [
-    Math.round(meanRr * 100) / 100,
-    Math.round(sdnn * 100) / 100,
-    Math.round(rmssd * 100) / 100,
-    Math.round(pnn50 * 100) / 100,
-    Math.round(hr * 100) / 100,
-  ];
-}
 
 export default function HealthHubScreen() {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
 
-  const [streaming, setStreaming] = useState(getSimulationState);
   const [streamLoading, setStreamLoading] = useState(true);
   const [bundles, setBundles] = useState<StressBundle[]>([]);
   const [totalSamples, setTotalSamples] = useState(0);
@@ -64,19 +42,9 @@ export default function HealthHubScreen() {
   const [iconPressed, setIconPressed] = useState(false);
 
   const cancelRef = useRef<(() => Promise<void>) | null>(null);
-  const pendingBatchRef = useRef<number[][]>([]);
-  const genTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const ingestMutation = useMutation(orpc.ingestIoTData.mutationOptions());
   const acknowledgeMutation = useMutation(
     orpc.acknowledgeStressDownload.mutationOptions()
-  );
-  const startSimulationMutation = useMutation(
-    orpc.startStressSimulation.mutationOptions()
-  );
-  const stopSimulationMutation = useMutation(
-    orpc.stopStressSimulation.mutationOptions()
   );
 
   useEffect(() => {
@@ -179,64 +147,6 @@ export default function HealthHubScreen() {
   const StatusIcon = status?.icon ?? Brain;
   const insights = useMemo(() => computeInsights(bundles), [bundles]);
 
-  const handleStartStop = useCallback(() => {
-    if (streaming) {
-      stopSimulationMutation.mutate({} as never);
-      if (genTimerRef.current) {
-        clearInterval(genTimerRef.current);
-        genTimerRef.current = null;
-      }
-      if (flushTimerRef.current) {
-        clearInterval(flushTimerRef.current);
-        flushTimerRef.current = null;
-      }
-      if (pendingBatchRef.current.length > 0) {
-        const batch = pendingBatchRef.current;
-        pendingBatchRef.current = [];
-        const now = Date.now();
-        ingestMutation.mutate({
-          deviceId: "mock-iot-001",
-          samples: batch.map((sample, i) => ({
-            sample,
-            timestamp: now + i * 250,
-          })),
-        } as never);
-      }
-      setStreaming(false);
-      setSimulationState(false);
-    } else {
-      startSimulationMutation.mutate({} as never);
-      const genInterval = setInterval(
-        () => pendingBatchRef.current.push(generateMockSample()),
-        250
-      );
-      const flushInterval = setInterval(() => {
-        const batch = pendingBatchRef.current;
-        pendingBatchRef.current = [];
-        if (batch.length > 0) {
-          const now = Date.now();
-          ingestMutation.mutate({
-            deviceId: "mock-iot-001",
-            samples: batch.map((sample, i) => ({
-              sample,
-              timestamp: now + i * 250,
-            })),
-          } as never);
-        }
-      }, 1000);
-      genTimerRef.current = genInterval;
-      flushTimerRef.current = flushInterval;
-      setStreaming(true);
-      setSimulationState(true);
-    }
-    vibrate(10);
-  }, [
-    streaming,
-    startSimulationMutation,
-    stopSimulationMutation,
-    ingestMutation,
-  ]);
-
   function trendIcon(direction: string | undefined) {
     if (direction === "up") {
       return <TrendingUp className="text-destructive" size={20} />;
@@ -308,11 +218,11 @@ export default function HealthHubScreen() {
               <Text className="font-serif text-primary text-title">
                 Live Stats
               </Text>
-              {streaming && (
+              {!streamLoading && (
                 <View className="flex-row items-center gap-xs rounded-full bg-primary-subtle px-md py-xxs">
                   <View className="h-2 w-2 rounded-full bg-primary" />
                   <Text className="font-bold font-sans text-micro text-primary uppercase tracking-widest">
-                    Active
+                    Live
                   </Text>
                 </View>
               )}
@@ -413,21 +323,11 @@ export default function HealthHubScreen() {
             </View>
           )}
 
-          <Pressable
-            className={`mt-md flex-row items-center justify-center gap-2 rounded-full py-3.5 ${streaming ? "border-2 border-border bg-background-elevated" : "bg-primary"}`}
-            onPress={handleStartStop}
-          >
-            {streaming ? (
-              <Square className="text-foreground" size={18} />
-            ) : (
-              <Play className="text-primary-foreground" size={18} />
-            )}
-            <Text
-              className={`font-bold font-sans text-body ${streaming ? "text-foreground" : "text-primary-foreground"}`}
-            >
-              {streaming ? "Stop Monitoring" : "Start Monitoring"}
+          <View className="mt-md items-center justify-center rounded-full border-2 border-border bg-background-elevated py-3.5">
+            <Text className="font-bold font-sans text-body text-foreground-muted">
+              Waiting for device data...
             </Text>
-          </Pressable>
+          </View>
         </Screen>
       </View>
     </PatientTabScaffold>

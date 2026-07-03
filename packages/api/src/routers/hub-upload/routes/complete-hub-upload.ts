@@ -44,7 +44,7 @@ export const completeHubUploadRoute = protectedProcedure
     const assembledChunks: Uint8Array[] = [];
     for (const chunkIndex of uploadedChunks) {
       const chunkKey = `${session.fileKey}/chunks/${chunkIndex}`;
-      const chunk = await readStoredFileRecord(context.fileStorageBucket, chunkKey);
+      const chunk = await readStoredFileRecord(context.fileStorageKv, chunkKey);
       if (!chunk) {
         throw new Error(`Chunk ${chunkIndex} not found in storage`);
       }
@@ -66,7 +66,7 @@ export const completeHubUploadRoute = protectedProcedure
     }
 
     // Store the assembled file in bucket
-    await putStoredFile(context.fileStorageBucket, {
+    await putStoredFile(context.fileStorageKv, {
       key: session.fileKey,
       data: assembled.buffer as ArrayBuffer,
       mimeType: session.mimeType,
@@ -75,7 +75,7 @@ export const completeHubUploadRoute = protectedProcedure
     // Clean up chunk keys from bucket
     for (const chunkIndex of uploadedChunks) {
       const chunkKey = `${session.fileKey}/chunks/${chunkIndex}`;
-      await deleteStoredFile(context.fileStorageBucket, chunkKey);
+      await deleteStoredFile(context.fileStorageKv, chunkKey);
     }
 
     // Update upload session

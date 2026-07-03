@@ -64,7 +64,7 @@ export const initHubUploadRoute = protectedProcedure
     });
 
     if (thumbnailKey && input.thumbnailDataBase64) {
-      await putStoredFile(context.fileStorageBucket, {
+      await putStoredFile(context.fileStorageKv, {
         key: thumbnailKey,
         data: base64ToUint8Array(input.thumbnailDataBase64),
         mimeType: input.thumbnailMimeType ?? "image/jpeg",

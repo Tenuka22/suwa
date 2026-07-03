@@ -23,9 +23,9 @@ export const deleteDoctorFileRoute = protectedProcedure
     }
 
     await context.db.delete(doctorFiles).where(eq(doctorFiles.id, input.id));
-    await deleteStoredFile(context.fileStorageBucket, file.fileKey);
+    await deleteStoredFile(context.fileStorageKv, file.fileKey);
     if (file.thumbnailKey) {
-      await deleteStoredFile(context.fileStorageBucket, file.thumbnailKey);
+      await deleteStoredFile(context.fileStorageKv, file.thumbnailKey);
     }
 
     return { ok: true };

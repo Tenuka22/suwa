@@ -33,7 +33,7 @@ type ReadAsset = (filename: string) => Promise<ArrayBuffer | null>;
 interface SeedContext {
   ai: Ai;
   chatMessagesKv: KVNamespace;
-  fileStorageBucket: R2Bucket;
+  fileStorageKv: KVNamespace;
   modelFeaturesKv: KVNamespace;
   readAsset: ReadAsset;
 }
@@ -461,7 +461,7 @@ const AFFILIATION_WINDOWS: TimeWindow[][] = [
 
 export async function runSeed(context: SeedContext) {
   const db = createDb();
-  await unseedData(db, context.fileStorageBucket);
+  await unseedData(db, context.fileStorageKv);
 
   const now = new Date().toISOString();
   const places = placesData as PlaceEntry[];
@@ -608,7 +608,7 @@ export async function runSeed(context: SeedContext) {
   await insertRows(db, doctorHubChannels, buildSeedHubChannels(now));
 
   const { doctorFileRows, hubMaterialRows } = await buildSeedDoctorFiles(
-    context.fileStorageBucket,
+    context.fileStorageKv,
     context.readAsset,
     now
   );
@@ -705,7 +705,7 @@ async function insertRows(
 }
 
 async function buildSeedDoctorFiles(
-  fileStorageBucket: SeedContext["fileStorageBucket"],
+  fileStorageKv: SeedContext["fileStorageKv"],
   readAsset: ReadAsset,
   now: string
 ) {
@@ -730,24 +730,24 @@ async function buildSeedDoctorFiles(
       videoFileName.replace(/\.mp4$/i, ".jpg")
     );
 
-    await putStoredFile(fileStorageBucket, {
+    await putStoredFile(fileStorageKv, {
       key: portraitKey,
       data: portraitImage.data,
       mimeType: portraitImage.mimeType,
     });
-    await putStoredFile(fileStorageBucket, {
+    await putStoredFile(fileStorageKv, {
       key: qualificationKey,
       data: new TextEncoder().encode(qualificationSvg),
       mimeType: "image/svg+xml",
     });
     if (canStoreVideo) {
-      await putStoredFile(fileStorageBucket, {
+      await putStoredFile(fileStorageKv, {
         key: introVideoKey,
         data: videoAsset,
         mimeType: "video/mp4",
       });
       if (thumbnailAsset) {
-        await putStoredFile(fileStorageBucket, {
+        await putStoredFile(fileStorageKv, {
           key: introVideoThumbnailKey,
           data: thumbnailAsset,
           mimeType: "image/jpeg",

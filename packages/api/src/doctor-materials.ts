@@ -1,4 +1,9 @@
-import type { Context } from "./context";
+interface FileMetadata {
+  mimeType: string;
+  size: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface StoredFileInput {
   data: ArrayBuffer | Uint8Array;
@@ -34,43 +39,50 @@ export function base64ToUint8Array(base64: string): Uint8Array {
 }
 
 export async function putStoredFile(
-  bucket: Context["fileStorageBucket"],
+  kv: KVNamespace,
   input: StoredFileInput
 ): Promise<void> {
-  await bucket.put(input.key, input.data, {
-    httpMetadata: {
-      contentType: input.mimeType,
-    },
-  });
+  const size = input.data instanceof ArrayBuffer
+    ? input.data.byteLength
+    : input.data.byteLength;
+  const now = new Date().toISOString();
+  const metadata: FileMetadata = {
+    mimeType: input.mimeType,
+    size,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await kv.put(input.key, input.data, { metadata });
 }
 
 export async function readStoredFileRecord(
-  bucket: Context["fileStorageBucket"],
+  kv: KVNamespace,
   key: string
 ): Promise<StoredFileRecord | null> {
-  const object = await bucket.get(key);
-  if (!object) {
+  const { value, metadata } = await kv.getWithMetadata(key, { type: "arrayBuffer" });
+  if (!value) {
     return null;
   }
 
-  const uploadedAt = object.uploaded.toISOString();
+  const meta = metadata as FileMetadata | undefined;
+  const now = new Date().toISOString();
 
   return {
-    createdAt: uploadedAt,
-    data: new Uint8Array(await object.arrayBuffer()),
+    createdAt: meta?.createdAt ?? now,
+    data: new Uint8Array(value),
     key,
-    mimeType: object.httpMetadata?.contentType ?? "application/octet-stream",
-    size: object.size,
-    updatedAt: uploadedAt,
+    mimeType: meta?.mimeType ?? "application/octet-stream",
+    size: meta?.size ?? value.byteLength,
+    updatedAt: meta?.updatedAt ?? now,
   };
 }
 
 export async function readStoredFile(
-  bucket: Context["fileStorageBucket"],
+  kv: KVNamespace,
   key: string,
   fileName?: string
 ): Promise<File | null> {
-  const record = await readStoredFileRecord(bucket, key);
+  const record = await readStoredFileRecord(kv, key);
   if (!record) {
     return null;
   }
@@ -82,8 +94,8 @@ export async function readStoredFile(
 }
 
 export async function deleteStoredFile(
-  bucket: Context["fileStorageBucket"],
+  kv: KVNamespace,
   key: string
 ) {
-  await bucket.delete(key);
+  await kv.delete(key);
 }

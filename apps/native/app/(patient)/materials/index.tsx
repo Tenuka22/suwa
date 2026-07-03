@@ -27,7 +27,7 @@ function MaterialCard({ item }: { item: any }) {
         })
       }
     >
-      <View className="h-36 items-center justify-center overflow-hidden rounded-xl bg-black">
+      <View className="aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-xl bg-black">
         {uri ? (
           <Image
             className="h-full w-full"

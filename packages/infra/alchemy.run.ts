@@ -6,7 +6,6 @@ import {
   Ai,
   D1Database,
   KVNamespace,
-  R2Bucket as createR2Bucket,
   TanStackStart,
   Website,
   Worker,
@@ -33,9 +32,7 @@ const db = await D1Database("primary-database", {
   migrationsDir: "../../packages/db/src/migrations",
 });
 
-const fileStorageBucket = await createR2Bucket("file-storage", {
-  name: process.env.NODE_ENV === "production" ? "prod-suwa-files" : "suwa-dev-files",
-});
+const fileStorageKv = await KVNamespace("file-storage");
 
 const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
@@ -84,7 +81,7 @@ export const server = await Worker("server", {
   ],
   bindings: {
     DB: db,
-    FILE_STORAGE_BUCKET: fileStorageBucket,
+    FILE_STORAGE_KV: fileStorageKv,
     SEED_ASSETS_DIR: join(
       dirname(fileURLToPath(import.meta.url)),
       "../../apps/server/src/seed-assets"

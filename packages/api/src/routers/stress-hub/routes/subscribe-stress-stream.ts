@@ -1,6 +1,6 @@
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { getStressStore } from "../in-memory-store";
+import { RedisSampleStore } from "../redis-sample-store";
 import { getBundles, getRedis } from "../simulation";
 import { stressPublisher } from "../stress-publisher";
 
@@ -8,11 +8,11 @@ export const subscribeStressStreamRoute = protectedProcedure.handler(
   async function* ({ context, signal }) {
     const { userId } = requireAuth(context);
     const redis = getRedis();
-    const store = getStressStore();
+    const store = new RedisSampleStore(redis);
 
     const [bundles, buf] = await Promise.all([
       getBundles(redis, userId, 100),
-      Promise.resolve(store.getBuffer(userId)),
+      store.getBuffer(userId),
     ]);
 
     yield {

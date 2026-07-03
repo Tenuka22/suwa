@@ -18,7 +18,7 @@ import webhookApp from "./webhooks";
 type WorkerEnv = {
   AI: Ai;
   CHAT_MESSAGES_KV: KVNamespace;
-  FILE_STORAGE_BUCKET: R2Bucket;
+  FILE_STORAGE_KV: KVNamespace;
   MODEL_FEATURES_KV: KVNamespace;
   SEED_ASSETS_DIR: string;
   SEED_FILE_SERVER_URL?: string;
@@ -99,6 +99,61 @@ app.get(
   })
 );
 
+app.post("/api/iot/ingest", async (c) => {
+  try {
+    const { userEmail, deviceId, samples } = await c.req.json<{
+      userEmail: string;
+      deviceId: string;
+      samples: { sample: number[]; timestamp: number }[];
+    }>();
+
+    if (!userEmail || !samples?.length) {
+      return c.json({ error: "userEmail and samples are required" }, 400);
+    }
+
+    const { createDb, users } = await import("@suwa/db");
+    const { eq } = await import("drizzle-orm");
+    const db = createDb();
+
+    const [foundUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, userEmail))
+      .limit(1);
+
+    if (!foundUser) {
+      console.warn(`[IOT] Unknown user email: ${userEmail}`);
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    const env2 = c.env as WorkerEnv;
+    const storageKey = `model-features:${foundUser.id}`;
+    const previous = await env2.MODEL_FEATURES_KV.get<{ sample: number[]; timestamp: number }[]>(storageKey, "json");
+    const records = Array.isArray(previous) ? previous : [];
+
+    for (const s of samples) {
+      records.push({
+        sample: s.sample,
+        timestamp: s.timestamp ?? Date.now(),
+      });
+    }
+
+    const windowed = records.slice(-360);
+    await env2.MODEL_FEATURES_KV.put(storageKey, JSON.stringify(windowed));
+
+    console.log(`[IOT] Ingested ${samples.length} samples for ${userEmail} (userId=${foundUser.id})`);
+
+    return c.json({
+      success: true,
+      ingested: samples.length,
+      totalSamples: windowed.length,
+    });
+  } catch (error) {
+    console.error("[IOT] Ingest error:", error);
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+
 app.use("/*", async (c, next) => {
   const requestPath = new URL(c.req.url).pathname;
   if (requestPath.startsWith("/materials/") || requestPath.startsWith("/images/")) {
@@ -130,9 +185,9 @@ app.use("/*", async (c, next) => {
 });
 
 app.get("/images/:key", async (c) => {
-  const { FILE_STORAGE_BUCKET } = c.env as Pick<WorkerEnv, "FILE_STORAGE_BUCKET">;
+  const { FILE_STORAGE_KV } = c.env as Pick<WorkerEnv, "FILE_STORAGE_KV">;
   const key = c.req.param("key");
-  const record = await readStoredFileRecord(FILE_STORAGE_BUCKET, key);
+  const record = await readStoredFileRecord(FILE_STORAGE_KV, key);
 
   if (!record) {
     return c.text("Image not found", 404);
@@ -176,7 +231,7 @@ app.get("/seed", async (c) => {
     const result = await runSeed({
       ai: env.AI,
       chatMessagesKv: env.CHAT_MESSAGES_KV,
-      fileStorageBucket: env.FILE_STORAGE_BUCKET,
+      fileStorageKv: env.FILE_STORAGE_KV,
       modelFeaturesKv: env.MODEL_FEATURES_KV,
       readAsset,
     });
@@ -198,8 +253,8 @@ app.get("/unseed", async (c) => {
     const { unseedData } = await import("./seed/unseed");
     const { createDb } = await import("@suwa/db");
     const db = createDb();
-    const { FILE_STORAGE_BUCKET } = c.env as Pick<WorkerEnv, "FILE_STORAGE_BUCKET">;
-    const result = await unseedData(db, FILE_STORAGE_BUCKET);
+    const { FILE_STORAGE_KV } = c.env as Pick<WorkerEnv, "FILE_STORAGE_KV">;
+    const result = await unseedData(db, FILE_STORAGE_KV);
     return c.json({ success: true, result });
   } catch (error) {
     console.error("Unseed error:", error);

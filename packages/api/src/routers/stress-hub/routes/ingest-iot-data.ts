@@ -2,8 +2,8 @@ import { z } from "zod";
 
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { getStressStore } from "../in-memory-store";
 import { persistPrediction } from "../persist-prediction";
+import { RedisSampleStore } from "../redis-sample-store";
 import {
   getRedis,
   runPrediction,
@@ -29,18 +29,18 @@ export const ingestIoTDataRoute = protectedProcedure
   )
   .handler(async ({ context, input }) => {
     const { userId } = requireAuth(context);
-    const store = getStressStore();
     const redis = getRedis();
+    const store = new RedisSampleStore(redis);
 
     let windowsCompleted = 0;
 
     for (const sample of input.samples) {
-      const ready = store.addSample(userId, sample);
+      const ready = await store.addSample(userId, sample);
       if (!ready) {
         continue;
       }
 
-      const windowSamples = store.popWindow(userId);
+      const windowSamples = await store.popWindow(userId);
       if (!windowSamples) {
         continue;
       }
@@ -89,7 +89,7 @@ export const ingestIoTDataRoute = protectedProcedure
       });
     }
 
-    const buf = store.getBuffer(userId);
+    const buf = await store.getBuffer(userId);
     const total = buf?.totalSamples ?? 0;
     const buffered = buf?.buffered ?? 0;
 

@@ -35,7 +35,6 @@ import {
   users,
 } from "@suwa/db";
 import { deleteStoredFile } from "@suwa/api/doctor-materials";
-import type { Context } from "@suwa/api/context";
 import { and, inArray, like, or } from "drizzle-orm";
 
 import { seedIds } from "./ids";
@@ -58,7 +57,7 @@ const whereAnd = (...conditions: unknown[]) => and(...(conditions as never[]));
 
 export async function unseedData(
   db: DbWithDelete,
-  fileStorageBucket: Context["fileStorageBucket"]
+  fileStorageKv: KVNamespace
 ) {
   const doctorIds = seedIds.doctorIds;
   const tenantIds = seedIds.tenantIds;
@@ -66,23 +65,23 @@ export async function unseedData(
 
   for (const id of doctorIds) {
     await deleteStoredFile(
-      fileStorageBucket,
+      fileStorageKv,
       `doctor-files/${id}/seed-portrait.jpg`
     );
     await deleteStoredFile(
-      fileStorageBucket,
+      fileStorageKv,
       `doctor-files/${id}/seed-portrait.svg`
     );
     await deleteStoredFile(
-      fileStorageBucket,
+      fileStorageKv,
       `doctor-files/${id}/seed-qualification.svg`
     );
     await deleteStoredFile(
-      fileStorageBucket,
+      fileStorageKv,
       `doctor-files/${id}/seed-intro-video.mp4`
     );
     await deleteStoredFile(
-      fileStorageBucket,
+      fileStorageKv,
       `doctor-files/${id}/seed-intro-video.jpg`
     );
   }

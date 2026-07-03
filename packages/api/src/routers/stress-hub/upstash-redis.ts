@@ -68,4 +68,8 @@ export class UpstashRedis {
   async ltrim(key: string, start: number, stop: number): Promise<"OK"> {
     return this.command(["LTRIM", key, String(start), String(stop)]);
   }
+
+  async incr(key: string): Promise<number> {
+    return this.command(["INCR", key]);
+  }
 }
