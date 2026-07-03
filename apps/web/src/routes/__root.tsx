@@ -3,9 +3,9 @@ import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-
 import type { orpc } from "@/utils/orpc";
 import appCss from "../index.css?url";
+import Navbar from "@/components/navigation/navbar";
 export interface RouterAppContext {
   orpc: typeof orpc;
   queryClient: QueryClient;
@@ -44,7 +44,7 @@ function RootDocument() {
       </head>
       <body>
         <div className="grid h-svh grid-rows-[auto_1fr]">
-          <></>
+          <Navbar />
           <Outlet />
         </div>
         <Toaster richColors />

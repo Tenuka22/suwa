@@ -4,18 +4,16 @@ import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
-  component: AuthLayout,
   beforeLoad: async () => {
-    const session = await authClient.getSession();
-    if (!session.data) {
-      throw redirect({
-        to: "/login",
-      });
+    const { data: session } = await authClient.getSession();
+    if (!session) {
+      throw redirect({ to: "/login" });
     }
-
-    const { data: customerState } = await authClient.customer.state();
-    return { session, customerState };
+    if (session.user?.role === "user") {
+      throw redirect({ to: "/onboarding" });
+    }
   },
+  component: AuthLayout,
 });
 
 function AuthLayout() {
