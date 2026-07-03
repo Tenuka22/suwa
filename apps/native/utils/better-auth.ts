@@ -1,60 +1,41 @@
-import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
-import { multiSessionClient } from "better-auth/client/plugins";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
 import { env } from "@suwa/env/native";
-
-function isWeb(): boolean {
-  return Platform.OS === "web";
-}
-
-const storage = isWeb()
-  ? {
-      getItem: async (key: string) => {
-        try {
-          return localStorage.getItem(key);
-        } catch {
-          return null;
-        }
-      },
-      setItem: async (key: string, value: string) => {
-        try {
-          localStorage.setItem(key, value);
-        } catch {}
-      },
-      removeItem: async (key: string) => {
-        try {
-          localStorage.removeItem(key);
-        } catch {}
-      },
-    }
-  : {
-      getItem: SecureStore.getItemAsync,
-      setItem: SecureStore.setItemAsync,
-      removeItem: SecureStore.deleteItemAsync,
-    };
-
-const isWebPlatform = isWeb();
-
-const plugins = [multiSessionClient()];
-
-if (!isWebPlatform) {
-  plugins.push(
-    expoClient({
-      scheme: "suwa",
-      storage,
-    })
-  );
-}
-
-
-const fetchOptions = isWebPlatform
-  ? { credentials: "include" as const }
-  : undefined;
+import { createAuthClient } from "better-auth/react";
+import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
 
 export const authClient = createAuthClient({
   baseURL: env.EXPO_PUBLIC_SERVER_URL,
-  fetchOptions,
-  plugins,
+  plugins: [
+    expoClient({
+      scheme: Constants.expoConfig?.scheme as string,
+      storagePrefix: Constants.expoConfig?.scheme as string,
+      storage: SecureStore,
+    }),
+  ],
 });
+
+type PolarLinkResponse = {
+  url: string;
+  redirect: boolean;
+};
+
+type PolarClientResponse<T> = Promise<{
+  data: T | null;
+  error: { message?: string } | null;
+}>;
+
+type PolarNativeClient = typeof authClient & {
+  checkout: (data: {
+    slug?: string;
+    products?: string[] | string;
+    redirect?: boolean;
+    successUrl?: string;
+    returnUrl?: string;
+  }) => PolarClientResponse<PolarLinkResponse>;
+  customer: {
+    portal: (data?: { redirect?: boolean }) => PolarClientResponse<PolarLinkResponse>;
+  };
+};
+
+export const polarNativeClient = authClient as PolarNativeClient;
