@@ -17,7 +17,7 @@ export const getDoctorFileRoute = publicProcedure
       throw new Error("Doctor file not found");
     }
 
-    const doctorMaterialFile = await readStoredFile(context.fileStorageKv, file.fileKey, file.fileName);
+    const doctorMaterialFile = await readStoredFile(context.fileStorageBucket, file.fileKey, file.fileName);
 
     if (!doctorMaterialFile) {
       throw new Error("Doctor file not found in bucket");

@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@suwa/ui/components/dropdown-menu";
 import { Separator } from "@suwa/ui/components/separator";
-import { buildHeadFromKey } from "../../__root";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -31,6 +30,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { EditMaterialDialog } from "@/components/hub";
+import { getDoctorMaterialFileUrl } from "@/utils/doctor/materials";
 import { authClient } from "@/utils/auth";
 import { orpc } from "@/utils/orpc";
 
@@ -56,6 +56,7 @@ function HubMaterialDetailPage() {
   });
 
   const isVideo = material.fileType === "video";
+  const mediaUrl = getDoctorMaterialFileUrl(material.fileKey);
 
   return (
     <div className="relative min-h-svh overflow-hidden bg-background text-foreground">
@@ -78,7 +79,21 @@ function HubMaterialDetailPage() {
 
           {/* Video/Audio Player Area */}
           <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-[2rem] border border-border/40 bg-black/5">
-            {isVideo ? (
+            {material.status === "ready" && mediaUrl && isVideo ? (
+              <video
+                className="h-full w-full bg-black object-contain"
+                controls
+                playsInline
+                poster={material.thumbnailKey ? getDoctorMaterialFileUrl(material.thumbnailKey) ?? undefined : undefined}
+                preload="metadata"
+                src={mediaUrl}
+              />
+            ) : material.status === "ready" && mediaUrl ? (
+              <div className="flex w-full max-w-2xl flex-col items-center gap-5 px-8">
+                <RadioIcon className="size-16 text-muted-foreground/40" />
+                <audio className="w-full" controls preload="metadata" src={mediaUrl} />
+              </div>
+            ) : isVideo ? (
               <FilmIcon className="size-16 text-muted-foreground/30" />
             ) : (
               <RadioIcon className="size-16 text-muted-foreground/30" />

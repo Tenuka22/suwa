@@ -34,7 +34,6 @@ import {
   userSubscriptions,
   users,
 } from "@suwa/db";
-import { deleteStoredFile } from "@suwa/api/doctor-materials";
 import { and, inArray, like, or } from "drizzle-orm";
 
 import { seedIds } from "./ids";
@@ -56,35 +55,11 @@ const whereOr = (...conditions: unknown[]) => or(...(conditions as never[]));
 const whereAnd = (...conditions: unknown[]) => and(...(conditions as never[]));
 
 export async function unseedData(
-  db: DbWithDelete,
-  fileStorageKv: KVNamespace
+  db: DbWithDelete
 ) {
   const doctorIds = seedIds.doctorIds;
   const tenantIds = seedIds.tenantIds;
   const userIds = seedIds.userIds;
-
-  for (const id of doctorIds) {
-    await deleteStoredFile(
-      fileStorageKv,
-      `doctor-files/${id}/seed-portrait.jpg`
-    );
-    await deleteStoredFile(
-      fileStorageKv,
-      `doctor-files/${id}/seed-portrait.svg`
-    );
-    await deleteStoredFile(
-      fileStorageKv,
-      `doctor-files/${id}/seed-qualification.svg`
-    );
-    await deleteStoredFile(
-      fileStorageKv,
-      `doctor-files/${id}/seed-intro-video.mp4`
-    );
-    await deleteStoredFile(
-      fileStorageKv,
-      `doctor-files/${id}/seed-intro-video.jpg`
-    );
-  }
 
   await db.delete(sessionTaskAssignments).where(whereIn(sessionTaskAssignments.doctorId, doctorIds));
   await db.delete(sessionAttendanceEvents).where(whereLike(sessionAttendanceEvents.sessionId, "seed-%"));

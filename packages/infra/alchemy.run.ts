@@ -6,6 +6,7 @@ import {
   Ai,
   D1Database,
   KVNamespace,
+  R2Bucket,
   TanStackStart,
   Website,
   Worker,
@@ -32,12 +33,16 @@ const db = await D1Database("primary-database", {
   migrationsDir: "../../packages/db/src/migrations",
 });
 
-const fileStorageKv = await KVNamespace("file-storage");
+const fileStorageBucket = await R2Bucket("file-storage", {
+  name: "file-storage",
+});
 
 const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
 const faceEmbeddingsKv = await KVNamespace("face-embeddings");
-const faceVideosKv = await KVNamespace("face-videos");
+const faceVideosBucket = await R2Bucket("face-videos", {
+  name: "face-videos",
+});
 
 // const redis = await UpstashRedis(
 //   process.env.NODE_ENV === "production" ? "prod-suwa" : "suwa-dev",
@@ -81,7 +86,7 @@ export const server = await Worker("server", {
   ],
   bindings: {
     DB: db,
-    FILE_STORAGE_KV: fileStorageKv,
+    FILE_STORAGE_BUCKET: fileStorageBucket,
     SEED_ASSETS_DIR: join(
       dirname(fileURLToPath(import.meta.url)),
       "../../apps/server/src/seed-assets"
@@ -90,7 +95,7 @@ export const server = await Worker("server", {
     CHAT_MESSAGES_KV: chatMessagesKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
     FACE_EMBEDDINGS_KV: faceEmbeddingsKv,
-    FACE_VIDEOS_KV: faceVideosKv,
+    FACE_VIDEOS_BUCKET: faceVideosBucket,
     AI: aiBinding,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
     UPSTASH_REDIS_REST_URL:

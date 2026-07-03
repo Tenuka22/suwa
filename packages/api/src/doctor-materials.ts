@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 interface FileMetadata {
   mimeType: string;
   size: number;
@@ -39,7 +41,7 @@ export function base64ToUint8Array(base64: string): Uint8Array {
 }
 
 export async function putStoredFile(
-  kv: KVNamespace,
+  bucket: R2Bucket,
   input: StoredFileInput
 ): Promise<void> {
   const size = input.data instanceof ArrayBuffer
@@ -52,50 +54,64 @@ export async function putStoredFile(
     createdAt: now,
     updatedAt: now,
   };
-  await kv.put(input.key, input.data, { metadata });
+  await bucket.put(input.key, input.data, {
+    customMetadata: {
+      createdAt: metadata.createdAt,
+      size: String(metadata.size),
+      updatedAt: metadata.updatedAt,
+    },
+    httpMetadata: {
+      contentType: metadata.mimeType,
+    },
+  });
 }
 
 export async function readStoredFileRecord(
-  kv: KVNamespace,
+  bucket: R2Bucket,
   key: string
 ): Promise<StoredFileRecord | null> {
-  const { value, metadata } = await kv.getWithMetadata(key, { type: "arrayBuffer" });
-  if (!value) {
+  const object = await bucket.get(key);
+  if (!object) {
     return null;
   }
 
-  const meta = metadata as FileMetadata | undefined;
+  const value = await object.arrayBuffer();
+  const meta = object.customMetadata;
   const now = new Date().toISOString();
+  const updatedAt = object.uploaded?.toISOString() ?? meta?.updatedAt ?? now;
 
   return {
-    createdAt: meta?.createdAt ?? now,
+    createdAt: meta?.createdAt ?? updatedAt,
     data: new Uint8Array(value),
     key,
-    mimeType: meta?.mimeType ?? "application/octet-stream",
-    size: meta?.size ?? value.byteLength,
-    updatedAt: meta?.updatedAt ?? now,
+    mimeType: object.httpMetadata?.contentType ?? "application/octet-stream",
+    size: object.size,
+    updatedAt,
   };
 }
 
 export async function readStoredFile(
-  kv: KVNamespace,
+  bucket: R2Bucket,
   key: string,
   fileName?: string
 ): Promise<File | null> {
-  const record = await readStoredFileRecord(kv, key);
+  const record = await readStoredFileRecord(bucket, key);
   if (!record) {
     return null;
   }
 
-  return new File([record.data], fileName ?? key, {
+  const fileData = new ArrayBuffer(record.data.byteLength);
+  new Uint8Array(fileData).set(record.data);
+
+  return new File([fileData], fileName ?? key, {
     type: record.mimeType,
     lastModified: Date.parse(record.updatedAt),
   });
 }
 
 export async function deleteStoredFile(
-  kv: KVNamespace,
+  bucket: R2Bucket,
   key: string
 ) {
-  await kv.delete(key);
+  await bucket.delete(key);
 }

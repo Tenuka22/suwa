@@ -17,7 +17,7 @@ export const getMaterialFileRoute = publicProcedure
       throw new Error("Material file not found");
     }
 
-    const data = await readStoredFile(context.fileStorageKv, material.fileKey, material.fileName ?? undefined);
+    const data = await readStoredFile(context.fileStorageBucket, material.fileKey, material.fileName ?? undefined);
 
     if (!data) {
       throw new Error("Material file not found in storage");

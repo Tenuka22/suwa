@@ -3,10 +3,8 @@ import {
   createDb,
   doctorCredits,
   doctorEducationEntries,
-  doctorFiles,
   doctorHospitalAffiliations,
   doctorHubChannels,
-  doctorHubMaterials,
   doctorPlans,
   doctorProfiles,
   doctorWeeklyAvailability,
@@ -15,7 +13,6 @@ import {
   tenants,
   users,
 } from "@suwa/db";
-import { putStoredFile } from "@suwa/api/doctor-materials";
 import type {
   DoctorConsultationMode,
   DoctorFocusArea,
@@ -23,20 +20,10 @@ import type {
   DoctorSpecialty,
 } from "@suwa/db/doctor-profile";
 import placesData from "../../../map-scraper/places_data.json";
-import { CHANNEL_SPECS, MATERIAL_SPECS_VIDEO } from "../data-specs/content";
+import { CHANNEL_SPECS } from "../data-specs/content";
 
 import { clinicId, doctorId, SEED_ADMIN_ID, tenantId } from "./ids";
 import { unseedData } from "./unseed";
-
-type ReadAsset = (filename: string) => Promise<ArrayBuffer | null>;
-
-interface SeedContext {
-  ai: Ai;
-  chatMessagesKv: KVNamespace;
-  fileStorageKv: KVNamespace;
-  modelFeaturesKv: KVNamespace;
-  readAsset: ReadAsset;
-}
 
 interface PlaceEntry {
   address: string;
@@ -459,9 +446,22 @@ const AFFILIATION_WINDOWS: TimeWindow[][] = [
   ],
 ];
 
-export async function runSeed(context: SeedContext) {
+const PATIENT_AVAILABILITY_CANDIDATES: TimeWindow[] = [
+  { dayOfWeek: 0, startTime: "09:00", endTime: "11:00" },
+  { dayOfWeek: 0, startTime: "14:00", endTime: "16:00" },
+  { dayOfWeek: 1, startTime: "13:00", endTime: "15:00" },
+  { dayOfWeek: 2, startTime: "14:00", endTime: "16:00" },
+  { dayOfWeek: 3, startTime: "09:00", endTime: "11:00" },
+  { dayOfWeek: 4, startTime: "13:00", endTime: "15:00" },
+  { dayOfWeek: 5, startTime: "13:00", endTime: "15:00" },
+  { dayOfWeek: 6, startTime: "13:00", endTime: "15:00" },
+  { dayOfWeek: 2, startTime: "16:00", endTime: "18:00" },
+  { dayOfWeek: 4, startTime: "16:00", endTime: "18:00" },
+];
+
+export async function runSeed() {
   const db = createDb();
-  await unseedData(db, context.fileStorageKv);
+  await unseedData(db);
 
   const now = new Date().toISOString();
   const places = placesData as PlaceEntry[];
@@ -607,14 +607,6 @@ export async function runSeed(context: SeedContext) {
 
   await insertRows(db, doctorHubChannels, buildSeedHubChannels(now));
 
-  const { doctorFileRows, hubMaterialRows } = await buildSeedDoctorFiles(
-    context.fileStorageKv,
-    context.readAsset,
-    now
-  );
-  await insertRows(db, doctorFiles, doctorFileRows);
-  await insertRows(db, doctorHubMaterials, hubMaterialRows);
-
   await insertRows(
     db,
     doctorCredits,
@@ -685,8 +677,6 @@ export async function runSeed(context: SeedContext) {
     clinics: SEED_CLINIC_IDS.length,
     doctors: DOCTORS.length,
     hubChannels: DOCTORS.length,
-    doctorFiles: doctorFileRows.length,
-    hubMaterials: hubMaterialRows.length,
     affiliations: DOCTORS.length * 2,
     weeklyAvailabilityWindows: DOCTORS.length * 4,
   };
@@ -702,133 +692,6 @@ async function insertRows(
       table
     ).values(row);
   }
-}
-
-async function buildSeedDoctorFiles(
-  fileStorageKv: SeedContext["fileStorageKv"],
-  readAsset: ReadAsset,
-  now: string
-) {
-  const fileRows = [];
-  const hubRows = [];
-
-  for (const [index, doctor] of DOCTORS.entries()) {
-    const id = doctorId(index);
-    const accent = ["#0f766e", "#2563eb", "#7c3aed", "#be123c", "#047857"][index % 5] ?? "#0f766e";
-    const portraitImage = await fetchPortraitImage(doctor.portraitUrl);
-    const qualificationSvg = buildQualificationSvg(doctor, accent);
-    const videoSpec = MATERIAL_SPECS_VIDEO[index % 4];
-    const videoFileName = videoSpec?.seedFile ?? "WiJn9EpvtEk.mp4";
-    const videoAsset = await readSeedAsset(readAsset, videoFileName);
-    const canStoreVideo = videoAsset !== null && videoAsset.byteLength <= 25_000_000;
-    const portraitKey = seedDoctorFileKey(id, "portrait.jpg");
-    const qualificationKey = seedDoctorFileKey(id, "qualification.svg");
-    const introVideoKey = seedDoctorFileKey(id, "intro-video.mp4");
-    const introVideoThumbnailKey = seedDoctorFileKey(id, "intro-video.jpg");
-    const thumbnailAsset = await readSeedAsset(
-      readAsset,
-      videoFileName.replace(/\.mp4$/i, ".jpg")
-    );
-
-    await putStoredFile(fileStorageKv, {
-      key: portraitKey,
-      data: portraitImage.data,
-      mimeType: portraitImage.mimeType,
-    });
-    await putStoredFile(fileStorageKv, {
-      key: qualificationKey,
-      data: new TextEncoder().encode(qualificationSvg),
-      mimeType: "image/svg+xml",
-    });
-    if (canStoreVideo) {
-      await putStoredFile(fileStorageKv, {
-        key: introVideoKey,
-        data: videoAsset,
-        mimeType: "video/mp4",
-      });
-      if (thumbnailAsset) {
-        await putStoredFile(fileStorageKv, {
-          key: introVideoThumbnailKey,
-          data: thumbnailAsset,
-          mimeType: "image/jpeg",
-        });
-      }
-    } else if (videoAsset) {
-      console.warn(`Skipping oversize video (${videoAsset.byteLength} bytes) for ${doctor.displayName}`);
-    }
-
-    fileRows.push(
-      {
-        id: `seed-doctor-file-${index + 1}-portrait`,
-        doctorId: id,
-        fileKey: portraitKey,
-        fileName: `${slug(doctor.displayName)}-portrait.jpg`,
-        mimeType: portraitImage.mimeType,
-        fileKind: "portrait" as const,
-        caption: `Professional portrait photo for ${doctor.displayName}`,
-        size: portraitImage.size,
-        width: null,
-        height: null,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: `seed-doctor-file-${index + 1}-qualification`,
-        doctorId: id,
-        fileKey: qualificationKey,
-        fileName: `${slug(doctor.displayName)}-qualification.svg`,
-        mimeType: "image/svg+xml",
-        fileKind: "qualification" as const,
-        caption: `${doctor.licenseNumber} qualification summary and practice credentials`,
-        size: byteSize(qualificationSvg),
-        width: 900,
-        height: 680,
-        createdAt: now,
-        updatedAt: now,
-      }
-    );
-
-    if (canStoreVideo) {
-      fileRows.push({
-        id: `seed-doctor-file-${index + 1}-intro-video`,
-        doctorId: id,
-        fileKey: introVideoKey,
-        thumbnailKey: canStoreVideo ? introVideoThumbnailKey : null,
-        fileName: `${slug(doctor.displayName)}-intro-video.mp4`,
-        mimeType: "video/mp4",
-        fileKind: "intro_video" as const,
-        caption: `Introductory mental health education video: ${videoSpec?.title ?? "Doctor introduction"}`,
-        size: videoAsset.byteLength,
-        width: null,
-        height: null,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      hubRows.push({
-        id: `seed-hub-material-${index + 1}`,
-        doctorId: id,
-        channelId: `seed-hub-channel-${index + 1}`,
-        title: videoSpec?.title ?? "Mental Health Education",
-        description: videoSpec?.description ?? null,
-        fileKey: introVideoKey,
-        thumbnailKey: canStoreVideo ? introVideoThumbnailKey : null,
-        fileType: "video" as const,
-        fileName: `${slug(doctor.displayName)}-intro-video.mp4`,
-        mimeType: "video/mp4",
-        size: videoAsset.byteLength,
-        durationSeconds: videoSpec?.durationSeconds ?? null,
-        visibility: "public" as const,
-        status: "ready" as const,
-        tags: JSON.stringify(videoSpec?.tags ?? []),
-        isIndividual: true,
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
-  }
-
-  return { doctorFileRows: fileRows, hubMaterialRows: hubRows };
 }
 
 function buildSeedHubChannels(now: string) {
@@ -849,89 +712,8 @@ function buildSeedHubChannels(now: string) {
   });
 }
 
-function seedDoctorFileKey(doctorIdValue: string, fileName: string) {
-  return `doctor-files/${doctorIdValue}/seed-${fileName}`;
-}
-
 function sriLankanPortraitUrl(photoId: number) {
   return `https://images.pexels.com/photos/${photoId}/pexels-photo-${photoId}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=800&h=800&dpr=2`;
-}
-
-async function fetchPortraitImage(url: string) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch seed portrait: ${url}`);
-  }
-
-  const data = await response.arrayBuffer();
-  return {
-    data,
-    mimeType: response.headers.get("content-type") ?? "image/jpeg",
-    size: data.byteLength,
-  };
-}
-
-async function readSeedAsset(
-  readAsset: ReadAsset,
-  filename: string
-) {
-  const boundAsset = await readAsset(filename);
-  if (boundAsset) return boundAsset;
-
-  try {
-    const { readFile } = await import("node:fs/promises");
-    const { dirname, join } = await import("node:path");
-    const { fileURLToPath } = await import("node:url");
-    const buffer = await readFile(
-      join(dirname(fileURLToPath(import.meta.url)), "../seed-assets", filename)
-    );
-    return buffer.buffer.slice(
-      buffer.byteOffset,
-      buffer.byteOffset + buffer.byteLength
-    ) as ArrayBuffer;
-  } catch {
-    return null;
-  }
-}
-
-function byteSize(value: string) {
-  return new TextEncoder().encode(value).byteLength;
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function buildQualificationSvg(doctor: DoctorSeed, accent: string) {
-  const safeName = escapeXml(doctor.displayName);
-  const safeHeadline = escapeXml(doctor.headline);
-  const safeLicense = escapeXml(doctor.licenseNumber);
-  const safeSpecialties = escapeXml(doctor.specialties.join(" • "));
-  const safeLanguages = escapeXml(doctor.languages.join(" • "));
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="680" viewBox="0 0 900 680">
-  <rect width="900" height="680" rx="36" fill="#f8fafc"/>
-  <rect x="42" y="42" width="816" height="596" rx="28" fill="#ffffff" stroke="${accent}" stroke-width="4"/>
-  <circle cx="116" cy="118" r="38" fill="${accent}" opacity="0.14"/>
-  <path d="M96 118l14 14 28-34" fill="none" stroke="${accent}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="172" y="104" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">Verified Professional Qualification</text>
-  <text x="172" y="136" font-family="Inter, Arial, sans-serif" font-size="16" fill="#475569">Seeded credential file for Suwa doctor profile testing</text>
-  <text x="80" y="230" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="800" fill="#0f172a">${safeName}</text>
-  <text x="80" y="276" font-family="Inter, Arial, sans-serif" font-size="20" fill="#334155">${safeHeadline}</text>
-  <line x1="80" x2="820" y1="330" y2="330" stroke="#e2e8f0" stroke-width="2"/>
-  <text x="80" y="390" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">License</text>
-  <text x="240" y="390" font-family="Inter, Arial, sans-serif" font-size="18" fill="#334155">${safeLicense}</text>
-  <text x="80" y="442" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Specialties</text>
-  <text x="240" y="442" font-family="Inter, Arial, sans-serif" font-size="18" fill="#334155">${safeSpecialties}</text>
-  <text x="80" y="494" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Languages</text>
-  <text x="240" y="494" font-family="Inter, Arial, sans-serif" font-size="18" fill="#334155">${safeLanguages}</text>
-  <text x="80" y="546" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Practice Area</text>
-  <text x="240" y="546" font-family="Inter, Arial, sans-serif" font-size="18" fill="#334155">Galle, Sri Lanka</text>
-  <text x="80" y="600" font-family="Inter, Arial, sans-serif" font-size="14" fill="#64748b">Demo seed document. Fake professional data for application development only.</text>
-</svg>`;
 }
 
 function slug(value: string) {
@@ -998,9 +780,16 @@ function educationEntriesForDoctor(doctorIndex: number, now: string) {
 }
 
 function weeklyAvailabilityForDoctor(index: number, now: string) {
-  const template = AFFILIATION_WINDOWS[index % AFFILIATION_WINDOWS.length] ?? [];
-  const secondTemplate = AFFILIATION_WINDOWS[(index + 1) % AFFILIATION_WINDOWS.length] ?? [];
-  return [...template, ...secondTemplate].map((window, windowIndex) => ({
+  const hospitalWindows = [
+    ...(AFFILIATION_WINDOWS[index % AFFILIATION_WINDOWS.length] ?? []),
+    ...(AFFILIATION_WINDOWS[(index + 1) % AFFILIATION_WINDOWS.length] ?? []),
+  ];
+  const patientWindows = PATIENT_AVAILABILITY_CANDIDATES.filter(
+    (candidate) =>
+      !hospitalWindows.some((hospitalWindow) => windowsOverlap(candidate, hospitalWindow))
+  ).slice(0, 4);
+
+  return patientWindows.map((window, windowIndex) => ({
     id: `seed-weekly-availability-${index + 1}-${windowIndex + 1}`,
     doctorId: doctorId(index),
     dayOfWeek: window.dayOfWeek,
@@ -1010,6 +799,21 @@ function weeklyAvailabilityForDoctor(index: number, now: string) {
     createdAt: now,
     updatedAt: now,
   }));
+}
+
+function windowsOverlap(a: TimeWindow, b: TimeWindow) {
+  if (a.dayOfWeek !== b.dayOfWeek) {
+    return false;
+  }
+  return (
+    timeToMinutes(a.startTime) < timeToMinutes(b.endTime) &&
+    timeToMinutes(a.endTime) > timeToMinutes(b.startTime)
+  );
+}
+
+function timeToMinutes(time: string) {
+  const [hours = "0", minutes = "0"] = time.split(":");
+  return Number(hours) * 60 + Number(minutes);
 }
 
 function affiliationForDoctor(

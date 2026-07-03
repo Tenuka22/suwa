@@ -27,14 +27,14 @@ export const createDoctorFileRoute = protectedProcedure
       ? `${fileKey}.thumbnail.jpg`
       : null;
 
-    await putStoredFile(context.fileStorageKv, {
+    await putStoredFile(context.fileStorageBucket, {
       key: fileKey,
       data: await file.arrayBuffer(),
       mimeType: file.type || "application/octet-stream",
     });
 
     if (thumbnailKey && input.thumbnailDataBase64) {
-      await putStoredFile(context.fileStorageKv, {
+      await putStoredFile(context.fileStorageBucket, {
         key: thumbnailKey,
         data: base64ToUint8Array(input.thumbnailDataBase64),
         mimeType: input.thumbnailMimeType ?? "image/jpeg",

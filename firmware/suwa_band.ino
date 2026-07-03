@@ -10,7 +10,7 @@
  *   2. Detects heartbeats via adaptive-threshold peak detection
  *   3. Accumulates RR intervals and computes 11 HRV features
  *   4. Uploads 5-feature vectors [meanRR,SDNN,RMSSD,pNN50,HR]
- *      to api.suwa.life via RPC /stressHub/ingestIoTData
+ *      to api.suwa.life via POST /api/iot/ingest
  *
  * Required Arduino libraries:
  *   - SparkFun MAX3010x Pulse Oximetry Library
@@ -103,8 +103,21 @@ const char *API_HOST = "api.suwa.life";
 const int API_PORT = 443;
 const char *API_PATH = "/api/iot/ingest";
 
-unsigned long lastUploadTime = 0;
-const unsigned long UPLOAD_INTERVAL_MS = 30000; // every 30 seconds
+const unsigned long FEATURE_INTERVAL_MS = 250; // 4 processed feature samples per second
+const int FEATURE_BATCH_SIZE = 4;
+unsigned long lastFeatureSampleTime = 0;
+
+struct FeatureSample {
+  float meanRR;
+  float sdnn;
+  float rmssd;
+  float pnn50;
+  float hr;
+  unsigned long timestamp;
+};
+
+FeatureSample featureBatch[FEATURE_BATCH_SIZE];
+int featureBatchCount = 0;
 
 // ============================================================
 //  Filter helpers
@@ -212,8 +225,8 @@ bool detectBeat(float filteredIr) {
 // ============================================================
 //  RR-interval management
 // ============================================================
-void recordRR(unsigned long rrMs) {
-  if (rrMs < MIN_RR_MS || rrMs > MAX_RR_MS) return;
+bool recordRR(unsigned long rrMs) {
+  if (rrMs < MIN_RR_MS || rrMs > MAX_RR_MS) return false;
   if (rrCount < MAX_RR_INTERVALS) {
     rrMsBuffer[rrCount++] = rrMs;
   } else {
@@ -223,6 +236,13 @@ void recordRR(unsigned long rrMs) {
     }
     rrMsBuffer[MAX_RR_INTERVALS - 1] = rrMs;
   }
+  return true;
+}
+
+float clampFloat(float value, float lo, float hi) {
+  if (value < lo) return lo;
+  if (value > hi) return hi;
+  return value;
 }
 
 // ============================================================
@@ -245,10 +265,28 @@ void computeHRV(
   for (int i = 0; i < rrCount; i++) sum += rrMsBuffer[i];
   meanRR = sum / rrCount;
 
-  // 2. HR
+  // 2. MEDIAN_RR
+  unsigned long sortedRR[MAX_RR_INTERVALS];
+  for (int i = 0; i < rrCount; i++) sortedRR[i] = rrMsBuffer[i];
+  for (int i = 1; i < rrCount; i++) {
+    unsigned long key = sortedRR[i];
+    int j = i - 1;
+    while (j >= 0 && sortedRR[j] > key) {
+      sortedRR[j + 1] = sortedRR[j];
+      j--;
+    }
+    sortedRR[j + 1] = key;
+  }
+  if (rrCount % 2 == 0) {
+    medianRR = (sortedRR[(rrCount / 2) - 1] + sortedRR[rrCount / 2]) / 2.0f;
+  } else {
+    medianRR = sortedRR[rrCount / 2];
+  }
+
+  // 3. HR
   hr = 60000.0f / meanRR;
 
-  // 3. SDRR (population std dev)
+  // 4. SDRR (population std dev)
   float varSum = 0;
   for (int i = 0; i < rrCount; i++) {
     float d = rrMsBuffer[i] - meanRR;
@@ -256,7 +294,7 @@ void computeHRV(
   }
   sdnn = sqrtf(varSum / rrCount);
 
-  // 4-6. RMSSD, SDSD, pNN50, pNN25 from successive differences
+  // 5-8. RMSSD, SDSD, pNN50, pNN25 from successive differences
   int nDiff = rrCount - 1;
   if (nDiff < 1) return;
 
@@ -267,7 +305,9 @@ void computeHRV(
   float sumDiff = 0;
   int countNN25 = 0, countNN50 = 0;
   for (int i = 0; i < nDiff; i++) {
-    diffs[i] = (float)(rrMsBuffer[i + 1] - rrMsBuffer[i]);
+    // Cast before subtraction. RR intervals are unsigned, so subtracting first
+    // can underflow and create billion-scale RMSSD values.
+    diffs[i] = (float)rrMsBuffer[i + 1] - (float)rrMsBuffer[i];
     float d2 = diffs[i] * diffs[i];
     sumDiffSq += d2;
     sumDiff += diffs[i];
@@ -304,43 +344,62 @@ void computeHRV(
   float sd12  = sd1 * sd1;
   float inner = 2.0f * sdnn2 - sd12;
   sd2 = sqrtf((inner > 0) ? inner : 0);
+
+  // Keep uploaded values in the same ranges used by the server/model pipeline.
+  meanRR = clampFloat(meanRR, 300.0f, 1500.0f);
+  medianRR = clampFloat(medianRR, 300.0f, 1500.0f);
+  sdnn = clampFloat(sdnn, 10.0f, 200.0f);
+  rmssd = clampFloat(rmssd, 5.0f, 150.0f);
+  sdsd = clampFloat(sdsd, 5.0f, 150.0f);
+  sdrrRmssd = clampFloat(sdrrRmssd, 0.5f, 5.0f);
+  hr = clampFloat(hr, 30.0f, 180.0f);
+  pnn25 = clampFloat(pnn25, 0.0f, 100.0f);
+  pnn50 = clampFloat(pnn50, 0.0f, 100.0f);
+  sd1 = clampFloat(sd1, 5.0f, 150.0f);
+  sd2 = clampFloat(sd2, 5.0f, 200.0f);
 }
 
 // ============================================================
 //  Upload 5-feature vector to api.suwa.life
 // ============================================================
-bool uploadFeatures(float meanRR, float sdnn, float rmssd, float pnn50, float hr) {
+bool uploadFeatureBatch(FeatureSample samplesToUpload[], int sampleCount) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[UPLOAD] WiFi not connected");
     return false;
   }
 
+  if (sampleCount <= 0) {
+    return true;
+  }
+
   // Build JSON payload:
   // { "userEmail": "...", "deviceId": "...", "samples": [{ "sample": [...], "timestamp": ... }] }
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<2048> doc;
 
   doc["userEmail"] = USER_EMAIL;
   doc["deviceId"] = DEVICE_ID;
 
   JsonArray samples = doc.createNestedArray("samples");
-  JsonObject sampleObj = samples.createNestedObject();
-  JsonArray sample = sampleObj.createNestedArray("sample");
-  sample.add(meanRR);   // [0] MEAN_RR
-  sample.add(sdnn);     // [1] SDRR / SDNN
-  sample.add(rmssd);    // [2] RMSSD
-  sample.add(pnn50);    // [3] pNN50
-  sample.add(hr);       // [4] HR
-  sampleObj["timestamp"] = millis();  // relative uptime ms
+  for (int i = 0; i < sampleCount; i++) {
+    JsonObject sampleObj = samples.createNestedObject();
+    JsonArray sample = sampleObj.createNestedArray("sample");
+    sample.add(samplesToUpload[i].meanRR);  // [0] MEAN_RR
+    sample.add(samplesToUpload[i].sdnn);    // [1] SDRR / SDNN
+    sample.add(samplesToUpload[i].rmssd);   // [2] RMSSD
+    sample.add(samplesToUpload[i].pnn50);   // [3] pNN50
+    sample.add(samplesToUpload[i].hr);      // [4] HR
+    sampleObj["timestamp"] = samplesToUpload[i].timestamp;
+  }
 
   // Serialize to string
-  char payload[1024];
+  char payload[2048];
   size_t len = serializeJson(doc, payload, sizeof(payload));
   if (len == 0) {
     Serial.println("[UPLOAD] JSON serialization failed");
     return false;
   }
 
-  Serial.printf("[UPLOAD] Payload (%u bytes): %s\n", len, payload);
+  Serial.printf("[UPLOAD] Payload (%u bytes, %d samples): %s\n", len, sampleCount, payload);
 
   // ---- HTTPS POST ----
   WiFiClientSecure client;
@@ -461,8 +520,12 @@ void loop() {
     if (detectBeat(filtered)) {
       unsigned long rrMs = now - lastBeatTime;
       if (lastBeatTime != 0) {
-        recordRR(rrMs);
-        Serial.printf("[BEAT] RR=%lu ms  (buffer: %d)\n", rrMs, rrCount);
+        bool accepted = recordRR(rrMs);
+        if (accepted) {
+          Serial.printf("[BEAT] RR=%lu ms  (buffer: %d)\n", rrMs, rrCount);
+        } else {
+          Serial.printf("[BEAT] Rejected RR=%lu ms (outside %d-%d ms)\n", rrMs, MIN_RR_MS, MAX_RR_MS);
+        }
       }
       lastBeatTime = now;
     }
@@ -474,9 +537,9 @@ void loop() {
     connectWiFi();
   }
 
-  // ---- 3. Upload features every UPLOAD_INTERVAL ----
-  if (now - lastUploadTime >= UPLOAD_INTERVAL_MS) {
-    lastUploadTime = now;
+  // ---- 3. Produce 4 processed feature samples/sec and upload in batches ----
+  if (now - lastFeatureSampleTime >= FEATURE_INTERVAL_MS) {
+    lastFeatureSampleTime = now;
 
     if (rrCount >= MIN_RR_INTERVALS) {
       float meanRR, medianRR, sdnn, rmssd, sdsd, sdrrRmssd, hr, pnn25, pnn50, sd1, sd2;
@@ -492,9 +555,13 @@ void loop() {
                     pnn25, pnn50, sd1, sd2);
       Serial.println("─────────────────");
 
-      // Upload the 5-feature vector that the server expands server-side
-      bool ok = uploadFeatures(meanRR, sdnn, rmssd, pnn50, hr);
-      Serial.printf("[UPLOAD] %s\n", ok ? "OK" : "FAILED");
+      featureBatch[featureBatchCount++] = { meanRR, sdnn, rmssd, pnn50, hr, now };
+
+      if (featureBatchCount >= FEATURE_BATCH_SIZE) {
+        bool ok = uploadFeatureBatch(featureBatch, featureBatchCount);
+        Serial.printf("[UPLOAD] %s\n", ok ? "OK" : "FAILED");
+        if (ok) featureBatchCount = 0;
+      }
     } else {
       Serial.printf("[LOOP] Not enough RR intervals (%d / %d), skipping upload\n",
                     rrCount, MIN_RR_INTERVALS);

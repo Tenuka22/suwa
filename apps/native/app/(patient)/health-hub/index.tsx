@@ -1,10 +1,10 @@
 "use client";
 
 import { authClient } from "@/utils/better-auth";
-import { consumeEventIterator } from "@orpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
+import { env } from "@suwa/env/native";
 import {
   Activity,
   BarChart3,
@@ -13,7 +13,7 @@ import {
   TrendingUp,
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Screen } from "@/components/design/ui/screen";
 import { orpc } from "@/utils/orpc";
@@ -38,7 +38,7 @@ export default function HealthHubScreen() {
   const [streamLoading, setStreamLoading] = useState(true);
   const [bundles, setBundles] = useState<StressBundle[]>([]);
   const [totalSamples, setTotalSamples] = useState(0);
-  const [_bufferedSamples, setBufferedSamples] = useState(0);
+  const [bufferedSamples, setBufferedSamples] = useState(0);
   const [iconPressed, setIconPressed] = useState(false);
 
   const cancelRef = useRef<(() => Promise<void>) | null>(null);
@@ -62,62 +62,103 @@ export default function HealthHubScreen() {
 
     let isCancelled = false;
 
+    function handleStressEvent(data: unknown) {
+      if (!data || typeof data !== "object" || !("type" in data)) {
+        return;
+      }
+
+      if (data.type === "state") {
+        const stateData = data as {
+          type: "state";
+          bundles: StressBundle[];
+          totalSamples: number;
+          buffered: number;
+        };
+        if (mmkvBundles.length === 0 && stateData.bundles.length > 0) {
+          appendBundles(uid, stateData.bundles);
+        }
+        const stored = getBundles(uid);
+        setBundles(stored);
+        setBufferedSamples(stateData.buffered);
+        setTotalSamples(
+          stored.length > 0 ? stored.length * 360 : stateData.totalSamples
+        );
+        setStreamLoading(false);
+        return;
+      }
+
+      if (data.type === "bundle") {
+        const eventData = data as { type: "bundle"; data: StressBundle };
+        appendBundles(uid, [eventData.data]);
+        const stored = getBundles(uid);
+        setBundles(stored);
+        setTotalSamples(stored.length * 360);
+        setBufferedSamples(0);
+        setStreamLoading(false);
+        return;
+      }
+
+      if (data.type === "progress") {
+        const pData = data as {
+          type: "progress";
+          buffered: number;
+          totalSamples: number;
+        };
+        setBufferedSamples(pData.buffered);
+        setTotalSamples(pData.totalSamples);
+        setStreamLoading(false);
+      }
+    }
+
     async function subscribe() {
       try {
         setStreamLoading(true);
-        const iterator = await orpc.subscribeStressStream.call({} as never);
-        if (isCancelled) {
-          await iterator.return?.();
+        const controller = new AbortController();
+        cancelRef.current = async () => {
+          controller.abort();
+        };
+
+        const cookie = Platform.OS === "web" ? null : authClient.getCookie();
+        const response = await fetch(`${env.EXPO_PUBLIC_SERVER_URL}/api/iot/stress-stream`, {
+          headers: cookie ? { Cookie: cookie } : undefined,
+          credentials: Platform.OS === "web" ? "include" : undefined,
+          signal: controller.signal,
+        });
+
+        if (!response.ok || !response.body) {
+          setStreamLoading(false);
           return;
         }
 
-        const cancel = consumeEventIterator(iterator, {
-          onEvent: (data) => {
-            if (data.type === "state") {
-              const stateData = data as {
-                type: "state";
-                bundles: StressBundle[];
-                totalSamples: number;
-                buffered: number;
-              };
-              if (mmkvBundles.length === 0 && stateData.bundles.length > 0) {
-                appendBundles(uid, stateData.bundles);
-              }
-              const stored = getBundles(uid);
-              setBundles(stored);
-              setBufferedSamples(stateData.buffered);
-              setTotalSamples(
-                stored.length > 0 ? stored.length * 360 : stateData.totalSamples
-              );
-              setStreamLoading(false);
-              return;
-            }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
 
-            if (data.type === "bundle") {
-              const eventData = data as { type: "bundle"; data: StressBundle };
-              appendBundles(uid, [eventData.data]);
-              const stored = getBundles(uid);
-              setBundles(stored);
-              setTotalSamples(stored.length * 360);
-              setStreamLoading(false);
-              return;
-            }
+        while (!isCancelled) {
+          const { value, done } = await reader.read();
+          if (done) break;
 
-            if (data.type === "progress") {
-              const pData = data as {
-                type: "progress";
-                buffered: number;
-                totalSamples: number;
-              };
-              setBufferedSamples(pData.buffered);
-              setTotalSamples(pData.totalSamples);
-              setStreamLoading(false);
+          buffer += decoder.decode(value, { stream: true });
+          const chunks = buffer.split("\n\n");
+          buffer = chunks.pop() ?? "";
+
+          for (const chunk of chunks) {
+            const dataLine = chunk
+              .split("\n")
+              .find((line) => line.startsWith("data: "));
+            if (!dataLine) continue;
+
+            try {
+              handleStressEvent(JSON.parse(dataLine.slice(6)));
+            } catch {
+              // Ignore malformed stream events and keep the stream alive.
             }
-          },
-          onError: () => !isCancelled && setStreamLoading(false),
-        });
-        cancelRef.current = cancel;
-      } catch {
+          }
+        }
+      } catch (error) {
+        if ((error as { name?: string })?.name === "AbortError") {
+          return;
+        }
         if (!isCancelled) {
           setStreamLoading(false);
         }
@@ -146,6 +187,10 @@ export default function HealthHubScreen() {
     : null;
   const StatusIcon = status?.icon ?? Brain;
   const insights = useMemo(() => computeInsights(bundles), [bundles]);
+  const collectionProgress = Math.min(100, (bufferedSamples / 360) * 100);
+  const statusLabel = status?.label ?? (bufferedSamples > 0 ? "Collecting" : "No Data");
+  const currentStateLabel =
+    insights?.dominantLabel ?? (bufferedSamples > 0 ? "Collecting" : "Idle");
 
   function trendIcon(direction: string | undefined) {
     if (direction === "up") {
@@ -164,12 +209,12 @@ export default function HealthHubScreen() {
       <View className="flex-1 bg-background">
         <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:health-hub") }} />
         <Screen
-          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+          contentClassName="flex-1 gap-lg pt-10 px-lg bg-background"
           scrollClassName="flex-1 bg-background"
         >
           {/* Header */}
           <View className="mt-sm">
-            <Text className="font-serif text-hero text-primary leading-tight">
+            <Text className="font-serif text-[56px] text-primary leading-tight">
               Health Hub
             </Text>
             <Text className="font-sans text-caption text-foreground-muted uppercase tracking-widest">
@@ -178,9 +223,9 @@ export default function HealthHubScreen() {
           </View>
 
           {/* Status Ring */}
-          <View className="items-center py-huge">
+          <View className="items-center py-lg">
             <Pressable
-              className="h-52 w-52 items-center justify-center rounded-full border-4 border-border shadow-lg"
+              className="h-44 w-44 items-center justify-center rounded-full border-4 border-border bg-background-elevated shadow-lg"
               onPressIn={() => setIconPressed(true)}
               onPressOut={() => setIconPressed(false)}
             >
@@ -197,19 +242,34 @@ export default function HealthHubScreen() {
                   <ActivityIndicator color="#2d3e35" size="large" />
                 ) : (
                   <>
-                    <StatusIcon
-                      className={status?.color || "text-primary"}
-                      size={56}
-                    />
+                    <StatusIcon className={status?.color || "text-primary"} size={44} />
                     <Text
-                      className={`mt-md font-serif text-title uppercase tracking-wider ${status?.color || "text-foreground-muted"}`}
+                      className={`mt-sm text-center font-serif text-subtitle uppercase tracking-wider ${status?.color || "text-foreground-muted"}`}
                     >
-                      {status?.label || "No Data"}
+                      {statusLabel}
                     </Text>
+                    {bufferedSamples > 0 && !status && (
+                      <Text className="mt-xxs font-sans text-caption text-foreground-muted text-center">
+                        {bufferedSamples}/360
+                      </Text>
+                    )}
                   </>
                 )}
               </View>
             </Pressable>
+            {bufferedSamples > 0 && !status && (
+              <View className="mt-md w-full max-w-[280px] gap-xs">
+                <View className="h-2 overflow-hidden rounded-full bg-background-subtle">
+                  <View
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${collectionProgress}%` }}
+                  />
+                </View>
+                <Text className="text-center font-sans text-micro text-foreground-muted uppercase tracking-widest">
+                  {Math.round(collectionProgress)}% to first prediction
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Live Stats */}
@@ -237,7 +297,7 @@ export default function HealthHubScreen() {
                   Current State
                 </Text>
                 <Text className="font-serif text-foreground text-subtitle">
-                  {insights?.dominantLabel || "Idle"}
+                  {currentStateLabel}
                 </Text>
               </View>
             </View>
@@ -323,9 +383,11 @@ export default function HealthHubScreen() {
             </View>
           )}
 
-          <View className="mt-md items-center justify-center rounded-full border-2 border-border bg-background-elevated py-3.5">
-            <Text className="font-bold font-sans text-body text-foreground-muted">
-              Waiting for device data...
+          <View className="mt-sm items-center justify-center rounded-3xl border border-border bg-background-elevated px-lg py-md">
+            <Text className="text-center font-bold font-sans text-caption text-foreground-muted">
+              {bufferedSamples > 0
+                ? `Buffering live samples: ${bufferedSamples}/360`
+                : "Waiting for device data..."}
             </Text>
           </View>
         </Screen>

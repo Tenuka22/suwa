@@ -16,10 +16,10 @@ export function doctorId(index: number) {
 
 export const seedIds = {
   adminId: SEED_ADMIN_ID,
-  doctorIds: Array.from({ length: SEED_DOCTOR_COUNT + 1 }, (_, index) => doctorId(index)),
+  doctorIds: Array.from({ length: SEED_DOCTOR_COUNT }, (_, index) => doctorId(index)),
   tenantIds: Array.from({ length: SEED_TENANT_COUNT }, (_, index) => tenantId(index)),
   userIds: [
     SEED_ADMIN_ID,
-    ...Array.from({ length: SEED_DOCTOR_COUNT + 1 }, (_, index) => doctorId(index)),
+    ...Array.from({ length: SEED_DOCTOR_COUNT }, (_, index) => doctorId(index)),
   ],
 };

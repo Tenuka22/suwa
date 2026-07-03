@@ -6,7 +6,8 @@ interface FallbackEnv {
   CORS_ORIGIN: string;
   DB: D1Database;
   FACE_EMBEDDINGS_KV: KVNamespace;
-  FACE_VIDEOS_KV: KVNamespace;
+  FACE_VIDEOS_BUCKET: R2Bucket;
+  FILE_STORAGE_BUCKET: R2Bucket;
   GEMINI_API_KEY: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;

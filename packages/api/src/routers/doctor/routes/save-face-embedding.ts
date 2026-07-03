@@ -1,10 +1,11 @@
 import { doctorProfiles } from "@suwa/db";
 import { z } from "zod";
+import { base64ToUint8Array, putStoredFile } from "../../../doctor-materials";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
 
 const FACE_EMBEDDING_KV_PREFIX = "face-embedding:";
-const FACE_VIDEO_KV_PREFIX = "face-video:";
+const FACE_VIDEO_PREFIX = "face-video:";
 
 export const saveFaceEmbeddingRoute = protectedProcedure
   .input(
@@ -25,12 +26,10 @@ export const saveFaceEmbeddingRoute = protectedProcedure
     );
 
     if (input.videoBase64) {
-      const videoKvKey = `${FACE_VIDEO_KV_PREFIX}${userId}`;
-      const videoBytes = Uint8Array.from(atob(input.videoBase64), (c) =>
-        c.charCodeAt(0)
-      );
-      await context.faceVideosKv.put(videoKvKey, videoBytes, {
-        metadata: { mimeType: "video/webm" },
+      await putStoredFile(context.faceVideosBucket, {
+        key: `${FACE_VIDEO_PREFIX}${userId}`,
+        data: base64ToUint8Array(input.videoBase64),
+        mimeType: "video/webm",
       });
     }
 

@@ -5,5 +5,5 @@ export function getMediaUrl(key: string | null | undefined) {
     return null;
   }
 
-  return `${env.EXPO_PUBLIC_SERVER_URL}/images/${encodeURIComponent(key)}`;
+  return `${env.EXPO_PUBLIC_SERVER_URL}/media/${encodeURIComponent(key)}`;
 }
