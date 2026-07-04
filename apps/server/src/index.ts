@@ -398,42 +398,6 @@ async function serveMedia(c: any) {
 app.get("/media/:key", serveMedia);
 app.get("/images/:key", serveMedia);
 
-app.get("/seed", async (c) => {
-  try {
-    const { runSeed } = await import("./seed/index");
-    const result = await runSeed();
-    return c.json({ success: true, result });
-  } catch (error) {
-    console.error("Seed error:", error);
-    return c.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Seed failed",
-      },
-      500
-    );
-  }
-});
-
-app.get("/unseed", async (c) => {
-  try {
-    const { unseedData } = await import("./seed/unseed");
-    const { createDb } = await import("@suwa/db");
-    const db = createDb();
-    const result = await unseedData(db);
-    return c.json({ success: true, result });
-  } catch (error) {
-    console.error("Unseed error:", error);
-    return c.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unseed failed",
-      },
-      500
-    );
-  }
-});
-
 app.get("/", (c) => c.text("OK"));
 
 export default {
