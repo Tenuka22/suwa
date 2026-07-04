@@ -2,6 +2,7 @@ import { adminApproveDoctorRoute } from "./routes/approve-doctor";
 import { adminApprovedDoctorsRoute } from "./routes/approved-doctors";
 import { adminCreateTestSessionRoute } from "./routes/create-test-session";
 import { adminDoctorEducationEntriesRoute } from "./routes/doctor-education-entries";
+import { adminDoctorRequestRoute } from "./routes/doctor-request";
 import { adminDoctorScheduleEntriesRoute } from "./routes/doctor-schedule-entries";
 import { adminGetFaceVideoRoute } from "./routes/get-face-video";
 
@@ -14,6 +15,7 @@ import { adminStatsRoute } from "./routes/stats";
 export const adminRouter = {
   stats: adminStatsRoute,
   pendingDoctors: adminPendingDoctorsRoute,
+  doctorRequest: adminDoctorRequestRoute,
   approveDoctor: adminApproveDoctorRoute,
   getFaceVideo: adminGetFaceVideoRoute,
   approvedDoctors: adminApprovedDoctorsRoute,

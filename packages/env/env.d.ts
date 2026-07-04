@@ -5,7 +5,7 @@ interface FallbackEnv {
   CHAT_MESSAGES_KV: KVNamespace;
   CORS_ORIGIN: string;
   DB: D1Database;
-  FACE_EMBEDDINGS_KV: KVNamespace;
+  FACE_EMBEDDINGS_KV: R2Bucket;
   FACE_VIDEOS_BUCKET: R2Bucket;
   FILE_STORAGE_BUCKET: R2Bucket;
   GEMINI_API_KEY: string;

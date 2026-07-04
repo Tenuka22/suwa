@@ -20,10 +20,11 @@ export const saveFaceEmbeddingRoute = protectedProcedure
     const timestamp = new Date().toISOString();
     const embeddingKvKey = `${FACE_EMBEDDING_KV_PREFIX}${userId}`;
 
-    await context.faceEmbeddingsKv.put(
-      embeddingKvKey,
-      JSON.stringify(input.embedding)
-    );
+    await putStoredFile(context.faceEmbeddingsBucket, {
+      key: embeddingKvKey,
+      data: new TextEncoder().encode(JSON.stringify(input.embedding)),
+      mimeType: "application/json",
+    });
 
     if (input.videoBase64) {
       await putStoredFile(context.faceVideosBucket, {

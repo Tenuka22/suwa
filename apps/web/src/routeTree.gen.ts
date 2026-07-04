@@ -12,10 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DoctorRouteImport } from './routes/doctor'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as DoctorIndexRouteImport } from './routes/doctor/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AuthIndexRouteImport } from './routes/_auth/index'
 import { Route as DoctorVerificationRouteImport } from './routes/doctor/verification'
+import { Route as DoctorProfileRouteImport } from './routes/doctor/profile'
+import { Route as AdminDoctorRequestsRouteImport } from './routes/admin/doctor/requests'
+import { Route as AdminDoctorRequestsIndexRouteImport } from './routes/admin/doctor/requests/index'
+import { Route as AdminDoctorRequestsDoctorIdRouteImport } from './routes/admin/doctor/requests/$doctorId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -32,6 +38,11 @@ const DoctorRoute = DoctorRouteImport.update({
   path: '/doctor',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -40,6 +51,11 @@ const DoctorIndexRoute = DoctorIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DoctorRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
@@ -51,56 +67,116 @@ const DoctorVerificationRoute = DoctorVerificationRouteImport.update({
   path: '/verification',
   getParentRoute: () => DoctorRoute,
 } as any)
+const DoctorProfileRoute = DoctorProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DoctorRoute,
+} as any)
+const AdminDoctorRequestsRoute = AdminDoctorRequestsRouteImport.update({
+  id: '/doctor/requests',
+  path: '/doctor/requests',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDoctorRequestsIndexRoute =
+  AdminDoctorRequestsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AdminDoctorRequestsRoute,
+  } as any)
+const AdminDoctorRequestsDoctorIdRoute =
+  AdminDoctorRequestsDoctorIdRouteImport.update({
+    id: '/$doctorId',
+    path: '/$doctorId',
+    getParentRoute: () => AdminDoctorRequestsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/doctor': typeof DoctorRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
+  '/admin/': typeof AdminIndexRoute
   '/doctor/': typeof DoctorIndexRoute
+  '/admin/doctor/requests': typeof AdminDoctorRequestsRouteWithChildren
+  '/admin/doctor/requests/$doctorId': typeof AdminDoctorRequestsDoctorIdRoute
+  '/admin/doctor/requests/': typeof AdminDoctorRequestsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
   '/': typeof AuthIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/doctor': typeof DoctorIndexRoute
+  '/admin/doctor/requests/$doctorId': typeof AdminDoctorRequestsDoctorIdRoute
+  '/admin/doctor/requests': typeof AdminDoctorRequestsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/doctor': typeof DoctorRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
   '/_auth/': typeof AuthIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/doctor/': typeof DoctorIndexRoute
+  '/admin/doctor/requests': typeof AdminDoctorRequestsRouteWithChildren
+  '/admin/doctor/requests/$doctorId': typeof AdminDoctorRequestsDoctorIdRoute
+  '/admin/doctor/requests/': typeof AdminDoctorRequestsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/doctor'
     | '/login'
     | '/onboarding'
+    | '/doctor/profile'
     | '/doctor/verification'
+    | '/admin/'
     | '/doctor/'
+    | '/admin/doctor/requests'
+    | '/admin/doctor/requests/$doctorId'
+    | '/admin/doctor/requests/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/onboarding' | '/doctor/verification' | '/' | '/doctor'
+  to:
+    | '/login'
+    | '/onboarding'
+    | '/doctor/profile'
+    | '/doctor/verification'
+    | '/'
+    | '/admin'
+    | '/doctor'
+    | '/admin/doctor/requests/$doctorId'
+    | '/admin/doctor/requests'
   id:
     | '__root__'
     | '/_auth'
+    | '/admin'
     | '/doctor'
     | '/login'
     | '/onboarding'
+    | '/doctor/profile'
     | '/doctor/verification'
     | '/_auth/'
+    | '/admin/'
     | '/doctor/'
+    | '/admin/doctor/requests'
+    | '/admin/doctor/requests/$doctorId'
+    | '/admin/doctor/requests/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   DoctorRoute: typeof DoctorRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -129,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -142,6 +225,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/doctor/'
       preLoaderRoute: typeof DoctorIndexRouteImport
       parentRoute: typeof DoctorRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_auth/': {
       id: '/_auth/'
@@ -157,6 +247,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorVerificationRouteImport
       parentRoute: typeof DoctorRoute
     }
+    '/doctor/profile': {
+      id: '/doctor/profile'
+      path: '/profile'
+      fullPath: '/doctor/profile'
+      preLoaderRoute: typeof DoctorProfileRouteImport
+      parentRoute: typeof DoctorRoute
+    }
+    '/admin/doctor/requests': {
+      id: '/admin/doctor/requests'
+      path: '/doctor/requests'
+      fullPath: '/admin/doctor/requests'
+      preLoaderRoute: typeof AdminDoctorRequestsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/doctor/requests/': {
+      id: '/admin/doctor/requests/'
+      path: '/'
+      fullPath: '/admin/doctor/requests/'
+      preLoaderRoute: typeof AdminDoctorRequestsIndexRouteImport
+      parentRoute: typeof AdminDoctorRequestsRoute
+    }
+    '/admin/doctor/requests/$doctorId': {
+      id: '/admin/doctor/requests/$doctorId'
+      path: '/$doctorId'
+      fullPath: '/admin/doctor/requests/$doctorId'
+      preLoaderRoute: typeof AdminDoctorRequestsDoctorIdRouteImport
+      parentRoute: typeof AdminDoctorRequestsRoute
+    }
   }
 }
 
@@ -170,12 +288,39 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface AdminDoctorRequestsRouteChildren {
+  AdminDoctorRequestsDoctorIdRoute: typeof AdminDoctorRequestsDoctorIdRoute
+  AdminDoctorRequestsIndexRoute: typeof AdminDoctorRequestsIndexRoute
+}
+
+const AdminDoctorRequestsRouteChildren: AdminDoctorRequestsRouteChildren = {
+  AdminDoctorRequestsDoctorIdRoute: AdminDoctorRequestsDoctorIdRoute,
+  AdminDoctorRequestsIndexRoute: AdminDoctorRequestsIndexRoute,
+}
+
+const AdminDoctorRequestsRouteWithChildren =
+  AdminDoctorRequestsRoute._addFileChildren(AdminDoctorRequestsRouteChildren)
+
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminDoctorRequestsRoute: typeof AdminDoctorRequestsRouteWithChildren
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminDoctorRequestsRoute: AdminDoctorRequestsRouteWithChildren,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface DoctorRouteChildren {
+  DoctorProfileRoute: typeof DoctorProfileRoute
   DoctorVerificationRoute: typeof DoctorVerificationRoute
   DoctorIndexRoute: typeof DoctorIndexRoute
 }
 
 const DoctorRouteChildren: DoctorRouteChildren = {
+  DoctorProfileRoute: DoctorProfileRoute,
   DoctorVerificationRoute: DoctorVerificationRoute,
   DoctorIndexRoute: DoctorIndexRoute,
 }
@@ -185,6 +330,7 @@ const DoctorRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   DoctorRoute: DoctorRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,

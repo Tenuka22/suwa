@@ -1,3 +1,5 @@
+import { myFaceEmbeddingRoute } from "./routes/get-face-embedding";
+import { myFaceVideoRoute } from "./routes/get-face-video";
 import { doctorProfileRoute } from "./routes/profile";
 import { profileStatsRoute } from "./routes/profile-stats";
 import { saveFaceEmbeddingRoute } from "./routes/save-face-embedding";
@@ -10,4 +12,6 @@ export const doctorRouter = {
   doctorStats: doctorStatsRoute,
   profileStats: profileStatsRoute,
   saveFaceEmbedding: saveFaceEmbeddingRoute,
+  myFaceVideo: myFaceVideoRoute,
+  myFaceEmbedding: myFaceEmbeddingRoute,
 };

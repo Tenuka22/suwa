@@ -1,11 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
+import { getUserRole } from "@/lib/user-role";
 
 export const Route = createFileRoute("/doctor/")({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession();
-    if (session?.user?.role === "pending-doctor") {
+    if (getUserRole(session?.user) === "pending-doctor") {
       throw redirect({ to: "/doctor/verification" });
     }
   },

@@ -1,6 +1,8 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
+import { DoctorShell } from "@/components/doctor/doctor-shell";
 import { authClient } from "@/lib/auth-client";
+import { getUserRole } from "@/lib/user-role";
 
 export const Route = createFileRoute("/doctor")({
   ssr: false,
@@ -9,10 +11,11 @@ export const Route = createFileRoute("/doctor")({
     if (!session) {
       throw redirect({ to: "/login" });
     }
-    if (session.user?.role === "user") {
+    const role = getUserRole(session.user);
+    if (role === "user") {
       throw redirect({ to: "/onboarding" });
     }
-    if (session.user?.role !== "doctor" && session.user?.role !== "pending-doctor") {
+    if (role !== "doctor" && role !== "pending-doctor") {
       throw redirect({ to: "/" });
     }
   },
@@ -20,5 +23,9 @@ export const Route = createFileRoute("/doctor")({
 });
 
 function DoctorLayout() {
-  return <Outlet />;
+  return (
+    <DoctorShell>
+      <Outlet />
+    </DoctorShell>
+  );
 }

@@ -39,7 +39,9 @@ const fileStorageBucket = await R2Bucket("file-storage", {
 
 const modelFeaturesKv = await KVNamespace("model-features");
 const chatMessagesKv = await KVNamespace("chat-messages");
-const faceEmbeddingsKv = await KVNamespace("face-embeddings");
+const faceEmbeddingsBucket = await R2Bucket("face-embeddings", {
+  name: "face-embeddings",
+});
 const faceVideosBucket = await R2Bucket("face-videos", {
   name: "face-videos",
 });
@@ -94,7 +96,7 @@ export const server = await Worker("server", {
     SEED_FILE_SERVER_URL,
     CHAT_MESSAGES_KV: chatMessagesKv,
     MODEL_FEATURES_KV: modelFeaturesKv,
-    FACE_EMBEDDINGS_KV: faceEmbeddingsKv,
+    FACE_EMBEDDINGS_KV: faceEmbeddingsBucket,
     FACE_VIDEOS_BUCKET: faceVideosBucket,
     AI: aiBinding,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,

@@ -42,7 +42,10 @@ export const adminPendingDoctorsRoute = protectedProcedure
   .input(
     z.object({
       page: z.coerce.number().int().positive().default(1),
+      perPage: z.coerce.number().int().positive().max(100).default(10),
       query: z.string().default(""),
+      sortBy: z.enum(["name", "email", "completeness"]).default("name"),
+      sortDirection: z.enum(["asc", "desc"]).default("asc"),
     })
   )
   .handler(async ({ context, input }) => {
@@ -50,10 +53,11 @@ export const adminPendingDoctorsRoute = protectedProcedure
       requireAdmin(context);
     } catch {
       return {
-        items: [],
-        page: input.page,
-        prevPage: null,
-        nextPage: null,
+          items: [],
+          page: input.page,
+          pageSize: input.perPage,
+          prevPage: null,
+          nextPage: null,
         firstUserId: null,
         lastUserId: null,
         totalCount: 0,
@@ -92,6 +96,18 @@ export const adminPendingDoctorsRoute = protectedProcedure
     );
 
     const filteredItems = items.filter((item) => item.matchesQuery);
+    filteredItems.sort((a, b) => {
+      const direction = input.sortDirection === "desc" ? -1 : 1;
+      const aValue = a[input.sortBy] ?? "";
+      const bValue = b[input.sortBy] ?? "";
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return (aValue - bValue) * direction;
+      }
+
+      return String(aValue).localeCompare(String(bValue)) * direction;
+    });
+
     const {
       items: pagedItems,
       page,
@@ -100,11 +116,12 @@ export const adminPendingDoctorsRoute = protectedProcedure
       firstItem,
       lastItem,
       totalCount,
-    } = paginateItems(filteredItems, input.page, 10);
+    } = paginateItems(filteredItems, input.page, input.perPage);
 
     return {
       items: pagedItems,
       page,
+      pageSize: input.perPage,
       prevPage,
       nextPage,
       firstUserId: firstItem?.userId ?? null,

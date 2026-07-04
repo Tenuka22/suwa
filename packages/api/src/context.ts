@@ -34,7 +34,7 @@ export interface RequestContext {
   auth: AuthContext;
   chatMessagesKv: KVNamespace;
   db: ReturnType<typeof createDb>;
-  faceEmbeddingsKv: KVNamespace;
+  faceEmbeddingsBucket: R2Bucket;
   faceVideosBucket: R2Bucket;
   fileStorageBucket: R2Bucket;
   geminiApiKey: string;
@@ -61,7 +61,7 @@ export async function createContext({
     },
     db: createDb(),
     chatMessagesKv: env.CHAT_MESSAGES_KV,
-    faceEmbeddingsKv: env.FACE_EMBEDDINGS_KV,
+    faceEmbeddingsBucket: env.FACE_EMBEDDINGS_KV,
     faceVideosBucket: env.FACE_VIDEOS_BUCKET,
     fileStorageBucket: context.env.FILE_STORAGE_BUCKET,
     ai: context.env.AI,

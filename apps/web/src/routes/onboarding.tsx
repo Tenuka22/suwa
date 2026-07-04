@@ -14,6 +14,7 @@ import {
 import { Button } from "@suwa/ui/components/button";
 import { Separator } from "@suwa/ui/components/separator";
 import { authClient } from "@/lib/auth-client";
+import { getUserRole } from "@/lib/user-role";
 import { client } from "@/utils/orpc";
 import Loader from "@/components/loader";
 
@@ -74,7 +75,7 @@ function OnboardingPage() {
       navigate({ to: "/login" });
       return;
     }
-    const currentRole = session.user?.role;
+    const currentRole = getUserRole(session.user);
     if (currentRole && currentRole !== "user") {
       navigate({ to: "/" });
     }

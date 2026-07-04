@@ -1,7 +1,7 @@
 import { Toaster } from "@suwa/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { orpc } from "@/utils/orpc";
 import appCss from "../index.css?url";
@@ -37,14 +37,17 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const showNavbar = !pathname.startsWith("/admin") && !pathname.startsWith("/doctor");
+
   return (
     <html lang="en" className="light">
       <head>
         <HeadContent />
       </head>
       <body>
-        <div className="grid h-svh grid-rows-[auto_1fr]">
-          <Navbar />
+        <div className={showNavbar ? "grid h-svh grid-rows-[auto_1fr]" : "h-svh"}>
+          {showNavbar ? <Navbar /> : null}
           <Outlet />
         </div>
         <Toaster richColors />

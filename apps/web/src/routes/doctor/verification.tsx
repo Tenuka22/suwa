@@ -25,10 +25,12 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { authClient } from "@/lib/auth-client";
+import { getUserRole } from "@/lib/user-role";
 import { Badge } from "@suwa/ui/components/badge";
 import { Button } from "@suwa/ui/components/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -207,7 +209,7 @@ function DoctorPreview({
   }, []);
 
   return (
-    <Card className="sticky top-36 overflow-hidden border-border/80 bg-card/95 shadow-sm">
+    <Card className="sticky top-6 overflow-hidden border-border/80 bg-card/95 shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Profile Preview</CardTitle>
@@ -403,7 +405,7 @@ function DoctorPreview({
 export const Route = createFileRoute("/doctor/verification")({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession();
-    if (session?.user && "role" in session.user && session.user.role === "doctor") {
+    if (getUserRole(session?.user) === "doctor") {
       throw redirect({ to: "/doctor" });
     }
   },
@@ -542,9 +544,13 @@ function DoctorVerification() {
     }
   };
 
-  const handleFaceCaptured = async (embedding: number[], snapshot: string) => {
+  const handleFaceCaptured = async (
+    embedding: number[],
+    snapshot: string,
+    videoBase64?: string
+  ) => {
     try {
-      await client.saveFaceEmbedding({ embedding });
+      await client.saveFaceEmbedding({ embedding, videoBase64 });
       setFaceEmbedding(embedding);
       setCapturedFaceSnapshot(snapshot);
       toast.success("Face verification complete");
@@ -575,7 +581,7 @@ function DoctorVerification() {
     return (
       <div className="flex size-full items-center justify-center bg-muted p-6">
         <Card className="w-full max-w-sm border-border/80 bg-card/95 shadow-sm">
-          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+          <CardContent className="flex flex-col items-center gap-4 text-center">
             <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <Loader2 className="size-7 animate-spin" />
             </div>
@@ -625,69 +631,57 @@ function DoctorVerification() {
   return (
     <div className="flex size-full flex-col items-center overflow-y-auto scroll-smooth bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)/0.10),_transparent_34rem),linear-gradient(180deg,_hsl(var(--muted)),_hsl(var(--background)))] p-4 sm:p-6 md:p-10">
       <div className="w-full max-w-6xl">
-        <div className="mb-6 overflow-hidden rounded-[2rem] border border-border/80 bg-card/90 p-5 shadow-sm backdrop-blur md:p-7">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
-            <div>
-              <Badge className="mb-4 gap-1.5" variant="secondary">
-                <ShieldCheck className="size-3.5" />
-                Doctor onboarding
+        <Card className="mb-6 border-border/80 bg-card/90 shadow-sm backdrop-blur">
+          <CardHeader>
+            <Badge className="w-fit gap-1.5" variant="secondary">
+              <ShieldCheck className="size-3.5" />
+              Doctor onboarding
+            </Badge>
+            <CardTitle className="max-w-2xl text-2xl md:text-4xl">
+              Complete your verification profile
+            </CardTitle>
+            <CardDescription className="max-w-2xl md:text-base">
+              Add the essentials patients and admins need to trust your profile. You can save progress, capture your face, and submit when the required checks are complete.
+            </CardDescription>
+            <CardAction>
+              <Badge variant={progressPercent === 100 ? "default" : "outline"}>
+                {progressPercent}% complete
               </Badge>
-              <h1 className="max-w-2xl font-semibold text-2xl tracking-tight md:text-4xl">
-                Complete your verification profile
-              </h1>
-              <p className="mt-3 max-w-2xl text-muted-foreground text-sm leading-relaxed md:text-base">
-                Add the essentials patients and admins need to trust your profile. You can save progress, capture your face, and submit when the required checks are complete.
-              </p>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
-
-            <div className="rounded-2xl border bg-background/80 p-4">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium">Application readiness</span>
-                <span className="text-muted-foreground">{progressPercent}%</span>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl bg-muted p-2">
+                <p className="text-muted-foreground">Completed</p>
+                <p className="font-semibold text-lg">{formCompleted}/{steps.length}</p>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-border">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-xl bg-muted p-3">
-                  <p className="text-muted-foreground">Completed</p>
-                  <p className="mt-1 font-semibold text-lg">{formCompleted}/{steps.length}</p>
-                </div>
-                <div className="rounded-xl bg-muted p-3">
-                  <p className="text-muted-foreground">Face ID</p>
-                  <p className="mt-1 font-semibold text-sm">
-                    {faceEmbedding ? "Verified" : "Pending"}
-                  </p>
-                </div>
+              <div className="rounded-xl bg-muted p-2">
+                <p className="text-muted-foreground">Face ID</p>
+                <p className="font-semibold text-sm">
+                  {faceEmbedding ? "Verified" : "Pending"}
+                </p>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="sticky top-0 z-10 -mx-4 mb-6 border-y bg-background/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 md:-mx-10 md:px-10">
-          <div className="mb-3 flex items-center justify-between gap-3">
+        <Card className="mb-6 border-border/80 bg-card/95 shadow-sm">
+          <CardHeader>
             <div className="flex min-w-0 items-center gap-2">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <ShieldAlert className="size-4" />
               </div>
-              <p className="truncate font-medium text-sm">Verification checklist</p>
+              <CardTitle className="text-sm">Verification checklist</CardTitle>
             </div>
-            <Badge variant={progressPercent === 100 ? "default" : "outline"}>
-              {progressPercent}% complete
-            </Badge>
-          </div>
-
-          <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-border">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
+            <CardDescription>Jump to any section that still needs work.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
             {steps.map((step) => {
               const StepIcon = step.icon;
               return (
@@ -710,8 +704,8 @@ function DoctorVerification() {
                 </button>
               );
             })}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="flex flex-col gap-6 lg:col-span-2">
@@ -973,7 +967,7 @@ function DoctorVerification() {
                   }`}
                 >
                   <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_220px]">
-                    <div className="flex flex-col justify-between gap-4 p-4 sm:p-5">
+                    <div className="flex flex-col justify-between gap-4 p-2">
                       <div className="flex items-start gap-3">
                         <div
                           className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${
@@ -1030,7 +1024,7 @@ function DoctorVerification() {
                       </div>
                     </div>
 
-                    <div className="border-t bg-muted/40 p-4 md:border-l md:border-t-0">
+                    <div className="border-t bg-muted/40 md:border-l md:border-t-0">
                       {capturedFaceSnapshot ? (
                         <div className="relative overflow-hidden rounded-xl border bg-black">
                           <img
@@ -1062,39 +1056,38 @@ function DoctorVerification() {
               </CardContent>
             </Card>
 
-            <div className="sticky bottom-4 z-10 pb-8">
-              <div className="rounded-2xl border bg-card/95 p-3 shadow-lg backdrop-blur">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${
-                        hasAllFields && faceEmbedding
-                          ? "bg-emerald-500/10 text-emerald-500"
-                          : "bg-amber-500/10 text-amber-500"
-                      }`}
-                    >
-                      {hasAllFields && faceEmbedding ? (
-                        <CheckCircle2 className="size-4" />
-                      ) : (
-                        <ShieldAlert className="size-4" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">
-                        {hasAllFields && faceEmbedding
-                          ? "Ready to submit"
-                          : "Finish required steps"}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {!hasAllFields
-                          ? "Add your full name and select at least one specialty."
-                          : !faceEmbedding
-                            ? "Complete face verification to continue."
-                            : "Your profile will be reviewed by an admin before full access is enabled."}
-                      </p>
-                    </div>
+            <Card className="border-border/80 bg-card/95 shadow-sm">
+              <CardHeader>
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${
+                      hasAllFields && faceEmbedding
+                        ? "bg-emerald-500/10 text-emerald-500"
+                        : "bg-amber-500/10 text-amber-500"
+                    }`}
+                  >
+                    {hasAllFields && faceEmbedding ? (
+                      <CheckCircle2 className="size-4" />
+                    ) : (
+                      <ShieldAlert className="size-4" />
+                    )}
                   </div>
-
+                  <div>
+                    <CardTitle className="text-sm">
+                      {hasAllFields && faceEmbedding
+                        ? "Ready to submit"
+                        : "Finish required steps"}
+                    </CardTitle>
+                    <CardDescription>
+                      {!hasAllFields
+                        ? "Add your full name and select at least one specialty."
+                        : !faceEmbedding
+                          ? "Complete face verification to continue."
+                          : "Your profile will be reviewed by an admin before full access is enabled."}
+                    </CardDescription>
+                  </div>
+                </div>
+                <CardAction>
                   <Button
                     className="sm:min-w-44"
                     disabled={!hasAllFields || !faceEmbedding || saving}
@@ -1113,9 +1106,9 @@ function DoctorVerification() {
                       </>
                     )}
                   </Button>
-                </div>
-              </div>
-            </div>
+                </CardAction>
+              </CardHeader>
+            </Card>
           </div>
 
           <div className="hidden lg:block">
@@ -1131,7 +1124,9 @@ function DoctorVerification() {
       </div>
 
       <FaceCaptureDialog
-        onFaceCaptured={(embedding, snapshot) => handleFaceCaptured(embedding, snapshot)}
+        onFaceCaptured={(embedding, snapshot, videoBase64) =>
+          handleFaceCaptured(embedding, snapshot, videoBase64)
+        }
         onOpenChange={setFaceDialogOpen}
         open={faceDialogOpen}
       />

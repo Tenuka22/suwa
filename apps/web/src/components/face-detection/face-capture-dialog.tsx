@@ -15,7 +15,7 @@ export type FaceCaptureStatus =
 interface FaceCaptureDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onFaceCaptured: (embedding: number[], snapshot: string) => Promise<void>;
+  onFaceCaptured: (embedding: number[], snapshot: string, videoBase64?: string) => Promise<void>;
 }
 
 const KEY_LANDMARK_INDICES: number[] = [
@@ -95,6 +95,52 @@ function captureSnapshot(video: HTMLVideoElement): string {
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(video, 0, 0);
   return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Failed to read video blob"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function recordClip(stream: MediaStream, durationMs: number): Promise<string | undefined> {
+  if (typeof MediaRecorder === "undefined") {
+    return Promise.resolve(undefined);
+  }
+
+  return new Promise((resolve) => {
+    const chunks: BlobPart[] = [];
+    const options = MediaRecorder.isTypeSupported("video/webm")
+      ? { mimeType: "video/webm" }
+      : undefined;
+    const recorder = new MediaRecorder(stream, options);
+    const timeout = window.setTimeout(() => {
+      if (recorder.state !== "inactive") recorder.stop();
+    }, durationMs);
+
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) chunks.push(event.data);
+    };
+    recorder.onerror = () => {
+      window.clearTimeout(timeout);
+      resolve(undefined);
+    };
+    recorder.onstop = () => {
+      window.clearTimeout(timeout);
+      if (chunks.length === 0) {
+        resolve(undefined);
+        return;
+      }
+      void blobToBase64(new Blob(chunks, { type: "video/webm" })).then(resolve, () => resolve(undefined));
+    };
+    recorder.start();
+  });
 }
 
 function EmbeddingFingerprint({ embedding }: { embedding: number[] }) {
@@ -262,6 +308,9 @@ export function FaceCaptureDialog({ open, onOpenChange, onFaceCaptured }: FaceCa
       const frameInterval = 100;
       const totalFrames = clipDuration / frameInterval;
       const captureStart = performance.now();
+      const videoBase64Promise = streamRef.current
+        ? recordClip(streamRef.current, clipDuration)
+        : Promise.resolve(undefined);
 
       for (let i = 0; i < totalFrames; i++) {
         if (captureAbortRef.current) {
@@ -308,9 +357,10 @@ export function FaceCaptureDialog({ open, onOpenChange, onFaceCaptured }: FaceCa
       const snapshot = captureSnapshot(video);
       setResultSnapshot(snapshot);
       setResultEmbedding(averaged);
+      const videoBase64 = await videoBase64Promise;
 
       updateStatus("saving");
-      await onFaceCaptured(averaged, snapshot);
+      await onFaceCaptured(averaged, snapshot, videoBase64);
 
       stopCamera();
       updateStatus("success");

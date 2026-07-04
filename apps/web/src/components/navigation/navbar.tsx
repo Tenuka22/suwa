@@ -4,9 +4,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@suwa/ui/components/navigation-menu";
 import { cn } from "@suwa/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Clock, Stethoscope, TextAlignJustify } from "lucide-react";
+import { ArrowUpRight, Clock, ShieldCheck, Stethoscope, TextAlignJustify } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { getUserRole } from "@/lib/user-role";
 
 export type NavigationSection = {
   title: string;
@@ -62,7 +63,7 @@ const Navbar = () => {
     };
   }, [handleScroll, handleResize]);
 
-  const role = session?.user?.role;
+  const role = getUserRole(session?.user);
 
   const AnimatedActionButton = ({
     label,
@@ -71,7 +72,7 @@ const Navbar = () => {
   }: {
     label: string;
     icon: React.ReactNode;
-    to: "/login" | "/onboarding" | "/doctor" | "/doctor/verification";
+    to: "/login" | "/onboarding" | "/doctor" | "/doctor/verification" | "/admin";
   }) => (
     <Button
       render={
@@ -124,6 +125,15 @@ const Navbar = () => {
         />
       );
     }
+    if (role === "admin") {
+      return (
+        <AnimatedActionButton
+          icon={<ShieldCheck size={16} />}
+          label="Admin Panel"
+          to="/admin"
+        />
+      );
+    }
     return null;
   };
 
@@ -139,7 +149,7 @@ const Navbar = () => {
                 : "bg-transparent border-transparent"
             )}
           >
-            <Link to="#">
+            <Link to="/">
               <img src="Logo.png" className="size-12 rounded-full" width={12} height={12} />
             </Link>
               <NavigationMenu className="max-lg:hidden bg-muted p-0.5 rounded-full">
@@ -189,6 +199,11 @@ const Navbar = () => {
                   {role === "doctor" && (
                     <DropdownMenuItem>
                       <Link className="w-full cursor-pointer text-sm font-medium" to="/doctor">Doctor Hub</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === "admin" && (
+                    <DropdownMenuItem>
+                      <Link className="w-full cursor-pointer text-sm font-medium" to="/admin">Admin Panel</Link>
                     </DropdownMenuItem>
                   )}
                   {navigationData.map((item) => (

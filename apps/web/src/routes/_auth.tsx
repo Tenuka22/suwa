@@ -1,6 +1,7 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
+import { getUserRole } from "@/lib/user-role";
 
 export const Route = createFileRoute("/_auth")({
   ssr: false,
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/_auth")({
     if (!session) {
       throw redirect({ to: "/login" });
     }
-    if (session.user?.role === "user") {
+    if (getUserRole(session.user) === "user") {
       throw redirect({ to: "/onboarding" });
     }
   },
