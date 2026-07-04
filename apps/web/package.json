@@ -9,13 +9,15 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@suwa/api": "workspace:*",
-    "@suwa/env": "workspace:*",
-    "@suwa/ui": "workspace:*",
+    "@hookform/resolvers": "^5.4.0",
+    "@mediapipe/tasks-vision": "^0.10.35",
     "@orpc/client": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/tanstack-query": "catalog:",
     "@polar-sh/better-auth": "catalog:",
+    "@suwa/api": "workspace:*",
+    "@suwa/env": "workspace:*",
+    "@suwa/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.1",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "^5.99.0",
@@ -28,6 +30,7 @@
     "next-themes": "catalog:",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.80.0",
     "sonner": "catalog:",
     "tailwindcss": "catalog:",
     "zod": "catalog:"

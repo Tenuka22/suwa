@@ -4,8 +4,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@suwa/ui/components/navigation-menu";
 import { cn } from "@suwa/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, TextAlignJustify } from "lucide-react";
+import { ArrowUpRight, Clock, Stethoscope, TextAlignJustify } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 export type NavigationSection = {
   title: string;
@@ -39,23 +40,10 @@ const navigationData: NavigationSection[] = [
   },
 ];
 
-const CollaborateButton = ({ className }: { className?: string }) => (
-    <Button render={
-    <Link to="/login">
-      <span className="relative z-10 transition-all duration-500 hover:cursor-pointer">
-      </span>
-      Let's Collaborate
-      <div className="absolute right-1 w-8 h-8 bg-background text-foreground rounded-full flex items-center justify-center transition-all duration-500 group-hover:right-[calc(100%-36px)] group-hover:rotate-45">
-        <ArrowUpRight size={16} />
-      </div>
-    </Link>
-  } className={cn("relative text-sm font-medium rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-primary/80", className)}>
-  </Button>
-);
-
 const Navbar = () => {
   const [sticky, setSticky] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { data: session } = authClient.useSession();
   const handleScroll = useCallback(() => {
     setSticky(window.scrollY >= 50);
   }, []);
@@ -73,6 +61,71 @@ const Navbar = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, [handleScroll, handleResize]);
+
+  const role = session?.user?.role;
+
+  const AnimatedActionButton = ({
+    label,
+    icon,
+    to,
+  }: {
+    label: string;
+    icon: React.ReactNode;
+    to: "/login" | "/onboarding" | "/doctor" | "/doctor/verification";
+  }) => (
+    <Button
+      render={
+        <Link to={to}>
+          <span className="relative z-10 transition-all duration-500 hover:cursor-pointer" />
+          {label}
+          <div className="absolute right-1 w-8 h-8 bg-background text-foreground rounded-full flex items-center justify-center transition-all duration-500 group-hover:right-[calc(100%-36px)] group-hover:rotate-45">
+            {icon}
+          </div>
+        </Link>
+      }
+      className="relative text-sm font-medium rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-primary/80 hidden lg:flex"
+    />
+  );
+
+  const ActionButton = () => {
+    if (!session) {
+      return (
+        <AnimatedActionButton
+          icon={<ArrowUpRight size={16} />}
+          label="Let's Collaborate"
+          to="/login"
+        />
+      );
+    }
+    if (role === "user") {
+      return (
+        <AnimatedActionButton
+          icon={<ArrowUpRight size={16} />}
+          label="Complete Setup"
+          to="/onboarding"
+        />
+      );
+    }
+    if (role === "pending-doctor") {
+      return (
+        <AnimatedActionButton
+          icon={<Clock size={16} />}
+          label="Verification"
+          to="/doctor/verification"
+        />
+      );
+    }
+    if (role === "doctor") {
+      return (
+        <AnimatedActionButton
+          icon={<Stethoscope size={16} />}
+          label="Doctor Hub"
+          to="/doctor"
+        />
+      );
+    }
+    return null;
+  };
 
   return (
     <div>
@@ -104,7 +157,7 @@ const Navbar = () => {
                 </NavigationMenuList>
             </NavigationMenu>
             <div className="w-full flex justify-end items-center">
-            <CollaborateButton className="hidden lg:flex" />
+              <ActionButton />
             </div>
 
             <div className="lg:hidden">
@@ -118,6 +171,26 @@ const Navbar = () => {
                   align="end"
                   className="w-56 mt-2"
                 >
+                  {!session && (
+                    <DropdownMenuItem>
+                      <Link className="w-full cursor-pointer text-sm font-medium" to="/login">Let's Collaborate</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === "user" && (
+                    <DropdownMenuItem>
+                      <Link className="w-full cursor-pointer text-sm font-medium" to="/onboarding">Complete Setup</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === "pending-doctor" && (
+                    <DropdownMenuItem>
+                      <Link className="w-full cursor-pointer text-sm font-medium" to="/doctor/verification">Verification</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === "doctor" && (
+                    <DropdownMenuItem>
+                      <Link className="w-full cursor-pointer text-sm font-medium" to="/doctor">Doctor Hub</Link>
+                    </DropdownMenuItem>
+                  )}
                   {navigationData.map((item) => (
                     <DropdownMenuItem key={item.title}>
                       <a href={item.href} className="w-full cursor-pointer text-sm font-medium">{item.title}</a>

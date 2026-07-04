@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DoctorRouteImport } from './routes/doctor'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as DoctorIndexRouteImport } from './routes/doctor/index'
 import { Route as AuthIndexRouteImport } from './routes/_auth/index'
+import { Route as DoctorVerificationRouteImport } from './routes/doctor/verification'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -24,43 +27,81 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DoctorRoute = DoctorRouteImport.update({
+  id: '/doctor',
+  path: '/doctor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorIndexRoute = DoctorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DoctorRoute,
 } as any)
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
+const DoctorVerificationRoute = DoctorVerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => DoctorRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
+  '/doctor': typeof DoctorRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/verification': typeof DoctorVerificationRoute
+  '/doctor/': typeof DoctorIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/verification': typeof DoctorVerificationRoute
   '/': typeof AuthIndexRoute
+  '/doctor': typeof DoctorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
+  '/doctor': typeof DoctorRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/verification': typeof DoctorVerificationRoute
   '/_auth/': typeof AuthIndexRoute
+  '/doctor/': typeof DoctorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/onboarding'
+  fullPaths:
+    | '/'
+    | '/doctor'
+    | '/login'
+    | '/onboarding'
+    | '/doctor/verification'
+    | '/doctor/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/onboarding' | '/'
-  id: '__root__' | '/_auth' | '/login' | '/onboarding' | '/_auth/'
+  to: '/login' | '/onboarding' | '/doctor/verification' | '/' | '/doctor'
+  id:
+    | '__root__'
+    | '/_auth'
+    | '/doctor'
+    | '/login'
+    | '/onboarding'
+    | '/doctor/verification'
+    | '/_auth/'
+    | '/doctor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
+  DoctorRoute: typeof DoctorRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
 }
@@ -81,6 +122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor': {
+      id: '/doctor'
+      path: '/doctor'
+      fullPath: '/doctor'
+      preLoaderRoute: typeof DoctorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -88,12 +136,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor/': {
+      id: '/doctor/'
+      path: '/'
+      fullPath: '/doctor/'
+      preLoaderRoute: typeof DoctorIndexRouteImport
+      parentRoute: typeof DoctorRoute
+    }
     '/_auth/': {
       id: '/_auth/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/doctor/verification': {
+      id: '/doctor/verification'
+      path: '/verification'
+      fullPath: '/doctor/verification'
+      preLoaderRoute: typeof DoctorVerificationRouteImport
+      parentRoute: typeof DoctorRoute
     }
   }
 }
@@ -108,8 +170,22 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface DoctorRouteChildren {
+  DoctorVerificationRoute: typeof DoctorVerificationRoute
+  DoctorIndexRoute: typeof DoctorIndexRoute
+}
+
+const DoctorRouteChildren: DoctorRouteChildren = {
+  DoctorVerificationRoute: DoctorVerificationRoute,
+  DoctorIndexRoute: DoctorIndexRoute,
+}
+
+const DoctorRouteWithChildren =
+  DoctorRoute._addFileChildren(DoctorRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
+  DoctorRoute: DoctorRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
 }
