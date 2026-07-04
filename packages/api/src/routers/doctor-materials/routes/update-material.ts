@@ -40,6 +40,9 @@ export const updateMaterialRoute = protectedProcedure
     if (rawData.durationSeconds !== undefined) {
       data.durationSeconds = rawData.durationSeconds;
     }
+    if (rawData.status !== undefined) {
+      data.status = rawData.status;
+    }
     if (rawData.tags !== undefined) {
       data.tags = rawData.tags ? JSON.stringify(rawData.tags) : null;
     }

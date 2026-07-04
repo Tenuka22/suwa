@@ -19,6 +19,8 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AuthIndexRouteImport } from './routes/_auth/index'
 import { Route as DoctorVerificationRouteImport } from './routes/doctor/verification'
 import { Route as DoctorProfileRouteImport } from './routes/doctor/profile'
+import { Route as DoctorHubRouteImport } from './routes/doctor/hub'
+import { Route as DoctorHubMaterialIdRouteImport } from './routes/doctor/hub/$materialId'
 import { Route as AdminDoctorRequestsRouteImport } from './routes/admin/doctor/requests'
 import { Route as AdminDoctorRequestsIndexRouteImport } from './routes/admin/doctor/requests/index'
 import { Route as AdminDoctorRequestsDoctorIdRouteImport } from './routes/admin/doctor/requests/$doctorId'
@@ -72,6 +74,16 @@ const DoctorProfileRoute = DoctorProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DoctorRoute,
 } as any)
+const DoctorHubRoute = DoctorHubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
+  getParentRoute: () => DoctorRoute,
+} as any)
+const DoctorHubMaterialIdRoute = DoctorHubMaterialIdRouteImport.update({
+  id: '/$materialId',
+  path: '/$materialId',
+  getParentRoute: () => DoctorHubRoute,
+} as any)
 const AdminDoctorRequestsRoute = AdminDoctorRequestsRouteImport.update({
   id: '/doctor/requests',
   path: '/doctor/requests',
@@ -96,22 +108,26 @@ export interface FileRoutesByFullPath {
   '/doctor': typeof DoctorRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
   '/admin/': typeof AdminIndexRoute
   '/doctor/': typeof DoctorIndexRoute
   '/admin/doctor/requests': typeof AdminDoctorRequestsRouteWithChildren
+  '/doctor/hub/$materialId': typeof DoctorHubMaterialIdRoute
   '/admin/doctor/requests/$doctorId': typeof AdminDoctorRequestsDoctorIdRoute
   '/admin/doctor/requests/': typeof AdminDoctorRequestsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
   '/': typeof AuthIndexRoute
   '/admin': typeof AdminIndexRoute
   '/doctor': typeof DoctorIndexRoute
+  '/doctor/hub/$materialId': typeof DoctorHubMaterialIdRoute
   '/admin/doctor/requests/$doctorId': typeof AdminDoctorRequestsDoctorIdRoute
   '/admin/doctor/requests': typeof AdminDoctorRequestsIndexRoute
 }
@@ -122,12 +138,14 @@ export interface FileRoutesById {
   '/doctor': typeof DoctorRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/doctor/hub': typeof DoctorHubRouteWithChildren
   '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
   '/_auth/': typeof AuthIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/doctor/': typeof DoctorIndexRoute
   '/admin/doctor/requests': typeof AdminDoctorRequestsRouteWithChildren
+  '/doctor/hub/$materialId': typeof DoctorHubMaterialIdRoute
   '/admin/doctor/requests/$doctorId': typeof AdminDoctorRequestsDoctorIdRoute
   '/admin/doctor/requests/': typeof AdminDoctorRequestsIndexRoute
 }
@@ -139,22 +157,26 @@ export interface FileRouteTypes {
     | '/doctor'
     | '/login'
     | '/onboarding'
+    | '/doctor/hub'
     | '/doctor/profile'
     | '/doctor/verification'
     | '/admin/'
     | '/doctor/'
     | '/admin/doctor/requests'
+    | '/doctor/hub/$materialId'
     | '/admin/doctor/requests/$doctorId'
     | '/admin/doctor/requests/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/onboarding'
+    | '/doctor/hub'
     | '/doctor/profile'
     | '/doctor/verification'
     | '/'
     | '/admin'
     | '/doctor'
+    | '/doctor/hub/$materialId'
     | '/admin/doctor/requests/$doctorId'
     | '/admin/doctor/requests'
   id:
@@ -164,12 +186,14 @@ export interface FileRouteTypes {
     | '/doctor'
     | '/login'
     | '/onboarding'
+    | '/doctor/hub'
     | '/doctor/profile'
     | '/doctor/verification'
     | '/_auth/'
     | '/admin/'
     | '/doctor/'
     | '/admin/doctor/requests'
+    | '/doctor/hub/$materialId'
     | '/admin/doctor/requests/$doctorId'
     | '/admin/doctor/requests/'
   fileRoutesById: FileRoutesById
@@ -254,6 +278,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorProfileRouteImport
       parentRoute: typeof DoctorRoute
     }
+    '/doctor/hub': {
+      id: '/doctor/hub'
+      path: '/hub'
+      fullPath: '/doctor/hub'
+      preLoaderRoute: typeof DoctorHubRouteImport
+      parentRoute: typeof DoctorRoute
+    }
+    '/doctor/hub/$materialId': {
+      id: '/doctor/hub/$materialId'
+      path: '/$materialId'
+      fullPath: '/doctor/hub/$materialId'
+      preLoaderRoute: typeof DoctorHubMaterialIdRouteImport
+      parentRoute: typeof DoctorHubRoute
+    }
     '/admin/doctor/requests': {
       id: '/admin/doctor/requests'
       path: '/doctor/requests'
@@ -313,13 +351,27 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface DoctorHubRouteChildren {
+  DoctorHubMaterialIdRoute: typeof DoctorHubMaterialIdRoute
+}
+
+const DoctorHubRouteChildren: DoctorHubRouteChildren = {
+  DoctorHubMaterialIdRoute: DoctorHubMaterialIdRoute,
+}
+
+const DoctorHubRouteWithChildren = DoctorHubRoute._addFileChildren(
+  DoctorHubRouteChildren,
+)
+
 interface DoctorRouteChildren {
+  DoctorHubRoute: typeof DoctorHubRouteWithChildren
   DoctorProfileRoute: typeof DoctorProfileRoute
   DoctorVerificationRoute: typeof DoctorVerificationRoute
   DoctorIndexRoute: typeof DoctorIndexRoute
 }
 
 const DoctorRouteChildren: DoctorRouteChildren = {
+  DoctorHubRoute: DoctorHubRouteWithChildren,
   DoctorProfileRoute: DoctorProfileRoute,
   DoctorVerificationRoute: DoctorVerificationRoute,
   DoctorIndexRoute: DoctorIndexRoute,

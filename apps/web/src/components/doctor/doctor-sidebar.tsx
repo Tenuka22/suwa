@@ -1,6 +1,6 @@
 "use client";
 
-import { HouseIcon, StethoscopeIcon, UserCircleIcon } from "lucide-react";
+import { HouseIcon, PlayCircleIcon, StethoscopeIcon, UserCircleIcon } from "lucide-react";
 
 import { SidebarUserFooter } from "@/components/admin/sidebar-user-footer";
 import { SidebarNavSection } from "@/components/admin/sidebar-nav-section";
@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from "@suwa/ui/components/sidebar";
 
-export type DoctorSidebarRoute = "/" | "/doctor" | "/doctor/profile" | "/doctor/verification";
+export type DoctorSidebarRoute = "/" | "/doctor" | "/doctor/profile" | "/doctor/verification" | "/doctor/hub";
 
 export function DoctorSidebar() {
   const { state } = useSidebar();
@@ -61,6 +61,11 @@ export function DoctorSidebar() {
               icon: StethoscopeIcon,
               label: "Dashboard",
               to: "/doctor",
+            },
+            {
+              icon: PlayCircleIcon,
+              label: "Hub",
+              to: "/doctor/hub",
             },
             {
               icon: UserCircleIcon,

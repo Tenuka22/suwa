@@ -65,6 +65,7 @@ export const updateMaterialSchema = z.object({
   content: z.string().max(10_000).nullable().optional(),
   channelId: z.string().nullable().optional(),
   visibility: hubVisibilitySchema.optional(),
+  status: hubMaterialStatusSchema.optional(),
   tags: z.array(z.string().trim().min(1).max(50)).max(20).nullable().optional(),
   playlistId: z.string().nullable().optional(),
   isIndividual: z.boolean().optional(),
