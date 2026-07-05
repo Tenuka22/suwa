@@ -1,10 +1,9 @@
 import { doctorSessions } from "@suwa/db";
-import { TAX_RATE } from "@suwa/pricing";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { capturePaymentIntent } from "../stripe-utils";
+import { splitSessionRevenue } from "../revenue-split";
 
 export const acceptRescheduledSessionRoute = protectedProcedure
   .input(z.object({ sessionId: z.string().min(1) }))
@@ -30,21 +29,7 @@ export const acceptRescheduledSessionRoute = protectedProcedure
     }
 
     const now = new Date().toISOString();
-
-    // Capture the held payment when patient accepts the rescheduled time
-    if (session.paymentIntentId && session.paymentIntentId.startsWith("pi_")) {
-      try {
-        await capturePaymentIntent(session.paymentIntentId);
-      } catch {
-        throw new Error(
-          "Payment capture failed. The session could not be approved."
-        );
-      }
-    }
-
-    const doctorEarnedCents = Math.round(
-      (session.amountCents ?? 0) / (1 + TAX_RATE)
-    );
+    const { doctorEarnedCents } = splitSessionRevenue(session.amountCents ?? 0);
 
     await context.db
       .update(doctorSessions)

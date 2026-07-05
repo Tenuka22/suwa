@@ -1,10 +1,10 @@
 import { doctorSessions } from "@suwa/db";
-import { TAX_RATE } from "@suwa/pricing";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { cancelPaymentIntent, capturePaymentIntent } from "../stripe-utils";
+import { splitSessionRevenue } from "../revenue-split";
+import { refundOrder } from "../polar-utils";
 
 export const respondSessionRoute = protectedProcedure
   .input(
@@ -17,7 +17,7 @@ export const respondSessionRoute = protectedProcedure
   )
   .handler(async ({ context, input }) => {
     const { userId, auth } = requireAuth(context);
-    const role = auth.sessionClaims?.metadata?.role;
+    const role = auth.user?.role;
 
     const [session] = await context.db
       .select()
@@ -44,22 +44,8 @@ export const respondSessionRoute = protectedProcedure
     const now = new Date().toISOString();
 
     if (input.action === "approve") {
-      // Capture the held payment now that the doctor has approved
-      if (
-        session.paymentIntentId &&
-        session.paymentIntentId.startsWith("pi_")
-      ) {
-        try {
-          await capturePaymentIntent(session.paymentIntentId);
-        } catch {
-          throw new Error(
-            "Payment capture failed. The session could not be approved."
-          );
-        }
-      }
-
-      const doctorEarnedCents = Math.round(
-        (session.amountCents ?? 0) / (1 + TAX_RATE)
+      const { doctorEarnedCents } = splitSessionRevenue(
+        session.amountCents ?? 0
       );
 
       await context.db
@@ -87,12 +73,8 @@ export const respondSessionRoute = protectedProcedure
         })
         .where(eq(doctorSessions.id, input.sessionId));
     } else {
-      // Cancel the held payment on rejection
-      if (
-        session.paymentIntentId &&
-        session.paymentIntentId.startsWith("pi_")
-      ) {
-        await cancelPaymentIntent(session.paymentIntentId);
+      if (session.polarOrderId && session.amountCents) {
+        await refundOrder(session.polarOrderId, session.amountCents);
       }
 
       await context.db

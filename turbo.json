@@ -23,7 +23,7 @@
     "db:generate": {
       "cache": false
     },
-    "stripe:listen": {
+    "polar:listen": {
       "cache": false
     },
     "deploy": {

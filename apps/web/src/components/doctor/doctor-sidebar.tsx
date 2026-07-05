@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon, HouseIcon, PackageIcon, PlayCircleIcon, StethoscopeIcon, UserCircleIcon } from "lucide-react";
+import { BanknoteIcon, CalendarIcon, HouseIcon, PackageIcon, PlayCircleIcon, StethoscopeIcon, UserCircleIcon } from "lucide-react";
 
 import { SidebarUserFooter } from "@/components/admin/sidebar-user-footer";
 import { SidebarNavSection } from "@/components/admin/sidebar-nav-section";
@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from "@suwa/ui/components/sidebar";
 
-export type DoctorSidebarRoute = "/" | "/doctor" | "/doctor/profile" | "/doctor/verification" | "/doctor/hub" | "/doctor/availability" | "/doctor/plans";
+export type DoctorSidebarRoute = "/" | "/doctor" | "/doctor/profile" | "/doctor/verification" | "/doctor/hub" | "/doctor/payments" | "/doctor/availability" | "/doctor/plans";
 
 export function DoctorSidebar() {
   const { state } = useSidebar();
@@ -66,6 +66,11 @@ export function DoctorSidebar() {
               icon: PlayCircleIcon,
               label: "Hub",
               to: "/doctor/hub",
+            },
+            {
+              icon: BanknoteIcon,
+              label: "Payments",
+              to: "/doctor/payments",
             },
             {
               icon: UserCircleIcon,

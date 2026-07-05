@@ -27,7 +27,7 @@ export const saveDoctorProfileRoute = protectedProcedure
   .handler(async ({ context, input }) => {
     const { userId } = requireAuth(context);
 
-    const currentRole = context.auth?.sessionClaims?.metadata?.role;
+    const currentRole = context.auth.user?.role;
     const nextRole =
       currentRole === "admin" || currentRole === "doctor"
         ? currentRole
@@ -75,8 +75,9 @@ export const saveDoctorProfileRoute = protectedProcedure
       education: input.education ?? existingProfile?.education ?? null,
       permanent: existingProfile?.permanent ?? false,
       faceEmbeddingKvKey: existingProfile?.faceEmbeddingKvKey ?? null,
-      stripeAccountId: existingProfile?.stripeAccountId ?? null,
-      stripeAccountEnabled: existingProfile?.stripeAccountEnabled ?? false,
+      polarPayoutAccountId: existingProfile?.polarPayoutAccountId ?? null,
+      polarPayoutAccountEnabled:
+        existingProfile?.polarPayoutAccountEnabled ?? false,
       createdAt: existingProfile?.createdAt ?? timestamp,
       updatedAt: timestamp,
     };

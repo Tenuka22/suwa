@@ -2,7 +2,6 @@
 
 import "../global.css";
 
-import { env } from "@suwa/env/native";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Redirect, Stack, usePathname } from "expo-router";
@@ -19,7 +18,6 @@ import {
 import { showToast } from "@/components/design/ui/toast";
 import { authClient } from "@/utils/better-auth";
 import { orpc, queryClient, setQueryErrorHandler } from "@/utils/orpc";
-import { StripePaymentProvider } from "@/utils/stripe";
 
 maybeCompleteAuthSession();
 
@@ -193,32 +191,30 @@ function LayoutContent() {
     <>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <StripePaymentProvider>
-            <GlobalErrorBoundary showError={showError}>
-              <Stack
-                screenOptions={{
-                  headerStyle: {
-                    backgroundColor: background,
-                  },
-                  headerTitleStyle: {
-                    fontFamily: "Poppins",
-                    fontWeight: "500",
-                    color: foreground,
-                  },
-                  headerTintColor: foreground,
-                  headerShadowVisible: false,
-                }}
-              >
-                <Stack.Screen
-                  name="(patient)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen name="test" options={{ headerShown: false }} />
-              </Stack>
-              <OnboardingCheck />
-            </GlobalErrorBoundary>
-            <StatusBar backgroundColor={background} style="dark" />
-          </StripePaymentProvider>
+          <GlobalErrorBoundary showError={showError}>
+            <Stack
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: background,
+                },
+                headerTitleStyle: {
+                  fontFamily: "Poppins",
+                  fontWeight: "500",
+                  color: foreground,
+                },
+                headerTintColor: foreground,
+                headerShadowVisible: false,
+              }}
+            >
+              <Stack.Screen
+                name="(patient)"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="test" options={{ headerShown: false }} />
+            </Stack>
+            <OnboardingCheck />
+          </GlobalErrorBoundary>
+          <StatusBar backgroundColor={background} style="dark" />
         </GestureHandlerRootView>
       </QueryClientProvider>
       <ErrorDialog {...dialogProps} />

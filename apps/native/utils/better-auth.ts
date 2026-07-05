@@ -1,4 +1,5 @@
 import { expoClient } from "@better-auth/expo/client";
+import { polarClient } from "@polar-sh/better-auth/client";
 import { env } from "@suwa/env/native";
 import { createAuthClient } from "better-auth/react";
 import Constants from "expo-constants";
@@ -12,6 +13,7 @@ export const authClient = createAuthClient({
       storagePrefix: Constants.expoConfig?.scheme as string,
       storage: SecureStore,
     }),
+    polarClient(),
   ],
 });
 

@@ -1,10 +1,9 @@
 import { doctorPlans, doctorSessions } from "@suwa/db";
-import { TAX_RATE } from "@suwa/pricing";
 import { and, eq, gt, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { createHoldPaymentIntent } from "../stripe-utils";
+import { createCheckoutSession } from "../polar-utils";
 
 export const bookSessionRoute = protectedProcedure
   .input(
@@ -13,6 +12,7 @@ export const bookSessionRoute = protectedProcedure
       planId: z.string().min(1),
       startAt: z.string().min(1),
       endAt: z.string().min(1),
+      returnUrl: z.string().url().optional(),
     })
   )
   .handler(async ({ context, input }) => {
@@ -79,21 +79,21 @@ export const bookSessionRoute = protectedProcedure
 
     const now = new Date().toISOString();
     const sessionId = crypto.randomUUID();
-    const amountCents =
-      plan.priceCents + Math.round(plan.priceCents * TAX_RATE);
 
-    // Create Stripe PaymentIntent with manual capture (hold, don't charge yet)
-    const paymentIntent = await createHoldPaymentIntent({
+    const amountCents = plan.priceCents;
+    const checkout = await createCheckoutSession({
       amount: amountCents,
-      patientId,
-      doctorId: input.doctorId,
-      sessionId,
-      description: `Session hold for ${plan.name}`,
+      customerExternalId: patientId,
+      metadata: {
+        type: "booking",
+        sessionId,
+        doctorId: input.doctorId,
+        patientId,
+        planId: plan.id,
+      },
+      successUrl: input.returnUrl,
+      returnUrl: input.returnUrl,
     });
-
-    if (!paymentIntent.client_secret) {
-      throw new Error("Failed to create payment hold");
-    }
 
     await context.db.insert(doctorSessions).values({
       id: sessionId,
@@ -105,7 +105,7 @@ export const bookSessionRoute = protectedProcedure
       status: "requested",
       creditCost: 0,
       amountCents,
-      paymentIntentId: paymentIntent.id,
+      polarOrderId: null,
       createdAt: now,
       updatedAt: now,
     });
@@ -113,7 +113,7 @@ export const bookSessionRoute = protectedProcedure
     return {
       ok: true,
       sessionId,
-      clientSecret: paymentIntent.client_secret,
+      checkoutUrl: checkout.url,
       amountCents,
     };
   });

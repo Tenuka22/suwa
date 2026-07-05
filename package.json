@@ -35,7 +35,7 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
-    "stripe:listen": "turbo stripe:listen",
+    "polar:listen": "turbo polar:listen",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",

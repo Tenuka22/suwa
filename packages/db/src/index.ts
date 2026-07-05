@@ -72,7 +72,6 @@ import {
   tenantAuditLogs as tenantAuditLogsTable,
   tenantNotifications as tenantNotificationsTable,
   tenants as tenantsTable,
-  userSubscriptions as userSubscriptionsTable,
 } from "./schema";
 
 export {
@@ -99,7 +98,6 @@ export const patientProfiles = patientProfilesTable;
 export const patientMoods = patientMoodsTable;
 
 export const doctorPlans = doctorPlansTable;
-export const userSubscriptions = userSubscriptionsTable;
 export const doctorWeeklyAvailability = doctorWeeklyAvailabilityTable;
 export const doctorCredits = doctorCreditsTable;
 export const doctorCashoutRequests = doctorCashoutRequestsTable;
@@ -177,7 +175,6 @@ export function createDb() {
       patientMoods,
 
       doctorPlans,
-      userSubscriptions,
       doctorWeeklyAvailability,
       doctorCredits,
       doctorCashoutRequests,

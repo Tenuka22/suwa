@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { stripeApp } from "./stripe";
+import { polarApp } from "./polar";
 
 const webhookApp = new Hono();
 
-webhookApp.route("/stripe/webhook", stripeApp);
+webhookApp.route("/polar/webhooks", polarApp);
 
 export default webhookApp;

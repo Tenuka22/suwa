@@ -33,8 +33,8 @@ export const doctorProfiles = sqliteTable("doctor_profiles", {
   approach: text("approach"),
   education: text("education"),
   permanent: integer("permanent", { mode: "boolean" }).notNull().default(false),
-  stripeAccountId: text("stripe_account_id"),
-  stripeAccountEnabled: integer("stripe_account_enabled", {
+  polarPayoutAccountId: text("polar_payout_account_id"),
+  polarPayoutAccountEnabled: integer("polar_payout_account_enabled", {
     mode: "boolean",
   }).default(false),
   faceEmbeddingKvKey: text("face_embedding_kv_key"),
@@ -54,7 +54,7 @@ export const doctorSessions = sqliteTable("doctor_sessions", {
     .default("requested"),
   creditCost: integer("credit_cost").notNull().default(0),
   amountCents: integer("amount_cents"),
-  paymentIntentId: text("payment_intent_id"),
+  polarOrderId: text("polar_order_id"),
   doctorEarnedCents: integer("doctor_earned_cents"),
   payoutStatus: text("payout_status").notNull().default("none"),
   payoutTransferId: text("payout_transfer_id"),
@@ -194,7 +194,7 @@ export const doctorCashoutRequests = sqliteTable("doctor_cashout_requests", {
   doctorId: text("doctor_id").notNull(),
   amountCents: integer("amount_cents").notNull(),
   status: text("status").notNull().default("pending"),
-  stripeTransferId: text("stripe_transfer_id"),
+  polarTransferId: text("polar_transfer_id"),
   failureReason: text("failure_reason"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
@@ -241,20 +241,7 @@ export const doctorPlans = sqliteTable("doctor_plans", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
-export const userSubscriptions = sqliteTable("user_subscriptions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  planId: text("plan_id").notNull(),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  status: text("status").notNull().default("active"),
-  currentPeriodStart: text("current_period_start"),
-  currentPeriodEnd: text("current_period_end"),
-  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
-    .notNull()
-    .default(false),
-  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
-});
+
 
 const hubVisibilityValues = ["public", "unlisted", "private"] as const;
 const hubMaterialStatusValues = [
@@ -374,8 +361,6 @@ export const sessionSharedData = sqliteTable("session_shared_data", {
 });
 
 export type SessionSharedData = typeof sessionSharedData.$inferSelect;
-export type UserSubscription = typeof userSubscriptions.$inferSelect;
-
 export type {
   Conversation,
   Message,

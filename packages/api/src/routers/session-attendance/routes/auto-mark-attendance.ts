@@ -10,7 +10,7 @@ export const autoMarkAttendanceRoute = protectedProcedure
   .input(z.object({ sessionId: z.string().min(1) }))
   .handler(async ({ context, input }) => {
     const { userId, auth } = requireAuth(context);
-    const role = auth.sessionClaims?.metadata?.role;
+    const role = auth.user?.role;
 
     const [session] = await context.db
       .select()
