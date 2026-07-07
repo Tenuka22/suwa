@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+﻿import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Building2,
@@ -126,7 +126,7 @@ function OnboardingPage() {
           </div>
         </div>
 
-        {/* Right panel — the actual onboarding form */}
+        {/* Right panel - the actual onboarding form */}
         <div className="flex flex-col justify-center p-6 md:p-10">
           <div className="mb-6 flex flex-col gap-2 md:hidden">
             <Link className="font-semibold text-lg tracking-tight" to="/">
@@ -221,3 +221,4 @@ function OnboardingPage() {
     </div>
   );
 }
+

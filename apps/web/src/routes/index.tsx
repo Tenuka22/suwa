@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@suwa/ui/components/button";
 import { Badge } from "@suwa/ui/components/badge";
 import { authClient } from "@/lib/auth-client";
@@ -37,7 +37,7 @@ const features = [
     icon: Users,
     title: "Anonymous patient records",
     description:
-      "Access patient histories and session notes under anonymized aliases — no personal data exposed.",
+      "Access patient histories and session notes under anonymized aliases - no personal data exposed.",
   },
   {
     icon: FileText,
@@ -55,7 +55,7 @@ const features = [
     icon: Wallet,
     title: "Payments & subscriptions",
     description:
-      "Set session fees, create subscription plans, and track payouts — all from your dashboard.",
+      "Set session fees, create subscription plans, and track payouts - all from your dashboard.",
   },
   {
     icon: BarChart3,
@@ -82,7 +82,7 @@ const steps = [
     number: "03",
     title: "Start seeing patients",
     description:
-      "Accept bookings, conduct sessions, and manage your practice — all anonymously.",
+      "Accept bookings, conduct sessions, and manage your practice - all anonymously.",
   },
 ];
 
@@ -113,8 +113,8 @@ function DoctorLanding() {
           <span className="text-primary">Keep it private.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-          Doca lets you manage your mental health practice from your browser — schedule,
-          content, payments, and crisis response — while protecting patient anonymity.
+          Doca lets you manage your mental health practice from your browser - schedule,
+          content, payments, and crisis response - while protecting patient anonymity.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Button size="lg" className="rounded-full px-8 text-base" render={<Link to={cta.to} />}>
@@ -140,7 +140,7 @@ function DoctorLanding() {
               Everything you need to run your practice
             </h2>
             <p className="mt-3 text-muted-foreground">
-              From scheduling to crisis response — one dashboard.
+              From scheduling to crisis response - one dashboard.
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -238,7 +238,7 @@ function DoctorLanding() {
               Ready to start your practice?
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              Join Doca and start seeing patients — anonymously, securely, on your terms.
+              Join Doca and start seeing patients - anonymously, securely, on your terms.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button size="lg" className="rounded-full px-8 text-base" render={<Link to={cta.to} />}>
@@ -259,3 +259,4 @@ function DoctorLanding() {
     </div>
   );
 }
+

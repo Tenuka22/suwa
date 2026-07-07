@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   DoctorApproachStep,
   DoctorConsultationMode,
   DoctorFocusArea,
@@ -67,7 +67,7 @@ export const DOCTOR_PROFILE_SPECS: DoctorProfileSpec[] = [
     displayName: "Dr. Albert Leclercq",
     headline:
       "Experienced clinical psychologist with expertise in CBT and behavioral therapy",
-    bio: "After completing my Ph.D. in Clinical Psychology in Bern, I dedicated my career to evidence-based psychological interventions. My therapeutic style is active, structured, and collaborative — I believe therapy should produce tangible results. I specialize in treating anxiety disorders, OCD, and phobias using cognitive-behavioral approaches, and I regularly incorporate exposure techniques and behavioral experiments into my practice.",
+    bio: "After completing my Ph.D. in Clinical Psychology in Bern, I dedicated my career to evidence-based psychological interventions. My therapeutic style is active, structured, and collaborative - I believe therapy should produce tangible results. I specialize in treating anxiety disorders, OCD, and phobias using cognitive-behavioral approaches, and I regularly incorporate exposure techniques and behavioral experiments into my practice.",
     specialties: ["psychology", "counseling"],
     languages: ["english", "french", "spanish"],
     consultationModes: ["video", "in_person", "chat"],
@@ -198,3 +198,4 @@ export function buildApproachSteps(steps: string[]): DoctorApproachStep[] {
     text,
   }));
 }
+

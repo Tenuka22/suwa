@@ -1,7 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { ArrowRight, Banknote, CalendarDays, FolderOpen, LayoutDashboard, PencilLine, Stethoscope } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
 import { getUserRole } from "@/lib/user-role";
+import { Button } from "@suwa/ui/components/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@suwa/ui/components/card";
 
 export const Route = createFileRoute("/doctor/")({
   beforeLoad: async () => {

@@ -1,4 +1,4 @@
-export interface ChannelSpec {
+﻿export interface ChannelSpec {
   description: string;
   name: string;
 }
@@ -71,7 +71,7 @@ export const MATERIAL_SPECS_VIDEO: MaterialSpec[] = [
   {
     title: "Teen Health: Mental Health",
     description:
-      "Understanding mental health for teens — covering common challenges and when to seek help.",
+      "Understanding mental health for teens - covering common challenges and when to seek help.",
     fileType: "video",
     mimeType: "video/mp4",
     durationSeconds: 165,
@@ -211,3 +211,4 @@ export const PLAYLIST_TITLES = [
   "Daily Mindfulness",
   "Deep Dive Series",
 ] as const;
+

@@ -12,6 +12,7 @@ import {
   updateDoctorPlanRoute,
 } from "./routes/doctor-plans";
 import { getConnectAccountStatusRoute } from "./routes/get-connect-account-status";
+import { getStripeDashboardLinkRoute } from "./routes/get-stripe-dashboard-link";
 import { listDoctorSessionsRoute } from "./routes/list-doctor-sessions";
 import { listPatientSessionsRoute } from "./routes/list-patient-sessions";
 import { markSessionAttendedRoute } from "./routes/mark-session-attended";
@@ -38,6 +39,7 @@ export const bookingRouter = {
   getConnectAccountStatus: getConnectAccountStatusRoute,
   createConnectAccountLink: createConnectAccountLinkRoute,
   syncConnectAccountStatus: syncConnectAccountStatusRoute,
+  getStripeDashboardLink: getStripeDashboardLinkRoute,
   listPatientSessions: listPatientSessionsRoute,
   listDoctorSessions: listDoctorSessionsRoute,
   createDoctorPlan: createDoctorPlanRoute,

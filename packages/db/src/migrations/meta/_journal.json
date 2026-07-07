@@ -29,6 +29,20 @@
       "when": 1782997625875,
       "tag": "0003_doctor-file-storage",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783425943703,
+      "tag": "0004_abnormal_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783440000000,
+      "tag": "0005_stripe_connect",
+      "breakpoints": true
     }
   ]
 }

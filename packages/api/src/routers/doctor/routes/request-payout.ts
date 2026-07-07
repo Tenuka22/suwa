@@ -12,14 +12,14 @@ export const requestPayoutRoute = protectedProcedure
     const { userId } = await requireDoctor(context);
 
     const [profile] = await context.db
-      .select({ stripeAccountId: doctorProfiles.stripeAccountId })
+      .select({ stripeAccountId: doctorProfiles.stripeAccountId, stripeAccountEnabled: doctorProfiles.stripeAccountEnabled })
       .from(doctorProfiles)
       .where(eq(doctorProfiles.userId, userId))
       .limit(1);
 
-    if (!profile?.stripeAccountId) {
+    if (!profile?.stripeAccountId || !profile?.stripeAccountEnabled) {
       throw new ORPCError("PRECONDITION_FAILED", {
-        message: "Connect your Stripe account first to request payouts.",
+        message: "Complete your Stripe account setup first to request payouts.",
       });
     }
 

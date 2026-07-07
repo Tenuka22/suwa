@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FilesetResolver, FaceLandmarker } from "@mediapipe/tasks-vision";
 import { Button } from "@suwa/ui/components/button";
@@ -415,7 +415,7 @@ export function FaceCaptureDialog({ open, onOpenChange, onFaceCaptured }: FaceCa
               : status === "saving"
                 ? "Processing your face data..."
                 : status === "capturing"
-                  ? "Recording face clip — hold still"
+                  ? "Recording face clip - hold still"
                   : "Look directly at the camera with good lighting."}
           </DialogDescription>
         </DialogHeader>
@@ -567,3 +567,4 @@ export function FaceCaptureDialog({ open, onOpenChange, onFaceCaptured }: FaceCa
     </Dialog>
   );
 }
+

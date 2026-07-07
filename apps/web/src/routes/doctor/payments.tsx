@@ -4,13 +4,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardAction,
 } from "@suwa/ui/components/card";
 import { Button } from "@suwa/ui/components/button";
 import { Input } from "@suwa/ui/components/input";
 import { Label } from "@suwa/ui/components/label";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Banknote, Building, Loader2, CreditCard, ArrowUpRight, History, CheckCircle2, XCircle } from "lucide-react";
+import { Banknote, Building, Loader2, CreditCard, ArrowUpRight, History, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -44,6 +43,8 @@ function DoctorPaymentsPage() {
   const [payoutAmount, setPayoutAmount] = useState("");
 
   useEffect(() => {
+    // Sync Stripe account status if returning from onboarding
+    client.syncConnectAccountStatus().catch(() => {});
     fetchStatus();
   }, []);
 
@@ -82,6 +83,15 @@ function DoctorPaymentsPage() {
       toast.error(err instanceof Error ? err.message : "Failed to connect Stripe");
     } finally {
       setConnecting(false);
+    }
+  }
+
+  async function handleOpenDashboard() {
+    try {
+      const result = await client.getStripeDashboardLink();
+      window.open(result.url, "_blank");
+    } catch (err) {
+      toast.error("Failed to open Stripe dashboard");
     }
   }
 
@@ -167,7 +177,7 @@ function DoctorPaymentsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {status?.stripeConnected ? (
+              {status?.connected ? (
                 <form onSubmit={handleRequestPayout} className="flex items-end gap-4">
                   <div className="grid gap-2 flex-1">
                     <Label htmlFor="amount">Amount (USD)</Label>
@@ -209,17 +219,78 @@ function DoctorPaymentsPage() {
           </CardHeader>
           <CardContent>
             {status?.connected ? (
-              <div className="rounded-lg border p-4 bg-emerald-500/5 border-emerald-500/20">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="font-medium text-emerald-600 dark:text-emerald-500">
-                      Connected
-                    </span>
-                    <span className="text-sm text-muted-foreground mt-0.5">
-                      {status?.enabled ? "Ready to receive payouts" : "Account setup incomplete"}
-                    </span>
+              <div className="flex flex-col gap-4">
+                <div className="rounded-lg border p-4 bg-emerald-500/5 border-emerald-500/20">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="font-medium text-emerald-600 dark:text-emerald-500">
+                        {status?.enabled ? "Connected" : "Account created"}
+                      </span>
+                      <span className="text-sm text-muted-foreground mt-0.5">
+                        {status?.enabled
+                          ? "Ready to receive payouts"
+                          : "Complete onboarding on Stripe to enable payouts"}
+                      </span>
+                    </div>
                   </div>
+                </div>
+
+                {status?.stripeAccountId && (
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Account ID</span>
+                      <span className="font-mono text-xs">{status.stripeAccountId.slice(0, 8)}...{status.stripeAccountId.slice(-4)}</span>
+                    </div>
+                    {status?.accountCountry && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Country</span>
+                        <span>{status.accountCountry}</span>
+                      </div>
+                    )}
+                    {status?.accountCreatedAt && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Connected since</span>
+                        <span>{formatDate(status.accountCreatedAt, { dateStyle: "medium" })}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Charges</span>
+                      <span className={status?.chargesEnabled ? "text-emerald-500" : "text-muted-foreground"}>
+                        {status?.chargesEnabled ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Payouts</span>
+                      <span className={status?.payoutsEnabled ? "text-emerald-500" : "text-muted-foreground"}>
+                        {status?.payoutsEnabled ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Details submitted</span>
+                      <span className={status?.detailsSubmitted ? "text-emerald-500" : "text-amber-500"}>
+                        {status?.detailsSubmitted ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {!status?.enabled && (
+                  <div className="rounded-lg border bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-500 space-y-2">
+                    <p className="font-medium">Onboarding incomplete</p>
+                    <p>You need to complete your Stripe account setup to enable charges and payouts. Click the button below to continue where you left off.</p>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  <Button variant={status?.enabled ? "outline" : "default"} size="sm" onClick={handleConnectStripe} disabled={connecting}>
+                    {connecting ? <Loader2 className="size-4 animate-spin" /> : status?.enabled ? "Update Details" : "Complete onboarding →"}
+                  </Button>
+                  {status?.enabled && (
+                    <Button variant="outline" size="sm" onClick={handleOpenDashboard}>
+                      Stripe Dashboard
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -230,13 +301,6 @@ function DoctorPaymentsPage() {
                 <Button onClick={handleConnectStripe} disabled={connecting}>
                   {connecting && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Connect with Stripe
-                </Button>
-              </div>
-            )}
-            {status?.connected && (
-              <div className="mt-4">
-                <Button variant="outline" size="sm" onClick={handleConnectStripe} disabled={connecting}>
-                  {connecting ? <Loader2 className="size-4 animate-spin" /> : "Update Details"}
                 </Button>
               </div>
             )}

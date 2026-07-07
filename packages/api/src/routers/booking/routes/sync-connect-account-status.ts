@@ -15,6 +15,10 @@ export const syncConnectAccountStatusRoute = protectedProcedure.handler(
 
     const stripe = getStripe();
     try {
+      if (!profile.stripeAccountId.startsWith("acct_")) {
+        return { enabled: false };
+      }
+
       const account = await stripe.accounts.retrieve(profile.stripeAccountId);
       const enabled = account.details_submitted && account.charges_enabled;
 
@@ -28,8 +32,7 @@ export const syncConnectAccountStatusRoute = protectedProcedure.handler(
 
       return { enabled };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to sync Stripe Connected Account status: ${msg}`);
+      return { enabled: false };
     }
   }
 );

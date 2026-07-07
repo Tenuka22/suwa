@@ -1,4 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
+﻿import { Badge } from "@suwa/ui/components/badge";
 import { Button } from "@suwa/ui/components/button";
 import {
   Card,
@@ -371,7 +371,7 @@ function DoctorAvailabilityRoute() {
                     <CardContent className="flex flex-col gap-3">
                       {daySlots.length === 0 ? (
                         <div className="rounded-md border border-dashed px-4 py-6 text-center text-muted-foreground text-xs">
-                          No slots yet — tap "Add Slot" to set your available
+                          No slots yet - tap "Add Slot" to set your available
                           hours for {dayName}.
                         </div>
                       ) : (
@@ -527,3 +527,4 @@ function MetricCard({
     </Card>
   );
 }
+

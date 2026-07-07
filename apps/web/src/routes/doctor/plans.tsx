@@ -1,4 +1,4 @@
-import { Badge } from "@suwa/ui/components/badge";
+﻿import { Badge } from "@suwa/ui/components/badge";
 import { Button } from "@suwa/ui/components/button";
 import {
   Card,
@@ -535,7 +535,7 @@ function DoctorPlansRoute() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-sm">
-              Keep your pricing simple and consistent — one clear default,
+              Keep your pricing simple and consistent - one clear default,
               and a small spread between your cheapest and most premium
               session.
             </p>
@@ -624,3 +624,4 @@ function DoctorPlansRoute() {
     </div>
   );
 }
+

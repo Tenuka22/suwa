@@ -1,4 +1,4 @@
-export interface QualificationSpec {
+﻿export interface QualificationSpec {
   abbreviation: string;
   degree: string;
   field: string;
@@ -181,7 +181,7 @@ export function buildEducationString(
   spec: QualificationSpec,
   year: number
 ): string {
-  return `${spec.abbreviation} in ${spec.field} — ${spec.institution} (${year})`;
+  return `${spec.abbreviation} in ${spec.field} - ${spec.institution} (${year})`;
 }
 
 export function buildFullEducation(
@@ -196,3 +196,4 @@ export function buildFullEducation(
   }
   return result;
 }
+

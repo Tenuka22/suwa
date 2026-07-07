@@ -118,3 +118,8 @@ export function createConnectTransfer(params: {
     metadata: params.metadata,
   });
 }
+
+export function createLoginLink(accountId: string): Promise<Stripe.LoginLink> {
+  const stripe = getStripe();
+  return stripe.accounts.createLoginLink(accountId);
+}

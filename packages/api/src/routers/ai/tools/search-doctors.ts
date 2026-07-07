@@ -1,4 +1,4 @@
-import { tool } from "@langchain/core/tools";
+﻿import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import type { ClerkRequestContext } from "../../../context";
 import { searchSimilarDoctors } from "../../chat/helpers/embeddings";
@@ -156,7 +156,7 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
       const { doctorProfiles } = (await import("@suwa/db")) as any;
       const { inArray, or, like } = (await import("drizzle-orm")) as any;
 
-      // Try semantic search first — if it fails (AI down, KV down), fall through to LIKE
+      // Try semantic search first - if it fails (AI down, KV down), fall through to LIKE
       try {
         const doctorIds = await searchSimilarDoctors(query, context, 10);
         if (doctorIds.length > 0) {
@@ -181,7 +181,7 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
           }
         }
       } catch {
-        // Embedding search failed — fall through to LIKE query
+        // Embedding search failed - fall through to LIKE query
       }
 
       // Try full query as-is first
@@ -256,3 +256,4 @@ export function createSearchDoctorsTool(context: ClerkRequestContext) {
     }
   );
 }
+

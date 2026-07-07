@@ -19,6 +19,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as DoctorVerificationRouteImport } from './routes/doctor/verification'
 import { Route as DoctorProfileRouteImport } from './routes/doctor/profile'
 import { Route as DoctorPlansRouteImport } from './routes/doctor/plans'
+import { Route as DoctorPaymentsRouteImport } from './routes/doctor/payments'
 import { Route as DoctorHubRouteImport } from './routes/doctor/hub'
 import { Route as DoctorAvailabilityRouteImport } from './routes/doctor/availability'
 import { Route as DoctorHubMaterialIdRouteImport } from './routes/doctor/hub/$materialId'
@@ -76,6 +77,11 @@ const DoctorPlansRoute = DoctorPlansRouteImport.update({
   path: '/plans',
   getParentRoute: () => DoctorRoute,
 } as any)
+const DoctorPaymentsRoute = DoctorPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => DoctorRoute,
+} as any)
 const DoctorHubRoute = DoctorHubRouteImport.update({
   id: '/hub',
   path: '/hub',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
+  '/doctor/payments': typeof DoctorPaymentsRoute
   '/doctor/plans': typeof DoctorPlansRoute
   '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
+  '/doctor/payments': typeof DoctorPaymentsRoute
   '/doctor/plans': typeof DoctorPlansRoute
   '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/doctor/availability': typeof DoctorAvailabilityRoute
   '/doctor/hub': typeof DoctorHubRouteWithChildren
+  '/doctor/payments': typeof DoctorPaymentsRoute
   '/doctor/plans': typeof DoctorPlansRoute
   '/doctor/profile': typeof DoctorProfileRoute
   '/doctor/verification': typeof DoctorVerificationRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/doctor/availability'
     | '/doctor/hub'
+    | '/doctor/payments'
     | '/doctor/plans'
     | '/doctor/profile'
     | '/doctor/verification'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/doctor/availability'
     | '/doctor/hub'
+    | '/doctor/payments'
     | '/doctor/plans'
     | '/doctor/profile'
     | '/doctor/verification'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/doctor/availability'
     | '/doctor/hub'
+    | '/doctor/payments'
     | '/doctor/plans'
     | '/doctor/profile'
     | '/doctor/verification'
@@ -295,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorPlansRouteImport
       parentRoute: typeof DoctorRoute
     }
+    '/doctor/payments': {
+      id: '/doctor/payments'
+      path: '/payments'
+      fullPath: '/doctor/payments'
+      preLoaderRoute: typeof DoctorPaymentsRouteImport
+      parentRoute: typeof DoctorRoute
+    }
     '/doctor/hub': {
       id: '/doctor/hub'
       path: '/hub'
@@ -380,6 +399,7 @@ const DoctorHubRouteWithChildren = DoctorHubRoute._addFileChildren(
 interface DoctorRouteChildren {
   DoctorAvailabilityRoute: typeof DoctorAvailabilityRoute
   DoctorHubRoute: typeof DoctorHubRouteWithChildren
+  DoctorPaymentsRoute: typeof DoctorPaymentsRoute
   DoctorPlansRoute: typeof DoctorPlansRoute
   DoctorProfileRoute: typeof DoctorProfileRoute
   DoctorVerificationRoute: typeof DoctorVerificationRoute
@@ -389,6 +409,7 @@ interface DoctorRouteChildren {
 const DoctorRouteChildren: DoctorRouteChildren = {
   DoctorAvailabilityRoute: DoctorAvailabilityRoute,
   DoctorHubRoute: DoctorHubRouteWithChildren,
+  DoctorPaymentsRoute: DoctorPaymentsRoute,
   DoctorPlansRoute: DoctorPlansRoute,
   DoctorProfileRoute: DoctorProfileRoute,
   DoctorVerificationRoute: DoctorVerificationRoute,
