@@ -6,15 +6,18 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
 import {
   ArrowLeft,
+  Maximize,
   MessageCircle,
   Pause,
   Play,
   Send,
   ThumbsDown,
   ThumbsUp,
+  Volume2,
+  VolumeX,
 } from "lucide-react-native";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Platform, Pressable, Text, View } from "react-native";
 import { Input } from "@/components/design/ui/input";
 import { Screen } from "@/components/design/ui/screen";
 import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
@@ -27,10 +30,31 @@ export default function MaterialDetailScreen() {
   const { materialId } = useLocalSearchParams<{ materialId?: string }>();
   const id = Array.isArray(materialId) ? materialId[0] : materialId;
 
+  const isWeb = Platform.OS === "web";
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [commentText, setCommentText] = useState("");
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const userId = "patient-demo";
+
+  useEffect(() => {
+    if (!isWeb) return;
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, [isWeb]);
+
+  useEffect(() => {
+    if (isWeb && videoRef.current) {
+      if (paused) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      videoRef.current.muted = muted;
+    }
+  }, [isWeb, paused, muted]);
 
   const materialsQuery = useQuery(
     orpc.listPublicMaterials.queryOptions({
@@ -81,16 +105,48 @@ export default function MaterialDetailScreen() {
     })
   );
 
+  const commentsQueryKey = orpc.listMaterialComments.queryKey({
+    input: { materialId: id ?? "" },
+  });
   const addCommentMutation = useMutation(
     orpc.addMaterialComment.mutationOptions({
+      onMutate: async (newComment) => {
+        await queryClient.cancelQueries({ queryKey: commentsQueryKey });
+        const previous = queryClient.getQueryData(commentsQueryKey);
+        queryClient.setQueryData(commentsQueryKey, (old: any) => [
+          ...(old ?? []),
+          {
+            id: crypto.randomUUID(),
+            userId: newComment.userId,
+            text: newComment.text,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+        return { previous };
+      },
+      onError: (_err, _vars, context) => {
+        if (context?.previous !== undefined) {
+          queryClient.setQueryData(commentsQueryKey, context.previous);
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: commentsQueryKey });
+      },
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["listMaterialComments"],
-        });
         setCommentText("");
       },
     })
   );
+
+  const handleFullscreen = () => {
+    if (isWeb && videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
 
   const isLiked = likeQuery.data?.liked ?? false;
 
@@ -109,22 +165,37 @@ export default function MaterialDetailScreen() {
       <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:materials:detail") }} />
 
       <Screen
-        contentClassName="flex-1 gap-lg pt-12 px-lg bg-background"
+        contentClassName="flex-1 gap-lg bg-background"
         scrollClassName="flex-1 bg-background"
       >
         {/* Video Player */}
-        <View className="min-h-64 overflow-hidden rounded-2xl bg-black">
+        <View className="bg-black" style={{ aspectRatio: 4 / 3 }}>
           {videoUri ? (
-            <Video
-              className="aspect-video w-full"
-              isMuted={muted}
-              resizeMode={ResizeMode.CONTAIN}
-              shouldPlay={!paused}
-              source={{ uri: videoUri }}
-              useNativeControls={false}
-            />
+            isWeb ? (
+              <video
+                ref={videoRef}
+                src={videoUri}
+                className="h-full w-full"
+                muted={muted}
+                autoPlay
+                playsInline
+                controls={isFullscreen}
+                onPlay={() => setPaused(false)}
+                onPause={() => setPaused(true)}
+                style={{ display: "block", objectFit: "contain" }}
+              />
+            ) : (
+              <Video
+                className="h-full w-full"
+                isMuted
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay
+                source={{ uri: videoUri }}
+                useNativeControls
+              />
+            )
           ) : (
-            <View className="aspect-video items-center justify-center bg-background-subtle">
+            <View className="items-center justify-center bg-background-subtle" style={{ aspectRatio: 4 / 3 }}>
               <Text className="font-serif text-foreground-muted text-title">
                 No media available
               </Text>
@@ -133,6 +204,7 @@ export default function MaterialDetailScreen() {
         </View>
 
         {/* Title & Doctor */}
+        <View className="px-lg gap-lg">
         <View className="gap-xxs">
           <Text className="font-serif text-primary text-title">
             {material.title}
@@ -205,6 +277,7 @@ export default function MaterialDetailScreen() {
             <Send className="text-primary-foreground" size={18} />
           </Pressable>
         </View>
+        </View>
       </Screen>
 
       <ScreenBottomBar
@@ -218,6 +291,22 @@ export default function MaterialDetailScreen() {
             ),
             label: paused ? "Play" : "Pause",
             onPress: () => setPaused(!paused),
+          },
+          {
+            className: "rounded-full bg-background-subtle/60",
+            icon: muted ? (
+              <VolumeX className="text-foreground" size={20} />
+            ) : (
+              <Volume2 className="text-foreground" size={20} />
+            ),
+            label: muted ? "Unmute" : "Mute",
+            onPress: () => setMuted(!muted),
+          },
+          {
+            className: "rounded-full bg-background-subtle/60",
+            icon: <Maximize className="text-foreground" size={20} />,
+            label: "Fullscreen",
+            onPress: handleFullscreen,
           },
           {
             active: isLiked,

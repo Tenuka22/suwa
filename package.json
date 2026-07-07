@@ -25,7 +25,6 @@
       "@orpc/tanstack-query": "^1.14.6",
       "@orpc/client": "^1.14.6",
       "@tanstack/react-form": "^1.28.0",
-      "@polar-sh/better-auth": "^1.8.4",
       "@types/react-dom": "^19.2.3",
       "@better-auth/expo": "1.6.22"
     }

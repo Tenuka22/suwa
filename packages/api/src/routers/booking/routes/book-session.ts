@@ -3,6 +3,7 @@ import { and, eq, gt, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+import { calculateCheckoutAmount } from "../revenue-split";
 import { createCheckoutSession } from "../polar-utils";
 
 export const bookSessionRoute = protectedProcedure
@@ -81,8 +82,9 @@ export const bookSessionRoute = protectedProcedure
     const sessionId = crypto.randomUUID();
 
     const amountCents = plan.priceCents;
+    const checkoutAmount = calculateCheckoutAmount(amountCents);
     const checkout = await createCheckoutSession({
-      amount: amountCents,
+      amount: checkoutAmount,
       customerExternalId: patientId,
       metadata: {
         type: "booking",

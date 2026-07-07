@@ -1,12 +1,17 @@
-export const DOCTOR_REVENUE_SHARE = 0.8;
+export const PLATFORM_FEE_PERCENT = 20;
+
+export const PLATFORM_FEE_MULTIPLIER = 1 + PLATFORM_FEE_PERCENT / 100;
+
+export function calculateCheckoutAmount(priceCents: number): number {
+  return Math.round(priceCents * PLATFORM_FEE_MULTIPLIER);
+}
 
 export function splitSessionRevenue(amountCents: number): {
   doctorEarnedCents: number;
   platformFeeCents: number;
 } {
-  const doctorEarnedCents = Math.round(amountCents * DOCTOR_REVENUE_SHARE);
   return {
-    doctorEarnedCents,
-    platformFeeCents: amountCents - doctorEarnedCents,
+    doctorEarnedCents: amountCents,
+    platformFeeCents: Math.round(amountCents * PLATFORM_FEE_PERCENT / 100),
   };
 }

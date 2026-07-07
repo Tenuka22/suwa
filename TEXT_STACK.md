@@ -91,7 +91,6 @@
 |---|---|
 | **Polar.sh** (SDK) | `packages/api` — checkout, refunds |
 | **@polar-sh/hono** | `apps/server` — webhook verification |
-| **@polar-sh/better-auth** | `packages/auth`, `apps/web`, `apps/native` — auth plugin |
 
 ## 9. Video & Real-Time Communication
 | Technology | Where |

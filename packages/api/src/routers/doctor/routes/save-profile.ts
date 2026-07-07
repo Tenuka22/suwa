@@ -75,9 +75,6 @@ export const saveDoctorProfileRoute = protectedProcedure
       education: input.education ?? existingProfile?.education ?? null,
       permanent: existingProfile?.permanent ?? false,
       faceEmbeddingKvKey: existingProfile?.faceEmbeddingKvKey ?? null,
-      polarPayoutAccountId: existingProfile?.polarPayoutAccountId ?? null,
-      polarPayoutAccountEnabled:
-        existingProfile?.polarPayoutAccountEnabled ?? false,
       createdAt: existingProfile?.createdAt ?? timestamp,
       updatedAt: timestamp,
     };

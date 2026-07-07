@@ -319,10 +319,11 @@ app.use("/*", async (c, next) => {
 
 async function serveMedia(c: any) {
   const { FILE_STORAGE_BUCKET } = c.env as Pick<WorkerEnv, "FILE_STORAGE_BUCKET">;
-  const key = c.req.param("key");
-  if (!key) {
+  const rawKey = c.req.param("key");
+  if (!rawKey) {
     return c.text("Media key is required", 400);
   }
+  const key = decodeURIComponent(rawKey);
 
   const range = c.req.raw.headers.get("Range");
   const head = await FILE_STORAGE_BUCKET.head(key);
@@ -331,7 +332,20 @@ async function serveMedia(c: any) {
     return c.text("Media not found", 404);
   }
 
-  const contentType = head.httpMetadata?.contentType ?? "application/octet-stream";
+  const storedType = head.httpMetadata?.contentType;
+  const ext = key.split('.').pop()?.toLowerCase();
+  const extensionMap: Record<string, string> = {
+    mp4: "video/mp4", webm: "video/webm", ogg: "video/ogg",
+    mov: "video/quicktime", avi: "video/x-msvideo",
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+    gif: "image/gif", webp: "image/webp",
+    mp3: "audio/mpeg", wav: "audio/wav",
+  };
+  const detectedType = ext ? extensionMap[ext] : null;
+  const contentType = storedType && storedType !== "application/octet-stream"
+    ? storedType
+    : detectedType ?? "application/octet-stream";
+
   const headers = new Headers({
     "Accept-Ranges": "bytes",
     "Content-Type": contentType,
@@ -363,7 +377,8 @@ async function serveMedia(c: any) {
       });
     }
 
-    const boundedEnd = Math.min(end, head.size - 1);
+    const MAX_CHUNK = 5 * 1024 * 1024;
+    const boundedEnd = Math.min(end, start + MAX_CHUNK - 1, head.size - 1);
     const length = boundedEnd - start + 1;
     const object = await FILE_STORAGE_BUCKET.get(key, {
       range: { offset: start, length },
@@ -395,8 +410,8 @@ async function serveMedia(c: any) {
   });
 }
 
-app.get("/media/:key", serveMedia);
-app.get("/images/:key", serveMedia);
+app.get("/media/:key{.+}", serveMedia);
+app.get("/images/:key{.+}", serveMedia);
 
 app.get("/", (c) => c.text("OK"));
 

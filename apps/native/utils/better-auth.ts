@@ -1,5 +1,4 @@
 import { expoClient } from "@better-auth/expo/client";
-import { polarClient } from "@polar-sh/better-auth/client";
 import { env } from "@suwa/env/native";
 import { createAuthClient } from "better-auth/react";
 import Constants from "expo-constants";
@@ -13,31 +12,5 @@ export const authClient = createAuthClient({
       storagePrefix: Constants.expoConfig?.scheme as string,
       storage: SecureStore,
     }),
-    polarClient(),
   ],
 });
-
-type PolarLinkResponse = {
-  url: string;
-  redirect: boolean;
-};
-
-type PolarClientResponse<T> = Promise<{
-  data: T | null;
-  error: { message?: string } | null;
-}>;
-
-type PolarNativeClient = typeof authClient & {
-  checkout: (data: {
-    slug?: string;
-    products?: string[] | string;
-    redirect?: boolean;
-    successUrl?: string;
-    returnUrl?: string;
-  }) => PolarClientResponse<PolarLinkResponse>;
-  customer: {
-    portal: (data?: { redirect?: boolean }) => PolarClientResponse<PolarLinkResponse>;
-  };
-};
-
-export const polarNativeClient = authClient as PolarNativeClient;

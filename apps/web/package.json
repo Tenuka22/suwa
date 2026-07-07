@@ -14,7 +14,6 @@
     "@orpc/client": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/tanstack-query": "catalog:",
-    "@polar-sh/better-auth": "catalog:",
     "@suwa/api": "workspace:*",
     "@suwa/env": "workspace:*",
     "@suwa/ui": "workspace:*",
