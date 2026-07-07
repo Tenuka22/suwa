@@ -1021,7 +1021,7 @@ export default function MapScreen() {
 
       {/* Hospital List Panel */}
       {listOpen && searchMode === "hospitals" && (
-        <View className="absolute top-32 right-lg left-lg h-auto max-h-[65%] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
+        <View className="absolute top-36 right-lg left-lg h-auto max-h-[65%] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
           <View className="flex-row items-center justify-between border-border border-b px-4 py-3">
             <Pressable
               className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
