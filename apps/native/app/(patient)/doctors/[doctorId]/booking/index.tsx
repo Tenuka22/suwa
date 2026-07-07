@@ -1,9 +1,8 @@
 "use client";
 
-import { getScreenTitle } from "@suwa/app-info";
+import { APP_DISPLAY_NAME_SPACE, getScreenTitle } from "@suwa/app-info";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import {
   ArrowLeft,
   Calendar,
@@ -27,7 +26,7 @@ import { Reveal } from "@/components/design/ui/reveal";
 import { Skeleton } from "@/components/design/ui/skeleton";
 import { useDoctorMaterialPreviewUrl } from "@/utils/doctor-materials";
 import { orpc } from "@/utils/orpc";
-import { env } from "@suwa/env/native";
+import { usePaymentSheet } from "@/utils/stripe";
 import { useErrorHandler } from "@/utils/use-error-handler";
 
 function formatDate(date: Date): string {
@@ -381,21 +380,36 @@ export default function BookingScreen() {
     return slotStart.getTime() > Date.now();
   });
 
+  const paymentSheet = usePaymentSheet();
+  const cancelSessionMutation = useMutation(
+    orpc.cancelSession.mutationOptions()
+  );
+
   const bookMutation = useMutation(
     orpc.bookSession.mutationOptions({
       onSuccess: async (result) => {
-        const checkoutUrl = result.checkoutUrl;
-        if (!checkoutUrl) {
-          throw new Error("No checkout URL returned");
+        const clientSecret = result.clientSecret;
+        if (!clientSecret) {
+          throw new Error("No payment client secret returned");
         }
 
-        const authResult = await WebBrowser.openAuthSessionAsync(
-          checkoutUrl,
-          env.EXPO_PUBLIC_CALLBACK_URL
-        );
-        if (authResult.type !== "success") {
-          setBookingStep("select");
-          return;
+        const initResult = await paymentSheet.initPaymentSheet({
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: APP_DISPLAY_NAME_SPACE,
+        });
+        if (initResult.error) {
+          cancelSessionMutation.mutate({ sessionId: result.sessionId });
+          throw new Error(
+            initResult.error.message ?? "Unable to open payment sheet"
+          );
+        }
+
+        const presentResult = await paymentSheet.presentPaymentSheet();
+        if (presentResult.error) {
+          cancelSessionMutation.mutate({ sessionId: result.sessionId });
+          throw new Error(
+            presentResult.error.message ?? "Payment authorization failed"
+          );
         }
 
         setBookingStep("done");
@@ -418,7 +432,6 @@ export default function BookingScreen() {
       planId: selectedPlanId,
       startAt: selectedSlot.startAt,
       endAt: selectedSlot.endAt,
-      returnUrl: env.EXPO_PUBLIC_CALLBACK_URL,
     });
   }, [bookMutation, selectedSlot, selectedPlanId, id]);
 

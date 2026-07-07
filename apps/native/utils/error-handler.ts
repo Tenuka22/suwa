@@ -123,7 +123,7 @@ export function parseError(error: unknown): ParsedError {
 
   if (
     message?.toLowerCase().includes("payment") ||
-    message?.toLowerCase().includes("polar")
+    message?.toLowerCase().includes("stripe")
   ) {
     return {
       title: "Payment failed",

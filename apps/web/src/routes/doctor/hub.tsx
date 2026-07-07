@@ -236,19 +236,16 @@ function DoctorHubPage() {
             </div>
           </div>
 
-            <div className="flex items-center gap-2 pb-2">
-              <Button asChild variant="outline">
-                <Link to="/doctor/payments">Payments</Link>
-              </Button>
-              <Button onClick={() => setCreateChannelOpen(true)} variant="outline">
-                <PlusIcon className="size-4" />
-                Channel
-              </Button>
-              <Button onClick={() => setUploadOpen(true)}>
-                <UploadIcon className="size-4" />
-                Upload
-              </Button>
-            </div>
+          <div className="flex items-center gap-2 pb-2">
+            <Button onClick={() => setCreateChannelOpen(true)} variant="outline">
+              <PlusIcon className="size-4" />
+              Channel
+            </Button>
+            <Button onClick={() => setUploadOpen(true)}>
+              <UploadIcon className="size-4" />
+              Upload
+            </Button>
+          </div>
         </div>
       </div>
 

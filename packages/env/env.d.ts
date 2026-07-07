@@ -15,10 +15,9 @@ interface FallbackEnv {
   LIVEKIT_API_SECRET: string;
   LIVEKIT_HOST: string;
   MODEL_FEATURES_KV: KVNamespace;
-  POLAR_ACCESS_TOKEN: string;
-  POLAR_SERVER: string;
-  POLAR_WEBHOOK_SECRET: string;
   STRESS_PREDICTOR_URL: string;
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
   SVIX_API_TOKEN: string;
   SVIX_APP_ID: string;
 }

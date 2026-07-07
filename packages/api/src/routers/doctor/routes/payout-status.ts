@@ -16,7 +16,7 @@ export const payoutStatusRoute = protectedProcedure
       .limit(1);
 
     const [profile] = await context.db
-      .select({ payoutInfo: doctorProfiles.payoutInfo })
+      .select({ stripeAccountId: doctorProfiles.stripeAccountId })
       .from(doctorProfiles)
       .where(eq(doctorProfiles.userId, userId))
       .limit(1);
@@ -32,8 +32,7 @@ export const payoutStatusRoute = protectedProcedure
       balanceCents: credits?.balanceCents ?? 0,
       totalEarnedCents: credits?.totalEarnedCents ?? 0,
       totalCashedOutCents: credits?.totalCashedOutCents ?? 0,
-      hasPayoutInfo: !!profile?.payoutInfo,
-      payoutInfo: profile?.payoutInfo ?? null,
+      stripeConnected: !!profile?.stripeAccountId,
       cashoutRequests,
     };
   });

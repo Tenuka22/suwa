@@ -14,7 +14,7 @@ export const getLiveKitTokenRoute = protectedProcedure
   )
   .handler(async ({ context, input }) => {
     const { userId, auth } = requireAuth(context);
-    const role = auth.user?.role ?? "user";
+    const role = auth.sessionClaims?.metadata?.role ?? "user";
 
     const [session] = await context.db
       .select()

@@ -3,13 +3,13 @@ import { cancelSessionSchema } from "@suwa/db/schemas-types";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
-import { refundOrder } from "../polar-utils";
+import { cancelPaymentIntent } from "../stripe-utils";
 
 export const cancelSessionRoute = protectedProcedure
   .input(cancelSessionSchema)
   .handler(async ({ context, input }) => {
     const { userId, auth } = requireAuth(context);
-    const role = auth.user?.role;
+    const role = auth.sessionClaims?.metadata?.role;
 
     const [session] = await context.db
       .select()
@@ -50,8 +50,9 @@ export const cancelSessionRoute = protectedProcedure
       );
     }
 
-    if (session.polarOrderId && session.amountCents) {
-      await refundOrder(session.polarOrderId, session.amountCents);
+    // Cancel the held payment to release the hold on the patient's card
+    if (session.paymentIntentId && session.paymentIntentId.startsWith("pi_")) {
+      await cancelPaymentIntent(session.paymentIntentId);
     }
 
     await context.db

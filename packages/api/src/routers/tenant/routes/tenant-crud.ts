@@ -169,7 +169,7 @@ export const listTenantsRoute = protectedProcedure
   )
   .handler(async ({ context }) => {
     const { userId } = requireAuth(context);
-    const role = context.auth.user?.role;
+    const role = context.auth?.sessionClaims?.metadata?.role;
 
     if (role === "admin") {
       // Admin sees all tenants

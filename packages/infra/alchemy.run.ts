@@ -115,9 +115,8 @@ export const server = await Worker("server", {
     STRESS_PREDICTOR_URL: alchemy.env.STRESS_PREDICTOR_URL!,
     GEMINI_API_KEY: alchemy.env.GEMINI_API_KEY!,
     STRESS_PREDICTOR_SECRET: alchemy.secret.env.STRESS_PREDICTOR_SECRET!,
-    POLAR_ACCESS_TOKEN: alchemy.secret.env.POLAR_ACCESS_TOKEN!,
-    POLAR_WEBHOOK_SECRET: alchemy.secret.env.POLAR_WEBHOOK_SECRET!,
-    POLAR_SERVER: alchemy.env.POLAR_SERVER ?? "production",
+    STRIPE_SECRET_KEY: alchemy.secret.env.STRIPE_SECRET_KEY!,
+    STRIPE_WEBHOOK_SECRET: alchemy.secret.env.STRIPE_WEBHOOK_SECRET!,
     LIVEKIT_HOST: alchemy.env.LIVEKIT_HOST!,
     LIVEKIT_API_KEY: alchemy.secret.env.LIVEKIT_API_KEY!,
     GOOGLE_CLIENT_ID: alchemy.env.GOOGLE_CLIENT_ID!,
@@ -138,6 +137,7 @@ export const web = await TanStackStart("web", {
   bindings: {
     VITE_SERVER_URL: server.url!,
     VITE_WEB_URL: alchemy.env.VITE_WEB_URL!,
+    VITE_STRIPE_PUBLISHABLE_KEY: alchemy.env.VITE_STRIPE_PUBLISHABLE_KEY!,
   },
   observability: {
     enabled: true,

@@ -7,7 +7,6 @@ import { saveDoctorProfileRoute } from "./routes/save-profile";
 import { doctorStatsRoute } from "./routes/stats";
 import { payoutStatusRoute } from "./routes/payout-status";
 import { requestPayoutRoute } from "./routes/request-payout";
-import { savePayoutInfoRoute } from "./routes/save-payout-info";
 
 export const doctorRouter = {
   doctorProfile: doctorProfileRoute,
@@ -19,5 +18,4 @@ export const doctorRouter = {
   myFaceEmbedding: myFaceEmbeddingRoute,
   payoutStatus: payoutStatusRoute,
   requestPayout: requestPayoutRoute,
-  savePayoutInfo: savePayoutInfoRoute,
 };

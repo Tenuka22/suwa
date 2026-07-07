@@ -344,7 +344,7 @@ export const updateAffiliationWindowsRoute = protectedProcedure
     }
 
     // Only the doctor or a tenant admin can update
-    const role = context.auth.user?.role;
+    const role = context.auth?.sessionClaims?.metadata?.role;
     if (affiliation.doctorId !== userId && role !== "admin") {
       await requireTenantAdmin(context, affiliation.tenantId);
     }

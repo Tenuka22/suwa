@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireDoctor } from "../../../hooks";
 import { protectedProcedure } from "../../../index";
+import { createConnectTransfer } from "../../booking/stripe-utils";
 
 export const requestPayoutRoute = protectedProcedure
   .input(z.object({ amountCents: z.number().int().positive() }))
@@ -11,14 +12,14 @@ export const requestPayoutRoute = protectedProcedure
     const { userId } = await requireDoctor(context);
 
     const [profile] = await context.db
-      .select({ payoutInfo: doctorProfiles.payoutInfo })
+      .select({ stripeAccountId: doctorProfiles.stripeAccountId })
       .from(doctorProfiles)
       .where(eq(doctorProfiles.userId, userId))
       .limit(1);
 
-    if (!profile?.payoutInfo) {
+    if (!profile?.stripeAccountId) {
       throw new ORPCError("PRECONDITION_FAILED", {
-        message: "Connect a bank account first to request payouts.",
+        message: "Connect your Stripe account first to request payouts.",
       });
     }
 
@@ -58,19 +59,42 @@ export const requestPayoutRoute = protectedProcedure
       updatedAt: new Date().toISOString(),
     });
 
-    // Payout is now manual via admin
-    await context.db
-      .update(doctorCredits)
-      .set({
-        balanceCents: balance - input.amountCents,
-        totalCashedOutCents: (credits?.totalCashedOutCents ?? 0) + input.amountCents,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(doctorCredits.doctorId, userId));
+    try {
+      const transfer = await createConnectTransfer({
+        amount: input.amountCents,
+        destination: profile.stripeAccountId,
+        transferGroup: cashoutId,
+        metadata: { cashoutRequestId: cashoutId, doctorId: userId },
+      });
 
-    return {
-      success: true,
-      cashoutId,
-      amountCents: input.amountCents,
-    };
+      await context.db
+        .update(doctorCashoutRequests)
+        .set({
+          status: "completed",
+          polarTransferId: transfer.id,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(doctorCashoutRequests.id, cashoutId));
+
+      await context.db
+        .update(doctorCredits)
+        .set({
+          balanceCents: balance - input.amountCents,
+          totalCashedOutCents: (credits?.totalCashedOutCents ?? 0) + input.amountCents,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(doctorCredits.doctorId, userId));
+
+      return { success: true, cashoutId, transferId: transfer.id, amountCents: input.amountCents };
+    } catch (err) {
+      const failureReason = err instanceof Error ? err.message : "Unknown error";
+      await context.db
+        .update(doctorCashoutRequests)
+        .set({ status: "failed", failureReason, updatedAt: new Date().toISOString() })
+        .where(eq(doctorCashoutRequests.id, cashoutId));
+
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: `Payout failed: ${failureReason}`,
+      });
+    }
   });

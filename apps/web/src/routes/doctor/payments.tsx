@@ -4,13 +4,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardAction,
 } from "@suwa/ui/components/card";
 import { Button } from "@suwa/ui/components/button";
 import { Input } from "@suwa/ui/components/input";
 import { Label } from "@suwa/ui/components/label";
-import { Textarea } from "@suwa/ui/components/textarea";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Banknote, Building, Loader2, CreditCard, ArrowUpRight, History } from "lucide-react";
+import { Banknote, Building, Loader2, CreditCard, ArrowUpRight, History, CheckCircle2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -39,10 +39,9 @@ function formatCurrency(cents: number) {
 function DoctorPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<any>(null);
-  const [savingInfo, setSavingInfo] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState("");
-  const [payoutInfoText, setPayoutInfoText] = useState("");
 
   useEffect(() => {
     fetchStatus();
@@ -50,11 +49,11 @@ function DoctorPaymentsPage() {
 
   async function fetchStatus() {
     try {
-      const data = await client.payoutStatus();
-      setStatus(data);
-      if (data.payoutInfo) {
-        setPayoutInfoText(data.payoutInfo);
-      }
+      const [payoutData, stripeStatus] = await Promise.all([
+        client.payoutStatus(),
+        client.getConnectAccountStatus().catch(() => ({ connected: false, enabled: false })),
+      ]);
+      setStatus({ ...payoutData, ...stripeStatus });
     } catch (err) {
       toast.error("Failed to load payment status");
     } finally {
@@ -62,21 +61,27 @@ function DoctorPaymentsPage() {
     }
   }
 
-  async function handleSavePayoutInfo(e: React.FormEvent) {
-    e.preventDefault();
-    if (!payoutInfoText.trim()) {
-      toast.error("Please enter your payout details");
-      return;
-    }
-    setSavingInfo(true);
+  async function handleConnectStripe() {
+    setConnecting(true);
     try {
-      await client.savePayoutInfo({ payoutInfo: payoutInfoText });
-      toast.success("Payout details saved successfully");
-      await fetchStatus();
+      const result = await client.createConnectAccountLink({
+        returnUrl: window.location.href,
+        refreshUrl: window.location.href,
+      });
+
+      if (result.connected) {
+        toast.success("Your Stripe account is already connected");
+        await fetchStatus();
+        return;
+      }
+
+      if (result.url) {
+        window.location.href = result.url;
+      }
     } catch (err) {
-      toast.error("Failed to save payout details");
+      toast.error(err instanceof Error ? err.message : "Failed to connect Stripe");
     } finally {
-      setSavingInfo(false);
+      setConnecting(false);
     }
   }
 
@@ -97,7 +102,7 @@ function DoctorPaymentsPage() {
     setRequesting(true);
     try {
       await client.requestPayout({ amountCents: cents });
-      toast.success("Payout requested successfully");
+      toast.success("Payout requested and transfer initiated");
       setPayoutAmount("");
       await fetchStatus();
     } catch (err) {
@@ -123,7 +128,7 @@ function DoctorPaymentsPage() {
           <h1 className="font-semibold text-2xl tracking-tight">Payments & Payouts</h1>
         </div>
         <p className="max-w-2xl text-muted-foreground">
-          Manage your earnings, update your payout details, and request withdrawals.
+          Manage your earnings, connect your Stripe account, and request payouts.
         </p>
       </div>
 
@@ -158,11 +163,11 @@ function DoctorPaymentsPage() {
                 Request Payout
               </CardTitle>
               <CardDescription>
-                Transfer your available balance to your preferred account.
+                Transfer your available balance to your connected Stripe account.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {status?.hasPayoutInfo ? (
+              {status?.stripeConnected ? (
                 <form onSubmit={handleRequestPayout} className="flex items-end gap-4">
                   <div className="grid gap-2 flex-1">
                     <Label htmlFor="amount">Amount (USD)</Label>
@@ -185,45 +190,58 @@ function DoctorPaymentsPage() {
                 </form>
               ) : (
                 <div className="rounded-lg border bg-amber-500/10 p-4 text-sm text-amber-600 dark:text-amber-500">
-                  You must save your payout details before requesting a withdrawal.
+                  Connect your Stripe account below to request payouts.
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="size-5 text-primary" />
-                Payout Details
-              </CardTitle>
-              <CardDescription>
-                Provide your PayPal email, Wise account, or Bank details for payouts.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSavePayoutInfo} className="flex flex-col gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="payoutInfo">Payment Instructions</Label>
-                  <Textarea
-                    id="payoutInfo"
-                    className="min-h-24 resize-y"
-                    placeholder="e.g. PayPal: myemail@example.com&#10;or Bank: Account 123456, Routing 987654"
-                    value={payoutInfoText}
-                    onChange={(e) => setPayoutInfoText(e.target.value)}
-                    disabled={savingInfo}
-                  />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="size-5 text-primary" />
+              Stripe Account
+            </CardTitle>
+            <CardDescription>
+              We use Stripe Connect to securely process payouts to your bank account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {status?.connected ? (
+              <div className="rounded-lg border p-4 bg-emerald-500/5 border-emerald-500/20">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-emerald-600 dark:text-emerald-500">
+                      Connected
+                    </span>
+                    <span className="text-sm text-muted-foreground mt-0.5">
+                      {status?.enabled ? "Ready to receive payouts" : "Account setup incomplete"}
+                    </span>
+                  </div>
                 </div>
-                <Button type="submit" disabled={savingInfo || !payoutInfoText.trim() || payoutInfoText === status?.payoutInfo}>
-                  {savingInfo && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  Save Details
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <p className="text-sm">
+                  Link your Stripe account to start receiving payouts for your consultations. You will be taken to Stripe to complete the setup.
+                </p>
+                <Button onClick={handleConnectStripe} disabled={connecting}>
+                  {connecting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Connect with Stripe
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            )}
+            {status?.connected && (
+              <div className="mt-4">
+                <Button variant="outline" size="sm" onClick={handleConnectStripe} disabled={connecting}>
+                  {connecting ? <Loader2 className="size-4 animate-spin" /> : "Update Details"}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="mt-4">
@@ -271,4 +289,3 @@ function DoctorPaymentsPage() {
     </div>
   );
 }
-

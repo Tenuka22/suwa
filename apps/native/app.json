@@ -40,6 +40,7 @@
           }
         }
       ],
+      ["@stripe/stripe-react-native", {}],
       "react-native-maps",
       ["expo-location", {}],
       "expo-web-browser",

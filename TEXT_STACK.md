@@ -89,8 +89,9 @@
 ## 8. Payments & Subscriptions
 | Technology | Where |
 |---|---|
-| **Polar.sh** (SDK) | `packages/api` — checkout, refunds |
-| **@polar-sh/hono** | `apps/server` — webhook verification |
+| **Stripe** (server SDK) | `packages/api`, `apps/server`, `packages/infra` |
+| **@stripe/react-stripe-js** | `apps/native` - Stripe Elements web |
+| **@stripe/stripe-react-native** | `apps/native` - Stripe RN SDK |
 
 ## 9. Video & Real-Time Communication
 | Technology | Where |

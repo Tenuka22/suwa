@@ -5,6 +5,8 @@ import { ingestModelFeaturesRoute } from "./routes/ingest-model-features";
 import { predictStressRoute } from "./routes/predict-stress";
 import { setPatientMoodRoute } from "./routes/set-patient-mood";
 import { putPrivacyDataRoute } from "./routes/put-privacy-data";
+import { createSubscriptionRoute } from "./routes/subscription/create-subscription";
+import { getUserSubscriptionRoute } from "./routes/subscription/get-user-subscription";
 import { updatePatientProfileRoute } from "./routes/update-patient-profile";
 
 export const patientRouter = {
@@ -16,4 +18,6 @@ export const patientRouter = {
   ingestModelFeatures: ingestModelFeaturesRoute,
   predictStress: predictStressRoute,
   setPatientMood: setPatientMoodRoute,
+  createSubscription: createSubscriptionRoute,
+  getUserSubscription: getUserSubscriptionRoute,
 };

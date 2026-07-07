@@ -19,7 +19,7 @@ export const getSessionPatientInfoRoute = protectedProcedure
       throw new Error("Session not found");
     }
 
-    const role = context.auth.user?.role ?? "user";
+    const role = context.auth?.sessionClaims?.metadata?.role ?? "user";
     const isPatient = session.patientId === userId;
     const isDoctor = session.doctorId === userId;
     const isAdmin = role === "admin";

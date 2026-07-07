@@ -16,7 +16,7 @@ export const doctorProfileRoute = protectedProcedure.handler(
       .from(doctorProfiles)
       .where(eq(doctorProfiles.userId, userId))
       .limit(1);
-    const role = context.auth.user?.role ?? "user";
+    const role = context.auth?.sessionClaims?.metadata?.role ?? "user";
 
     return {
       profile: profile

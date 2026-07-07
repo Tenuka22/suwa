@@ -8,7 +8,7 @@ export const markSessionAttendedRoute = protectedProcedure
   .input(z.object({ sessionId: z.string().min(1) }))
   .handler(async ({ context, input }) => {
     const { userId, auth } = requireAuth(context);
-    const role = auth.user?.role;
+    const role = auth.sessionClaims?.metadata?.role;
 
     const [session] = await context.db
       .select()

@@ -19,17 +19,7 @@ import {
   SidebarMenuSubItem,
 } from "@suwa/ui/components/sidebar";
 
-export type AdminSidebarRoute =
-  | "/"
-  | "/admin"
-  | "/admin/doctor/requests"
-  | "/doctor"
-  | "/doctor/profile"
-  | "/doctor/verification"
-  | "/doctor/hub"
-  | "/doctor/payments"
-  | "/doctor/availability"
-  | "/doctor/plans";
+export type AdminSidebarRoute = "/" | "/admin" | "/admin/doctor/requests";
 
 export type AdminSidebarNavItem = {
   icon: LucideIcon;
