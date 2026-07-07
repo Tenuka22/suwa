@@ -1,4 +1,4 @@
-import { createDb, doctorSessions } from "@suwa/db";
+import { createDb, doctorSessions, doctorProfiles, doctorCashoutRequests } from "@suwa/db";
 import { env } from "@suwa/env/server";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -47,7 +47,28 @@ polarApp.post(
         .where(eq(doctorSessions.id, sessionId));
     },
     onPayload: async (payload) => {
-      console.log("[polar:webhook]", (payload as any).type ?? "unknown");
+      const type = (payload as any).type;
+      console.log("[polar:webhook]", type ?? "unknown");
+
+      // Handle custom events not explicitly typed in Webhooks handler
+      if (type === "transfer.created" || type === "transfer.updated") {
+        const data = (payload as any).data;
+        const status = data?.status; // pending, paid, canceled
+        const transferId = data?.id;
+        
+        if (transferId && status) {
+          const db = createDb();
+          let newStatus = status === "paid" ? "completed" : status === "canceled" ? "failed" : "pending";
+          
+          await db
+            .update(doctorCashoutRequests)
+            .set({ 
+              status: newStatus,
+              updatedAt: new Date().toISOString()
+            })
+            .where(eq(doctorCashoutRequests.polarTransferId, transferId));
+        }
+      }
     },
   })
 );

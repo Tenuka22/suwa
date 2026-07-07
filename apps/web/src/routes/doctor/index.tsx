@@ -41,7 +41,7 @@ function DoctorHub() {
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link to="/doctor/hub">
+              <Link to="/doctor/hub" className="flex items-center gap-2">
                 Open hub
                 <ArrowRight className="size-4" />
               </Link>
@@ -59,7 +59,7 @@ function DoctorHub() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
-              <Link to="/doctor/payments">
+              <Link to="/doctor/payments" className="flex items-center gap-2">
                 Open payments
                 <ArrowRight className="size-4" />
               </Link>
@@ -77,7 +77,7 @@ function DoctorHub() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
-              <Link to="/doctor/profile">
+              <Link to="/doctor/profile" className="flex items-center gap-2">
                 Edit profile
                 <ArrowRight className="size-4" />
               </Link>
@@ -95,7 +95,7 @@ function DoctorHub() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
-              <Link to="/doctor/availability">
+              <Link to="/doctor/availability" className="flex items-center gap-2">
                 Manage availability
                 <ArrowRight className="size-4" />
               </Link>
@@ -113,7 +113,7 @@ function DoctorHub() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
-              <Link to="/doctor/plans">
+              <Link to="/doctor/plans" className="flex items-center gap-2">
                 Manage plans
                 <ArrowRight className="size-4" />
               </Link>

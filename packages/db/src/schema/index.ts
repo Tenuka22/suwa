@@ -34,6 +34,8 @@ export const doctorProfiles = sqliteTable("doctor_profiles", {
   education: text("education"),
   permanent: integer("permanent", { mode: "boolean" }).notNull().default(false),
   faceEmbeddingKvKey: text("face_embedding_kv_key"),
+  polarAccountId: text("polar_account_id"),
+  payoutInfo: text("payout_info"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
