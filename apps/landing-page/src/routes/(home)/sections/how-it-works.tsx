@@ -1,6 +1,6 @@
 import { ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
 import { Appear } from "../animations/appear";
-import { SectionHeading } from "../helpers/section-heading";
+import { SectionKicker } from "../helpers/section-heading";
 
 const steps = [
   {
@@ -34,11 +34,25 @@ export function HowItWorks() {
         id="how-it-works"
       >
         <div className="page-shell">
-          <SectionHeading
-            description="No public waiting room. No pressure to explain yourself before you are ready. Just a quieter path into care."
-            eyebrow="A safer first step"
-            title="Getting help should not feel exposing."
-          />
+          <div className="mx-auto mb-[48px] max-w-[700px] text-center">
+            <SectionKicker className="text-[12px]">A safer first step</SectionKicker>
+            <div className="relative mx-auto mt-[14px] mb-[18px] inline-block">
+              <div
+                aria-hidden="true"
+                className="absolute -top-[24px] left-[-18px] z-0 size-[80px] rounded-full bg-accent/10 max-md:size-[56px]"
+              />
+              <h2 className="relative z-[1] font-normal font-serif text-[clamp(32px,4vw,48px)] leading-[1.08] tracking-[-0.04em]">
+                Getting help should
+                <br />
+                <span className="text-accent">not feel exposing.</span>
+              </h2>
+            </div>
+            <p className="mx-auto max-w-[540px] text-[14px] text-foreground-muted leading-[1.75]">
+              No public waiting room. No pressure to explain yourself before you
+              are ready. Just a quieter path into care.
+            </p>
+          </div>
+
           <div className="flex flex-row flex-wrap gap-8 items-center justify-center">
             {steps.map(({ description, icon: Icon, number, title }) => (
               <article

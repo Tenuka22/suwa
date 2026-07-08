@@ -5,18 +5,19 @@ interface WordmarkProps extends ComponentProps<"a"> {
 }
 
 export function Wordmark({
-  size = "default",
   className = "",
   ...props
 }: WordmarkProps) {
   return (
     <a
-      className={`font-serif leading-none tracking-[-0.045em] ${
-        size === "footer" ? "text-[40px]" : "text-[51px]"
-      } ${className}`}
+      className={`block leading-none ${className}`}
       {...props}
     >
-      Suwa
+      <img
+        alt="Suwa"
+        className="h-[34px] w-auto max-sm:h-[26px]"
+        src="/logo.png"
+      />
     </a>
   );
 }

@@ -12,55 +12,25 @@ import { Services } from "./sections/services";
 import { Team } from "./sections/team";
 import { Testimonials } from "./sections/testimonials";
 import { TrustStrip } from "./sections/trust-strip";
-import { WaysToConnect } from "./sections/ways-to-connect";
 
 export function LandingPage() {
   return (
     <div className="overflow-hidden bg-background px-4 sm:px-6 lg:px-8">
       <Navbar />
       <main>
-        <Appear>
-          <Hero />
-        </Appear>
-        <Appear delay={0.06}>
-          <TrustStrip />
-        </Appear>
-        <Appear delay={0.15}>
-          <Doctors />
-        </Appear>
-        <Appear delay={0.18}>
-          <ProblemSolution />
-        </Appear>
-        <Appear delay={0.24}>
-          <Services />
-        </Appear>
-        <Appear delay={0.3}>
-          <WaysToConnect />
-        </Appear>
-        <Appear delay={0.36}>
-          <HowItWorks />
-        </Appear>
-        <Appear delay={0.42}>
-          <Testimonials />
-        </Appear>
-        <Appear delay={0.48}>
-          <Faq />
-        </Appear>
-
-        <Appear delay={0.12}>
-          <ProofBar />
-        </Appear>
-
-        <Appear delay={0.52}>
-          <Team />
-        </Appear>
-        <Appear delay={0.58}>
-          <ClosingCallout />
-        </Appear>
+        <Appear><Hero /></Appear>
+        <Appear><TrustStrip /></Appear>
+        <Appear><Doctors /></Appear>
+        <Appear><ProblemSolution /></Appear>
+        <Appear><Services /></Appear>
+        <Appear><HowItWorks /></Appear>
+        <Appear><Testimonials /></Appear>
+        <Appear><Faq /></Appear>
+        <Appear><ProofBar /></Appear>
+        <Appear><Team /></Appear>
+        <Appear><ClosingCallout /></Appear>
       </main>
-      <Appear delay={0.66}>
-        <Footer />
-      </Appear>
+      <Footer />
     </div>
   );
 }
