@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
 import {
   Bell,
   BookOpen,
@@ -45,11 +45,11 @@ import { useMaterialThumbnail } from "@/utils/material-thumbnail";
 import { useSpeechToText } from "@/utils/use-speech-to-text";
 
 const moodStops = [
-  { icon: "weather-night", label: "Tired", mood: "sleep", intensity: 1 },
-  { icon: "emoticon-sad-outline", label: "Low", mood: "sad", intensity: 2 },
-  { icon: "emoticon-neutral-outline", label: "Okay", mood: "idle", intensity: 3 },
-  { icon: "emoticon-happy-outline", label: "Good", mood: "happy", intensity: 4 },
-  { icon: "emoticon-excited-outline", label: "Great", mood: "happy", intensity: 5 },
+  { icon: "weather-night", label: "😴", mood: "sleep", intensity: 1 },
+  { icon: "emoticon-sad-outline", label: "😟", mood: "sad", intensity: 2 },
+  { icon: "emoticon-neutral-outline", label: "😐", mood: "idle", intensity: 3 },
+  { icon: "emoticon-happy-outline", label: "😊", mood: "happy", intensity: 4 },
+  { icon: "emoticon-excited-outline", label: "🤩", mood: "happy", intensity: 5 },
 ] as const;
 
 type MoodIntensity = (typeof moodStops)[number]["intensity"];
@@ -90,21 +90,15 @@ function MoodButtons({
   onChange: (value: number) => void;
   onCommit: (mood: MoodValue) => void;
 }) {
-  const activeIndex = Math.max(0, Math.min(moodStops.length - 1, value - 1));
-  const active = moodStops[activeIndex];
-
   return (
     <View className="gap-md rounded-[28px] border border-border bg-background-elevated px-xl py-lg shadow-sm">
-      <View className="flex-row items-end justify-between">
-        <View>
-          <Text selectable={false} className="font-serif text-[24px] text-foreground">
-            How are you feeling?
-          </Text>
-          <Text selectable={false} className="font-sans text-caption text-foreground-muted">
-            Tap a mood to choose your check-in
-          </Text>
-        </View>
-        <MaterialCommunityIcons color="#315b4d" name={active.icon} size={30} />
+      <View>
+        <Text selectable={false} className="font-serif text-[24px] text-foreground">
+          How are you feeling?
+        </Text>
+        <Text selectable={false} className="font-sans text-caption text-foreground-muted">
+          Tap a mood to choose your check-in
+        </Text>
       </View>
       <ToggleGroup
         className="w-full"
@@ -464,15 +458,6 @@ export default function HomeScreen() {
                 iconBackground="bg-tint-purple"
                 onPress={() => router.push("/(patient)/health-hub")}
                 title="Wellness tools"
-              />
-            </View>
-            <View className="flex-row gap-md">
-              <FeatureCard
-                description="You are in control"
-                icon={<ShieldCheck color="#c3af5a" size={23} />}
-                iconBackground="bg-tint-yellow"
-                onPress={() => router.push("/(patient)/profile")}
-                title="Privacy center"
               />
             </View>
           </View>

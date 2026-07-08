@@ -25,9 +25,27 @@ type WorkerEnv = {
   MODEL_FEATURES_KV: KVNamespace;
   SEED_ASSETS_DIR: string;
   SEED_FILE_SERVER_URL?: string;
+  INGEST_RATE_LIMIT: {
+    limit(options: { key: string }): Promise<{ success: boolean }>;
+  };
+  AUTH_RATE_LIMIT: {
+    limit(options: { key: string }): Promise<{ success: boolean }>;
+  };
 };
 
 type HonoBindings = { Bindings: WorkerEnv };
+
+async function checkRateLimit(
+  c: any,
+  limiter: { limit(options: { key: string }): Promise<{ success: boolean }> },
+  key: string
+): Promise<Response | null> {
+  const { success } = await limiter.limit({ key });
+  if (!success) {
+    return c.json({ error: "Too many requests" }, 429);
+  }
+  return null;
+}
 
 const app = new Hono<HonoBindings>();
 
@@ -42,9 +60,12 @@ app.use(
   })
 );
 
-app.on(["POST", "GET"], "/api/auth/*", (c) =>
-  createAuth().handler(c.req.raw)
-);
+app.on(["POST", "GET"], "/api/auth/*", async (c) => {
+  const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+  const limitResult = await checkRateLimit(c, c.env.AUTH_RATE_LIMIT, `auth:${ip}`);
+  if (limitResult) return limitResult;
+  return createAuth().handler(c.req.raw);
+});
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
@@ -105,6 +126,10 @@ app.get(
 );
 
 app.post("/api/iot/ingest", async (c) => {
+  const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+  const limitResult = await checkRateLimit(c, c.env.INGEST_RATE_LIMIT, `ingest:${ip}`);
+  if (limitResult) return limitResult;
+
   try {
     const { userEmail, deviceId, samples } = await c.req.json<{
       userEmail: string;

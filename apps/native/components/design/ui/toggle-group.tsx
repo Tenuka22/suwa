@@ -97,7 +97,7 @@ export function ToggleGroup<T extends string | number>({
             style={isMultiRow ? { width: `${100 / numColumns!}%` } : undefined}
           >
             <Text
-              className={`font-poppins-medium text-sm ${isActive ? "text-primary" : "text-foreground-muted"}`}
+              className={`font-poppins-medium text-xl ${isActive ? "text-primary" : "text-foreground-muted"}`}
             >
               {item.label}
             </Text>

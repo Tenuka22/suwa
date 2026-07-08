@@ -7,6 +7,7 @@ import {
   D1Database,
   KVNamespace,
   R2Bucket,
+  RateLimit,
   TanStackStart,
   Website,
   Worker,
@@ -57,6 +58,24 @@ const faceVideosBucket = await R2Bucket("face-videos", {
 
 const aiBinding = Ai();
 
+const ingestRateLimit = RateLimit({
+  name: "suwa-ingest-rate-limit",
+  namespace_id: 1001,
+  simple: {
+    limit: 30,
+    period: 60,
+  },
+});
+
+const authRateLimit = RateLimit({
+  name: "suwa-auth-rate-limit",
+  namespace_id: 1002,
+  simple: {
+    limit: 10,
+    period: 60,
+  },
+});
+
 const seedAssetsDir = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../apps/server/src/seed-assets"
@@ -100,6 +119,8 @@ export const server = await Worker("server", {
     FACE_VIDEOS_BUCKET: faceVideosBucket,
     AI: aiBinding,
     CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
+    INGEST_RATE_LIMIT: ingestRateLimit,
+    AUTH_RATE_LIMIT: authRateLimit,
     UPSTASH_REDIS_REST_URL:
       // redis.endpoint,
       "https://pure-goat-80264.upstash.io",
