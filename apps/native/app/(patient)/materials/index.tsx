@@ -88,7 +88,7 @@ export default function MaterialsScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:materials:index") }} />
 
-      <View className="flex-1 gap-lg px-lg pt-16">
+      <View className="mx-auto w-full max-w-3xl flex-1 gap-lg px-lg pt-16">
         <View className="flex-row items-center justify-between">
           <Text className="font-serif text-hero text-primary">Videos</Text>
         </View>

@@ -209,7 +209,7 @@ export default function HealthHubScreen() {
       <View className="flex-1 bg-background">
         <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:health-hub") }} />
         <Screen
-          contentClassName="flex-1 gap-lg pt-10 px-lg bg-background"
+          contentClassName="mx-auto w-full max-w-3xl flex-1 gap-lg pt-10 px-lg bg-background"
           scrollClassName="flex-1 bg-background"
         >
           {/* Header */}

@@ -215,7 +215,7 @@ export default function ProfileScreen() {
   return (
     <PatientTabScaffold activeTab="profile">
       <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:profile") }} />
-      <View className="flex-1 gap-xxl bg-background px-lg pt-12 pb-xl">
+      <View className="mx-auto w-full max-w-3xl flex-1 gap-xxl bg-background px-lg pt-12 pb-xl">
         <View className="relative overflow-hidden rounded-[32px] bg-primary px-xl py-xxl">
           <View className="absolute -top-10 -right-8 h-36 w-36 rounded-full bg-accent/25" />
           <View className="gap-md">

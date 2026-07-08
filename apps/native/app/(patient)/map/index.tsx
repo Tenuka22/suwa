@@ -348,7 +348,7 @@ export default function MapScreen() {
         visible={!!clinicInfoTenantId}
       >
         <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[82%] rounded-t-[32px] bg-background pb-8">
+          <View className="mx-auto w-full max-w-3xl max-h-[50vh] rounded-t-[32px] bg-background pb-8">
             <View className="mt-sm h-1.5 w-12 self-center rounded-full bg-border" />
             <View className="flex-row items-center justify-between px-6 pt-4 pb-2">
               <Text className="font-serif text-title text-foreground flex-1 mr-4" numberOfLines={1}>
@@ -494,7 +494,7 @@ export default function MapScreen() {
         visible={!!doctorDetailId}
       >
         <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[85%] rounded-t-[32px] bg-background pb-8">
+          <View className="mx-auto w-full max-w-3xl max-h-[50vh] rounded-t-[32px] bg-background pb-8">
             <View className="mt-sm h-1.5 w-12 self-center rounded-full bg-border" />
             <View className="flex-row items-center justify-between px-6 pt-12 pb-2">
               <Text className="font-serif text-title text-foreground flex-1 mr-4" numberOfLines={1}>
@@ -789,44 +789,46 @@ export default function MapScreen() {
 
       {/* Floating Header */}
       <View className="absolute top-8 right-lg left-lg">
-        {renderSearchToggle()}
-        <View className="flex-row items-center gap-2">
-          <View className="flex-1">
-            <Input
-              className="py-4 pr-4"
-              inputContainerClassName="rounded-full bg-background-elevated/80 backdrop-blur-[2px]"
-              leftIcon={
-                <MapPin className="text-foreground-placeholder" size={20} />
-              }
-              onChangeText={setSearch}
-              onSubmitEditing={handleSearchSubmit}
-              placeholder={
-                searchMode === "hospitals"
-                  ? "Search hospitals..."
-                  : "Search doctors..."
-              }
-              returnKeyType="search"
-              value={search}
-            />
+        <View className="mx-auto w-full max-w-3xl">
+          {renderSearchToggle()}
+          <View className="flex-row items-center gap-2">
+            <View className="flex-1">
+              <Input
+                className="py-4 pr-4"
+                inputContainerClassName="rounded-full bg-background-elevated/80 backdrop-blur-[2px]"
+                leftIcon={
+                  <MapPin className="text-foreground-placeholder" size={20} />
+                }
+                onChangeText={setSearch}
+                onSubmitEditing={handleSearchSubmit}
+                placeholder={
+                  searchMode === "hospitals"
+                    ? "Search hospitals..."
+                    : "Search doctors..."
+                }
+                returnKeyType="search"
+                value={search}
+              />
+            </View>
+            <Pressable
+              className={`size-16 items-center justify-center rounded-xl border-2 border-input shadow-lg backdrop-blur-[2px] ${isDebouncing ? "bg-foreground/10" : "bg-background-elevated/60"}`}
+              disabled={isDebouncing && listOpen}
+              onPress={handleSearchSubmit}
+            >
+              {isDebouncing && listOpen ? (
+                <ActivityIndicator className="text-foreground" size="small" />
+              ) : (
+                <Search className="text-foreground" size={20} />
+              )}
+            </Pressable>
           </View>
-          <Pressable
-            className={`size-16 items-center justify-center rounded-xl border-2 border-input shadow-lg backdrop-blur-[2px] ${isDebouncing ? "bg-foreground/10" : "bg-background-elevated/60"}`}
-            disabled={isDebouncing && listOpen}
-            onPress={handleSearchSubmit}
-          >
-            {isDebouncing && listOpen ? (
-              <ActivityIndicator className="text-foreground" size="small" />
-            ) : (
-              <Search className="text-foreground" size={20} />
-            )}
-          </Pressable>
         </View>
       </View>
 
       {/* Selected Hospital Card */}
       {selectedHospital && (
         <View className="absolute right-lg bottom-8 left-lg">
-          <View className="rounded-2xl bg-background-elevated/50 p-4 shadow-xl backdrop-blur-[2px]">
+          <View className="mx-auto w-full max-w-3xl rounded-2xl bg-background-elevated/50 p-4 shadow-xl backdrop-blur-[2px]">
             <View className="flex-row items-start justify-between">
               <View className="flex-1 gap-0.5">
                 <Text className="font-serif text-title text-primary">
@@ -942,7 +944,7 @@ export default function MapScreen() {
       {/* Selected Doctor Card */}
       {selectedDoctor && (
         <View className="absolute right-lg bottom-8 left-lg">
-          <View className="gap-md rounded-3xl bg-background-elevated/50 p-lg shadow-xl backdrop-blur-[2px]">
+          <View className="mx-auto w-full max-w-3xl gap-md rounded-3xl bg-background-elevated/50 p-lg shadow-xl backdrop-blur-[2px]">
             <View className="flex-row items-start justify-between">
               <View className="flex-1 gap-xxs">
                 <Text className="font-serif text-primary text-title">
@@ -1021,7 +1023,8 @@ export default function MapScreen() {
 
       {/* Hospital List Panel */}
       {listOpen && searchMode === "hospitals" && (
-        <View className="absolute top-36 right-lg left-lg h-auto max-h-[65%] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
+        <View className="absolute top-36 right-lg left-lg">
+          <View className="mx-auto w-full max-w-3xl h-auto max-h-[50vh] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
           <View className="flex-row items-center justify-between border-border border-b px-4 py-3">
             <Pressable
               className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
@@ -1088,12 +1091,14 @@ export default function MapScreen() {
               </TouchableOpacity>
             )}
           />
+          </View>
         </View>
       )}
 
       {/* Doctor List Panel */}
       {listOpen && searchMode === "doctors" && (
-        <View className="absolute top-36 right-lg left-lg h-auto max-h-[65%] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
+        <View className="absolute top-36 right-lg left-lg">
+          <View className="mx-auto w-full max-w-3xl h-auto max-h-[50vh] rounded-2xl border-2 border-input bg-background-elevated/80 shadow-xl backdrop-blur-[2px]">
           <View className="flex-row items-center justify-between border-border border-b px-4 py-3">
             <Pressable
               className="h-8 w-8 items-center justify-center rounded-full bg-background-subtle"
@@ -1155,6 +1160,7 @@ export default function MapScreen() {
               </TouchableOpacity>
             )}
           />
+          </View>
         </View>
       )}
 

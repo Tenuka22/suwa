@@ -186,7 +186,7 @@ export default function DoctorsScreen() {
         <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:doctors:index") }} />
 
         <Screen
-          contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+          contentClassName="mx-auto w-full max-w-3xl flex-1 gap-xl pt-12 px-lg bg-background"
           scrollClassName="flex-1 bg-background"
         >
           {/* Header */}

@@ -460,7 +460,7 @@ function LandingFrame({
           showsVerticalScrollIndicator={false}
         >
           <Animated.View
-            className="flex-1"
+            className="mx-auto w-full max-w-3xl flex-1"
             entering={enteringAnimation}
             key={transitionKey}
           >

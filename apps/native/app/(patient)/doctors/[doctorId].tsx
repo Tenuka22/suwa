@@ -87,7 +87,7 @@ export default function DoctorProfileScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:doctors:detail") }} />
       <ScrollView
-        contentContainerClassName="gap-xl px-lg pt-12 pb-40"
+        contentContainerClassName="mx-auto w-full max-w-3xl gap-xl px-lg pt-12 pb-40"
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >

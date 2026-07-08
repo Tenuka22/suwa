@@ -348,7 +348,7 @@ export default function HomeScreen() {
   return (
     <PatientTabScaffold activeTab="home">
       <Stack.Screen options={{ animation: "fade", headerShown: false, title: getScreenTitle("native:patient:index") }} />
-      <View className="flex-1 gap-xxl bg-background px-lg pt-12">
+      <View className="mx-auto w-full max-w-3xl flex-1 gap-xxl bg-background px-lg pt-12">
         <Reveal delay={40}>
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center gap-md">
@@ -436,7 +436,7 @@ export default function HomeScreen() {
             </View>
             <Sparkles color="#d78357" size={18} />
           </View>
-          <View className="gap-md">
+          <View className="gap-md md:flex-row">
             <FeatureCard
               description="Chat anonymously"
               icon={<MessageCircle color="#5f7267" size={23} />}
@@ -444,22 +444,20 @@ export default function HomeScreen() {
               onPress={() => router.push("/(patient)/doctors")}
               title="Start a consultation"
             />
-            <View className="flex-row gap-md">
-              <FeatureCard
-                description="Learn and understand"
-                icon={<BookOpen color="#d78357" size={23} />}
-                iconBackground="bg-accent-subtle"
-                onPress={() => router.push("/(patient)/materials")}
-                title="Health library"
-              />
-              <FeatureCard
-                description="Self-care and support"
-                icon={<Flower2 color="#9e8cb2" size={23} />}
-                iconBackground="bg-tint-purple"
-                onPress={() => router.push("/(patient)/health-hub")}
-                title="Wellness tools"
-              />
-            </View>
+            <FeatureCard
+              description="Learn and understand"
+              icon={<BookOpen color="#d78357" size={23} />}
+              iconBackground="bg-accent-subtle"
+              onPress={() => router.push("/(patient)/materials")}
+              title="Health library"
+            />
+            <FeatureCard
+              description="Self-care and support"
+              icon={<Flower2 color="#9e8cb2" size={23} />}
+              iconBackground="bg-tint-purple"
+              onPress={() => router.push("/(patient)/health-hub")}
+              title="Wellness tools"
+            />
           </View>
         </Reveal>
 

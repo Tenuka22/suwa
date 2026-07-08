@@ -192,7 +192,7 @@ export default function AppointmentSessionDetailScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:appointments:detail") }} />
       <Screen
-        contentClassName="flex-1 gap-xl pt-12 px-lg bg-background"
+        contentClassName="mx-auto w-full max-w-3xl flex-1 gap-xl pt-12 px-lg bg-background"
         scrollClassName="flex-1 bg-background"
       >
         {/* Header */}

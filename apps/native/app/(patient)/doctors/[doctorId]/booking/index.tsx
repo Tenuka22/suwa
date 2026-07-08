@@ -478,7 +478,7 @@ export default function BookingScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 gap-xxl bg-background px-lg pt-12 pb-40">
+        <View className="mx-auto w-full max-w-3xl flex-1 gap-xxl bg-background px-lg pt-12 pb-40">
           {/* Header */}
           <View className="flex-row items-center gap-md">
             <Pressable

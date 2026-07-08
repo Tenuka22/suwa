@@ -17,9 +17,8 @@ import {
   VolumeX,
 } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { Input } from "@/components/design/ui/input";
-import { Screen } from "@/components/design/ui/screen";
 import { ScreenBottomBar } from "@/components/design/ui/screen-bottom-bar";
 import { getMediaUrl } from "@/utils/media-url";
 import { orpc } from "@/utils/orpc";
@@ -150,6 +149,22 @@ export default function MaterialDetailScreen() {
 
   const isLiked = likeQuery.data?.liked ?? false;
 
+  function formatDuration(seconds: number | null): string {
+    if (!seconds) return "";
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
+
+  function formatDate(dateStr: string | null): string {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   if (!material) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
@@ -164,12 +179,13 @@ export default function MaterialDetailScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false, title: getScreenTitle("native:patient:materials:detail") }} />
 
-      <Screen
-        contentClassName="flex-1 gap-lg bg-background"
-        scrollClassName="flex-1 bg-background"
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerClassName="gap-lg bg-background pb-32"
+        showsVerticalScrollIndicator={false}
       >
         {/* Video Player */}
-        <View className="bg-black" style={{ aspectRatio: 4 / 3 }}>
+        <View className="bg-neutral-900" style={{ aspectRatio: 16 / 9 }}>
           {videoUri ? (
             isWeb ? (
               <video
@@ -203,30 +219,64 @@ export default function MaterialDetailScreen() {
           )}
         </View>
 
-        {/* Title & Doctor */}
-        <View className="px-lg gap-lg">
-        <View className="gap-xxs">
+        {/* Video info — YouTube style */}
+        <View className="mx-auto w-full max-w-3xl px-lg gap-lg">
+          <View className="flex-row items-center gap-md pt-md">
+            <Pressable
+              className="h-10 w-10 items-center justify-center rounded-full bg-primary-subtle"
+              onPress={() => {
+                if (material.doctorId) {
+                  router.push(`/doctors/${material.doctorId}`);
+                }
+              }}
+            >
+              <Text className="font-poppins-medium text-caption text-primary">
+                {material.doctorName?.[0] ?? "S"}
+              </Text>
+            </Pressable>
+            <Pressable
+              className="flex-1"
+              onPress={() => {
+                if (material.doctorId) {
+                  router.push(`/doctors/${material.doctorId}`);
+                }
+              }}
+            >
+              <Text className="font-sans text-caption text-foreground-secondary">
+                {material.doctorName ?? "Suwa"}
+              </Text>
+              <Text className="font-sans text-micro text-foreground-muted">
+                {formatDuration(material.durationSeconds)} · {formatDate(material.createdAt)}
+              </Text>
+            </Pressable>
+          </View>
+
           <Text className="font-serif text-primary text-title">
             {material.title}
           </Text>
-          {material.doctorName && (
-            <Text className="font-sans text-caption text-foreground-secondary">
-              by {material.doctorName}
+
+          {material.description && (
+            <Text className="font-sans text-body text-foreground-secondary leading-relaxed">
+              {material.description}
             </Text>
           )}
-        </View>
 
-        {/* Description */}
-        {material.description && (
-          <Text className="font-sans text-body text-foreground-secondary leading-relaxed">
-            {material.description}
-          </Text>
-        )}
+          {material.tags && material.tags.length > 0 && (
+            <View className="flex-row flex-wrap gap-1">
+              {material.tags.map((tag: string) => (
+                <View key={tag} className="rounded-full bg-primary-subtle px-3 py-1">
+                  <Text className="font-sans text-micro text-primary">#{tag}</Text>
+                </View>
+              ))}
+            </View>
+          )}
 
-        {/* Comments Header */}
         <View className="flex-row items-center gap-sm">
           <MessageCircle className="text-primary" size={20} />
           <Text className="font-serif text-primary text-title">Comments</Text>
+          <Text className="font-sans text-caption text-foreground-muted">
+            {commentsQuery.data?.length ?? 0}
+          </Text>
         </View>
 
         {/* Comments List */}
@@ -278,7 +328,7 @@ export default function MaterialDetailScreen() {
           </Pressable>
         </View>
         </View>
-      </Screen>
+      </ScrollView>
 
       <ScreenBottomBar
         leftActions={[

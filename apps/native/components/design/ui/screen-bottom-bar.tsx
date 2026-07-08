@@ -39,7 +39,7 @@ export function ScreenBottomBar({
       className="absolute right-0 bottom-0 left-0 border-border/70 border-t bg-background-elevated/20 px-lg pt-sm shadow-lg backdrop-blur-[1px]"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
-      <View className="flex-row items-center justify-between">
+      <View className="mx-auto w-full max-w-3xl flex-row items-center justify-between">
         {hasLeft && (
           <View className="flex-row gap-1 rounded-2xl bg-background-subtle p-1">
             {leftActions.map((action) => (

@@ -35,7 +35,7 @@ export function ScreenTabBar({ children, tabs }: ScreenTabBarProps) {
         className="absolute right-0 bottom-0 left-0 px-lg pt-sm"
         style={{ paddingBottom: Math.max(insets.bottom, 8) }}
       >
-        <View className="flex-row items-center justify-center">
+        <View className="mx-auto w-full max-w-3xl flex-row items-center justify-center">
           <View className="flex-row gap-1 rounded-2xl bg-background-subtle p-1">
             {tabs.map((tab) => (
               <Pressable

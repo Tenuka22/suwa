@@ -46,7 +46,7 @@ export default function HospitalDetailScreen() {
       <Screen>
         <ScrollView
           className="flex-1 px-4 pt-16"
-          contentContainerClassName="gap-6 pb-32"
+          contentContainerClassName="mx-auto w-full max-w-3xl gap-6 pb-32"
         >
           {detailQuery.isPending && (
             <View className="flex-1 items-center justify-center pt-20">
