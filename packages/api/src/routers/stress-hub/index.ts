@@ -1,6 +1,7 @@
 import { acknowledgeDownloadRoute } from "./routes/acknowledge-download";
 import { getStressDataRoute } from "./routes/get-stress-data";
 import { ingestIoTDataRoute } from "./routes/ingest-iot-data";
+import { pollStressEventsRoute } from "./routes/poll-stress-events";
 import { startSimulationRoute } from "./routes/start-simulation";
 import { stopSimulationRoute } from "./routes/stop-simulation";
 
@@ -13,4 +14,5 @@ export const stressHubRouter = {
   startStressSimulation: startSimulationRoute,
   stopStressSimulation: stopSimulationRoute,
   subscribeStressStream: subscribeStressStreamRoute,
+  pollStressEvents: pollStressEventsRoute,
 };
