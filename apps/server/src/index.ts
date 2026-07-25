@@ -222,7 +222,7 @@ app.post("/api/iot/ingest", async (c) => {
       await saveBundle(redis, userId, sanitizedWindowSamples, storedPrediction);
       windowsCompleted++;
 
-      stressPublisher.publish(userId, {
+      await stressPublisher.publish(userId, {
         type: "bundle",
         data: {
           bundleId: `bundle_${Date.now()}_${windowsCompleted}`,
@@ -237,7 +237,7 @@ app.post("/api/iot/ingest", async (c) => {
     const total = buf?.totalSamples ?? 0;
     const buffered = buf?.buffered ?? 0;
 
-    stressPublisher.publish(userId, { type: "progress", buffered, totalSamples: total });
+    await stressPublisher.publish(userId, { type: "progress", buffered, totalSamples: total });
 
     console.log(`[IOT] Ingested ${samples.length} samples for ${userEmail}, buffered=${buffered}, windowsCompleted=${windowsCompleted}`);
 

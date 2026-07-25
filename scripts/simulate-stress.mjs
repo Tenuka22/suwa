@@ -1,4 +1,4 @@
-const SERVER = "http://localhost:3000"; // change to your server's URL+port
+const SERVER = "https://api.suwa.life"; // change to your server's URL+port
 const EMAIL = "tenukaomaljith2009@gmail.com";
 const DEVICE_ID = "suwa_band_01";
 
@@ -49,7 +49,7 @@ async function ingest(windowCount) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userEmail: EMAIL, deviceId: DEVICE_ID, samples }),
   });
-  
+
   console.log(`[SIM] Received status ${res.status}`);
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {

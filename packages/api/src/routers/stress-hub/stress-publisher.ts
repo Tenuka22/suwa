@@ -58,12 +58,14 @@ async function redisCommand<T>(cmd: string[]): Promise<T> {
 }
 
 export const stressPublisher = {
-  publish(userId: string, event: StressStreamEvent): void {
+  async publish(userId: string, event: StressStreamEvent): Promise<void> {
     const key = `${REDIS_EVENTS_KEY_PREFIX}${userId}`;
     const raw = JSON.stringify(event);
-    redisCommand(["RPUSH", key, raw]).catch(() => {});
-    redisCommand(["EXPIRE", key, "60"]).catch(() => {});
-    redisCommand(["LTRIM", key, "-100", "-1"]).catch(() => {});
+    await Promise.allSettled([
+      redisCommand(["RPUSH", key, raw]),
+      redisCommand(["EXPIRE", key, "60"]),
+      redisCommand(["LTRIM", key, "-100", "-1"]),
+    ]);
   },
 
   subscribe(

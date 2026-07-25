@@ -78,7 +78,7 @@ export const ingestIoTDataRoute = protectedProcedure
       await saveBundle(redis, userId, windowSamples, storedPrediction);
       windowsCompleted++;
 
-      stressPublisher.publish(userId, {
+      await stressPublisher.publish(userId, {
         type: "bundle",
         data: {
           bundleId: `bundle_${Date.now()}_${windowsCompleted}`,
@@ -93,7 +93,7 @@ export const ingestIoTDataRoute = protectedProcedure
     const total = buf?.totalSamples ?? 0;
     const buffered = buf?.buffered ?? 0;
 
-    stressPublisher.publish(userId, {
+    await stressPublisher.publish(userId, {
       type: "progress",
       buffered,
       totalSamples: total,
