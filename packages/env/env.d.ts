@@ -16,10 +16,13 @@ interface FallbackEnv {
   LIVEKIT_HOST: string;
   MODEL_FEATURES_KV: KVNamespace;
   STRESS_PREDICTOR_URL: string;
+  STRESS_PREDICTOR_SECRET: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   SVIX_API_TOKEN: string;
   SVIX_APP_ID: string;
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
 }
 
 type CloudflareEnv = FallbackEnv;

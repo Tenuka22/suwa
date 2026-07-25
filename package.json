@@ -47,7 +47,8 @@
     "destroy": "turbo -F @suwa/infra destroy",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "auth": "bunx auth@latest generate --config packages/auth/auth.config.ts --output packages/db/src/schema/auth.ts"
+    "auth": "bunx auth@latest generate --config packages/auth/auth.config.ts --output packages/db/src/schema/auth.ts",
+    "simulate-stress": "node scripts/simulate-stress.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

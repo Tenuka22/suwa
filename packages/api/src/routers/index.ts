@@ -36,7 +36,11 @@ export const appRouter = {
   ai: aiRouter,
 };
 
-export const wsAppRouter = {};
+export const wsAppRouter = {
+  ...stressHubRouter,
+};
 
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
+export type WsAppRouter = typeof wsAppRouter;
+export type WsAppRouterClient = RouterClient<WsAppRouter>;

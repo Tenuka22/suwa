@@ -4,7 +4,6 @@ import { authClient } from "@/utils/better-auth";
 import { useMutation } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
-import { env } from "@suwa/env/native";
 import {
   Activity,
   BarChart3,
@@ -12,11 +11,12 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Screen } from "@/components/design/ui/screen";
 import { orpc } from "@/utils/orpc";
+import { subscribeStressStreamSSE } from "@/utils/stress-stream";
 import {
   CLASS_COLORS,
   CLASS_LABELS,
@@ -41,8 +41,6 @@ export default function HealthHubScreen() {
   const [bufferedSamples, setBufferedSamples] = useState(0);
   const [iconPressed, setIconPressed] = useState(false);
 
-  const cancelRef = useRef<(() => Promise<void>) | null>(null);
-
   const acknowledgeMutation = useMutation(
     orpc.acknowledgeStressDownload.mutationOptions()
   );
@@ -63,6 +61,7 @@ export default function HealthHubScreen() {
     let isCancelled = false;
 
     function handleStressEvent(data: unknown) {
+      console.log("[HEALTH-HUB] Received event:", JSON.stringify(data));
       if (!data || typeof data !== "object" || !("type" in data)) {
         return;
       }
@@ -110,55 +109,22 @@ export default function HealthHubScreen() {
       }
     }
 
+    const controller = new AbortController();
+
     async function subscribe() {
       try {
         setStreamLoading(true);
-        const controller = new AbortController();
-        cancelRef.current = async () => {
-          controller.abort();
-        };
 
-        const cookie = Platform.OS === "web" ? null : authClient.getCookie();
-        const response = await fetch(`${env.EXPO_PUBLIC_SERVER_URL}/api/iot/stress-stream`, {
-          headers: cookie ? { Cookie: cookie } : undefined,
-          credentials: Platform.OS === "web" ? "include" : undefined,
+        const iterator = await subscribeStressStreamSSE({
           signal: controller.signal,
         });
 
-        if (!response.ok || !response.body) {
-          setStreamLoading(false);
-          return;
+        for await (const event of iterator) {
+          if (isCancelled) break;
+          handleStressEvent(event);
         }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (!isCancelled) {
-          const { value, done } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const chunks = buffer.split("\n\n");
-          buffer = chunks.pop() ?? "";
-
-          for (const chunk of chunks) {
-            const dataLine = chunk
-              .split("\n")
-              .find((line) => line.startsWith("data: "));
-            if (!dataLine) continue;
-
-            try {
-              handleStressEvent(JSON.parse(dataLine.slice(6)));
-            } catch {
-              // Ignore malformed stream events and keep the stream alive.
-            }
-          }
-        }
-      } catch (error) {
-        if ((error as { name?: string })?.name === "AbortError") {
-          return;
-        }
+      } catch (error: any) {
+        console.error("[HEALTH-HUB] Subscription error:", error?.message ?? error?.toString?.() ?? error);
         if (!isCancelled) {
           setStreamLoading(false);
         }
@@ -169,8 +135,7 @@ export default function HealthHubScreen() {
 
     return () => {
       isCancelled = true;
-      cancelRef.current?.();
-      cancelRef.current = null;
+      controller.abort();
     };
   }, [userId]);
 

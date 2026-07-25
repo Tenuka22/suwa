@@ -1,9 +1,8 @@
-"use client";
-
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
+import { RPCLink as WsRPCLink } from "@orpc/client/websocket";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
-import type { AppRouterClient } from "@suwa/api/routers/index";
+import type { AppRouterClient, WsAppRouterClient } from "@suwa/api/routers/index";
 import { env } from "@suwa/env/native";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 
@@ -49,3 +48,27 @@ export const _client: AppRouterClient = createORPCClient(_link);
 export { _client as client };
 
 export const orpc = createTanstackQueryUtils(_client);
+
+const baseUrl = env.EXPO_PUBLIC_SERVER_URL.replace(/\/$/, "");
+const wsUrl = baseUrl.startsWith("https://")
+  ? baseUrl.replace("https://", "wss://")
+  : baseUrl.replace("http://", "ws://");
+
+function createWebSocket(): WebSocket {
+  const url = `${wsUrl}/api/ws`;
+
+  if (isWeb()) {
+    return new WebSocket(url);
+  }
+
+  const cookies = authClient.getCookie();
+  return cookies
+    ? new WebSocket(url, undefined, { headers: { Cookie: cookies } })
+    : new WebSocket(url);
+}
+
+const wsLink = new WsRPCLink({
+  websocket: createWebSocket(),
+});
+
+export const orpcWs: WsAppRouterClient = createORPCClient(wsLink);

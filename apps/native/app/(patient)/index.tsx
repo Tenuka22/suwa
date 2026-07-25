@@ -101,7 +101,7 @@ function MoodButtons({
         </Text>
       </View>
       <ToggleGroup
-        className="w-full"
+        className="w-full text-3xl"
         items={moodItems}
         onValueChange={(selectedIntensity: MoodIntensity) => {
           const selectedMood = moodStops.find(
@@ -115,6 +115,7 @@ function MoodButtons({
           onChange(selectedIntensity);
           onCommit(selectedMood);
         }}
+        textClassName="text-3xl"
         value={value}
       />
     </View>

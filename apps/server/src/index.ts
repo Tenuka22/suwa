@@ -16,6 +16,8 @@ import { Hono } from "hono";
 import { upgradeWebSocket } from "hono/cloudflare-workers";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { seedDatabase } from "./seed";
+import { unseedDatabase } from "./unseed";
 import webhookApp from "./webhooks";
 
 type WorkerEnv = {
@@ -106,19 +108,30 @@ export const wsRpcHandler = new WebSocketRPCHandler(wsAppRouter, {
 app.route("/", webhookApp);
 
 app.get(
-  "/rpc-ws",
+  "/api/ws",
   upgradeWebSocket(async (c) => {
     const context = await createContext({ context: c });
+    const user = context.auth.user;
+
+    if (user) {
+      console.log(`[WS] User connected: ${user.email} (${user.id})`);
+    } else {
+      console.log(`[WS] Anonymous WebSocket connection (not authenticated)`);
+    }
 
     return {
       onMessage(event, ws) {
         if (ws.raw) {
-          wsRpcHandler.message(ws.raw, event.data, { context });
+          try {
+            wsRpcHandler.message(ws.raw, event.data, { context });
+          } catch (err) {
+            console.error("[WS] Error handling message:", err);
+          }
         }
       },
       onClose(_event, ws) {
         if (ws.raw) {
-          wsRpcHandler.close(ws.raw);
+          try { wsRpcHandler.close(ws.raw); } catch {}
         }
       },
     };
@@ -313,7 +326,8 @@ app.use("/*", async (c, next) => {
   if (
     requestPath.startsWith("/materials/") ||
     requestPath.startsWith("/media/") ||
-    requestPath.startsWith("/images/")
+    requestPath.startsWith("/images/") ||
+    requestPath.startsWith("/api/iot/")
   ) {
     await next();
     return;
@@ -437,6 +451,36 @@ async function serveMedia(c: any) {
 
 app.get("/media/:key{.+}", serveMedia);
 app.get("/images/:key{.+}", serveMedia);
+
+app.get("/api/seed", async (c) => {
+  try {
+    const { createDb: makeDb } = await import("@suwa/db");
+    const db = makeDb();
+    const { FILE_STORAGE_BUCKET } = c.env as Pick<WorkerEnv, "FILE_STORAGE_BUCKET">;
+    const result = await seedDatabase({ db, FILE_STORAGE_BUCKET });
+    return c.json({ success: true, ...result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("already seeded")) {
+      return c.json({ success: false, error: message }, 409);
+    }
+    console.error("[SEED] Error:", error);
+    return c.json({ success: false, error: message }, 500);
+  }
+});
+
+app.get("/api/unseed", async (c) => {
+  try {
+    const { createDb: makeDb } = await import("@suwa/db");
+    const db = makeDb();
+    const result = await unseedDatabase({ db });
+    return c.json({ success: true, ...result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[UNSEED] Error:", error);
+    return c.json({ success: false, error: message }, 500);
+  }
+});
 
 app.get("/", (c) => c.text("OK"));
 

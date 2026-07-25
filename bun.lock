@@ -173,6 +173,7 @@
         "@suwa/auth": "workspace:*",
         "@suwa/db": "workspace:*",
         "@suwa/env": "workspace:*",
+        "@suwa/pricing": "workspace:*",
         "bcryptjs": "^3.0.3",
         "dotenv": "catalog:",
         "drizzle-orm": "^0.45.2",
