@@ -7,7 +7,7 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { RedisSampleStore } from "@suwa/api/routers/stress-hub/redis-sample-store";
 import { getBundles, getRedis, runPrediction, saveBundle, stressPublisher } from "@suwa/api/routers/stress-hub/simulation";
 import { persistPrediction } from "@suwa/api/routers/stress-hub/persist-prediction";
-import type { RawSample } from "@suwa/api/routers/stress-hub/stress-publisher";
+import type { RawSample, StressStreamEvent } from "@suwa/api/routers/stress-hub/stress-publisher";
 import { createAuth } from "@suwa/auth";
 import { createContext } from "@suwa/api/context";
 import { appRouter, wsAppRouter } from "@suwa/api/routers/index";
@@ -319,6 +319,33 @@ app.get("/api/iot/stress-stream", async (c) => {
       Connection: "keep-alive",
     },
   });
+});
+
+app.get("/api/iot/stress-events", async (c) => {
+  const context = await createContext({ context: c });
+  const userId = context.auth.userId;
+
+  if (!userId) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const redis = getRedis();
+  const key = `stress:events:${userId}`;
+  const events: StressStreamEvent[] = [];
+
+  let raw = await redis.lrange(key, 0, -1);
+  if (raw.length > 0) {
+    await redis.del(key);
+    for (const entry of raw) {
+      try {
+        events.push(JSON.parse(entry) as StressStreamEvent);
+      } catch {
+        // skip malformed
+      }
+    }
+  }
+
+  return c.json({ events });
 });
 
 app.use("/*", async (c, next) => {

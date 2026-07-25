@@ -41,92 +41,36 @@ function parseSSEData(raw: string): StressStreamEvent | null {
 export async function subscribeStressStreamSSE(
   options: { signal?: AbortSignal } = {}
 ): Promise<AsyncGenerator<StressStreamEvent>> {
-  const url = `${getBaseUrl()}/api/iot/stress-stream`;
+  const baseUrl = getBaseUrl();
 
   if (isWeb()) {
-    return webEventSource(url, options.signal);
+    return webPollEvents(`${baseUrl}/api/iot/stress-events`, options.signal);
   }
 
-  return nativeFetchStream(url, options.signal);
+  return nativeFetchStream(`${baseUrl}/api/iot/stress-stream`, options.signal);
 }
 
-async function* webEventSource(
+async function* webPollEvents(
   url: string,
   signal?: AbortSignal
 ): AsyncGenerator<StressStreamEvent> {
-  const ES = (globalThis as any).EventSource as typeof EventSource | undefined;
-  if (!ES) {
-    throw new Error("EventSource is not available in this environment");
-  }
+  const POLL_INTERVAL_MS = 2000;
 
-  const eventQueue: StressStreamEvent[] = [];
-  let resolveEvent: ((value: IteratorResult<StressStreamEvent>) => void) | null = null;
-  let eventSource: EventSource | null = null;
-
-  function connect() {
-    if (eventSource) {
-      eventSource.close();
-    }
-    eventSource = new ES(url, { withCredentials: true });
-
-    eventSource.onmessage = (event: MessageEvent) => {
-      const parsed = parseSSEData(`data: ${event.data}`);
-      if (!parsed) return;
-
-      if (resolveEvent) {
-        const res = resolveEvent;
-        resolveEvent = null;
-        res({ value: parsed, done: false });
-      } else {
-        eventQueue.push(parsed);
+  while (!signal?.aborted) {
+    try {
+      const response = await fetch(url, { signal });
+      if (!response.ok) {
+        throw new Error(`Poll failed: ${response.status}`);
       }
-    };
-
-    eventSource.onerror = () => {
-      // EventSource auto-reconnects — wake up any pending consumer
-      // so it can continue waiting for new messages
-      if (resolveEvent) {
-        const res = resolveEvent;
-        resolveEvent = null;
-        res({ value: undefined as any, done: false });
+      const data = (await response.json()) as { events: StressStreamEvent[] };
+      for (const event of data.events) {
+        if (signal?.aborted) return;
+        yield event;
       }
-    };
-  }
-
-  connect();
-
-  const abortHandler = () => {
-    if (eventSource) {
-      eventSource.close();
+    } catch {
+      if (signal?.aborted) return;
     }
-    if (resolveEvent) {
-      const res = resolveEvent;
-      resolveEvent = null;
-      res({ value: undefined as any, done: true });
-    }
-  };
-
-  signal?.addEventListener("abort", abortHandler, { once: true });
-
-  try {
-    while (!signal?.aborted) {
-      if (eventQueue.length > 0) {
-        yield eventQueue.shift()!;
-      } else {
-        const result = await new Promise<IteratorResult<StressStreamEvent>>((resolve) => {
-          resolveEvent = resolve;
-        });
-        if (result.done) break;
-        if (result.value) {
-          yield result.value;
-        }
-      }
-    }
-  } finally {
-    if (eventSource) {
-      eventSource.close();
-    }
-    signal?.removeEventListener("abort", abortHandler);
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 }
 
