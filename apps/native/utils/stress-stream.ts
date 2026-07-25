@@ -1,7 +1,5 @@
 import { env } from "@suwa/env/native";
-import { Platform } from "react-native";
 import { authClient } from "@/utils/better-auth";
-import { client } from "@/utils/orpc";
 
 import type { StressBundle } from "@/utils/stress-storage";
 
@@ -22,10 +20,6 @@ export type StressStreamEvent =
       totalSamples: number;
     };
 
-function isWeb(): boolean {
-  return Platform.OS === "web";
-}
-
 function getBaseUrl(): string {
   return env.EXPO_PUBLIC_SERVER_URL.replace(/\/$/, "");
 }
@@ -42,33 +36,10 @@ function parseSSEData(raw: string): StressStreamEvent | null {
 export async function subscribeStressStreamSSE(
   options: { signal?: AbortSignal } = {}
 ): Promise<AsyncGenerator<StressStreamEvent>> {
-  if (isWeb()) {
-    return webPollEvents(options.signal);
-  }
-
   return nativeFetchStream(
     `${getBaseUrl()}/api/iot/stress-stream`,
     options.signal
   );
-}
-
-async function* webPollEvents(
-  signal?: AbortSignal
-): AsyncGenerator<StressStreamEvent> {
-  const POLL_INTERVAL_MS = 2000;
-
-  while (!signal?.aborted) {
-    try {
-      const { events } = await client.pollStressEvents.query();
-      for (const event of events) {
-        if (signal?.aborted) return;
-        yield event;
-      }
-    } catch {
-      if (signal?.aborted) return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-  }
 }
 
 async function* nativeFetchStream(

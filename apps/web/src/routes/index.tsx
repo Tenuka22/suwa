@@ -133,7 +133,7 @@ function DoctorLanding() {
       </section>
 
       {/* Features */}
-      <section className="border-t bg-muted/50 py-20">
+      <section id="features" className="border-t bg-muted/50 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-12 text-center">
             <h2 className="font-bold text-3xl tracking-tight">
@@ -164,7 +164,7 @@ function DoctorLanding() {
       </section>
 
       {/* How it works */}
-      <section className="py-20">
+      <section id="how-it-works" className="py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-12 text-center">
             <h2 className="font-bold text-3xl tracking-tight">How it works</h2>
@@ -187,7 +187,7 @@ function DoctorLanding() {
       </section>
 
       {/* Why Doca */}
-      <section className="border-t bg-muted/50 py-20">
+      <section id="why-doca" className="border-t bg-muted/50 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-12 text-center">
             <h2 className="font-bold text-3xl tracking-tight">Why Doca</h2>

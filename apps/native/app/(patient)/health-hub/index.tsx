@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "@/utils/better-auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { getScreenTitle } from "@suwa/app-info";
 import {
@@ -11,8 +11,8 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { PatientTabScaffold } from "@/components/design/patient-tab-scaffold";
 import { Screen } from "@/components/design/ui/screen";
 import { orpc } from "@/utils/orpc";
@@ -31,6 +31,8 @@ import {
   type StressBundle,
 } from "@/utils/stress-storage";
 
+const isWeb = Platform.OS === "web";
+
 export default function HealthHubScreen() {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
@@ -45,86 +47,104 @@ export default function HealthHubScreen() {
     orpc.acknowledgeStressDownload.mutationOptions()
   );
 
+  const hasLoadedFromStorageRef = useRef(false);
+
   useEffect(() => {
-    if (!userId) {
+    if (!userId || hasLoadedFromStorageRef.current) return;
+    hasLoadedFromStorageRef.current = true;
+    const stored = getBundles(userId);
+    if (stored.length > 0) {
+      setBundles(stored);
+      setTotalSamples(stored.length * 360);
+    }
+  }, [userId]);
+
+  function handleStressEvent(data: unknown, uid: string) {
+    if (!data || typeof data !== "object" || !("type" in data)) return;
+
+    if (data.type === "state") {
+      const stateData = data as {
+        type: "state";
+        bundles: StressBundle[];
+        totalSamples: number;
+        buffered: number;
+      };
+      if (getBundles(uid).length === 0 && stateData.bundles.length > 0) {
+        appendBundles(uid, stateData.bundles);
+      }
+      const stored = getBundles(uid);
+      setBundles(stored);
+      setBufferedSamples(stateData.buffered);
+      setTotalSamples(
+        stored.length > 0 ? stored.length * 360 : stateData.totalSamples
+      );
+      setStreamLoading(false);
       return;
     }
 
-    const uid: string = userId;
-    const mmkvBundles = getBundles(uid);
-
-    if (mmkvBundles.length > 0) {
-      setBundles(mmkvBundles);
-      setTotalSamples(mmkvBundles.length * 360);
+    if (data.type === "bundle") {
+      const eventData = data as { type: "bundle"; data: StressBundle };
+      appendBundles(uid, [eventData.data]);
+      const stored = getBundles(uid);
+      setBundles(stored);
+      setTotalSamples(stored.length * 360);
+      setBufferedSamples(0);
+      setStreamLoading(false);
+      return;
     }
+
+    if (data.type === "progress") {
+      const pData = data as {
+        type: "progress";
+        buffered: number;
+        totalSamples: number;
+      };
+      setBufferedSamples(pData.buffered);
+      setTotalSamples(pData.totalSamples);
+      setStreamLoading(false);
+    }
+  }
+
+  const { data: pollData } = useQuery(
+    orpc.pollStressEvents.queryOptions({
+      enabled: isWeb && !!userId,
+      refetchInterval: 2000,
+    })
+  );
+
+  useEffect(() => {
+    if (!pollData?.events || !userId) return;
+    const uid: string = userId;
+    for (const event of pollData.events) {
+      if (typeof event === "object" && event !== null && "type" in event) {
+        handleStressEvent(event, uid);
+      }
+    }
+  }, [pollData, userId]);
+
+  useEffect(() => {
+    if (isWeb || !userId) return;
 
     let isCancelled = false;
-
-    function handleStressEvent(data: unknown) {
-      console.log("[HEALTH-HUB] Received event:", JSON.stringify(data));
-      if (!data || typeof data !== "object" || !("type" in data)) {
-        return;
-      }
-
-      if (data.type === "state") {
-        const stateData = data as {
-          type: "state";
-          bundles: StressBundle[];
-          totalSamples: number;
-          buffered: number;
-        };
-        if (mmkvBundles.length === 0 && stateData.bundles.length > 0) {
-          appendBundles(uid, stateData.bundles);
-        }
-        const stored = getBundles(uid);
-        setBundles(stored);
-        setBufferedSamples(stateData.buffered);
-        setTotalSamples(
-          stored.length > 0 ? stored.length * 360 : stateData.totalSamples
-        );
-        setStreamLoading(false);
-        return;
-      }
-
-      if (data.type === "bundle") {
-        const eventData = data as { type: "bundle"; data: StressBundle };
-        appendBundles(uid, [eventData.data]);
-        const stored = getBundles(uid);
-        setBundles(stored);
-        setTotalSamples(stored.length * 360);
-        setBufferedSamples(0);
-        setStreamLoading(false);
-        return;
-      }
-
-      if (data.type === "progress") {
-        const pData = data as {
-          type: "progress";
-          buffered: number;
-          totalSamples: number;
-        };
-        setBufferedSamples(pData.buffered);
-        setTotalSamples(pData.totalSamples);
-        setStreamLoading(false);
-      }
-    }
-
     const controller = new AbortController();
+
+    const uid: string = userId;
 
     async function subscribe() {
       try {
         setStreamLoading(true);
-
         const iterator = await subscribeStressStreamSSE({
           signal: controller.signal,
         });
-
         for await (const event of iterator) {
           if (isCancelled) break;
-          handleStressEvent(event);
+          handleStressEvent(event, uid);
         }
       } catch (error: any) {
-        console.error("[HEALTH-HUB] Subscription error:", error?.message ?? error?.toString?.() ?? error);
+        console.error(
+          "[HEALTH-HUB] Subscription error:",
+          error?.message ?? error?.toString?.() ?? error
+        );
         if (!isCancelled) {
           setStreamLoading(false);
         }
