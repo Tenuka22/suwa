@@ -59,36 +59,46 @@ async function* webEventSource(
     throw new Error("EventSource is not available in this environment");
   }
 
-  const eventSource = new ES(url, { withCredentials: true });
-
   const eventQueue: StressStreamEvent[] = [];
   let resolveEvent: ((value: IteratorResult<StressStreamEvent>) => void) | null = null;
-  let rejected = false;
+  let eventSource: EventSource | null = null;
 
-  eventSource.onmessage = (event: MessageEvent) => {
-    const parsed = parseSSEData(`data: ${event.data}`);
-    if (!parsed) return;
-
-    if (resolveEvent) {
-      const res = resolveEvent;
-      resolveEvent = null;
-      res({ value: parsed, done: false });
-    } else {
-      eventQueue.push(parsed);
+  function connect() {
+    if (eventSource) {
+      eventSource.close();
     }
-  };
+    eventSource = new ES(url, { withCredentials: true });
 
-  eventSource.onerror = () => {
-    if (resolveEvent) {
-      const res = resolveEvent;
-      resolveEvent = null;
-      res({ value: undefined as any, done: true });
-    }
-    rejected = true;
-  };
+    eventSource.onmessage = (event: MessageEvent) => {
+      const parsed = parseSSEData(`data: ${event.data}`);
+      if (!parsed) return;
+
+      if (resolveEvent) {
+        const res = resolveEvent;
+        resolveEvent = null;
+        res({ value: parsed, done: false });
+      } else {
+        eventQueue.push(parsed);
+      }
+    };
+
+    eventSource.onerror = () => {
+      // EventSource auto-reconnects — wake up any pending consumer
+      // so it can continue waiting for new messages
+      if (resolveEvent) {
+        const res = resolveEvent;
+        resolveEvent = null;
+        res({ value: undefined as any, done: false });
+      }
+    };
+  }
+
+  connect();
 
   const abortHandler = () => {
-    eventSource.close();
+    if (eventSource) {
+      eventSource.close();
+    }
     if (resolveEvent) {
       const res = resolveEvent;
       resolveEvent = null;
@@ -99,7 +109,7 @@ async function* webEventSource(
   signal?.addEventListener("abort", abortHandler, { once: true });
 
   try {
-    while (!signal?.aborted && !rejected) {
+    while (!signal?.aborted) {
       if (eventQueue.length > 0) {
         yield eventQueue.shift()!;
       } else {
@@ -107,11 +117,15 @@ async function* webEventSource(
           resolveEvent = resolve;
         });
         if (result.done) break;
-        yield result.value;
+        if (result.value) {
+          yield result.value;
+        }
       }
     }
   } finally {
-    eventSource.close();
+    if (eventSource) {
+      eventSource.close();
+    }
     signal?.removeEventListener("abort", abortHandler);
   }
 }
