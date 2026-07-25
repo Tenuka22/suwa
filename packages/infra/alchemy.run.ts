@@ -62,7 +62,7 @@ const ingestRateLimit = RateLimit({
   name: "suwa-ingest-rate-limit",
   namespace_id: 1001,
   simple: {
-    limit: 30,
+    limit: 120,
     period: 60,
   },
 });
