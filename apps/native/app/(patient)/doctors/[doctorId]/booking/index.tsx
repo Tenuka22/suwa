@@ -330,7 +330,10 @@ export default function BookingScreen() {
     })
   );
   const doctor = doctorQuery.data?.profile;
-  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(doctorQuery.data?.portrait ?? null);
+  const portraitSource = doctorQuery.data?.portraitKey
+    ? { fileKey: doctorQuery.data.portraitKey }
+    : doctorQuery.data?.portrait ?? null;
+  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(portraitSource);
   const plans = plansQuery.data?.plans ?? [];
 
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);

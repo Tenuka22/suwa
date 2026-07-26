@@ -43,6 +43,13 @@
       "when": 1783440000000,
       "tag": "0005_stripe_connect",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1785070835372,
+      "tag": "0006_free_wither",
+      "breakpoints": true
     }
   ]
 }

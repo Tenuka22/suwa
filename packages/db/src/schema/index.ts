@@ -38,6 +38,7 @@ export const doctorProfiles = sqliteTable("doctor_profiles", {
     mode: "boolean",
   }).default(false),
   faceEmbeddingKvKey: text("face_embedding_kv_key"),
+  portraitKey: text("portrait_key"),
   payoutInfo: text("payout_info"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),

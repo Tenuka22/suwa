@@ -52,7 +52,10 @@ export default function DoctorProfileScreen() {
     })
   );
   const profile = doctorQuery.data?.profile;
-  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(doctorQuery.data?.portrait ?? null);
+  const portraitSource = doctorQuery.data?.portraitKey
+    ? { fileKey: doctorQuery.data.portraitKey }
+    : doctorQuery.data?.portrait ?? null;
+  const portraitPreviewUrl = useDoctorMaterialPreviewUrl(portraitSource);
   const { isSaved, toggleSave } = useIsDoctorSaved(id ?? "");
   const yearsOfExperience = useMemo(
     () => getYearsOfExperience(profile?.experienceStartYear ?? null),

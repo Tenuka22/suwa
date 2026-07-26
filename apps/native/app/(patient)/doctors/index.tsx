@@ -124,7 +124,10 @@ export default function DoctorsScreen() {
   }: {
     doc: NonNullable<typeof doctorsQuery.data>["doctors"][number];
   }) {
-    const portraitPreviewUrl = useDoctorMaterialPreviewUrl(doc.portrait ?? null);
+    const portraitSource = doc.portraitKey
+      ? { fileKey: doc.portraitKey }
+      : doc.portrait ?? null;
+    const portraitPreviewUrl = useDoctorMaterialPreviewUrl(portraitSource);
 
     return (
       <Card

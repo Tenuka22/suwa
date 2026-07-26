@@ -153,7 +153,7 @@ export const deleteDoctorPlanSchema = z.object({
 });
 
 export const createDoctorFileSchema = z.object({
-  doctorId: z.string().min(1),
+  doctorId: z.string().min(1).optional(),
   fileKind: doctorFileKindSchema,
   caption: z.string().trim().max(280).optional(),
   file: z.file(),
@@ -221,6 +221,7 @@ export const doctorProfileInputSchema = z.object({
     emptyToUndefined,
     z.string().trim().max(500).optional()
   ),
-  approachSteps: z.array(doctorApproachStepSchema).max(12).optional(),
-  educationEntries: z.array(doctorEducationEntrySchema).max(12).optional(),
-});
+   approachSteps: z.array(doctorApproachStepSchema).max(12).optional(),
+   educationEntries: z.array(doctorEducationEntrySchema).max(12).optional(),
+   portraitKey: z.string().optional(),
+ });

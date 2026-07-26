@@ -11,6 +11,7 @@ import {
   MapPin,
   ScanFaceIcon,
   Stethoscope,
+  Upload,
   UserCircle,
   Video,
 } from "lucide-react";
@@ -84,18 +85,19 @@ const focusAreaOptions = [
 ] as const;
 
 const formSchema = z.object({
-  displayName: z.string().min(1, "Full name is required"),
-  headline: z.string(),
-  bio: z.string(),
-  licenseNumber: z.string(),
-  experienceStartYear: z.string(),
-  location: z.string(),
-  specialties: z.array(z.string()).min(1, "Select at least one specialty"),
-  languages: z.array(z.string()),
-  consultationModes: z.array(z.string()),
-  focusAreas: z.array(z.string()),
-  approach: z.string(),
-});
+   displayName: z.string().min(1, "Full name is required"),
+   headline: z.string(),
+   bio: z.string(),
+   licenseNumber: z.string(),
+   experienceStartYear: z.string(),
+   location: z.string(),
+   specialties: z.array(z.string()).min(1, "Select at least one specialty"),
+   languages: z.array(z.string()),
+   consultationModes: z.array(z.string()),
+   focusAreas: z.array(z.string()),
+   approach: z.string(),
+   portraitKey: z.string().optional(),
+ });
 
 type FormValues = z.infer<typeof formSchema>;
 type FormFieldRender<Name extends FieldPath<FormValues>> = {
@@ -155,17 +157,110 @@ function CheckboxGroup({
 }
 
 function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+   return name
+     .split(" ")
+     .filter(Boolean)
+     .map((n) => n[0])
+     .join("")
+     .toUpperCase()
+     .slice(0, 2);
+ }
 
-function ProfilePreview({ values, hasFaceEmbedding }: { values: FormValues; hasFaceEmbedding: boolean }) {
-  const initials = getInitials(values?.displayName ?? "");
+ function PortraitUpload({
+   value,
+   onUploaded,
+ }: {
+   value: string | undefined;
+   onUploaded: (key: string) => void;
+ }) {
+   const [uploading, setUploading] = useState(false);
+   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+   const fileInputRef = useRef<HTMLInputElement>(null);
+
+   useEffect(() => {
+     if (value) {
+       const { VITE_SERVER_URL } = import.meta.env;
+       setPreviewUrl(`${VITE_SERVER_URL}/media/${encodeURIComponent(value)}`);
+     } else {
+       setPreviewUrl(null);
+     }
+   }, [value]);
+
+   async function handleFileSelect(file: File) {
+     setUploading(true);
+     try {
+        const result = await client.createDoctorFile({
+          fileKind: "portrait",
+          file,
+        });
+       onUploaded(result.fileKey);
+       toast.success("Portrait uploaded");
+     } catch (err) {
+       toast.error(err instanceof Error ? err.message : "Failed to upload portrait");
+     } finally {
+       setUploading(false);
+     }
+   }
+
+   return (
+     <div className="flex items-center gap-4">
+       <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-muted">
+         {previewUrl ? (
+           <img
+             className="size-16 rounded-full object-cover"
+             src={previewUrl}
+             alt="Portrait preview"
+           />
+         ) : (
+           <UserCircle className="size-8 text-muted-foreground" />
+         )}
+       </div>
+       <div className="flex flex-col gap-2">
+         <input
+           ref={fileInputRef}
+           type="file"
+           accept="image/*"
+           className="hidden"
+           onChange={(e) => {
+             const file = e.target.files?.[0];
+             if (file) handleFileSelect(file);
+           }}
+         />
+         <Button
+           variant="outline"
+           size="sm"
+           disabled={uploading}
+           onClick={() => fileInputRef.current?.click()}
+         >
+           <Upload className="size-4" />
+           {uploading ? "Uploading..." : "Upload portrait"}
+         </Button>
+         {value ? (
+           <Button
+             variant="ghost"
+             size="sm"
+             onClick={() => {
+               onUploaded("");
+             }}
+           >
+             Remove
+           </Button>
+         ) : null}
+       </div>
+     </div>
+   );
+ }
+
+function ProfilePreview({
+   values,
+   hasFaceEmbedding,
+   portraitKey,
+ }: {
+   values: FormValues;
+   hasFaceEmbedding: boolean;
+   portraitKey?: string;
+ }) {
+   const initials = getInitials(values?.displayName ?? "");
   const experienceYears = values?.experienceStartYear
     ? new Date().getFullYear() - parseInt(values.experienceStartYear)
     : null;
@@ -201,12 +296,20 @@ function ProfilePreview({ values, hasFaceEmbedding }: { values: FormValues; hasF
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-background p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-background font-semibold text-lg text-primary shadow-sm ring-1 ring-primary/15">
-              {initials || "?"}
-            </div>
-            <div className="min-w-0">
+         <div className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-background p-4">
+           <div className="flex items-center gap-3">
+             <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-background font-semibold text-lg text-primary shadow-sm ring-1 ring-primary/15 overflow-hidden">
+               {portraitKey ? (
+                 <img
+                   className="size-full rounded-full object-cover"
+                   src={`${import.meta.env.VITE_SERVER_URL}/media/${encodeURIComponent(portraitKey)}`}
+                   alt="Portrait"
+                 />
+               ) : (
+                 initials || "?"
+               )}
+             </div>
+             <div className="min-w-0">
               <p className="truncate font-medium">
                 {values?.displayName || (
                   <span className="text-muted-foreground/50 italic">Your Name</span>
@@ -400,19 +503,20 @@ function DoctorProfile() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      displayName: "",
-      headline: "",
-      bio: "",
-      licenseNumber: "",
-      experienceStartYear: "",
-      location: "",
-      specialties: [],
-      languages: [],
-      consultationModes: [],
-      focusAreas: [],
-      approach: "",
-    },
+   defaultValues: {
+     displayName: "",
+     headline: "",
+     bio: "",
+     licenseNumber: "",
+     experienceStartYear: "",
+     location: "",
+     specialties: [],
+     languages: [],
+     consultationModes: [],
+     focusAreas: [],
+     approach: "",
+     portraitKey: "",
+   },
   });
 
   const formValues = form.watch();
@@ -423,21 +527,22 @@ function DoctorProfile() {
         const result = await client.doctorProfile();
         const p = result.profile;
         if (p) {
-          form.reset({
-            displayName: p.displayName ?? "",
-            headline: p.headline ?? "",
-            bio: p.bio ?? "",
-            licenseNumber: p.licenseNumber ?? "",
-            experienceStartYear: p.experienceStartYear
-              ? String(p.experienceStartYear)
-              : "",
-            location: p.location ?? "",
-            specialties: p.specialties ?? [],
-            languages: p.languages ?? [],
-            consultationModes: p.consultationModes ?? [],
-            focusAreas: p.focusAreas ?? [],
-            approach: p.approach ?? "",
-          });
+           form.reset({
+             displayName: p.displayName ?? "",
+             headline: p.headline ?? "",
+             bio: p.bio ?? "",
+             licenseNumber: p.licenseNumber ?? "",
+             experienceStartYear: p.experienceStartYear
+               ? String(p.experienceStartYear)
+               : "",
+             location: p.location ?? "",
+             specialties: p.specialties ?? [],
+             languages: p.languages ?? [],
+             consultationModes: p.consultationModes ?? [],
+             focusAreas: p.focusAreas ?? [],
+             approach: p.approach ?? "",
+             portraitKey: p.portraitKey ?? "",
+           });
           setHasFaceEmbedding(p.hasFaceEmbedding);
 
           if (p.hasFaceEmbedding) {
@@ -483,32 +588,34 @@ function DoctorProfile() {
     setFaceDialogOpen(false);
   };
 
-  const handleSaveProfile = async () => {
-    setSaving(true);
-    try {
-      const data = form.getValues();
-      const input: Record<string, unknown> = {};
-      if (data.displayName) input.displayName = data.displayName;
-      if (data.headline) input.headline = data.headline;
-      if (data.bio) input.bio = data.bio;
-      if (data.licenseNumber) input.licenseNumber = data.licenseNumber;
-      if (data.location) input.location = data.location;
-      if (data.experienceStartYear)
-        input.experienceStartYear = parseInt(data.experienceStartYear);
-      if (data.specialties.length > 0) input.specialties = data.specialties;
-      if (data.languages.length > 0) input.languages = data.languages;
-      if (data.consultationModes.length > 0) input.consultationModes = data.consultationModes;
-      if (data.focusAreas.length > 0) input.focusAreas = data.focusAreas;
-      if (data.approach) input.approach = data.approach;
+   const handleSaveProfile = async () => {
+     setSaving(true);
+     try {
+       const data = form.getValues();
+       const input: Record<string, unknown> = {};
+       if (data.displayName) input.displayName = data.displayName;
+       if (data.headline) input.headline = data.headline;
+       if (data.bio) input.bio = data.bio;
+       if (data.licenseNumber) input.licenseNumber = data.licenseNumber;
+       if (data.location) input.location = data.location;
+       if (data.experienceStartYear)
+         input.experienceStartYear = parseInt(data.experienceStartYear);
+       if (data.specialties.length > 0) input.specialties = data.specialties;
+       if (data.languages.length > 0) input.languages = data.languages;
+       if (data.consultationModes.length > 0)
+         input.consultationModes = data.consultationModes;
+       if (data.focusAreas.length > 0) input.focusAreas = data.focusAreas;
+       if (data.approach) input.approach = data.approach;
+       if (data.portraitKey) input.portraitKey = data.portraitKey;
 
-      await client.saveDoctorProfile(input);
-      toast.success("Profile saved successfully");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save profile");
-    } finally {
-      setSaving(false);
-    }
-  };
+       await client.saveDoctorProfile(input);
+       toast.success("Profile saved successfully");
+     } catch (err) {
+       toast.error(err instanceof Error ? err.message : "Failed to save profile");
+     } finally {
+       setSaving(false);
+     }
+   };
 
   useEffect(() => {
     if (!faceVideoData) {
@@ -543,10 +650,32 @@ function DoctorProfile() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex flex-col gap-6 lg:col-span-2">
-            <Form {...form}>
-              <Card>
+         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+           <div className="flex flex-col gap-6 lg:col-span-2">
+             <Card>
+               <CardHeader>
+                 <div className="flex items-center gap-2">
+                   <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                     <Camera className="size-4" />
+                   </div>
+                   <CardTitle className="text-base">Profile Photo</CardTitle>
+                 </div>
+                 <CardDescription>
+                   Upload a portrait photo for your profile
+                 </CardDescription>
+               </CardHeader>
+               <CardContent>
+                 <PortraitUpload
+                   value={formValues.portraitKey}
+                   onUploaded={(key) => {
+                     form.setValue("portraitKey", key, { shouldDirty: true });
+                   }}
+                 />
+               </CardContent>
+             </Card>
+
+             <Form {...form}>
+               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -905,9 +1034,13 @@ function DoctorProfile() {
             </Card>
           </div>
 
-          <div className="hidden lg:block">
-            <ProfilePreview hasFaceEmbedding={hasFaceEmbedding} values={formValues} />
-          </div>
+           <div className="hidden lg:block">
+             <ProfilePreview
+               hasFaceEmbedding={hasFaceEmbedding}
+               values={formValues}
+               portraitKey={formValues.portraitKey}
+             />
+           </div>
         </div>
       </div>
     </div>

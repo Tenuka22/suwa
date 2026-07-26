@@ -1,0 +1,1 @@
+ALTER TABLE `doctor_profiles` ADD `portrait_key` text;

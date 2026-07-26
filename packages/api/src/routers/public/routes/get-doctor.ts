@@ -95,6 +95,7 @@ export const getDoctorRoute = publicProcedure
     return {
       profile: mapDoctorProfile(profile),
       portrait: portrait ?? null,
+      portraitKey: profile.portraitKey ?? null,
       files,
       education,
       weeklyAvailability,

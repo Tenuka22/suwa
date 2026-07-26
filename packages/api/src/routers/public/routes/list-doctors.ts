@@ -114,9 +114,10 @@ export const listDoctorsRoute = publicProcedure
           .from(doctorWeeklyAvailability)
           .where(eq(doctorWeeklyAvailability.doctorId, profile.userId));
 
-        return {
-          profile: mapDoctorProfile(profile),
-          portrait: portrait ?? null,
+         return {
+           profile: mapDoctorProfile(profile),
+           portrait: portrait ?? null,
+           portraitKey: profile.portraitKey ?? null,
           hasAvailability: (availabilityCount?.value ?? 0) > 0,
           affiliations: affiliationsByDoctor[profile.userId] ?? [],
         };

@@ -15,14 +15,14 @@ export const createDoctorFileRoute = protectedProcedure
     const { userId: currentUserId } = requireAuth(context);
 
     const allowed = await canManageDoctorFiles(context.db, currentUserId);
-    if (!allowed || currentUserId !== input.doctorId) {
+    if (!allowed) {
       throw new Error("Forbidden");
     }
 
     const timestamp = new Date().toISOString();
     const createdId = crypto.randomUUID();
     const file = input.file as UploadableFile;
-    const fileKey = `doctor-files/${input.doctorId}/${createdId}-${file.name}`;
+    const fileKey = `doctor-files/${currentUserId}/${createdId}-${file.name}`;
     const thumbnailKey = input.thumbnailDataBase64
       ? `${fileKey}.thumbnail.jpg`
       : null;
@@ -43,7 +43,7 @@ export const createDoctorFileRoute = protectedProcedure
 
     await context.db.insert(doctorFiles).values({
       id: createdId,
-      doctorId: input.doctorId,
+      doctorId: currentUserId,
       fileKey,
       thumbnailKey,
       fileName: file.name,
