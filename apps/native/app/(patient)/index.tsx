@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Film,
   Flower2,
+  Globe,
   HeartPulse,
   MapPin,
   MessageCircle,
@@ -458,6 +459,13 @@ export default function HomeScreen() {
               iconBackground="bg-tint-purple"
               onPress={() => router.push("/(patient)/health-hub")}
               title="Wellness tools"
+            />
+            <FeatureCard
+              description="Chat with everyone anonymously"
+              icon={<Globe color="#5f7267" size={23} />}
+              iconBackground="bg-tint-green"
+              onPress={() => router.push("/(patient)/global-chat")}
+              title="Global Chat"
             />
           </View>
         </Reveal>

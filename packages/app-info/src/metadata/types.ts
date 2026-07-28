@@ -143,7 +143,8 @@ export type NativeRouteKey =
   | "native:patient:map"
   | "native:patient:materials:index"
   | "native:patient:materials:detail"
-  | "native:patient:doctors:booking";
+  | "native:patient:doctors:booking"
+  | "native:patient:global-chat";
 
 export interface RouteMeta {
   key: RouteKey;

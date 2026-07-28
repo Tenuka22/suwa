@@ -4,6 +4,7 @@ import { adminRouter } from "./admin";
 import { aiRouter } from "./ai";
 import { authRouter } from "./auth";
 import { bookingRouter } from "./booking";
+import { chatRoomRouter } from "./chat-room";
 import { doctorRouter } from "./doctor";
 import { doctorFilesRouter } from "./doctor-files";
 import { doctorMaterialsRouter } from "./doctor-materials";
@@ -34,10 +35,12 @@ export const appRouter = {
   ...stressHubRouter,
   ...tenantRouter,
   ai: aiRouter,
+  chatRoom: chatRoomRouter,
 };
 
 export const wsAppRouter = {
   ...stressHubRouter,
+  chatRoom: chatRoomRouter,
 };
 
 export type AppRouter = typeof appRouter;

@@ -3,6 +3,8 @@ import { createDb } from "@suwa/db";
 import { env } from "@suwa/env/server";
 import type { Context as HonoContext } from "hono";
 
+import { UpstashRedis } from "./routers/stress-hub/upstash-redis";
+
 export interface AuthContext {
   userId: string | null;
   session: {
@@ -38,6 +40,7 @@ export interface RequestContext {
   faceVideosBucket: R2Bucket;
   fileStorageBucket: R2Bucket;
   geminiApiKey: string;
+  redis: UpstashRedis;
 }
 
 export interface CreateContextOptions {
@@ -66,6 +69,10 @@ export async function createContext({
     fileStorageBucket: context.env.FILE_STORAGE_BUCKET,
     ai: context.env.AI,
     geminiApiKey: env.GEMINI_API_KEY,
+    redis: new UpstashRedis({
+      url: env.UPSTASH_REDIS_REST_URL,
+      token: env.UPSTASH_REDIS_REST_TOKEN,
+    }),
   };
 }
 

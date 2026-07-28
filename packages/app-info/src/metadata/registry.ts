@@ -620,6 +620,20 @@ export const NATIVE_ROUTES: Record<NativeRouteKey, RouteMeta> = {
       navBarTitle: "Material",
     },
   },
+  "native:patient:global-chat": {
+    key: "native:patient:global-chat",
+    platform: "native",
+    path: "/(patient)/global-chat",
+    seo: baseSeo({
+      title: "Global Chat - Suwa",
+      description: "Anonymous community chat with other Suwa users.",
+      robots: { index: false, follow: false },
+    }),
+    native: {
+      screenTitle: "Global Chat",
+      navBarTitle: "Global Chat",
+    },
+  },
 };
 
 export const ALL_ROUTES: Record<RouteKey, RouteMeta> = {
